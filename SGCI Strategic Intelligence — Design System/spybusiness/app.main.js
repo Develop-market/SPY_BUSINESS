@@ -3258,7 +3258,7 @@ function _stratCharts(d){
         text:"<b>cible "+fmt(cen[3])+"</b>",font:{size:9.5,color:G},
         showarrow:true,arrowhead:3,arrowcolor:G,arrowwidth:1.3,bgcolor:"rgba(255,255,255,.04)"
       }]
-    },{responsive:true,displayModeBar:false});
+    },{responsive:true,displayModeBar:false,staticPlot:_IS_TOUCH});
   });
 }
 
@@ -6221,13 +6221,13 @@ function _renderQ4(data){
     Plotly.react(el,traces,{
       polar:{
         radialaxis:{visible:true,range:[0,10],tickvals:[2,4,6,8,10],
-          tickfont:{size:9,color:'#94A3B8'},gridcolor:'#E2E8F0',linecolor:'#E2E8F0',tickcolor:'#CBD5E1'},
-        angularaxis:{tickfont:{size:13,color:'#374151',family:'Inter,sans-serif'},linecolor:'#E2E8F0'}
+          tickfont:{size:9,color:'#94A3B8'},gridcolor:'#E2E8F0',linecolor:'#E2E8F0',tickcolor:'#CBD5E1',fixedrange:_IS_TOUCH},
+        angularaxis:{tickfont:{size:13,color:'#374151',family:'Inter,sans-serif'},linecolor:'#E2E8F0',fixedrange:_IS_TOUCH}
       },
       paper_bgcolor:'transparent',font:{family:'Inter,sans-serif',size:11,color:'#555'},
       margin:{t:20,b:20,l:28,r:28},
       legend:{font:{size:10,color:'#666'},bgcolor:'transparent',orientation:'h',y:-0.16}
-    },{responsive:true,displayModeBar:false});
+    },{responsive:true,displayModeBar:false,scrollZoom:!_IS_TOUCH,staticPlot:_IS_TOUCH});
   }
   window._vristSelectBank=b=>{
     window._vristBankFilter=b;
@@ -7496,7 +7496,7 @@ async function _renderEvolutionTemporelle(){
       </div>
       <div id="cb-evo-note" style="margin-top:12px"></div>`;
     const _baseLayout={paper_bgcolor:'transparent',plot_bgcolor:'transparent',height:195,
-      font:{family:'Inter,sans-serif',size:11,color:'#888'},xaxis:{tickfont:{size:10.5}}};
+      font:{family:'Inter,sans-serif',size:11,color:'#888'},xaxis:{tickfont:{size:10.5},fixedrange:_IS_TOUCH}};
     if(window.Plotly){
       // Graphe 1 — Rang (échelle 1→7 inversée, # sur l'axe)
       Plotly.newPlot('cb-evo-rang',[
@@ -7505,8 +7505,8 @@ async function _renderEvolutionTemporelle(){
          line:{color:'#FF8C00',width:4},marker:{size:12,color:'#FF8C00'},
          hovertemplate:'%{x} : rang %{text}/'+nb+'<extra></extra>'}
       ],{...structuredClone(_baseLayout),margin:{t:16,b:26,l:34,r:12},showlegend:false,
-        yaxis:{range:[nb+0.6,0.4],dtick:1,tickprefix:'#',tickfont:{size:11},gridcolor:'rgba(150,150,150,.18)',zeroline:false}
-      },{responsive:true,displayModeBar:false});
+        yaxis:{range:[nb+0.6,0.4],dtick:1,tickprefix:'#',tickfont:{size:11},gridcolor:'rgba(150,150,150,.18)',zeroline:false,fixedrange:_IS_TOUCH}
+      },{responsive:true,displayModeBar:false,scrollZoom:!_IS_TOUCH,staticPlot:_IS_TOUCH});
       // Graphe 2 — Gratuité SGCI vs médiane marché (même axe %)
       Plotly.newPlot('cb-evo-grat',[
         {x,y:grat,name:'SGCI',mode:'lines+markers+text',text:grat.map(v=>Math.round(v)+'%'),textposition:'bottom center',cliponaxis:false,
@@ -7517,8 +7517,8 @@ async function _renderEvolutionTemporelle(){
          line:{color:'#94A3B8',width:2.2,dash:'dot'},marker:{size:7,color:'#94A3B8'}}
       ],{...structuredClone(_baseLayout),margin:{t:16,b:38,l:34,r:12},
         legend:{orientation:'h',y:-0.24,font:{size:10.5}},
-        yaxis:{ticksuffix:'%',range:[0,Math.max(...gratM,...grat)*1.35],tickfont:{size:11},gridcolor:'rgba(150,150,150,.18)',zeroline:false}
-      },{responsive:true,displayModeBar:false});
+        yaxis:{ticksuffix:'%',range:[0,Math.max(...gratM,...grat)*1.35],tickfont:{size:11},gridcolor:'rgba(150,150,150,.18)',zeroline:false,fixedrange:_IS_TOUCH}
+      },{responsive:true,displayModeBar:false,scrollZoom:!_IS_TOUCH,staticPlot:_IS_TOUCH});
     }
     // ── Analyse dynamique métier (aide à la décision) ──
     const f=data[0],l=data[data.length-1],dR=f.sgci_rang-l.sgci_rang;

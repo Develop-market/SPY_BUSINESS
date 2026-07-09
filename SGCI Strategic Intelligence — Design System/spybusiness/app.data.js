@@ -283,6 +283,10 @@ async function loadCB(annee=2026, semestre="S1", segment="Particuliers"){
 
 /* ── Theme helpers ─────────────────────────────────────────────────── */
 function pk(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+// Écrans tactiles (mobile/tablette) : le pincer-zoomer sur un graphique Plotly entre en
+// conflit avec le défilement de la page et peut le laisser vide/cassé. On désactive donc
+// le zoom interactif UNIQUEMENT sur tactile — la souris (desktop) garde le zoom habituel.
+const _IS_TOUCH = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
 function baseLayout(extra={}){
   const grid = pk("--plot-grid") || "#26262b";
   const font = pk("--plot-font") || "#9A9AA2";
@@ -290,8 +294,8 @@ function baseLayout(extra={}){
     paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)",
     font:{ family:"Inter, sans-serif", size:11.5, color:font },
     margin:{ l:46, r:16, t:10, b:30 },
-    xaxis:{ gridcolor:grid, zeroline:false, linecolor:grid, tickfont:{ family:"JetBrains Mono" } },
-    yaxis:{ gridcolor:grid, zeroline:false, linecolor:grid, tickfont:{ family:"JetBrains Mono" } },
+    xaxis:{ gridcolor:grid, zeroline:false, linecolor:grid, tickfont:{ family:"JetBrains Mono" }, fixedrange:_IS_TOUCH },
+    yaxis:{ gridcolor:grid, zeroline:false, linecolor:grid, tickfont:{ family:"JetBrains Mono" }, fixedrange:_IS_TOUCH },
     hoverlabel:{
       bgcolor: pk("--bg-raise") || "#1F1F22",
       bordercolor: pk("--line-2") || "rgba(255,255,255,.14)",
@@ -300,7 +304,7 @@ function baseLayout(extra={}){
     showlegend:false, transition:{ duration:400, easing:"cubic-in-out" },
   }, extra);
 }
-const CFG = { displayModeBar:false, responsive:true };
+const CFG = { displayModeBar:false, responsive:true, scrollZoom:!_IS_TOUCH, staticPlot:_IS_TOUCH };
 
 function redGreenScale(values){
   // bas = vert (bon/pas cher), haut = rouge (mauvais/cher)
@@ -480,9 +484,9 @@ function _drawRadarFromData(id, bank, dims) {
       radialaxis:{ visible:true, range:[0,110],
         gridcolor:pk("--plot-grid")||"#26262b",
         tickvals:[25,50,75,100],
-        tickfont:{size:7,color:pk("--faint")||"#5E5E66"} },
+        tickfont:{size:7,color:pk("--faint")||"#5E5E66"}, fixedrange:_IS_TOUCH },
       angularaxis:{ gridcolor:pk("--plot-grid")||"#26262b",
-        tickfont:{size:9,color:pk("--muted")||"#9A9AA2"} },
+        tickfont:{size:9,color:pk("--muted")||"#9A9AA2"}, fixedrange:_IS_TOUCH },
     },
   }), CFG);
 }
