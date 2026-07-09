@@ -1,0 +1,1050 @@
+================================================================================
+  EXTRACTION 3 — pdfminer.six + Docling AI
+  Pipeline  : extraction_3_pdfminer_docling
+  Source    : ETATS_FINANCIERS\ECOBANK\AN3.pdf
+  SHA256    : 0a0d3314f6bea6a92fe1565ac942e109c632d2047de3de7f36509712f0b77d48
+  Timestamp : 2026-05-22T06:54:15
+  Pages     : 12
+  Methode   : pdfminer_native+docling_tables
+  Total chars : 27,531
+================================================================================
+
+[PAGE 1]  [METRICS chars=68 density=0.1357 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+RAPPORT D’ACTIVITES
+Décembre  2025
+        Abidjan, le 14 avril 2026
+
+[PAGE 2]  [METRICS chars=1276 density=2.547 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+En 2025, Ecobank Côte d’Ivoire confirme la solidité de
+son modèle avec une rentabilité renforcée et un résultat
+net de 63 milliards FCFA, en hausse de 10%.
+Sous la présidence de M. Serge THIEMELE,
+réuni
+décembre 2025 .
+    le Conseil d’administration
+        d’Ecobank Côte d’Ivoire,
+        relatifs à l’exercice clos le 31
+le 17 mars 2026 , a examiné puis approuvé
+        les résultats
+SYNTHESE DE LA PERFORMANCE
+En 2025 , Ecobank Côte d’Ivoire confirme la solidité de son modèle en combinant progression
+tout en
+des revenus, maîtrise de l’évolution des charges
+renforçant sa base de ressources et ses fonds propres .
+        et gestion prudente des risques,
+• Performance
+(+8,5 %).
+: résultat net de 63 ,5 milliards FCFA (+10,4 %) et PNB à 132,7 milliards FCFA
+• Efficacité & risque : coefficient d’exploitation à 42 ,9 % (- 205 pb) et coût du risque à 0 ,2 %.
+• Solidité financière : dépôts à 1 626 ,2 milliards FCFA (+15,1 %), crédits à 1 051 milliards FCFA
+(+8,0 %), rendement des capitaux propres à 29,0 % et des actifs à 3,1 %.
+Ecobank Côte d’Ivoire s’inscrit ainsi durablement
+avec une ambition d’innovation et de financement de l’économie,
+pour ses actionnaires .
+        sur une trajectoire de croissance
+        rentable,
+        tout en créant de la valeur
+    2
+
+[PAGE 3]  [METRICS chars=3237 density=6.4613 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+Le tableau ci
+- après résume les principales lignes de la performance :
+        Variation
+        Déc  202 5 / Déc  202 4
+(en millions de FCFA)
+    Déc  202 4
+        Déc  202 5
+            (%)
+            Valeur
+COMPTE DE RESULTAT
+Produit Net Bancaire
+    122 316
+        132 725
+            +8,5%
+            10 409
+Frais Généraux
+    - 54 977
+        -
+        56 931
+            +3,6%
+            - 1954
+Résultat Brut d’Exploitation
+    67 339
+        75 794
+            +12,6%
+            8 455
+Coût du risque
+    -
+    2 935
+        -
+        1 799
+            - 38,7%
+            1136
+Résultat Exceptionnel
+    28
+        32
+            +14,3%
+            4
+Résultat Avant Impôt
+    64 432
+        74 027
+            +14,9%
+            9 595
+Résultat Net
+    57 477
+        63 482
+            +10 ,4%
+            6 005
+BILAN
+Total Bilan
+    2 050 681
+        2 05 4 491
+            +0 ,2%
+            3 810
+Crédits nets à la clientèle
+    972 571
+        1 050 803
+            +8,0 %
+            78 232
+Dépôts de la clientèle
+    1 412 512
+        1 626 223
+            +15,1%
+            213 711
+RATIOS
+Coefficient d'exploitation
+    44,9%
+        42,9%
+Coût net du risque
+    -
+    0,3%
+        -
+        0, 2%
+Rendement des capitaux propres
+    28,8%
+        29,0 %
+Rendement des actifs
+    2,8%
+        3,1%
+Prêts sur les dépôts
+    71,4%
+        66,9%
+    3
+
+[TABLEAUX DOCLING]
+|                                |           |            | Variation   | Variation   |
+|--------------------------------|-----------|------------|-------------|-------------|
+| (en millions de FCFA)          | Déc 202 4 | Déc 202 5  | (%)         | Valeur      |
+| COMPTE DE RESULTAT             |           |            |             |             |
+| Produit Net Bancaire           | 122 316   | 132 725    | +8,5%       | 1 0 409     |
+| Frais Généraux                 | - 54 977  | - 56 931   | +3,6%       | - 1954      |
+| Résultat Brut d'Exploitation   | 67 339    | 75 794     | +12,6%      | 8 455       |
+| Coût du risque                 | - 2 935   | - 1799     | - 38,7%     | 1136        |
+| Résultat Exceptionnel          | 28        | 32         | +14,3%      | 4           |
+| Résultat Avant Impôt           | 64 432    | 74 027     | +14,9%      | 9 595       |
+| Résultat Net                   | 57 477    | 63 482     | +10,4%      | 6 005       |
+| BILAN                          |           |            |             |             |
+| Total Bilan                    | 2 050 681 | 2 05 4 491 | +0,2%       | 3 810       |
+| Crédits nets à la clientèle    | 972 571   | 1 050 803  | +8,0%       | 78 232      |
+| Dépôts de la clientèle         | 1 412 512 | 1626 223   | +15,1%      | 213711      |
+| RATIOS                         |           |            |             |             |
+| Coefficient d'exploitation     | 44,9%     | 42,9%      |             |             |
+| Coût net du risque             | - 0,3%    | - 0,2%     |             |             |
+| Rendement des capitaux propres | 28,8%     | 29,0%      |             |             |
+| Rendement des actifs           | 2,8%      | 3,1%       |             |             |
+| Prêts sur les dépôts           | 71,4%     | 66,9%      |             |             |
+
+[PAGE 4]  [METRICS chars=3969 density=7.9225 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+        du
+        programme
+        poursuite
+        du premier Gender
+        l’émission
+        l’UEMOA
+        de
+        intégralement
+        heures .
+        Sur
+        La
+        Banque
+        a
+        de
+        sensibilisation
+        enjeux
+        d’épargne,
+        et de gestion
+        du patrimoine avec l’organisation
+        de la 8e
+        de
+        salon
+        édition
+        l'Investissement et du Patrimoine (SEIP), qui
+        en
+        a réuni plus de 9 000
+        présentiel
+        de
+        et
+        personnes en ligne .
+        à la
+        Concernant
+        et
+        plateforme
+        des virements avec Wave
+        l’interopérabilité
+        paiements
+        des
+        à
+        contribué
+        ont
+        instantanés
+        au sein
+        de l’UEMOA, tandis que l’offre a été enrichie .
+        affiché sa volonté
+        La Banque a également
+        et
+        de
+        rentabilité
+        économique
+        société
+        impact
+        et
+        son premier
+        l'environnement
+        Rapport RSE en 2025 . Elle a intensifié ses
+        notamment
+        actions
+        en PVC
+        l’émission
+        recyclé et la mise en œuvre de programme
+        du
+        de formation pour
+        et de
+        capital
+        l’inclusion .
+        Cette
+        plusieurs
+        des performances
+        en tant
+        que « Meilleure Banque en Côte d’Ivoire »
+        fournisseur de
+        par Euromoney , « Meilleur
+        financement du commerce en Côte d’Ivoire
+        » par Global Finance et « Société cotée de
+        l’année » lors des BRVM Awards 2026 .
+            ELLEVER
+            Bond
+            et
+            de
+            FCFA,
+            48
+ANALYSE DE LA PERFORMANCE
+FINANCIÈRE
+        10 milliards
+        souscrit
+            de
+            en moins de
+Environnement économique, bancaire et
+réglementaire
+        le plan de l'éducation
+        ses
+        public
+        d’investissement
+            financière,
+            actions
+            aux
+        renforcé
+        du
+Dans un contexte international marqué par
+un ralentissement
+(PIB
+: 3,1% en 2025 après 3,2% en 2024 )
+mondial
+et
+et
+des
+commerciales,
+une
+: 6,7% en
+dynamique
+2025 ) avec une inflation contenue
+(0 % en
+3,5% en 2024 ). La BCEAO a
+2025 après
+prudent de sa
+engagé
+baisse
+politique monétaire,
+taux
+cumulée de 50 points de base des
+2024
+directeurs
+(taux
+: 5,0 % au 16
+principal
+: 3,0 % ; taux marginal
+des
+mars 2026 ), tandis que le coefficient
+à 3%. En
+réserves
+restent
+Côte
+attendue à
+avec une croissance
+favorables
+6,4% en 2025 et 6,7% en 2026 , portée par
+l’investissement
+consommation .
+à 1,3 % en moyenne
+L’inflation a baissé
+annuelle
+et
+extérieurs sont en amélioration .
+de la croissance
+        du
+        de
+            l'Épargne,
+incertitudes
+    géopolitiques
+    conserve
+l’UEMOA
+            participants
+            2,3 millions
+robuste
+(croissance
+        touché
+        l’innovation,
+        de
+        PI- SPI
+            l’intégration
+            BCEAO
+un assouplissement
+            la
+    avec
+    une
+        l’essor
+        et de l’interopérabilité
+depuis
+décembre
+obligatoires
+les
+    demeure
+    perspectives
+        concilier
+d’Ivoire,
+        positif
+        sur
+            la
+        en publiant
+et
+    la
+        en la matière,
+            avec
+            bancaires
+        de
+        cartes
+et
+les équilibres
+    budgétaires
+        le développement
+        la diversité
+        humain,
+        de
+Faits marquants
+de l’année 2025
+        dynamique
+        a été
+        et
+            couronnée
+            reconnaissances
+            de
+        distinctions
+        de la Banque,
+En 2025 , Ecobank Côte d’Ivoire a accéléré
+sa stratégie d’innovation, de transformation
+Responsabilité
+et
+Sociétale
+création de valeur .
+En matière d’inclusion financière,
+a consolidé son engagement
+d’impact,
+avec
+    une
+(RSE)
+intégrée
+    au modèle
+    de
+    la Banque
+    à travers la
+    4
+
+[PAGE 5]  [METRICS chars=2145 density=4.2816 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+        +3,6%
+Performances
+financières
+            56,9
+        55,0
+        44,9%
+▪ Évolution du compte de résultat
+            42,9%
+En 2025 , Ecobank Côte d’Ivoire affiche une
+la
+performance
+progression
+la
+maîtrise des charges et une nette baisse du
+coût du risque .
+par
+du Produit Net Bancaire,
+solide,
+    portée
+        Déc 2024
+            Déc 2025
+        Coefficient
+        d'exploitation
+        Les provisions nettes ressortent à 1,8 milliard
+        rapport à
+        FCFA, en baisse de 38,7 % par
+        traduisant
+        l'exercice
+        l’amélioration
+        du
+        portefeuille .
+de 132,7 milliards
+Le Produit Net Bancaire
+FCFA est en progression de 8,5% en 2025 vs
+par
+2024
+une
+nette
+la marge
+performance
+d’intérêts
+les commissions
+restant stables sur l’exercice .
+        précédent
+        continue
+            de la qualité
+portée
+notamment
+de
+solide
+(+13% vs 2024 ),
+        - 38,7%
+        2,9
+            1,8
++8,5%
+    133
+        Déc 2024
+            Déc 2025
+122
+Déc 2024
+    Déc 2025
+        Au terme de l’exercice
+        à 74,1
+        affiche
+        milliards FCFA (+ 10 milliards vs . 2024 ), en
+        hausse
+        net de 63,5
+        milliards FCFA (+ 6 milliards vs . 2024 ) en
+        hausse de 10,4 % avec des indicateurs de
+        rentabilité en progression et s’établissant
+        à
+        29,0 %
+        3,1% (Rendement
+        et
+        (Rendement
+        propres) . Cette
+        des capitaux
+        performance traduit ainsi
+        modèle de la banque et la dynamique
+        croissance .
+            2025 ,
+            la banque
+        un résultat
+        avant
+            impôts
+Les charges
+56,9
+milliards FCFA (+3,6 % vs 2024 ), sous l’effet
+d’investissements
+le capital
+ciblés
+technologiques
+humain,
+du développement
+et
+commercial
+d’exploitation
+de 205
+ressort à 42,9 %, en amélioration
+le
+vs
+points
+renforcement de l’efficacité opérationnelle .
+d’exploitation
+    atteignent
+        de 15%, un résultat
+    dans
+les infrastructures
+l’accompagnement
+        des
+            actifs)
+. Le coefficient
+            la solidité du
+de
+base
+    2024 ,
+    reflétant
+            de
+    5
+
+[PAGE 6]  [METRICS chars=2247 density=4.4852 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+▪ Évolution du bilan
+        Les capitaux propres de 218,6 milliards FCFA
+        à fin 2025 sont en hausse
+        de 9,6% en
+        glissement annuel . Cette progression illustre
+        et une solidité
+        récurrente
+        une rentabilité
+        financière
+        de la
+        banque à financer l'économie .
+En 2025 , Ecobank
+durable
+une
+la rentabilité
+qualité
+se
+traduit
+discipline
+de dépôts,
+dynamique
+crédits recentré et un renforcement
+des fonds propres .
+    Côte d’Ivoire privilégie
+    fondée
+    la
+    du bilan . Cette
+    par
+    collecte
+    un portefeuille de
+    continu
+croissance
+et
+    sur
+        qui accroît
+            la capacité
+    une
+        Au 31 décembre 2025 , la Banque renforce la
+        solidité financière de son bilan, consolide
+        ratios
+        ses fonds propres et maintient des
+        largement
+        prudentiels
+        des
+        au - dessus
+        réglementaires .
+        exigences
+à la clientèle
+de crédits
+Le portefeuille
+passe
+(1 051
+la barre des 1000 milliards
+milliards FCFA), en hausse de 8 % vs 2024 . La
+à
+banque
+ainsi
+soutenir l’économie et à accompagner
+ses
+clients dans le financement de leurs projets .
+confirme
+    sa
+    capacité
+        Rémunération
+        des actionnaires
+    +8,0 %
+        Lors de la prochaine Assemblée Générale,
+        Conseil
+        d’Ivoire
+        dividende
+        en hausse de 10 % sur un an . Ce dividende
+        de
+        correspond
+        77% du résultat net de l’exercice 2025 et
+        traduit
+        de la
+        à
+        Banque,
+        concilier renforcement des fonds propres et
+        création de valeur durable au bénéfice des
+        actionnaires .
+        le
+        Côte
+        d’un
+        brut de 888 FCFA par action ,
+    1051
+        d’administration
+        le
+        proposera
+            d’Ecobank
+            versement
+973
+Déc 2024
+    Déc 2025
+        à un taux de distribution
+        la robustesse
+            du modèle
+La
+vigoureuse
+1 626,2 milliards FCFA à fin décembre 2025 ,
+en hausse de 15,1% sur un an .
+collecte
+des
+    dépôts
+    avérée
+    2025 atteignant
+    s’est
+        ainsi
+        que
+        son
+            engagement
+sur l’exercice
+    +15,1%
+    1626
+1413
+Déc 2024
+    Déc 2025
+    6
+
+[PAGE 7]  [METRICS chars=1165 density=2.3254 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+Perspectives
+2026
+L’année 2026 débute dans un contexte de
+croissance mondiale modérée (FMI : 3,3 %)
+(tensions
+et
+de
+incertitudes
+commerciales,
+est
+géopolitiques)
+des
+attendue
+la
+de
+contraintes
+dette,
+alimentaire) .
+Particulièrement,
+d’Ivoire devrait
+la Côte
+confirmer son rôle de moteur régional, avec
+la
+une croissance
+des
+demande
+la
+investissements
+mise
+de
+Développement
+risques
+    renforcés
+endettement,
+. En Afrique,
+de
+    la croissance
+autour
+    4 %, malgré
+    (service
+persistantes
+inflation
+du PIB soutenue
+la
+poursuite
+structurants
+Plan National
+    par
+intérieure,
+publics
+du
+    et
+en œuvre
+2026 – 2030 .
+un cadre
+Dans
+à
+réglementaire
+Côte
+une concurrence
+de son plan
+d’Ivoire poursuit
+et
+stratégique
+sur l’innovation,
+Rendement) en s’appuyant
+l’interopérabilité,
+de
+l’expérience client et une gestion prudente
+des risques . La banque réaffirme également
+en matière de durabilité,
+ses engagements
+et
+environnementale
+responsabilité
+et compte demeurer ainsi
+gouvernance,
+la
+de référence .
+banque panafricaine
+cet environnement
+    avec
+plus exigeant,
+accrue,
+l’exécution
+    combinés
+    Ecobank
+(Croissance,
+    Transformation
+    l’amélioration
+    7
+
+[PAGE 8]  [METRICS chars=3146 density=6.2797 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+ANNEXES (1/4)
+        MONTANTS  NETS AUDITES
+        Déc  202 4
+            Déc  202 5
+(en millions de FCFA)
+ACTIF
+CAISSE, BANQUE CENTRALE, CCP
+        170 285
+            82 987
+EFFETS PUBLICS ET VALEURS
+    ASSIMILE ES
+        771 705
+            625 317
+CREANCES INTERBANCAIRES ET
+    ASSIMILE ES
+        33 226
+            79 503
+CREANCES SUR LA CLIENTELE
+        972 571
+            1 050 803
+OBLIGATIONS ET AUTRES TITRES A REVENU FIXE
+        0
+            108 835
+ACTIONS ET AUTRES TITRES A REVENU VARIABLE
+        28 977
+            28 977
+ACTIONNAIRES OU ASSOCIES
+        0
+            0
+AUTRES ACTIFS
+        26 972
+            32 095
+COMPTE DE REGULARISATION
+        13 364
+            12 775
+PARTICIPATION ET AUTRES TITRES DETENUS A LONG TERME
+        3 602
+            3 602
+PART DANS  LES  ENTREPRISES LIEES
+        0
+            0
+PRETS SUBORDONNES
+        0
+            0
+IMMOBILISATIONS INCORPORELLES
+        2 183
+            695
+IMMOBILISATIONS CORPORELLES
+        27 796
+            28 902
+TOTAL DE L’ACTIF
+        2 050 681
+            2  05 4 491
+    8
+
+[TABLEAUX DOCLING]
+|                                                     | MONTANTS NETS AUDITES   | MONTANTS NETS AUDITES   |
+|-----------------------------------------------------|-------------------------|-------------------------|
+| (en millions de FCFA)                               | Déc 202 4               | Déc 202 5               |
+| ACTIF                                               |                         |                         |
+| CAISSE, BANQUE CENTRALE, CCP                        | 170 285                 | 82 987                  |
+| EFFETS PUBLICS ET VALEURS ASSIMILE ES               | 771 705                 | 625 317                 |
+| CREANCES INTERBANCAIRES ET ASSIMILE ES              | 33 226                  | 79 503                  |
+| CREANCES SUR LA CLIENTELE                           | 972 571                 | 1 050 803               |
+| OBLIGATIONS ET AUTRES TITRES A REVENU FIXE          | 0                       | 108 835                 |
+| ACTIONS ET AUTRES TITRES A REVENU VARIABLE          | 28 977                  | 28 977                  |
+| ACTIONNAIRES OU ASSOCIES                            | 0                       | 0                       |
+| AUTRES ACTIFS                                       | 26 972                  | 32 095                  |
+| COMPTE DE REGULARISATION                            | 13 364                  | 12 775                  |
+| PARTICIPATION ET AUTRES TITRES DETENUS A LONG TERME | 3 602                   | 3 602                   |
+| PART DANS LES ENTREPRISES LIEES                     | 0                       | 0                       |
+| PRETS SUBORDONNES                                   | 0                       | 0                       |
+| IMMOBILISATIONS INCORPORELLES                       | 2 183                   | 695                     |
+| IMMOBILISATIONS CORPORELLES                         | 27 796                  | 28 902                  |
+| TOTAL DE L'ACTIF                                    | 2 050 681               | 2 05 4 491              |
+
+[PAGE 9]  [METRICS chars=3192 density=6.3715 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+ANNEXES (2/4)
+        MONTANTS  NETS AUDITES
+        Déc  202 4
+            Déc  202 5
+(en millions de FCFA)
+PASSIF
+BANQUES CENTRALES, CCP
+        0
+            0
+DETTES INTERBANCAIRES ET ASSIMILEES
+        364 742
+            141670
+DETTES A L'EGARD DE LA CLIENTELE
+        1 412 512
+            1 626 223
+DETTES REPRESENTEES PAR UN TITRE
+        0
+            10 522
+AUTRES PASSIFS
+        61 021
+            29 677
+COMPTES DE REGULARISATION
+        9 805
+            24 887
+PROVISIONS
+        3 249
+            2 939
+EMPRUNTS ET TITRES EMIS SUBORDONNES
+        0
+            0
+CAPITAUX PROPRES ET RESSOURCES ASSIMILEES
+        199 352
+            218 573
+    CAPITAL SOUSCRIT
+        27 525
+            27 525
+    PRIMES LIEES AU CAPITAL
+        39 375
+            39 375
+    RESERVES
+        55 155
+            63 776
+    ECARTS DE REEVALUATION
+        0
+            0
+    PROVISION REGLEMENTEES
+        0
+            0
+    REPORT A NOUVEAU (+/-)
+        19 820
+            24 415
+    RESULTAT DE L’EXERCICE (+/-)
+        57 477
+            63 482
+TOTAL DU PASSIF
+        2 050 681
+            2 05 4 491
+    9
+
+[TABLEAUX DOCLING]
+|                                           | MONTANTS NETS AUDITES   | MONTANTS NETS AUDITES   |
+|-------------------------------------------|-------------------------|-------------------------|
+| (en millions de FCFA)                     | Déc 202 4               | Déc 202 5               |
+| PASSIF                                    |                         |                         |
+| BANQUES CENTRALES, CCP                    | 0                       | 0                       |
+| DETTES INTERBANCAIRES ET ASSIMILEES       | 364 742                 | 141670                  |
+| DETTES A L'EGARD DE LA CLIENTELE          | 1 412 512               | 1626 223                |
+| DETTES REPRESENTEES PAR UN TITRE          | 0                       | 10 522                  |
+| AUTRES PASSIFS                            | 61 021                  | 29 677                  |
+| COMPTES DE REGULARISATION                 | 9 805                   | 24 887                  |
+| PROVISIONS                                | 3 249                   | 2 939                   |
+| EMPRUNTS ET TITRES EMIS SUBORDONNES       | 0                       | 0                       |
+| CAPITAUX PROPRES ET RESSOURCES ASSIMILEES | 199 352                 | 218 573                 |
+| CAPITAL SOUSCRIT                          | 27 525                  | 27 525                  |
+| PRIMES LIEES AU CAPITAL                   | 39 375                  | 39 375                  |
+| RESERVES                                  | 55 155                  | 63 776                  |
+| ECARTS DE REEVALUATION                    | 0                       | 0                       |
+| PROVISION REGLEMENTEES                    | 0                       | 0                       |
+| REPORT A NOUVEAU (+/-)                    | 19 820                  | 24 415                  |
+| RESULTAT DE L'EXERCICE (+/ -)             | 57 477                  | 63 482                  |
+| TOTAL DU PASSIF                           | 2 050 681               | 2 05 4 491              |
+
+[PAGE 10]  [METRICS chars=1561 density=3.1159 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+ANNEXES (3/4)
+        MONTANTS  NETS AUDITES
+        Déc  202 4
+            Déc  202 5
+(en millions de FCFA)
+HORS BILAN
+ENGAGEMENTS DONNES
+        225 009
+            161029
+ENGAGEMENTS DE FINANCEMENT
+        0
+            0
+ENGAGEMENT DE GARANTIE
+        225 009
+            161029
+ENGAGEMENT SUR TITRES
+        0
+            0
+ENGAGEMENTS RECUS
+        197 450
+            184 096
+ENGAGEMENTS DE FINANCEMENT
+        0
+            0
+ENGAGEMENT DE GARANTIE
+        197 450
+            184 096
+ENGAGEMENT SUR TITRES
+        0
+            0
+    10
+
+[TABLEAUX DOCLING]
+|                            | MONTANTS NETS AUDITES   | MONTANTS NETS AUDITES   |
+|----------------------------|-------------------------|-------------------------|
+| (en millions de FCFA)      | Déc 202 4               | Déc 202 5               |
+| HORS BILAN                 |                         |                         |
+| ENGAGEMENTS DONNES         | 225 009                 | 161029                  |
+| ENGAGEMENTS DE FINANCEMENT | 0                       | 0                       |
+| ENGAGEMENT DE GARANTIE     | 225 009                 | 161029                  |
+| ENGAGEMENT SUR TITRES      | 0                       | 0                       |
+| ENGAGEMENTS RECUS          | 197 450                 | 184 096                 |
+| ENGAGEMENTS DE FINANCEMENT | 0                       | 0                       |
+| ENGAGEMENT DE GARANTIE     | 197 450                 | 184 096                 |
+| ENGAGEMENT SUR TITRES      | 0                       | 0                       |
+
+[PAGE 11]  [METRICS chars=5249 density=10.4775 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+ANNEXES (4/4)
+        MONTANTS  NETS AUDITES
+        Déc  202 4
+            Déc  202 5
+(en millions de FCFA)
+COMPTE DE RESULTAT
+INTERETS ET PRODUITS ASSIMILES
+        109 474
+            111337
+INTERETS ET CHARGES
+ASSIMILE ES
+        (29 794)
+            (23 290 )
+REVENUS DES TITRES A REVENU VARIABLE
+        159
+            2 209
+COMMISSIONS
+(PRODUITS)
+        34 397
+            32 366
+COMMISSIONS
+(CHARGES)
+        (333)
+            (457 )
+GAINS OU PERTES NETS SUR OPERATIONS DES PORTEFEUILLES DE
+NEGOCIATION
+GAINS OU PERTES NETS SUR OPERATIONS DES PORTEFEUILLES DE
+PLACEMENT ASSIMILES
+        7 209
+            7 086
+        3 912
+            5 147
+AUTRES PRODUITS D'EXPLOITATION BANCAIRE
+        2 906
+            2 693
+AUTRES CHARGES D'EXPLOITATION BANCAIRE
+        (5 614)
+            (4 366 )
+PRODUIT NET BANCAIRE
+        122 316
+            132 725
+SUBVENTIONS D'INVESTISSSEMENT
+        0
+            0
+CHARGES GENERALES D'EXPLOITATION
+        (52 320)
+            (53 746 )
+DOTATION AUX AMORTISSEMENTS ET AUX DEPRECIATIONS DES
+IMMOBILISATIONS INCORPORELLES ET CORPORELLES
+        (2 657)
+            (3 185)
+RESULTAT BRUT D'EXPLOITATION
+        67 339
+            75 794
+COÛT DU RISQUE
+        (2 935)
+            (1 799 )
+RESULTAT D'EXPLOITATION
+        64 404
+            73 995
+GAINS OU PERTES NETS SUR ACTIFS IMMOBILISES
+        28
+            32
+RESULTAT AVANT IMPOT
+        64 432
+            74 027
+IMPÔTS DUR LES BENEFICES
+        (6 955)
+            (10 545 )
+RESULTAT NET
+        57 477
+            63 482
+    11
+
+[TABLEAUX DOCLING]
+|                                                                                                   | MONTANTS NETS AUDITES   | MONTANTS NETS AUDITES   |
+|---------------------------------------------------------------------------------------------------|-------------------------|-------------------------|
+| (en millions de FCFA)                                                                             | Déc 202 4               | Déc 202 5               |
+| COMPTE DE RESULTAT                                                                                |                         |                         |
+| INTERETS ET PRODUITS ASSIMILES                                                                    | 109 474                 | 111337                  |
+| INTERETS ET CHARGES ASSIMILE ES                                                                   | (29 794)                | (23 290 )               |
+| REVENUS DES TITRES A REVENU VARIABLE                                                              | 159                     | 2 209                   |
+| COMMISSIONS (PRODUITS)                                                                            | 34 397                  | 32 366                  |
+| COMMISSIONS (CHARGES)                                                                             | (333)                   | (457 )                  |
+| GAINS OU PERTES NETS SUR OPERATIONS DES PORTEFEUILLES DE NEGOCIATION                              | 7 209                   | 7 086                   |
+| GAINS OU PERTES NETS SUR OPERATIONS DES PORTEFEUILLES DE PLACEMENT ASSIMILES                      | 3 912                   | 5 147                   |
+| AUTRES PRODUITS D'EXPLOITATION BANCAIRE                                                           | 2 906                   | 2 693                   |
+| AUTRES CHARGES D'EXPLOITATION BANCAIRE                                                            | (5 614)                 | (4 366)                 |
+| PRODUIT NET BANCAIRE                                                                              | 122 316                 | 132 725                 |
+| SUBVENTIONS D'INVESTISSSEMENT                                                                     | 0                       | 0                       |
+| CHARGES GENERALES D'EXPLOITATION                                                                  | (52 320)                | (53 746)                |
+| DOTATION AUX AMORTISSEMENTS ET AUX DEPRECIATIONS DES IMMOBILISATIONS INCORPORELLES ET CORPORELLES | (2 657)                 | (3 185)                 |
+| RESULTAT BRUT D'EXPLOITATION                                                                      | 67 339                  | 75 794                  |
+| COÛT DU RISQUE                                                                                    | (2 935)                 | (1799)                  |
+| RESULTAT D'EXPLOITATION                                                                           | 64 404                  | 73 995                  |
+| GAINS OU PERTES NETS SUR ACTIFS IMMOBILISES                                                       | 28                      | 32                      |
+| RESULTAT AVANT IMPOT                                                                              | 64 432                  | 74 027                  |
+| IMPÔTS DUR LES BENEFICES                                                                          | (6 955)                 | (10 545 )               |
+| RESULTAT NET                                                                                      | 57 477                  | 63 482                  |
+
+[PAGE 12]  [METRICS chars=276 density=0.5509 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+Contacts
+        Coriet ADOU
+Emmanuel AMANI
+        Responsable
+        Corporate Communication
+Responsable
+Relations Investisseurs
+        +225 0720573555
++225 0501065400
+        cadou@ecobank
+            .com
+eamani@ecobank
+    .com
+Relations Investisseurs
+irci@ecobank .com

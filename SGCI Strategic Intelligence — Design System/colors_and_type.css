@@ -1,0 +1,439 @@
+/* =========================================================================
+   SGCI Strategic Intelligence — Design Tokens
+   Premium enterprise banking intelligence platform
+   Bloomberg-grade dark mode + executive light mode
+
+   Usage:
+     <link rel="stylesheet" href="colors_and_type.css">
+     <html data-theme="dark"> | <html data-theme="light">
+
+   Dash / Plotly equivalents are documented in README.md.
+   ========================================================================= */
+
+/* ---- Fonts ----
+   Display + UI sans:      Inter Tight  (executive, Bloomberg-ish geometric humanist)
+   Body sans:              Inter
+   Tabular / data / mono:  JetBrains Mono  (preferred) / IBM Plex Mono
+   The codebase uses Geist; Inter Tight is the closest premium-enterprise
+   match available on Google Fonts. Document a substitution in README. */
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+/* =========================================================================
+   1.  BRAND PRIMITIVES
+   ========================================================================= */
+:root {
+  /* Société Générale corporate red — the single most important brand token.
+     #B11226 is the deep brand red used in the in-app sidebar active state.
+     #E4002B is the saturated accent used for KPI iconography + small CTAs. */
+  --sg-red-50:   #FFF1F3;
+  --sg-red-100:  #FFD8DD;
+  --sg-red-200:  #FFAFB9;
+  --sg-red-300:  #F37183;
+  --sg-red-400:  #E94559;
+  --sg-red-500:  #E4002B;   /* SG accent red */
+  --sg-red-600:  #C20A23;
+  --sg-red-700:  #B11226;   /* SG corporate red (primary) */
+  --sg-red-800:  #8A0E1D;
+  --sg-red-900:  #5E0A14;
+  --sg-black:    #0B0B0E;   /* the iconic SG black block */
+  --sg-white:    #FFFFFF;
+
+  /* Neutral slate scale — the executive workhorse.
+     Tuned for premium dark mode (Bloomberg/Palantir feel). */
+  --slate-0:   #FFFFFF;
+  --slate-50:  #F8FAFC;
+  --slate-100: #F1F5F9;
+  --slate-200: #E2E8F0;
+  --slate-300: #CBD5E1;
+  --slate-400: #94A3B8;
+  --slate-500: #64748B;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1E293B;
+  --slate-900: #0F172A;   /* dashboard sidebar in-product */
+  --slate-950: #0A0F1C;
+  --ink:       #05070D;   /* deepest background, just above pure black */
+
+  /* Data-viz palette — high-contrast, color-blind aware, calm.
+     Order is meaningful: chart-1 is the focus series (SG), chart-2..n are peers. */
+  --viz-1: #E4002B;   /* SGCI — always the highlighted series */
+  --viz-2: #38BDF8;   /* sky    — peer A */
+  --viz-3: #34D399;   /* emerald — gains / positive deltas */
+  --viz-4: #FBBF24;   /* amber   — warnings / neutral peer */
+  --viz-5: #A78BFA;   /* violet  — secondary peer */
+  --viz-6: #F472B6;   /* rose    — tertiary peer */
+  --viz-7: #14B8A6;   /* teal    — peer B */
+  --viz-grid:    rgba(148, 163, 184, 0.14);
+  --viz-axis:    rgba(148, 163, 184, 0.55);
+
+  /* Semantic financial tones */
+  --gain:    #22C55E;   /* up tick   */
+  --loss:    #EF4444;   /* down tick */
+  --warn:    #F59E0B;   /* warning   */
+  --info:    #38BDF8;   /* info      */
+  --neutral: #94A3B8;   /* flat      */
+
+  /* Radii — restrained, enterprise-grade */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  /* Spacing scale (4px base) */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:       cubic-bezier(0.7, 0, 0.84, 0);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 320ms;
+
+  /* Type primitives */
+  --font-display: "Inter Tight", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans:    "Inter", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:    "JetBrains Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --tracking-tight:  -0.02em;
+  --tracking-snug:   -0.01em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.04em;
+  --tracking-caps:    0.08em;
+
+  --leading-tight:  1.12;
+  --leading-snug:   1.25;
+  --leading-normal: 1.5;
+  --leading-loose:  1.7;
+}
+
+/* =========================================================================
+   2.  DARK THEME  (default for the platform — executive dark mode)
+   ========================================================================= */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces — layered (Palantir-style elevation) */
+  --bg-0:    var(--ink);          /* app shell */
+  --bg-1:    #0B1220;             /* primary panel */
+  --bg-2:    #111A2C;             /* raised panel / cards */
+  --bg-3:    #182438;             /* hover / popover */
+  --bg-4:    #1F2D45;             /* selected row / active tab */
+  --bg-inset:#070B14;             /* sunk areas: inputs, code blocks */
+
+  /* Foreground / text */
+  --fg-1:    #F8FAFC;             /* primary text */
+  --fg-2:    #CBD5E1;             /* body */
+  --fg-3:    #94A3B8;             /* tertiary / meta */
+  --fg-4:    #64748B;             /* hint / placeholder */
+  --fg-on-primary: #FFFFFF;       /* text on red brand surfaces */
+
+  /* Borders / dividers (very subtle, Bloomberg-grade restraint) */
+  --border-1: rgba(148, 163, 184, 0.12);
+  --border-2: rgba(148, 163, 184, 0.20);
+  --border-strong: rgba(148, 163, 184, 0.35);
+  --divider:  rgba(148, 163, 184, 0.10);
+
+  /* Brand surfaces */
+  --primary:    var(--sg-red-500);          /* default brand fill */
+  --primary-hover: #FF1E45;
+  --primary-press: var(--sg-red-700);
+  --primary-soft: rgba(228, 0, 43, 0.12);   /* tinted backgrounds */
+  --primary-ring: rgba(228, 0, 43, 0.35);
+  --on-primary:   #FFFFFF;
+
+  /* Status surfaces (soft fills on dark) */
+  --gain-soft:  rgba(34, 197, 94, 0.14);
+  --loss-soft:  rgba(239, 68, 68, 0.14);
+  --warn-soft:  rgba(245, 158, 11, 0.14);
+  --info-soft:  rgba(56, 189, 248, 0.14);
+
+  /* Shadows — long, soft, dark-mode tuned. Top edge highlight + ambient drop. */
+  --shadow-1:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 1px 2px rgba(0,0,0,0.5);
+  --shadow-2:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 8px 24px -8px rgba(0,0,0,0.55),
+    0 2px 4px rgba(0,0,0,0.40);
+  --shadow-3:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 24px 60px -20px rgba(0,0,0,0.7),
+    0 6px 12px rgba(0,0,0,0.4);
+  --shadow-glow-primary: 0 0 0 1px rgba(228,0,43,0.45), 0 8px 28px -8px rgba(228,0,43,0.45);
+
+  /* Gradients */
+  --grad-app:
+    radial-gradient(1200px 600px at 0% -10%, rgba(228,0,43,0.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(56,189,248,0.05), transparent 60%),
+    linear-gradient(180deg, #060A14 0%, #04070E 100%);
+  --grad-card-sheen: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+  --grad-divider: linear-gradient(90deg, transparent, var(--border-2), transparent);
+
+  /* Hero / Feature gradients — used on hero strips, KPI fills, assistant teaser */
+  --grad-hero-red:
+    radial-gradient(120% 140% at 100% 0%, rgba(255,140,160,0.30), transparent 55%),
+    radial-gradient(80% 120% at 0% 100%, rgba(94,10,20,0.40), transparent 60%),
+    linear-gradient(135deg, #E4002B 0%, #B11226 55%, #5E0A14 100%);
+  --grad-kpi-red:
+    linear-gradient(160deg, rgba(228,0,43,0.18) 0%, rgba(228,0,43,0.04) 60%, transparent 100%);
+  --grad-kpi-gold:
+    linear-gradient(160deg, rgba(245,158,11,0.16) 0%, rgba(245,158,11,0.03) 60%, transparent 100%);
+  --grad-kpi-green:
+    linear-gradient(160deg, rgba(34,197,94,0.16) 0%, rgba(34,197,94,0.03) 60%, transparent 100%);
+  --grad-kpi-sky:
+    linear-gradient(160deg, rgba(56,189,248,0.16) 0%, rgba(56,189,248,0.03) 60%, transparent 100%);
+  --grad-bar-red:
+    linear-gradient(180deg, #FF1E45 0%, #E4002B 60%, #B11226 100%);
+  --grad-bar-slate:
+    linear-gradient(180deg, #475569 0%, #334155 100%);
+  --grad-progress-red:
+    linear-gradient(90deg, rgba(228,0,43,0.20), #E4002B 60%, #FF6A82 100%);
+  --grad-progress-slate:
+    linear-gradient(90deg, var(--bg-3), var(--slate-500));
+
+  /* Hexagonal decoration pattern — drop into a position:absolute layer */
+  --hex-pattern-url: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 92' width='80' height='92'><g fill='none' stroke='%23E4002B' stroke-width='1' opacity='0.5'><polygon points='40,2 76,23 76,69 40,90 4,69 4,23'/><polygon points='40,18 62,30 62,62 40,74 18,62 18,30'/></g></svg>");
+
+  /* Chart panel-local tokens */
+  --chart-bg: transparent;
+  --chart-grid: var(--viz-grid);
+  --chart-axis: var(--viz-axis);
+  --chart-label: var(--fg-3);
+}
+
+/* =========================================================================
+   3.  LIGHT THEME (executive presentation / printable reports)
+   ========================================================================= */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-0:    #F6F7FB;
+  --bg-1:    #FFFFFF;
+  --bg-2:    #FFFFFF;
+  --bg-3:    #F1F5F9;
+  --bg-4:    #E2E8F0;
+  --bg-inset:#F8FAFC;
+
+  --fg-1:    #0F172A;
+  --fg-2:    #1E293B;
+  --fg-3:    #475569;
+  --fg-4:    #94A3B8;
+  --fg-on-primary: #FFFFFF;
+
+  --border-1: rgba(15,23,42,0.08);
+  --border-2: rgba(15,23,42,0.14);
+  --border-strong: rgba(15,23,42,0.24);
+  --divider:  rgba(15,23,42,0.06);
+
+  --primary:       var(--sg-red-700);
+  --primary-hover: #C20A23;
+  --primary-press: #8A0E1D;
+  --primary-soft:  rgba(177, 18, 38, 0.08);
+  --primary-ring:  rgba(177, 18, 38, 0.25);
+  --on-primary:    #FFFFFF;
+
+  --gain-soft: rgba(34,197,94,0.10);
+  --loss-soft: rgba(239,68,68,0.10);
+  --warn-soft: rgba(245,158,11,0.12);
+  --info-soft: rgba(56,189,248,0.12);
+
+  --shadow-1: 0 1px 2px rgba(15,23,42,0.06);
+  --shadow-2: 0 1px 3px rgba(15,23,42,0.06), 0 8px 24px -12px rgba(15,23,42,0.10);
+  --shadow-3: 0 4px 6px rgba(15,23,42,0.06), 0 24px 48px -16px rgba(15,23,42,0.16);
+  --shadow-glow-primary: 0 0 0 1px rgba(177,18,38,0.25), 0 8px 24px -8px rgba(177,18,38,0.25);
+
+  --grad-app:
+    radial-gradient(800px 500px at 100% -10%, rgba(177,18,38,0.04), transparent 60%),
+    linear-gradient(180deg, #F6F7FB 0%, #FFFFFF 100%);
+  --grad-card-sheen: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0));
+  --grad-divider: linear-gradient(90deg, transparent, var(--border-2), transparent);
+
+  --chart-grid: rgba(15,23,42,0.06);
+  --chart-axis: rgba(15,23,42,0.35);
+  --chart-label: var(--fg-3);
+}
+
+/* =========================================================================
+   4.  SEMANTIC TYPE STYLES
+   Apply as classes (.t-display-1, .t-h1, …) or via composition.
+   ========================================================================= */
+.t-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.t-display-1 {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 5vw, 64px);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-1);
+}
+
+.t-display-2 {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-1);
+}
+
+.t-h1 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg-1);
+}
+
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg-1);
+}
+
+.t-h3 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  color: var(--fg-1);
+}
+
+.t-h4 {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  letter-spacing: 0;
+  color: var(--fg-1);
+}
+
+.t-body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: var(--leading-normal);
+  color: var(--fg-2);
+}
+
+.t-body-sm {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: var(--leading-normal);
+  color: var(--fg-2);
+}
+
+.t-caption {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  color: var(--fg-3);
+}
+
+.t-meta {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  color: var(--fg-4);
+}
+
+/* Tabular / numeric — always use mono + tabular-nums for KPIs and tables.
+   This is non-negotiable in financial UI: digit widths must lock. */
+.t-num,
+.t-num * {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "lnum";
+  letter-spacing: -0.01em;
+}
+
+.t-kpi {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "lnum";
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--fg-1);
+}
+
+.t-kpi-lg {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "lnum";
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: -0.025em;
+  color: var(--fg-1);
+}
+
+.t-code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-1);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  color: var(--fg-2);
+}
+
+/* =========================================================================
+   5.  BASE RESETS — light touch
+   ========================================================================= */
+html, body {
+  background: var(--bg-0);
+  color: var(--fg-1);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--primary-soft);
+  color: var(--fg-1);
+}
+
+/* =========================================================================
+   6.  TIP — Plotly / Dash equivalents
+   When configuring Plotly figures, map these tokens directly:
+     layout.paper_bgcolor  → transparent
+     layout.plot_bgcolor   → transparent
+     layout.font.family    → "Inter, sans-serif"
+     layout.font.color     → var(--fg-2)
+     layout.colorway       → [viz-1 … viz-7]
+     layout.xaxis.gridcolor / yaxis.gridcolor → var(--viz-grid)
+     layout.xaxis.linecolor / yaxis.linecolor → var(--viz-axis)
+   See plotly_theme.py in this design system for the canonical template.
+   ========================================================================= */

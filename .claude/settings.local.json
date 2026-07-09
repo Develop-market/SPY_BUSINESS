@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"c:\\\\Users\\\\ALPHEE COLOMBE\\\\.claude\\\\projects\\\\c--Users-ALPHEE-COLOMBE-Desktop-BACK\\\\memory\\\\\")",
+      "Read(//c/Users/ALPHEE COLOMBE/.claude/projects/c--Users-ALPHEE-COLOMBE-Desktop-BACK/**)",
+      "PowerShell(ls \"C:\\\\Users\\\\ALPHEE COLOMBE\\\\.claude\\\\projects\\\\c--Users-ALPHEE-COLOMBE-Desktop-BACK\\\\memory\\\\\")"
+    ]
+  }
+}

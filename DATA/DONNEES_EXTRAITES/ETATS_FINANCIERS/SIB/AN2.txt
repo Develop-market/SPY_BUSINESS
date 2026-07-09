@@ -1,0 +1,662 @@
+================================================================================
+  EXTRACTION 3 — pdfminer.six + Docling AI
+  Pipeline  : extraction_3_pdfminer_docling
+  Source    : ETATS_FINANCIERS\SIB\AN3.pdf
+  SHA256    : de3a4ed3f6466a76badaad870a2e0268f49952ede4ed86fa2bc957affa30d934
+  Timestamp : 2026-05-22T07:07:56
+  Pages     : 7
+  Methode   : pdfminer_native+docling_tables
+  Total chars : 22,547
+================================================================================
+
+[PAGE 1]  [METRICS chars=77 density=0.1096 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+        Croire en vous
+RAPPORT
+D'ACTIVITÉ
+2023
+RAPPORT
+D'ACTIVITÉ
+2024
+Linked
+
+[PAGE 2]  [METRICS chars=3386 density=4.8187 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+ENVIRONNEMENT MACRO ÉCONOMIQUE
+        En  Côte  d’Ivoire,  l’économie  a  continué  de
+        progresser, avec un taux de croissance solide
+        estimé  à  6.5%,  soutenu  par  des  réformes
+        structurelles,  des
+        investissements  publics
+        massifs  et  une  résilience  des  secteurs  clés
+        comme  l’agriculture  et  les  services.  Le  secteur
+        bancaire ivoirien, moteur essentiel du financement
+        de l’économie, s’est adapté à ces transformations
+        grâce  à  une  régulation  renforcée  et  une
+        concurrence accrue qui ont favorisé l’innovation
+        et l’efficacité.
+L’année  2024  s’est  déroulée  dans  un  contexte
+économique  global  caractérisé  par  des  défis
+persistants. Néanmoins, des signaux encourageants
+ont été enregistrés à partir du 2ème trimestre,
+notamment  la  baisse  progressive  de  l’inflation
+dans  la  plupart  des  régions  et  un  assouplisse-
+ment  des  politiques  monétaires  notamment
+dans les économies avancées.
+Sur  le  marché  des  matières  premières,  les
+cours des produits énergétiques se sont repliés,
+en  lien  avec  le  ralentissement  économique  en
+Chine et la faiblesse de la demande énergétique
+en zone euro. Concernant les cours des produits
+hors  énergie,  ils  ont  également  enregistré  un
+recul, en raison principalement du repli des prix
+des produits alimentaires et de ceux des minéraux.
+        FAITS MARQUANTS DE L’EXERCICE POUR
+        LA SOCIETE IVOIRIENNE DE BANQUE (SIB)
+        La Société Ivoirienne de Banque (SIB) a poursuivi
+        ses  efforts  pour  consolider  sa  gouvernance
+        en alignement avec les meilleures pratiques
+        internationales et les exigences réglementaires
+        locales. Parmi les principales initiatives on note :
+De même, les prix des matières premières hors
+pétrole, exportées par les pays de l'UEMOA, se
+sont  contractés  de  9,7%  au  cours  du  troisième
+trimestre 2024, après une hausse de 25,8% un
+trimestre plus tôt.
+        L’augmentation du nombre de comités d’audit
+        de 2 à 3 pour renforcer le contrôle interne et
+        la transparence.
+        La nomination d’un nouveau Directeur Général
+        Adjoint,  chargé  d’accompagner  la  mise  en
+        œuvre des projets stratégiques et opérationnels.
+Malgré  ces
+la  sous-région
+ouest-africaine, soutenue par des investissements
+croissants et une diversification économique, a su
+maintenir une dynamique de croissance positive.
+Ainsi,  on  note  une  accélération  de  l’activité
+économique,  avec  une  progression  du  PIB  en
+volume sur un an. Cette amélioration de l’activité
+a été portée par l’évolution de la valeur ajoutée
+dans  l’ensemble  des  secteurs.  Selon  les
+dernières  projections  réalisées  par  la  BCEAO,
+la  croissance  économique  de  l’Union  devrait
+ressortir à 6,0% en 2024, après 5,3% en 2023.
+turbulences,
+        L’augmentation de capital de 10 milliards de
+        francs  CFA,  portant  son  capital  social  à  20
+        milliards de francs CFA, consolidant ainsi sa
+        base  financière  pour  mieux  accompagner
+        ses ambitions de croissance.
+        Et  ce  Conformément  à  l’Avis  n°001-01-2024
+        fixant le capital social minimum des Banques
+        et  Etablissements  Financiers  de  Crédit  dans
+        les Etats membre de l’Union Monétaire Ouest
+        Africaine (UMOA).
+            1/5
+Linked
+
+[PAGE 3]  [METRICS chars=5404 density=7.6906 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+        Croire en vous
+        forte  croissance  de  8%  par  rapport  à  2023  et
+        s’affiche à 1 399 milliards XOF. Parallèlement,
+        les  financements  accordés  ont  également
+        augmenté de 6% pour s’établir à 1 101 milliards XOF,
+        soutenant toutes les couches sociales et divers
+        secteurs économiques.
+Au cours du mois d’octobre 2024, le lancement
+du Nouveau Plan stratégique quinquennal «
+IMPULSION  2028  »  a  marqué  un  tournant  pour
+l’Institution. Ce plan vise à :
+Accélérer la transformation digitale pour
+offrir une expérience client omnicanale et
+innovante ;
+        Ainsi  à  fin  décembre  2024,  le  total  bilan  de  la
+        Société Ivoirienne de Banque (SIB) se consolide
+        à 1 685 milliards XOF.
+Soutenir activement les PME/TPE, véritables
+relais de croissance de l’économie ivoirienne ;
+        Les indicateurs de rentabilité sont bien orientés avec
+        un Produit Net Bancaire (PNB) de 103 milliards XOF,
+        qui  enregistre  une  évolution  positive  de  8%,
+        impulsée  par  la  forte  progression  de  la  marge
+        d’intermédiation et du résultat sur opérations
+        de marché de 13% chacune.
+        Les  frais  de  gestion  sur  l’exercice  2024  d’un
+        montant de 40 milliards, apparaissent en légère
+        hausse  de  4%  en  glissement  annuel.  Grâce  à
+        une  gestion  rigoureuse,  le  ratio  d’efficience
+        opérationnelle  s’est  amélioré  de  141bps  pour
+        s’établir à 39% en décembre 2024, renforçant la
+        compétitivité de l’établissement sur le marché.
+Renforcer le positionnement de la banque sur
+le marché, grâce au développement de produits
+diversifiés répondant aux besoins spécifiques
+de chaque typologie de clients.
+La Société Ivoirienne de Banque (SIB) a maintenu
+sa  notation  financière  (A1  et  AA-)  à  court  et
+moyen terme avec une perspective stable attribuée
+par l'Agence de Notation Bloomfield Investment
+pour l'exercice 2024.
+UNE  PERFORMANCE  REMARQUABLE
+DANS UN ENVIRONNEMENT EXIGEANT
+        Données
+        (en Milliards FCFA)
+            Variation
+            %
+            -
+            8%
+            -
+            4%
+            -
+            10%
+            -
+            -35%
+            17%
+        31/12/2024
+        31/12/2023
+        95,6
+        -38,7
+            102,8
+            -40,1
+        Produit Net Bancaire
+Dans  un  contexte  économique  marqué  par  une
+forte  concurrence  la  Société  Ivoirienne  de
+Banque  (SIB)  se  distingue  par  des  résultats
+financiers solides, témoignant de la pertinence
+de son modèle économique, sa résilience et de
+son dynamisme.
+        Frais généraux
+        56,9
+            62,6
+        Résultat Brut d'exploitation
+        -8,0
+            -5,2
+            57,4
+        Coût du risque
+        48,9
+        48,7
+        Résultat d’exploitation
+            18%
+            57,5
+        Résultat avant impôts
+        43,5
+        40,46%
+        29,32%
+            50,2
+            15%
+        Résultat net
+        39,05%
+        30,56%
+            -141bp
+            123bp
+        Coefficient d'exploitation
+La banque a poursuivi sa dynamique commerciale
+grâce à la confiance sans cesse renouvelée de sa
+clientèle.
+        Rentabilité (ROE)
+        Le  coût  du  risque  de  5G,  en  baisse  de  35%  par
+        rapport  à  l’exercice  précédent  témoigne  d’une
+        approche  saine  en  matière  de  gestion  des
+        risques.
+Données
+(en Milliards FCFA)
+    Variation
+    %
+    -
+    5%
+    -
+    6%
+    -
+    8%
+    -
+    14%
+    31/12/2024
+    31/12/2023
+    1 606
+    1 685
+Total Bilan
+    1 037
+    1 101
+Crédits à la clientèle
+        Enfin,  la  Société  Ivoirienne  de  Banque  (SIB)
+        réalise une performance exceptionnelle avec un
+        résultat  net  de  50  milliards  XOF  en  croissance
+        de +15% par rapport à celui de décembre 2023.
+    1 294
+    1 399
+Dépôts de la clientèle
+    164
+    187
+Capitaux propres
+La  collecte  de  ressources  a  enregistré  une
+            2/5
+
+[TABLEAUX DOCLING]
+| Données (en Milliards FCFA)   | 31/12/2023   | 31/12/2024   | Variation %   |
+|-------------------------------|--------------|--------------|---------------|
+| Total Bilan                   | 1 606        | 1 685        | - 5%          |
+| Crédits à la clientèle        | 1 037        | 1 101        | - 6%          |
+| Dépôts de la clientèle        | 1 294        | 1 399        | - 8%          |
+| Capitaux propres              | 164          | 187          | - 14%         |
+
+| Données (en Milliards FCFA)   | 31/12/2023   | 31/12/2024   | Variation %   |
+|-------------------------------|--------------|--------------|---------------|
+| Produit Net Bancaire          | 95,6         | 102,8        | - 8%          |
+| Frais généraux                | -38,7        | -40,1        | - 4%          |
+| Résultat Brut d'exploitation  | 56,9         | 62,6         | - 10%         |
+| Coût du risque                | -8,0         | -5,2         | - -35%        |
+| Résultat d'exploitation       | 48,9         | 57,4         | 17%           |
+| Résultat avant impôts         | 48,7         | 57,5         | 18%           |
+| Résultat net                  | 43,5         | 50,2         | 15%           |
+| Coefficient d'exploitation    | 40,46%       | 39,05%       | -141bp        |
+| Rentabilité (ROE)             | 29,32%       | 30,56%       | 123bp         |
+
+[PAGE 4]  [METRICS chars=2329 density=3.3145 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+        Croire en vous
+        PERSPECTIVES
+La  banque  respecte  l’ensemble  des  ratios
+prudentiels  et  dispose  d'un  niveau  de  fonds
+propres  confortable,  avec  un  ratio  de  solvabilité
+dépassant 14%, largement supérieur à la norme
+réglementaire  de  11,5%,  confirmant  ainsi  sa
+solidité et sa résilience.
+        Dans  un  environnement  économique  en
+        constante  évolution,  la  Société  Ivoirienne  de
+        Banque  entend  renforcer  sa  position  en
+        s’appuyant  sur  une  stratégie  de  croissance
+        durable et d’innovation à travers l’opérationnalisation
+        de son nouveau Plan Stratégique « IMPULSION
+        2028 ».
+Cette performance est le fruit d’une stratégie
+agile,  axée  sur  l’innovation,  l’efficacité
+opérationnelle  et  une  proximité  renforcée
+avec nos clients.
+        L’accent sera mis sur l’optimisation de l’expérience
+        client à travers la digitalisation des services, le
+        développement de solutions financières adaptées
+        aux besoins des particuliers et des entreprises,
+        ainsi que le renforcement de la gouvernance et
+        de la gestion des risques.
+Au  regard  de  ces  performances,  le  Conseil
+d’Administration  de  la  SIB  se  propose  de
+soumettre  à  la  prochaine  Assemblée  Générale
+Ordinaire  des  Actionnaires,  un  montant  de
+dividende  brut  par  action  de  375  XOF,  soit  un
+rendement de l’action d'environ 10,55% sur la
+base  du  cours  au  31  décembre  2024,  qui  a
+lui-même progressé de +32.90% par rapport à
+décembre 2023.
+        Avec une base financière renforcée, une stratégie
+        claire et une gouvernance solide, la Société Ivoirienne
+        de  Banque  (SIB)  est  résolument  tournée  vers
+        l’avenir.  Elle  continuera  à  innover,  à  diversifier
+        ses  offres  et  à  accompagner  durablement
+        l’économie  ivoirienne  pour  relever  les  défis  de
+        demain et saisir les opportunités de croissance.
+        La SIB remercie l’ensemble de ses actionnaires,
+        ses  collaborateurs,  clients  et  partenaires  pour
+        leur  confiance  renouvelée  et  leur  soutien
+        indéfectible.  Ensemble,  nous  poursuivrons
+        notre  mission  d’excellence  au  service  du
+        développement économique et social de la Côte
+        d’Ivoire.
+            3/5
+
+[PAGE 5]  [METRICS chars=5535 density=7.877 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+BILAN AU 31 DECEMBRE 2024
+En Millions de FCFA
+        31/12/2023
+            31/12/2024
+POSTE RUBRIQUES ACTIF
+        114 910
+        360 964
+        38 096
+        1 036 960
+        -
+        6 728
+        -
+        25 290
+        4 441
+        263
+        597
+        400
+        555
+        16 669
+        1 605 875
+A1
+A2
+A3
+A4
+A5
+A6
+A7
+A8
+A9
+A10
+A11
+A12
+A13
+A14
+TOTAL ACTIF
+CAISSE BANQUE CENTRALE, CCP
+            94 152
+            382 669
+            55 224
+            1 101 236
+            -
+            7 044
+            -
+            21 865
+            4 592
+            263
+            597
+            400
+            706
+            16 500
+            1 685 249
+EFFETS PUBLICS ET VALEURS ASSIMILEES
+CREANCES INTERBANCAIRES ET ASSIMILEES
+CREANCES SUR LA CLIENTELE
+OBLIGATIONS ET AUTRES TITRES A REVENUS FIXES
+ACTIONS ET AUTRES TITRES A REVENUS VARIABLES
+ACTIONNARES OU ASSOCIES
+AUTRES ACTIFS
+COMPTE DE REGULARISATION
+PARTICIPATIONS ET AUTRES TITRES DETENUS A LONG TERME
+PARTS DANS LES ENTREPRISES LIEES
+PRETS SUBORDONNES
+IMMOBILISATIONS INCORPORELLES
+IMMOBILISATIONS CORPORELLES
+En Millions de FCFA
+        31/12/2023
+            31/12/2024
+POSTE RUBRIQUES PASSIF
+        -
+        87 552
+        1 294 418
+        -
+        28 038
+            -
+            44 655
+            1 398 752
+            -
+            29 302
+BANQUES CENTRALE, CCP
+DETTES INTERBANCAIRE ET ASSIMILEES
+DETTES A L'EGARD DE LA CLIENTELE
+DETTES REPRESENTEES PAR UN TITRE
+AUTRES PASSIFS
+COMPTES DE REGULARISATION
+PROVISIONS
+EMPRUNTS ET TITRES EMIS SUBORDONNES
+CAPITAUX PROPRES ET RESSOURCES ASSIMILEES
+CAPITAL SOUSCRIT
+PRIMES LIEES AU CAPITAL
+RESERVES
+ECARTS DE REEVALUATION
+PROVISIONS  REGLEMENTEES
+REPORT A NOUVEAU
+RESULTAT DE L'EXERCICE
+P1
+P2
+P3
+P4
+P5
+P6
+P7
+P8
+P9
+P10
+P11
+P12
+P13
+P14
+P15
+P16
+TOTAL PASSIF
+        9 731
+        12 711
+        9 022
+        164 402
+        10 000
+        -
+        110 889
+        -
+        -
+        -
+        43 513
+        1 605 875
+            11 336
+            12 059
+            2 010
+            187 136
+            20 000
+            -
+            116 902
+            -
+            -
+            -
+            50 234
+            1 685 249
+            4/5
+Linked
+
+[TABLEAUX DOCLING]
+| POSTE       | RUBRIQUES ACTIF                               | 31/12/2023   | 31/12/2024   |
+|-------------|-----------------------------------------------|--------------|--------------|
+| A1          | CAISSE BANQUE CENTRALE, CCP                   | 114 910      | 94 152       |
+| A2          | EFFETS PUBLICS ET VALEURS ASSIMILEES          | 360 964      | 382 669      |
+| A3          | CREANCES INTERBANCAIRES ET ASSIMILEES         | 38 096       | 55 224       |
+| A4          | CREANCES SUR LA CLIENTELE                     | 1 036 960    | 1 101 236    |
+| A5          | OBLIGATIONS ET AUTRES TITRES A REVENUS FIXES  | -            | -            |
+| A6          | ACTIONS ET AUTRES TITRES A REVENUS VARIABLES  | 6 728        | 7 044        |
+| A7          | ACTIONNARES OU ASSOCIES                       | -            | -            |
+| A8          | AUTRES ACTIFS                                 | 25 290       | 21 865       |
+| A9          | COMPTE DE REGULARISATION                      | 4 441        | 4 592        |
+| A10         | PARTICIPATIONSETAUTRESTITRESDETENUSALONGTERME | 263          | 263          |
+| A11         | PARTS DANS LES ENTREPRISES LIEES              | 597          | 597          |
+| A12         | PRETS SUBORDONNES                             | 400          | 400          |
+| A13         | IMMOBILISATIONS INCORPORELLES                 | 555          | 706          |
+| A14         | IMMOBILISATIONS CORPORELLES                   | 16 669       | 16 500       |
+| TOTAL ACTIF | TOTAL ACTIF                                   | 1 605 875    | 1 685 249    |
+
+| POSTE        | RUBRIQUES PASSIF                          | 31/12/2023   | 31/12/2024   |
+|--------------|-------------------------------------------|--------------|--------------|
+| P1           | BANQUES CENTRALE, CCP                     | -            | -            |
+| P2           | DETTES INTERBANCAIRE ET ASSIMILEES        | 87 552       | 44 655       |
+| P3           | DETTES A L'EGARD DE LA CLIENTELE          | 1 294 418    | 1 398 752    |
+| P4           | DETTES REPRESENTEES PAR UN TITRE          | -            | -            |
+| P5           | AUTRES PASSIFS                            | 28 038       | 29 302       |
+| P6           | COMPTES DE REGULARISATION                 | 9 731        | 11 336       |
+| P7           | PROVISIONS                                | 12 711       | 12 059       |
+| P8           | EMPRUNTS ET TITRES EMIS SUBORDONNES       | 9 022        | 2 010        |
+| P9           | CAPITAUX PROPRES ET RESSOURCES ASSIMILEES | 164 402      | 187 136      |
+| P10          | CAPITAL SOUSCRIT                          | 10 000       | 20 000       |
+| P11          | PRIMES LIEES AU CAPITAL                   | -            | -            |
+| P12          | RESERVES                                  | 110 889      | 116 902      |
+| P13          | ECARTS DE REEVALUATION                    | -            | -            |
+| P14          | PROVISIONS REGLEMENTEES                   | -            | -            |
+| P15          | REPORT A NOUVEAU                          | -            | -            |
+| P16          | RESULTAT DE L'EXERCICE                    | 43 513       | 50 234       |
+| TOTAL PASSIF | TOTAL PASSIF                              | 1 605 875    | 1 685 249    |
+
+[PAGE 6]  [METRICS chars=5816 density=8.2769 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+HORS BILAN AU 31 DECEMBRE 2024
+En Millions de FCFA
+        31/12/2023
+            31/12/2024
+POSTE RUBRIQUES HORS BILAN
+        197 623
+ENGAGEMENTS DONNES
+            185 987
+            38 970
+            147 017
+        26 137
+        171 486
+        -
+        1 782 827
+        -
+        1 782 827
+HB.1
+HB.2
+HB.3
+ENGAGEMENTS DE FINANCEMENT
+ENGAGEMENTS  DE GARANTIE
+ENGAGEMENTS SUR TITRES
+ENGAGEMENTS RECUS
+            -
+            1 670 704
+            -
+HB.4
+HB.5
+HB.6
+ENGAGEMENTS DE FINANCEMENT
+ENGAGEMENTS  DE GARANTIE
+ENGAGEMENTS SUR TITRES
+            1 670 704
+        -                          -
+COMPTE DE RESULTAT AU 31 DECEMBRE 2024
+En Millions de FCFA
+        31/12/2023
+            31/12/2024
+RUBRIQUES COMPTE DE RESULTAT
+POSTE
+        78 814
+C1
+C2
+INTERETS ET PRODUITS ASSIMILES
+INTERETS ET CHARGES ASSIMILEES
+REVENUS DES TITRES A REVENU VARIABLE
+COMMISSIONS PRODUITS
+COMMISSIONS CHARGES
+GAINS OU PERTES NETS SUR OPERATIONS
+DES PORTEFEUILLES DE NEGOCIATION
+GAINS OU PERTES NETS SUR OPERATIONS
+DES PORTEFEUILLES DE PLACEMENT ET ASSIMILES
+AUTRES PRODUITS D'EXPLOITATION BANCAIRE
+AUTRES CHARGES D'EXPLOITATION BANCAIRE
+PRODUIT NET BANCAIRE
+SUBVENTION D'INVESTISSEMENT
+CHARGES GENERALES D'EXPLOITATION
+DOTATIONS AUX AMORTISSEMENTS ET AUX
+DEPRECIATIONS DES IMMOBILISATIONS
+RESULTAT BRUT D'EXPLOITATION
+COUT DU RISQUE
+RESULTAT D'EXPLOITATION
+GAINS OU PERTES NETS SUR ACTIFS IMMOBILISES
+RESULTAT AVANT IMPÖT
+IMPOTS SUR LES BENEFICES
+RESULTAT NET
+            87 915
+        -
+        -15 504
+        513
+        33 682
+        6 407
+            16 396
+            525
+            29 518
+            5 172
+C3
+C4
+C5
+        -
+        -
+C6
+        3 263
+            3 524
+C7
+        1 311
+            2 759
+C8
+        146
+        195
+        -                          -
+        248
+        103
+        102 763
+C9
+C10
+C11
+C12
+        95 571
+        -
+            -
+        -
+        -
+        34 900
+            36 892
+        -                         -
+        3 800
+C13
+            3 237
+            62 635
+            5 194
+            57 440
+            28
+            57 468
+            7 234
+            50 234
+C14
+C15
+C16
+C17
+C18
+C19
+C20
+        56 871
+        7 992
+        -                         -
+        48 879
+        -
+        208
+        48 671
+        -                          -
+        5 158
+        43 513
+            5/5
+Linked
+
+[TABLEAUX DOCLING]
+| POSTE   | RUBRIQUES HORS BILAN       | 31/12/2023   | 31/12/2024   |
+|---------|----------------------------|--------------|--------------|
+|         | ENGAGEMENTS DONNES         | 197 623      | 185 987      |
+| HB.1    | ENGAGEMENTS DE FINANCEMENT | 26 137       | 38 970       |
+| HB.2    | ENGAGEMENTS DE GARANTIE    | 171 486      | 147 017      |
+| HB.3    | ENGAGEMENTS SUR TITRES     | -            | -            |
+|         | ENGAGEMENTS RECUS          | 1 782 827    | 1 670 704    |
+| HB.4    | ENGAGEMENTS DE FINANCEMENT | -            | -            |
+| HB.5    | ENGAGEMENTS DE GARANTIE    | 1 782 827    | 1 670 704    |
+| HB.6    | ENGAGEMENTS SUR TITRES     | -            | -            |
+
+| POSTE   | RUBRIQUES COMPTE DE RESULTAT                                                    | 31/12/2023   | 31/12/2024   |
+|---------|---------------------------------------------------------------------------------|--------------|--------------|
+| C1      | INTERETS ET PRODUITS ASSIMILES                                                  | 78 814       | 87 915       |
+| C2      | INTERETS ET CHARGES ASSIMILEES                                                  | -15 504      | 16 396 -     |
+| C3      | REVENUS DES TITRES A REVENU VARIABLE                                            | 513          | 525          |
+| C4      | COMMISSIONS PRODUITS                                                            | 33 682       | 29 518       |
+| C5      | COMMISSIONS CHARGES                                                             | 6 407 -      | 5 172 -      |
+| C6      | GAINS OU PERTES NETS SUR OPERATIONS DES PORTEFEUILLES DE NEGOCIATION            | 3 263        | 3 524        |
+| C7      | GAINS OU PERTES NETS SUR OPERATIONS DES PORTEFEUILLES DE PLACEMENT ET ASSIMILES | 1 311        | 2 759        |
+| C8      | AUTRES PRODUITS D'EXPLOITATION BANCAIRE                                         | 146          | 195          |
+| C9      | AUTRES CHARGES D'EXPLOITATION BANCAIRE                                          | 248 -        | 103 -        |
+| C10     | PRODUIT NET BANCAIRE                                                            | 95 571       | 102 763      |
+| C11     | SUBVENTION D'INVESTISSEMENT                                                     | -            | -            |
+| C12     | CHARGES GENERALES D'EXPLOITATION                                                | 34 900 -     | 36 892 -     |
+| C13     | DOTATIONS AUX AMORTISSEMENTS ET AUX DEPRECIATIONS DES IMMOBILISATIONS           | 3 800 -      | 3 237 -      |
+| C14     | RESULTAT BRUT D'EXPLOITATION                                                    | 56 871       | 62 635       |
+| C15     | COUT DU RISQUE                                                                  | 7 992 -      | 5 194 -      |
+| C16     | RESULTAT D'EXPLOITATION                                                         | 48 879       | 57 440       |
+| C17     | GAINS OU PERTES NETS SUR ACTIFS IMMOBILISES                                     | 208 -        | 28           |
+| C18     | RESULTAT AVANT IMPÖT                                                            | 48 671       | 57 468       |
+| C19     | IMPOTS SUR LES BENEFICES                                                        | 5 158 -      | 7 234 -      |
+| C20     | RESULTAT NET                                                                    | 43 513       | 50 234       |
+
+[PAGE 7]  [METRICS chars=0 density=0.0 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+

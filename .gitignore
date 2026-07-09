@@ -1,0 +1,32 @@
+# ── Environnements Python ──
+.env
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ── Captures d'écran / vérifications Selenium ──
+_*.png
+screenshots_audit/
+shot_*.py
+test_q6_*.py
+
+# ── Logs & sorties serveur ──
+server_log.txt
+server_out.txt
+server_err.txt
+*.log
+
+# ── Backups & temporaires ──
+*.bak
+*.bak_*
+*.tmp
+*.orig
+*~
+
+# ── Système ──
+desktop.ini
+.DS_Store
+Thumbs.db

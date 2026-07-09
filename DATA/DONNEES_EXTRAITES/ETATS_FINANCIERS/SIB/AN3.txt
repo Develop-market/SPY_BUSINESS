@@ -1,0 +1,183 @@
+================================================================================
+  PIPELINE 2 — Docling OCR (EasyOCR fr+en)
+  Source  : AN3.pdf
+  Pages   : 7
+  Méthode : docling_easyocr
+  Total chars : 16,714
+================================================================================
+
+[PAGE 1]  [chars=23 tables=NON method=docling_easyocr]
+
+Rapport d'activité 2025
+
+[PAGE 2]  [chars=2526 tables=NON method=docling_easyocr]
+
+ENVIRONNEMENT ECONOMIQUE ET REGLEMENTAIRE
+Dans un environnement international encore marqué par les effets persistants des tensions géopolitiques et par la poursuite de la normalisation des politiques monétaires, la croissance économique mondiale en 2025 évolue à un rythme mesuré. Dans ce contexte contrasté, l'Afrique de l'Ouest se distingue par une amélioration progressive de ses fondamentaux macroéconomiques, portée par une inflation en net repli et par un regain d'activité.
+En Côte d'Ivoire, l'économie confirme sa résilience et demeure sur une trajectoire de croissance robuste, avec une expansion attendue de 6,3% en 2025, en lien avec la solidité des filières agricoles, la dynamique favorable des secteurs des hydrocarbures et des mines, ainsi que par la contribution significative des services, en particulier les télécommunications. Les investissements publics structurants et la vigueur de la demande intérieure continuent de jouer un rôle moteur dans le maintien de cette dynamique.
+Parallèlement, l'inflation poursuit son mouvement de décélération et devrait s'établir autour de 1%, bien en-deçà du seuil communautaire de 3%, sous l'effet combiné du reflux des prix internationaux des matières premières et de la conduite prudente de la politique monétaire par la BCEAO.
+Au niveau du secteur bancaire ivoirien, l'exercice 2025 est marqué par un ralentissement de la progression du crédit, dans un contexte d'assouplissement monétaire modéré. La Banque Centrale a procédé à une baisse de 25 points de base de ses taux directeurs, portant le principal taux directeur à 3,25% et le taux du guichet de prêt marginal à 5,25%, niveaux en vigueur depuis le 16 juin 2025, traduisant une volonté de soutien à l'activité tout en préservant la stabilité macroéconomique.
+PRINCIPALES REALISATIONS ET AVANCEES STRATEGIQUES
+Au cours de l'exercice 2025, la Société Ivoirienne de Banque (SIB) a poursuivi le renforcement de son dispositif de gouvernance et l'adaptation de son organisation afin d'accompagner efficacement la mise en œuvre de ses ambitions stratégiques.
+À cet égard, la nomination d'un Directeur Général Adjoint en charge du Commercial constitue une étape structurante, venant consolider le pilotage stratégique des activités commerciales et renforcer l'exécution de la stratégie de développement. Cette évolution s'est accompagnée d'une réorganisation ciblée du pôle Commercial Entreprises, visant à améliorer la performance, la coordination et l'efficacité opérationnelle.
+30/06/2025 RAPPORT D'ACTIVITÉ 2025
+
+[PAGE 3]  [chars=2852 tables=OUI method=docling_easyocr]
+
+Au-delà des évolutions organisationnelles, l'exercice 2025 a été marqué par des avancées significatives en matière de développement et de transformation, portées par la mise en œuvre progressive du Plan stratégique « IMPULSION 2028 ». Parmi les réalisations majeures figurent :
+30/06/2025 Le lancement de deux nouveaux produits stratégiques, venant enrichir l'offre de la banque et renforcer sa proposition de valeur auprès de ses clients ;
+La mise en production du projet d'interopérabilité, facteur clé d'amélioration de la fluidité des opérations et de l'efficacité des processus ;
+La conclusion d'un partenariat structurant avec l'École Nationale Supérieure de Statistique et d'Économie Appliquée (ENSEA). Ce partenariat illustre la volonté affirmée de la Société Ivoirienne de Banque (SIB) de placer le capital humain au cœur de sa transformation, en anticipant les compétences clés nécessaires à l'évolution des métiers bancaires et à la création de valeur durable.
+La Société Ivoirienne de Banque (SIB) maintient sur l'exercice 2025, sa notation financière ( AA- à long terme et A1 à court terme), et note le relèvement de la perspective à long terme de stable à positive, évolution qui traduit la reconnaissance des efforts engagés et des progrès réalisés par l'institution au cours de la période sous revue.
+PERFORMANCES FINANCIERES CLES
+Soutenue par la confiance constante de sa clientèle,  la  Société  Ivoirienne  de  Banque  (SIB)  a  maintenu  une trajectoire de croissance solide, confortant son positionnement en tant qu'acteur bancaire de référence sur son marché.
+Données (en milliards FCFA)
+Produit Net Bancaire
+Total Bilan
+Résultat d'exploitation
+Crédits à la clientèle
+Dépôts de la clientèle
+Capitaux propres
+73,3
+31/12/2024
+1 685
+42,5
+1 101
+1 399
+187
+31/12/2025
+1 882
+44,3
+1 227
+1 503
+205
+2,4 3%
+Valeur
+196
+1,7 4%
+12%
+125
+11%
+105
+18
+7%
+9%
+
+[TABLEAUX DOCLING]
+| Données (en milliards FCFA)   | 31/12/2024   | 31/12/2025   |        |       |
+|-------------------------------|--------------|--------------|--------|-------|
+|                               |              |              | Valeur |       |
+| Produit Net Bancaire          | 102,8        | 108,7        | 5,9    | 6%    |
+| Frais généraux                | -40,1        | -41,9        | 1,8    | 4%    |
+| Résultat Brut d'exploitation  | 62,6         | 66,7         | 4,1    | 7%    |
+| Coût du Risque                | -5,2         | -3,6         | -1,6   | -30%  |
+| Résultat d'exploitation       | 57,4         | 63,1         | 5,7    | 10%   |
+| Résultat avant impôts         | 57,5         | 63,0         | 5,5    | 10%   |
+| Résultat net                  | 50,2         | 55,6         | 5,4    | 11%   |
+| Coefficient d'exploitation    | 39,05%       | 38,59%       |        | -46bp |
+| Rentabilité (ROE)             | 26,84%       | 27,16%       |        | 32bp  |
+
+[PAGE 4]  [chars=3338 tables=NON method=docling_easyocr]
+
+La collecte de ressources a ainsi enregistré une progression significative de 7% par rapport à 2024, pour s'établir à 1 503 milliards XOF à la clôture de l'exercice 2025.
+Parallèlement, les financements octroyés ont progressé de 11%, atteignant 1 227 milliards XOF, traduisant la capacité de la Banque à accompagner de manière active l'ensemble des segments de clientèle. Ainsi, le total de bilan s'est consolidé à 1 882 milliards XOF au 31 décembre 2025 en hausse de 12% en glissement annuel.
+Dans cette dynamique, les indicateurs de rentabilité affichent une orientation très positive. Le Produit Net Bancaire (PNB) ressort à 109 milliards XOF, en augmentation de 6%.
+Les frais de gestion, qui s'élèvent à 42 milliards XOF en 2025, connaissent une hausse maîtrisée de 4% en glissement annuel, traduisant une discipline rigoureuse en matière de contrôle des charges.  Cette maîtrise opérationnelle a  permis  une  amélioration  notable  du  coefficient  d'exploitation,  qui  se  renforce  de  46  points  de  base  pour atteindre 38,6% à fin décembre 2025, renforçant ainsi la compétitivité de l'établissement et sa capacité à créer durablement de la valeur.
+Le coût du risque s'établit à 3,6 milliards, en recul de 30% par rapport à l'exercice précédent, reflète une politique de gestion des risques prudente, rigoureuse et efficacement pilotée.
+La SIB clôture ainsi l'exercice sur une performance globale remarquable, avec un résultat net de 56 milliards XOF, en progression de 11% par rapport à décembre 2024. Cette évolution confirme la solidité du modèle économique et la capacité de l'Institution à générer une croissance rentable et durable dans un environnement exigeant. Par ailleurs, la Banque respecte l'ensemble des ratios prudentiels et dispose d'un niveau de fonds propres robuste, avec un ratio de solvabilité supérieur à 14%, nettement au-dessus du seuil réglementaire.
+Cette performance globale est le fruit d'une stratégie agile fondée sur l'innovation, l'optimisation continue des processus et le renforcement constant de la relation client.
+Au regard de ces résultats, le Conseil d'Administration de la Société Ivoirienne de Banque (SIB), proposera à la prochaine Assemblée Générale Ordinaire Annuelle la distribution d'un dividende brut de 425 XOF par action, correspondant à un rendement estimé à 7,39% sur la base du cours au 31 décembre 2025. Cette performance s'accompagne d'une progression annuelle de 61,74% du cours de l'action, illustrant la confiance accrue des investisseurs dans les fondamentaux et les perspectives de la SIB.
+PERSPECTIVES
+Dans un environnement en profonde mutation, la Société Ivoirienne de Banque (SIB) poursuit avec constance l'exécution  de  son  Plan  Stratégique  «  IMPULSION  2028  »,  guidée  par  une  vision  claire  de  création  de  valeur durable. Forte de fondamentaux solides, sur l'exercice 2026, elle accélèrera la modernisation de ses services, renforcera ses standards de gouvernance et développera des solutions adaptées aux besoins évolutifs de ses clients. Résolument tournée vers l'avenir, la SIB entend continuer à jouer un rôle actif dans le financement de l'économie ivoirienne.
+La SIB remercie l'ensemble de ses Actionnaires, Collaborateurs, Clients et Partenaires pour leur confiance et leur engagement, qui constituent le socle de notre ambition collective.
+
+[PAGE 5]  [chars=4273 tables=OUI method=docling_easyocr]
+
+BILAN AU 31 DECEMBRE 2025
+En Millions de FCFA
+En Millions de FCFA
+
+[TABLEAUX DOCLING]
+| POSTE       | ACTIF                                         | 31/12/2024   | 31/12/2025   | Var N/N-1   | Var (%)   |
+|-------------|-----------------------------------------------|--------------|--------------|-------------|-----------|
+| A1          | CAISSEBANQUECENTRALE,CCP                      | 94 152       | 98 820       | 4 668       | 5%        |
+| A2          | EFFETS PUBLICS ET VALEURS ASSIMILEES          | 382 669      | 375 561      | -7 108      | -2%       |
+| A3          | CREANCESINTERBANCAIRES ET ASSIMILEES          | 55 224       | 61 521       | 6 298       | 11%       |
+| A4          | CREANCESSURLACLIENTELE                        | 1 101 236    | 1 226 720    | 125 484     | 11%       |
+| A5          | OBLIGATIONSETAUTRESTITRESAREVENUSFIXES        | -            | -            |             |           |
+| A6          | ACTIONSETAUTRESTITRESAREVENUSVARIABLES        | 7 044        | 48 501       | 41 456      | 588%      |
+| A7          | ACTIONNARESOUASSOCIES                         | -            | -            |             |           |
+| A8          | AUTRESACTIFS                                  | 21 865       | 41 759       | 19 893      | 91%       |
+| A9          | COMPTEDEREGULARISATION                        | 4 592        | 1 031        | -3 561      | -78%      |
+| A10         | PARTICIPATIONSETAUTRESTITRESDETENUSALONGTERME | 263          | 263          | -           | 0%        |
+| A11         | PARTS DANSLESENTREPRISESLIEES                 | 597          | 597          | -           | 0%        |
+| A12         | PRETSSUBORDONNES                              | 400          | 400          |             |           |
+| A13         | IMMOBILISATIONS INCORPORELLES                 | 706          | 965          | 259         | 37%       |
+| A14         | IMMOBILISATIONSCORPORELLES                    | 16 500       | 25 594       | 9 095       | 55%       |
+| TOTAL ACTIF | TOTAL ACTIF                                   | 1 685 249    | 1 881 733    | 196 485     | 12%       |
+
+| POSTE        | PASSIF                                | 31/12/2024   | 31/12/2025   | Var N/N-1   | Var (%)   |
+|--------------|---------------------------------------|--------------|--------------|-------------|-----------|
+| P1           | BANQUECENTRALE,CCP                    | -            | -            | -           |           |
+| P2           | DETTES INTERBANCAIRES ET ASSIMLEES    | 44 655       | 104 261      | 59 606      | 133%      |
+| P3           | DETTES AL'EGARD DELACLIENTELE         | 1 398 752    | 1 503 441    | 104 689     | 7%        |
+| P4           | DETTES REPRESENTEES PAR UNTITRE       | -            | -            | -           |           |
+| P5           | AUTRESPASSIFS                         | 29 302       | 42 914       | 13 612      | 46%       |
+| P6           | COMPTESDEREGULARISATION               | 11 336       | 12 229       | 893         | 8%        |
+| P7           | PROVISIONS                            | 12 059       | 14 124       | 2 065       | 17%       |
+| P8           | EMPRUNTSETTITRESEMISSUBORDONNES       | 2 010        | -            | -2 010      | -100%     |
+| P9           | CAPITAUXPROPRESETRESSOURCESASSIMILEES | 187 136      | 204 765      | 17 628      | 9%        |
+| P10          | CAPITAL SOUSCRIT                      | 20 000       | 20 000       | -           | 0%        |
+| P11          | PRIMES LIEES AUCAPITAL                | -            | -            | -           |           |
+| P12          | RESERVES                              | 116 902      | 129 141      | 12 239      | 10%       |
+| P13          | ECARTS DEREEVALUATION                 | -            | -            | -           |           |
+| P14          | PROVISIONSREGLEMENTEES                | -            | -            | -           |           |
+| P15          | REPORTANOUVEAU                        | -            | -            | -           |           |
+| P16          | RESULTAT DEL'EXERCICE                 | 50 234       | 55 623       | 5 390       | 11%       |
+| TOTAL PASSIF | TOTAL PASSIF                          | 1 685 249    | 1 881 733    | 196 485     | 12%       |
+
+[PAGE 6]  [chars=3702 tables=OUI method=docling_easyocr]
+
+HORS BILAN AU 31 DECEMBRE 2025
+En Millions de FCFA
+COMPTE DE RESULTAT AU 31 DECEMBRE 2025
+En Millions de FCFA
+
+[TABLEAUX DOCLING]
+| POSTE   | HORSBILAN                | 31/12/2024   | 31/12/2025   |
+|---------|--------------------------|--------------|--------------|
+|         | ENGAGEMENTSDONNES        | 185 987      | 200 424      |
+| HB1     | ENGAGEMENTSDEFINANCEMENT | 38 970       | 49 629       |
+| HB2     | ENGAGEMENTSDEGARANTIE    | 147 017      | 150 796      |
+| HB3     | ENGAGEMENTSSURTITRES     | 0            | 0            |
+|         | ENGAGEMENTSREÇUS         | 1 670 704    | 1 409 563    |
+| HB4     | ENGAGEMENTSDEFINANCEMENT | 0            | 0            |
+| HB5     | ENGAGEMENTSDEGARANTIE    | 1 670 704    | 1 409 563    |
+| HB6     | ENGAGEMENTSSURTITRES     | 0            | 0            |
+
+| POSTE   | COMPTEDERESULTAT                                                |   31/12/2024 |   31/12/2025 |   Var(Mt) | Var(%)   |
+|---------|-----------------------------------------------------------------|--------------|--------------|-----------|----------|
+| C1      | INTERETSETPRODUITSASSIMILES                                     |        87915 |        91138 |      3223 | 4%       |
+| C2      | INTERETSETCHARGESASSIMILEES                                     |       -16396 |       -16320 |        76 | 0%       |
+| C3      | REVENUSDESTITRESAREVENUVARIABLE                                 |          525 |          396 |      -129 | -25%     |
+| C4      | COMMISSIONSPRODUITS                                             |        29518 |        29714 |       197 | 1%       |
+| C5      | COMMISSIONSCHARGES                                              |        -5172 |        -4594 |      -578 | -11%     |
+| C6      | GAINSOUPERTESNETSSUROPERATIONS DESPORTEFEUILLESDENEGOCIATION    |         3524 |         4179 |       655 | 19%      |
+| C7      | GAINSOUPERTESNETSSUROPERATIONS DESPORTEFEUILLESDEPLACEMENT      |         2759 |         4144 |      1384 | 50%      |
+| C8      | AUTRESPRODUITSD'EXPLOITATIONBANCAIRE                            |          195 |          172 |       -23 | -12%     |
+| C9      | AUTRESCHARGESD'EXPLOITATIONBANCAIRE                             |         -103 |         -164 |        61 | 60%      |
+| C10     | PRODUITNETBANCAIRE                                              |       102763 |       108663 |      5900 | 6%       |
+| C11     | SUBVENTIOND'INVESTISSEMENT                                      |            0 |            0 |         0 |          |
+| C12     | CHARGESGENERALESD'EXPLOITATION                                  |       -36892 |       -38800 |      1908 | 5%       |
+| C13     | DOTATIONSAUXAMORTISSEMENTS ETAUXDEPRECIATIONSDESIMMOBILISATIONS |        -3237 |        -3129 |      -108 | -3%      |
+| C14     | RESULTATBRUTD'EXPLOITATION                                      |        62635 |        66734 |      4099 | 7%       |
+| C15     | COÛTDURISQUE                                                    |        -5194 |        -3639 |     -1555 | -30%     |
+| C16     | RESULTATD'EXPLOITATION                                          |        57440 |        63095 |      5655 | 10%      |
+| C17     | GAINSOUPERTESNETSSURACTIFSIMMOBILISES                           |           28 |         -107 |      -135 | -489%    |
+| C18     | RESULTATAVANTIMPÔTS                                             |        57468 |        62988 |      5520 | 10%      |
+| C19     | IMPÔTSSURLESBENEFICES                                           |        -7234 |        -7365 |       130 | 2%       |
+| C20     | RESULTATNET                                                     |        50234 |        55623 |      5390 | 11%      |
+
+[PAGE 7]  [chars=0 tables=NON method=docling_easyocr]
+
+

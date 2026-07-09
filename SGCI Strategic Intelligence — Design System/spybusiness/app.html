@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpyBusiness · Intelligence bancaire ivoirienne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;0,6..12,800&family=Raleway:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.styles.css">
+<script src="/plotly-2.35.2.min.js"></script>
+</head>
+<body class="gated">
+<!-- ambient -->
+<div class="bg"><div class="grid"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="vig"></div></div>
+
+<!-- Gate : disclaimer + login (populated by JS) -->
+<div id="gate"></div>
+
+<!-- Filigrane discret — traçabilité si une capture d'écran circule hors de l'app.
+     pointer-events:none : ne gêne jamais le clic/la lecture, purement visuel. -->
+<div id="app-watermark" style="position:fixed;inset:0;z-index:40;pointer-events:none;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22460%22 height=%22260%22><text x=%2230%22 y=%22140%22 font-family=%22Arial,sans-serif%22 font-size=%2216%22 font-weight=%22700%22 fill=%22rgba(140,140,140,0.14)%22 transform=%22rotate(-28 230 130)%22>DIRECTION INNOVATION SGCI</text></svg>');
+  background-repeat:repeat">
+  <div id="app-watermark-stamp" style="position:fixed;bottom:8px;right:10px;font:500 9px system-ui;color:rgba(128,128,128,.35);pointer-events:none"></div>
+</div>
+
+<div class="shell">
+  <!-- SIDEBAR (no Chat item — bot leads there) -->
+  <aside class="side">
+    <div class="brand">
+      <img src="/assets/logos/SGCI.png" style="width:40px;height:40px;object-fit:contain;border-radius:8px;flex-shrink:0" alt="SGCI">
+      <div class="wm" style="font-size:15px">SpyBusiness<small style="font-size:8px;letter-spacing:.18em">Intelligence bancaire</small></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-grp">Pilotage</div>
+      <a class="nav-item" data-go="apercu" onclick="go('apercu')"><span class="ic">◎</span><span class="nav-lbl">Santé financière</span></a>
+      <a class="nav-item" data-go="cb" onclick="go('cb')"><span class="ic">◈</span><span class="nav-lbl">Conditions bancaires</span></a>
+      <a class="nav-item" data-go="strategie" onclick="go('strategie')"><span class="ic">◆</span><span class="nav-lbl">Stratégie</span></a>
+      <div class="nav-grp">Système</div>
+      <a class="nav-item" id="nav-gloss" onclick="toggleGlossContext()"><span class="ic">📖</span><span class="nav-lbl">Glossaire</span></a>
+      <a class="nav-item" id="nav-ajout" onclick="openAjout()"><span class="ic">＋</span><span class="nav-lbl">Ajouter des données</span></a>
+      <a class="nav-item" id="nav-refresh" onclick="confirmRafraichirAnalyses()"><span class="ic">↻</span><span class="nav-lbl">Rafraîchir les analyses</span></a>
+    </nav>
+    <div class="foot">
+    </div>
+  </aside>
+
+  <!-- Voile mobile : ferme le tiroir au clic -->
+  <div id="nav-scrim" onclick="closeNav()"></div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="hdr">
+      <button class="burger" id="burger">☰</button>
+      <div class="htitle" id="htitle">Santé financière</div>
+      <div class="search"><span>⌕</span><input placeholder="Posez une question…" onkeydown="if(event.key==='Enter'&&this.value.trim()){askIA(this.value.trim());this.value=''}"><span class="k">⌘K</span></div>
+      <button class="theme-tog" onclick="toggleTheme()" title="Thème clair / sombre"><span class="theme-ic">☀</span></button>
+    </header>
+    <div id="llm-status-banner" style="display:none;padding:8px 18px;font:600 11.5px/1.4 var(--sans);text-align:center"></div>
+
+    <!-- ticker — sticky sous le header, chiffres en Mds FCFA (milliards) depuis la BD réelle -->
+    <div class="ticker" style="position:sticky;top:72px;z-index:25;height:44px;display:flex;align-items:center;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg-deep) 75%,transparent);backdrop-filter:blur(14px)">
+      <!-- Label fixe — séparé de la zone défilante pour ne pas cacher les chiffres -->
+      <div style="flex-shrink:0;display:flex;align-items:center;gap:7px;padding:0 14px;height:100%;border-right:1px solid var(--line);color:var(--muted);font:700 9px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0"></span>
+        <span id="tk-label">Résultat net · Mds FCFA</span>
+      </div>
+      <!-- Zone défilante — overflow:hidden ici seulement, pas sur le conteneur parent -->
+      <div style="flex:1;overflow:hidden;height:100%;display:flex;align-items:center">
+        <div id="tk" style="display:flex;gap:34px;white-space:nowrap;animation:scroll 40s linear infinite;padding:0 16px"></div>
+      </div>
+    </div>
+
+    <div id="view"></div>
+  </div>
+</div>
+
+<!-- floating bot → chat -->
+<button class="fab" onclick="go('chat')"><span class="rg"></span><span class="rg d2"></span><span class="tip">Poser une question à l'IA</span>🤖</button>
+
+<style>
+.tk-item{display:inline-flex;align-items:center;gap:9px;font:600 12.5px/1 var(--mono);color:var(--ink)}
+.tk-item .lg{width:18px;height:18px;border-radius:4px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tk-item .lg img{width:14px;height:14px;object-fit:contain}
+.tk-item b{font-weight:700}.tk-item .up{color:var(--green)}.tk-item .dn{color:var(--red)}
+@keyframes scroll{to{transform:translateX(-50%)}}
+.clock{font:600 13px var(--mono);color:var(--muted)}
+</style>
+<script>
+window.__clkHook=true;
+</script>
+<!-- inject a clock node into header dynamically via main -->
+<span id="clk" style="display:none"></span>
+
+<script src="app.data.js"></script>
+<script src="app.main.js"></script>
+</body>
+</html>

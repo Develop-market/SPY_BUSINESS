@@ -1,0 +1,514 @@
+================================================================================
+  EXTRACTION 3 — pdfminer.six + Docling AI
+  Pipeline  : extraction_3_pdfminer_docling
+  Source    : ETATS_FINANCIERS\NSIA\AN3.pdf
+  SHA256    : b52b131a9707a265554a2173382abba4f7c8d51ed8f2df314cb23479a33010f8
+  Timestamp : 2026-05-22T06:55:46
+  Pages     : 3
+  Methode   : pdfminer_native+docling_tables
+  Total chars : 22,929
+================================================================================
+
+[PAGE 1]  [METRICS chars=11679 density=16.6207 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+        ETATS FINANCIERS ANNUELS 2024
+Société Anonyme avec Conseil d’Administration
+Au capital de 24 734 572 000 FCFA
+Siège social : C-22 rue Goyavier, Avenue Jean Mermoz - Cocody
+01 BP 1274 Abidjan 01
+RCCM : CI-ABJ-01-1981-B14-52039
+N° d’inscription sur la liste des banques : A 0042 Q
+Cette publication intervient en application des dispositions de l’article 847 de l’Acte Uniforme OHADA relatif au droit
+des Sociétés Commerciales et du GIE.
+1- BILAN (en millions FCFA)
+            MONTANTS NETS
+    MONTANTS NETS
+        PASSIF
+ACTIF
+    2023
+    48 060
+    2024
+    128 185
+            2023
+            2024
+            -
+            -
+        Banques Centrales, CCP
+Caisse, Banque Centrale, CCP
+            515 510
+            367 540
+    410 251
+    477 358
+        Dettes interbancaires et assimilées
+Effets publics et valeurs assimilées
+            1 700 893
+            1 415 894
+    72 526
+        Dettes à l'égard de la clientèle
+Créances interbancaires et assimilées
+    142 516
+            -
+            -
+    1 307 350
+        Dettes représentées par un titre
+Créances sur la clientèle
+    1 536 122
+            39 786
+            21 309
+    29
+        Autres passifs
+    29
+Obligations et autres titres à revenu fixe
+            19 835
+            17 619
+    23 571
+        Comptes de régularisation
+    23 277
+Actions et autres titres à revenu variable
+            4 294
+            5 377
+    -
+        Provisions
+    -
+Actionnaires ou associés
+            18 740
+            19 606
+    36 523
+        Emprunts et titres émis subordonnés
+    32 087
+Autres actifs
+            215 330
+            189 719
+    3 126
+        Capitaux propres et ressources assimilées
+    8 949
+Comptes de régularisation
+            24 735
+            24 735
+    18 627
+        Capital souscrit
+    25 820
+Participations et autres titres détenus à long terme
+            29 992
+            29 992
+    23 041
+        Primes liées au capital
+    23 831
+Parts dans les entreprises liées
+            35 404
+            30 182
+Prêts subordonnés
+    2 601
+        Réserves
+    2 703
+            -
+            -
+    10 866
+        Ecarts de réévaluation
+    6 224
+Immobilisations incorporelles
+            -
+            -
+    80 403
+        Provisions réglementées
+    107 287
+Immobilisations corporelles
+            87 087
+            69 997
+        Report à nouveau(+/-)
+    2 037 064
+    2 514 388
+TOTAL DE L'ACTIF
+            38 112
+            34 813
+        Résultat de l'exercice(+/-)
+    MONTANTS NETS
+HORS BILAN
+            2 514 388
+            2 037 064
+        TOTAL PASSIF
+    2023
+    2024
+ENGAGEMENTS DONNÉS
+    156 480
+    332 446
+Engagements de financement
+Engagements de garantie
+    216 469
+    209 856
+    -
+Engagements sur titres
+    -
+ENGAGEMENTS REÇUS
+    -
+Engagements de financement
+    -
+    4 604 738
+Engagements de garantie
+    3 891 771
+    -
+    -
+Engagements sur titres
+2 - COMPTE DE RÉSULTAT (en millions FCFA)
+    MONTANTS NETS
+PRODUITS/CHARGES
+    2023
+    100 086
+    2024
+    102 943
+Intérêts et produits assimilés
+    - 49 048
+    - 40 682
+Intérêts et charges assimilées
+    11 997
+    4 738
+Revenus des titres à revenu variable
+    26 249
+    24 856
+Commissions (produits)
+    - 2 121
+    - 3 546
+Commissions (charges)
+Gains ou pertes nets sur opérations des portefeuilles
+de négociation
+Gains ou pertes nets sur opérations des
+portefeuilles de placement et assimilés
+Autres produits d'exploitation bancaire
+    1 851
+    1 451
+    0
+    598
+    7 733
+    4 951
+    - 1 785
+    - 1 450
+Autres charges d'exploitation bancaire
+    97 819
+    91 002
+Produit Net Bancaire
+    -
+    -
+Subventions d’investissement
+    - 49 945
+    - 45 811
+Charges générales d'exploitation
+Dotation aux amortissements et aux dépréciations
+des immobilisations incorporelles et corporelles
+    - 8 474
+    - 7 269
+Résultat Brut d'Exploitation
+    39 400
+    37 922
+    537
+    - 3 376
+Coût du risque
+    39 937
+    34 546
+Résultat d'exploitation
+    282
+    1 766
+Gains ou pertes nets sur actifs immobilisés
+    40 219
+    36 312
+Résultat avant impôt
+    - 2 107
+    - 1 499
+Impôts sur les bénéfices
+    38 112
+    34 813
+Résultat Net
+        NB : Etats financiers de synthèse de l’exercice 2024 vérifiés par les Commissaires aux comptes.
+
+[TABLEAUX DOCLING]
+|                                                      | MONTANTS NETS   | MONTANTS NETS   |
+|------------------------------------------------------|-----------------|-----------------|
+| ACTIF                                                | 2023            | 2024            |
+| Caisse, Banque Centrale, CCP                         | 48 060          | 128 185         |
+| Effets publics et valeurs assimilées                 | 410 251         | 477 358         |
+| Créances interbancaires et assimilées                | 72 526          | 142 516         |
+| Créances sur la clientèle                            | 1 307 350       | 1 536 122       |
+| Obligations et autres titres à revenu fixe           | 29              | 29              |
+| Actions et autres titres à revenu variable           | 23 571          | 23 277          |
+| Actionnaires ou associés                             | -               | -               |
+| Autres actifs                                        | 36 523          | 32 087          |
+| Comptes de régularisation                            | 3 126           | 8 949           |
+| Participations et autres titres détenus à long terme | 18 627          | 25 820          |
+| Parts dans les entreprises liées                     | 23 041          | 23 831          |
+| Prêts subordonnés                                    | 2 601           | 2 703           |
+| Immobilisations incorporelles                        | 10 866          | 6 224           |
+| Immobilisations corporelles                          | 80 403          | 107 287         |
+| TOTAL DE L'ACTIF                                     | 2 037 064       | 2 514 388       |
+| HORS BILAN                                           | MONTANTS NETS   | MONTANTS NETS   |
+|                                                      | 2023            | 2024            |
+| ENGAGEMENTS DONNÉS                                   |                 |                 |
+| Engagements de financement                           | 332 446         | 156 480         |
+| Engagements de garantie                              | 209 856         | 216 469         |
+| Engagements sur titres                               | -               | -               |
+| ENGAGEMENTS REÇUS                                    |                 |                 |
+| Engagements de financement                           | -               | -               |
+| Engagements de garantie                              | 3 891 771       | 4 604 738       |
+| Engagements sur titres                               | -               | -               |
+
+| PRODUITS/CHARGES                                                                                  | MONTANTS NETS   | MONTANTS NETS   |
+|---------------------------------------------------------------------------------------------------|-----------------|-----------------|
+|                                                                                                   | 2023            | 2024            |
+| Intérêts et produits assimilés                                                                    | 100 086         | 102 943         |
+| Intérêts et charges assimilées                                                                    | - 40 682        | - 49 048        |
+| Revenus des titres à revenu variable                                                              | 4 738           | 11 997          |
+| Commissions (produits)                                                                            | 24 856          | 26 249          |
+| Commissions (charges)                                                                             | - 3 546         | - 2 121         |
+| Gains ou pertes nets sur opérations des portefeuilles de négociation                              | 1 451           | 1 851           |
+| Gains ou pertes nets sur opérations des portefeuilles de placement et assimilés                   | 598             | 0               |
+| Autres produits d'exploitation bancaire                                                           | 4 951           | 7 733           |
+| Autres charges d'exploitation bancaire                                                            | - 1 450         | - 1 785         |
+| Produit Net Bancaire                                                                              | 91 002          | 97 819          |
+| Subventions d'investissement                                                                      | -               | -               |
+| Charges générales d'exploitation                                                                  | - 45 811        | - 49 945        |
+| Dotation aux amortissements et aux dépréciations des immobilisations incorporelles et corporelles | - 7 269         | - 8 474         |
+| Résultat Brut d'Exploitation                                                                      | 37 922          | 39 400          |
+| Coût du risque                                                                                    | - 3 376         | 537             |
+| Résultat d'exploitation                                                                           | 34 546          | 39 937          |
+| Gains ou pertes nets sur actifs immobilisés                                                       | 1 766           | 282             |
+| Résultat avant impôt                                                                              | 36 312          | 40 219          |
+| Impôts sur les bénéfices                                                                          | - 1 499         | - 2 107         |
+| Résultat Net                                                                                      | 34 813          | 38 112          |
+
+| PASSIF                                    | MONTANTS NETS   | MONTANTS NETS   |
+|-------------------------------------------|-----------------|-----------------|
+| PASSIF                                    | 2023            | 2024            |
+| Banques Centrales, CCP                    | -               | -               |
+| Dettes interbancaires et assimilées       | 367 540         | 515 510         |
+| Dettes à l'égard de la clientèle          | 1 415 894       | 1 700 893       |
+| Dettes représentées par un titre          | -               | -               |
+| Autres passifs                            | 21 309          | 39 786          |
+| Comptes de régularisation                 | 17 619          | 19 835          |
+| Provisions                                | 5 377           | 4 294           |
+| Emprunts et titres émis subordonnés       | 19 606          | 18 740          |
+| Capitaux propres et ressources assimilées | 189 719         | 215 330         |
+| Capital souscrit                          | 24 735          | 24 735          |
+| Primes liées au capital                   | 29 992          | 29 992          |
+| Réserves                                  | 30 182          | 35 404          |
+| Ecarts de réévaluation                    | -               | -               |
+| Provisions réglementées                   | -               | -               |
+| Report à nouveau(+/-)                     | 69 997          | 87 087          |
+| Résultat de l'exercice(+/-)               | 34 813          | 38 112          |
+| TOTAL PASSIF                              | 2 037 064       | 2 514 388       |
+
+[PAGE 2]  [METRICS chars=5035 density=7.1655 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+NSIA BANQUE CÔTE D’IVOIRE ACHEVE L’EXERCICE 2024
+AVEC UN BENEFICE NET DE 38,1 MILLIARDS FCFA
+Fait à Abidjan, le 25 mars 2025. Au terme de l’exercice 2024, NSIA Banque CI conﬁrme sa dynamique de croissance et conforte sa position sur le marché bancaire
+ivoirien. La Banque réalise ainsi un résultat net de 38,1 milliards FCFA, en hausse de 9% par rapport à 2023.
+CHIFFRES CLÉS 2024
+    Produit Net Bancaire (en milliards FCFA)
+        Coût net du risque (en milliards FCFA)
+            Résultat net (en milliards FCFA)
+Total bilan (en milliards FCFA)
+Fonds propres (en milliards FCFA)
+    215
+        97
+    +13%
+2514
+        +7%
+    91
+    192
++23%
+            38,1
+    +14%
+    +33%
+    80
+        -31%
+            +9%
+        -4,1
+            34,8
+2037
+        -3,4
+145
++8%
+            +8%
+1885
+        -116%
+            32,4
+        0,6
+            2024
+    2022
+    2023
+        2024
+        2022
+        2023
+        2024
+            2022
+            2023
+2022
+2023
+2024
+2022
+    2023
+    2024
+FAITS MARQUANTS
+Au niveau stratégique
+        des processus (audits, réunions, plans d’action, etc.) ;
+Dans son ambition de renforcer son engagement, de dynamiser son offre
+et  offrir  des  produits  adaptés  aux  besoins  de  sa  clientèle,  plusieurs
+partenariats ont été signés :
+        au  lancement  de  CREDITFLOW,  une  solution  informatique  dédiée  à  la
+        digitalisation  du  processus  d’instruction  des  crédits,  à  la  dématérialisation
+        des  dossiers  de  crédits  ainsi  qu’à  la  création  d’une  base  de  données  de
+        connaissances collectives pour la Banque.
+avec  le  Ministère  de  la  Construction,  du  Logement  et  de
+le  ﬁnancement  des  opérations  de
+l'Urbanisme  (MCLU)  pour
+lotissement et de production de terrains aménagés. Cet engagement
+contribue à moderniser et sécuriser la gestion de l’urbanisme et du
+foncier,  favorisant  ainsi  un  développement  urbain  structuré  et
+durable ;
+        Plusieurs prix ont été décernés à NSIA Banque CI :
+        Lors de la 10ème édition du “Regional Exchange Conference” (REC), deux (2)
+        prix ont été décernés à la Banque :
+        -  Le  Prix  Exceptionnel,  pour  la  contribution  à  la  croissance  du  marché
+avec le Centre de Recherche et d'Action pour la Paix / Université
+Jésuite (CERAP/UJ), l'École d'Ingénieurs de PURPAN (Toulouse) et
+initiative,  dénommée  "AGRO-BACHELOR
+le  Club  Agro.  Cette
+CERAP-PURPAN",  vise  à
+former  des  entrepreneurs  agricoles
+capables de produire et de commercialiser des produits agricoles de
+qualité,  contribuant  ainsi  à  la  sécurité  alimentaire  en  Côte  d’Ivoire
+et au développement d’une agriculture compétitive ;
+        ﬁnancier régional ;
+        -  Le  Prix  de  l’engagement  continu,  récompensant  les  efforts  constants
+        déployés  pour  renforcer  les  liens  avec  nos  partenaires  et  instaurer  une
+        relation de conﬁance durable avec les investisseurs ;
+        Le Prix de l’Innovation à « la Finance S’Engage 2024 » valorisant les efforts
+        de  la  Banque  dans  l’accompagnement  des  PME  grâce  à  des  solutions
+        novatrices ;
+avec  l'École  Nationale  d'Administration  (ENA)  dans  le  but  de
+soutenir  la  formation  par  la  mise  à  disposition  du  produit  innovant
+«  Avance  sur  Bourse  »  au  proﬁt  des  pensionnaires  éligibles.  Cette
+solution permet aux pensionnaires de l’ENA de disposer d’une avance
+de  fonds  sécurisée,  facilitant  ainsi  leur  parcours  académique  et
+renforçant leur inclusion ﬁnancière.
+        Le Prix de la Banque de l’année lors de la 14e cérémonie des Bâtisseurs de
+        l’Économie Africaine (African Economy Builders Forum & Awards) ;
+        Le Prix de la Meilleure Banque de ﬁnancement des Transporteurs lors de
+        la 2e édition du Prix des Meilleurs Acteurs du Transport Routier (PRIMAT).
+        En  2024,  l’engagement  de  la  Banque  envers  l'excellence  en  matière  de
+        gouvernance  ﬁnancière,  de  qualité  de  gestion  et  la  volonté  d’amélioration
+        continue, s’est traduit par l’obtention du certiﬁcat de conformité MSI 20000,
+        norme  internationale  régie  par  l'International  Group  For  Sustainable  Finance
+        (IGSF) obtenu après une évaluation approfondie des performances ﬁnancières.
+Au niveau de l’activité
+En vue d’améliorer l’expérience client la Banque a procédé :
+à  la  mise  en  circulation  des  nouvelles  cartes  Crystal,  offrant  une
+meilleure  solution  de  gestion  du  portefeuille  des  cartes  bancaires
+prépayées;
+        Le maintien de la notation ﬁnancière de la Banque par le cabinet de notation
+        Bloomﬁeld  Investment  à  AA-  sur  le  long  terme  et  A1  sur  le  court  terme
+        traduisantune qualité de crédit très élevée et une certitude de remboursement en
+        temps opportun.
+à  l’acquisition  de  la  solution  QUALIPRO  pour  digitaliser  la  gestion
+documentaire du système de management de la qualité, optimiser le
+traitement des réclamations et renforcer l’efﬁcacité opérationnelle
+
+[PAGE 3]  [METRICS chars=6215 density=8.8447 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+Au niveau des activités RSE/ESG
+        Le coût net du risque s’est amélioré et s’établit au 31 décembre 2024 à 0,6 milliard
+        FCFA contre -3,4 milliards FCFA au 31 décembre 2023.
+Le renforcement des engagements RSE de la Banque s’est traduit par :
+Le  renouvellement,  par  Bureau  Veritas,  de  la  certiﬁcation  à  la  norme
+qualité ISO 9001 version 2015 ;
+        Le  résultat  net  réalisé  au  terme  de  l’exercice  2024  est  de  38,1  milliards  FCFA
+        contre 34,8 milliards FCFA au 31 décembre 2023, soit une progression de 9%.
+Le mapping des émissions de gaz à effet de serre (GES) en prélude à la stratégie
+de décarbonnation de son portefeuille.
+        Evolution du bilan (cf. États Financiers NSIA Banque CI 2024)
+        Au terme de l’exercice 2024, le bilan de NSIA Banque CI progresse de 23% passant
+        de  2  037  milliards  FCFA  au  31  décembre  2023  à  2  514  milliards  FCFA.  Cette
+        croissance du bilan en 2024 est essentiellement portée par :
+Le  lancement  du  programme  Jeune  Élite,  programme,  dédié  aux  jeunes
+talents  diplômés.
+la  prochaine
+génération  de  leaders  dans  le  secteur  bancaire  en  Côte  d’Ivoire  à  travers
+immersif,  alliant  formation  théorique  et  stage  pratique,
+un  parcours
+avec, à l’horizon, l’opportunité d’intégrer les équipes de NSIA Banque CI ;
+Il  vise  à  accompagner  et
+    former
+        Les créances sur la clientèle (y compris les créances en souffrance) qui évoluent
+        de 17% (soit +228 milliards FCFA) passent ainsi de 1 307,4 milliards de FCFA en
+        2023 à 1 536,1 milliards de FCFA en 2024.
+La  visite  d’immersion  à  NSIA  Banque  CI  de  la  Commission  Gouvernance,
+Éthique  et  RSE  de  la  Confédération  Générale  des  Entreprises  de  Côte
+l’optique  de  prendre  connaissance  des  best
+d’Ivoire  (CGECI)  dans
+practices de la Banque en matière de RSE ;
+        Les engagements sains (1 531,5 milliards FCFA), sont en hausse de 233 milliards
+        FCFA (+18%) par rapport au 31 décembre 2023 (1 298,3 milliards FCFA).
+Le  renforcement  du  partenariat  avec  le  Centre  de  Recherche  et  d'Action
+pour la Paix (CERAP) et sa branche dédiée aux Actions Sociales en Milieu
+Urbain  (ASMU),  en  mettant  un  point  d’honneur  à  l'autonomisation  des
+jeunes défavorisés.
+        Les  emplois  non  performants  régressent  de  47%  (-4,8  milliards  FCFA)  entre
+        décembre  2023  et  décembre  2024.  L’évolution  constatée  entre  les  mois  de
+        décembre  2023  et  décembre  2024  est
+        la  politique
+        d’assainissement et de suivi du portefeuille mise en place.
+            la
+            résultante  de
+        Les actions de mobilisation de ressources ont permis de renforcer les ressources
+        clientèles  qui  augmentent  de  20%  et  s’afﬁchent  à  1  701  milliards  FCFA  au
+        31 décembre 2024 contre 1 416 milliards FCFA au 31 décembre 2023.
+PRÉSENTATION DES RÉSULTATS FINANCIERS
+Evolution du compte de résultat (Cf. Etats Financiers NSIA Banque CI 2024)
+Au 31 décembre 2024, le compte d’exploitation se présente comme suit :
+Le Produit Net Bancaire en hausse de 7% (6,82 milliards FCFA) au 31 décembre
+2024,  s’établit  à  97,8  milliards  FCFA  contre  91,0  milliards  FCFA  réalisés  en
+décembre 2023.
+        PERSPECTIVES 2025
+        Dans un contexte économique mondial en mutation et un environnement régional
+        marqué  par  des  incertitudes  socio-politiques,  NSIA  Banque  CI  réafﬁrme  son
+        engagement à accompagner les acteurs du marché tout au long de l’exercice 2025.
+Cette performance repose sur :
+- La croissance des commissions (+27%) au 31 décembre 2024, qui s’afﬁchent
+à  34,3  milliards  FCFA  contre  26,9  milliards  FCFA  au  31  décembre  2023,
+essentiellement liée à la hausse des :
+• Commissions sur effets et comptes (+ 2,2 milliards FCFA) ;
+• Commissions sur opérations en devises (+1,2 milliard FCFA) ;
+• Commissions sur engagements par signature (+ 1,0 milliard FCFA).
+        Fidèle à sa mission, la Banque s’attache à « ﬁnancer ce qui compte pour vous »,
+        en garantissant une expérience bancaire toujours plus ﬂuide, sécurisée et adaptée
+        aux évolutions du marché.
+        Dans cette dynamique, NSIA Banque CI poursuivra avec détermination la mise en
+        œuvre de son plan stratégique "Altitude 22-26", visant à :
+- La marge d’intérêt qui s’élève à 63,5 milliards FCFA au 31 décembre 2024
+        - Renforcer son positionnement en tant qu’acteur bancaire de référence ;
+        - Maintenir les plus hauts standards en matière de gestion, de gouvernance et de
+contre 64,1 milliards FCFA à ﬁn décembre 2023 (soit une baisse de 1%).
+        conformité ;
+Les frais d’exploitation, en hausse de 9%, et s’afﬁchant à 49,9 milliards de FCFA
+au  31  décembre  2024  contre  45,9  milliards  de  FCFA  à  décembre  2023,  restent
+en  ligne  avec  les  projections,  grâce  à  la  mise  en  œuvre  de  politiques  de
+maitrise des charges.
+        - Accompagner  durablement  la  transformation  du  secteur  bancaire  et  l’inclusion
+        ﬁnancière.
+        En 2025, NSIA Banque CI qui célèbre les 30 ans du Groupe NSIA entend franchir
+        une nouvelle étape de son développement, portée par une vision d’avenir partagée :
+        « 30 ans après, on écrit la suite ensemble ».
+- Les frais de personnel sont en hausse de 11% par rapport à décembre 2023,
+et ressortent à 22,5 milliards FCFA au 31 décembre 2024 ;
+-  les  frais  généraux  s’élèvent  à  27,5  milliards  FCFA  au  31  décembre  2024,
+contre 25,5 milliards FCFA au 31 décembre 2023, soit une hausse de 8%.
+Les charges d’amortissement s’établissent à 8,5 milliards FCFA et sont en hausse
+de 17% comparativement à décembre 2023.
+Le coefﬁcient d’exploitation s’établit à 59,7% à ﬁn décembre 2024 contre 58,3%
+au 31 décembre 2023.
+            CONTACT
+            Direction Financière et du Contrôle de Gestion
+            E-mail : relationsinvestisseurs@nsiabanque.com
+            Tél. : (225) 80 200 800
+            C-22 Rue Goyavier, Avenue Jean Mermoz - Cocody
+Le Résultat Brut d’Exploitation afﬁche une progression de 4% au 31 décembre
+2024 et s’établit à 39,4 milliards FCFA contre 37,9 milliards FCFA en décembre
+2023.

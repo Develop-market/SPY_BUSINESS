@@ -1,0 +1,277 @@
+================================================================================
+  EXTRACTION 3 — pdfminer.six + Docling AI
+  Pipeline  : extraction_3_pdfminer_docling
+  Source    : ETATS_FINANCIERS\BICICI\AN1.pdf
+  SHA256    : bff9b89dc7197aa352166eb31ec87a6909d5d3d44186d9379bbd4e45ee6acb66
+  Timestamp : 2026-05-22T06:46:41
+  Pages     : 1
+  Methode   : pdfminer_native+docling_tables
+  Total chars : 15,406
+================================================================================
+
+[PAGE 1]  [METRICS chars=15406 density=30.7525 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+    ETATS FINANCIERS AU 31 DECEMBRE 2023
+    I- BILAN ET HORS BILAN AU 31 DECEMBRE 2023
+    Montant au
+    Montant au
+        Montant au
+            Montant au
+        PASSIF-En Millions de FCFA
+ACTIF-En Millions de FCFA
+    31/12/2022
+    31/12/2023
+        31/12/2022
+            31/12/2023
+        BANQUE CENTRALE, CCP
+    297 611
+    90 549
+            0
+            0
+CAISSE, BANQUE CENTRALE, CCP
+        DETTES INTERBANCAIRES ET ASSIMILEES
+    103 883
+    281 950
+            27 634
+            34 828
+EFFETS PUBLICS ET VALEURS ASSIMILEES
+        DETTES A L'EGARD DE LA CLIENTELE
+    6 872
+    10 163
+            805 335
+            778 277
+CREANCES INTERBANCAIRES ET ASSIMILEES
+        DETTES REPRESENTEES PAR UN TITRE
+    478 323
+    489 193
+            0
+            0
+CREANCES CLIENTELE
+        AUTRES PASSIFS
+    291
+    250
+            9 063
+            5 490
+OBLIGATIONS ET AUTRES TITRES A REVENU FIXE
+        COMPTES DE REGULARISATION
+    0
+        0
+            8 734
+            17 387
+ACTIONS ET AUTRES TITRES A REVENU VARIABLE
+        PROVISIONS
+    0
+        0
+            1 173
+            1 007
+ACTIONNAIRES OU ASSOCIES
+        EMPRUNTS ET TITRE EMIS SUBORDONNES
+    5 641
+    4 010
+            0
+            0
+AUTRES ACTIFS
+        CAPITAUX PROPRES ET RESSOURCES
+    12 132
+    18 087
+            74 313
+            83 574
+COMPTE DE REGULARISATION
+        ASSIMILEES
+PARTICIPATIONS ET AUTRES TITRES DETENUS A
+        CAPITAL SOUSCRIT
+    286
+    286
+            16 667
+            16 667
+LONG TERME
+        CAPITAL SOUSCRIT APPELE NON VERSE
+    905
+    905
+            0
+            1 853
+PARTS DANS LES ENTREPRISES LIEES
+        RESERVES
+    0
+        0
+            43 396
+            48 353
+PRETS SUBORDONNES
+        PRIME LIEE AU CAPITAL
+    1 774
+    2 486
+            1 853
+            0
+IMMOBILISATIONS INCORPORELLES
+        RESULTAT EN INSTANCE D'AFFECTATION
+    18 534
+    22 684
+            0
+            0
+IMMOBILISATIONS CORPORELLES
+        REPORT A NOUVEAU
+            6
+            7
+        RESULTAT DE L'EXERCICE
+            12 391
+            16 694
+        TOTAL PASSIF
+    926 252
+    920 563
+            926 252
+            920 563
+TOTAL ACTIF
+    Montant au
+    Montant au
+        Montant au
+            Montant au
+        HORS BILAN-En Millions de FCFA
+HORS BILAN-En Millions de FCFA
+    31/12/2022
+    31/12/2023
+        31/12/2022
+            31/12/2023
+        ENGAGEMENTS RECUS
+    157 285
+    134 266
+            975 110
+            1 107 299
+ENGAGEMENTS DONNES
+        ENGAGEMENTS DE FINANCEMENT
+    31 851
+    20 956
+            0
+            0
+ENGAGEMENTS DE FINANCEMENT
+        ENGAGEMENT DE GARANTIE
+    125 434
+    113 310
+            975 110
+            1 107 299
+ENGAGEMENT DE GARANTIE
+        ENGAGEMENTS SUR TITRES
+    0
+        0
+            0
+            0
+ENGAGEMENTS SUR TITRES
+    II- COMPTE DE RESULTAT AU 31 DECEMBRE 2023
+        Montant au
+            Montant au
+PRODUITS ET CHARGES-En Millions de FCFA
+        31/12/2022
+            31/12/2023
+INTERETS ET PRODUITS ASSIMILES
+            34 912
+            45 191
+INTERETS ET CHARGES ASSIMILES
+            7 128
+            7 797
+REVENUS DES TITRES A REVENU VARIABLE
+            142
+            244
+COMMISSIONS (Produits )
+            19 404
+            18 861
+COMMISSIONS (Charges  )
+            2 738
+            3 146
+GAINS OU PERTES NETS SUR OPERATION DE PORTEFEUILLES DE NEGOCIATION
+            0
+            0
+GAINS OU PERTES NETS SUR OPERATION DE PORTEFEUILLES DE PLACEMENT ET ASSIMILES
+            0
+            0
+AUTRES PRODUITS D' EXPLOITATION BANCAIRE
+            3 191
+            2 576
+AUTRES CHARGES D' EXPLOITATION BANCAIRE
+            508
+            423
+PRODUIT NET BANCAIRE
+            47 275
+            55 506
+SUBVENTION D'INVESTISSEMENT
+            0
+            0
+CHARGES GENERALES D'EXPLOITATION
+            29 533
+            35 579
+DOTATIONS AUX AMORTISSEMENTS ET DEPRECIATIONS DES IMMOBILISATIONS
+            2 933
+            3 113
+RESULTAT BRUT D'EXPLOITATION
+            14 809
+            16 814
+COUT DU RISQUE
+            805
+            1 274
+RESULTAT D'EXPLOITATION
+            14 004
+            15 540
+GAINS OU PERTES NETS SUR ACTIFS IMMOBILISES
+            169
+            2 573
+RESULTAT AVANT IMPOT
+            14 173
+            18 113
+IMPOTS SUR LES BENEFICES
+            1 782
+            1 419
+RESULTAT NET
+            12 391
+            16 694
+            #Classification : Internal
+
+[TABLEAUX DOCLING]
+| I- BILAN ET HORS BILAN AU 31 DECEMBRE 2023           | I- BILAN ET HORS BILAN AU 31 DECEMBRE 2023   | I- BILAN ET HORS BILAN AU 31 DECEMBRE 2023   | I- BILAN ET HORS BILAN AU 31 DECEMBRE 2023   | I- BILAN ET HORS BILAN AU 31 DECEMBRE 2023   | I- BILAN ET HORS BILAN AU 31 DECEMBRE 2023   |
+|------------------------------------------------------|----------------------------------------------|----------------------------------------------|----------------------------------------------|----------------------------------------------|----------------------------------------------|
+| ACTIF-En Millions de FCFA                            | Montant au 31/12/2022                        | Montant au 31/12/2023                        | PASSIF-En Millions de FCFA                   | Montant au 31/12/2022                        | Montant au 31/12/2023                        |
+| CAISSE, BANQUE CENTRALE, CCP                         | 297 611                                      | 90 549                                       | BANQUE CENTRALE, CCP                         | 0                                            | 0                                            |
+| EFFETS PUBLICS ET VALEURS ASSIMILEES                 | 103 883                                      | 281 950                                      | DETTES INTERBANCAIRES ET ASSIMILEES          | 27 634                                       | 34 828                                       |
+| CREANCES INTERBANCAIRES ET ASSIMILEES                | 6 872                                        | 10 163                                       | DETTES A L'EGARD DE LA CLIENTELE             | 805 335                                      | 778 277                                      |
+| CREANCES CLIENTELE                                   | 478 323                                      | 489 193                                      | DETTES REPRESENTEES PAR UN TITRE             | 0                                            | 0                                            |
+| OBLIGATIONS ET AUTRES TITRES A REVENU FIXE           | 291                                          | 250                                          | AUTRES PASSIFS                               | 9 063                                        | 5 490                                        |
+| ACTIONS ET AUTRES TITRES A REVENU VARIABLE           | 0                                            | 0                                            | COMPTES DE REGULARISATION                    | 8 734                                        | 17 387                                       |
+| ACTIONNAIRES OU ASSOCIES                             | 0                                            | 0                                            | PROVISIONS                                   | 1 173                                        | 1 007                                        |
+| AUTRES ACTIFS                                        | 5 641                                        | 4 010                                        | EMPRUNTS ET TITRE EMIS SUBORDONNES           | 0                                            | 0                                            |
+| COMPTE DE REGULARISATION                             | 12 132                                       | 18 087                                       | CAPITAUX PROPRES ET RESSOURCES ASSIMILEES    | 74 313                                       | 83 574                                       |
+| PARTICIPATIONS ET AUTRES TITRES DETENUS A LONG TERME | 286                                          | 286                                          | CAPITAL SOUSCRIT                             | 16 667                                       | 16 667                                       |
+| PARTS DANS LES ENTREPRISES LIEES                     | 905                                          | 905                                          | CAPITAL SOUSCRIT APPELE NON VERSE            | 0                                            | 1 853                                        |
+| PRETS SUBORDONNES                                    | 0                                            | 0                                            | RESERVES                                     | 43 396                                       | 48 353                                       |
+| IMMOBILISATIONS INCORPORELLES                        | 1 774                                        | 2 486                                        | PRIME LIEE AU CAPITAL                        | 1 853                                        | 0                                            |
+| IMMOBILISATIONS CORPORELLES                          | 18 534                                       | 22 684                                       | RESULTAT EN INSTANCE D'AFFECTATION           | 0                                            | 0                                            |
+|                                                      |                                              |                                              | REPORT A NOUVEAU                             | 6                                            | 7                                            |
+|                                                      |                                              |                                              | RESULTAT DE L'EXERCICE                       | 12 391                                       | 16 694                                       |
+| TOTAL ACTIF                                          | 926 252                                      | 920 563                                      | TOTAL PASSIF                                 | 926 252                                      | 920 563                                      |
+
+| HORS BILAN-En Millions de FCFA   | Montant au 31/12/2022   | Montant au 31/12/2023   | HORS BILAN-En Millions de FCFA   | Montant au 31/12/2022   | Montant au 31/12/2023   |
+|----------------------------------|-------------------------|-------------------------|----------------------------------|-------------------------|-------------------------|
+| ENGAGEMENTS DONNES               | 157 285                 | 134 266                 | ENGAGEMENTS RECUS                | 975 110                 | 1 107 299               |
+| ENGAGEMENTS DE FINANCEMENT       | 31 851                  | 20 956                  | ENGAGEMENTS DE FINANCEMENT       | 0                       | 0                       |
+| ENGAGEMENT DE GARANTIE           | 125 434                 | 113 310                 | ENGAGEMENT DE GARANTIE           | 975 110                 | 1 107 299               |
+| ENGAGEMENTS SUR TITRES           | 0                       |                         | 0 ENGAGEMENTS SUR TITRES         | 0                       | 0                       |
+
+| II- COMPTE DE RESULTAT AU 31 DECEMBRE 2023                                    | II- COMPTE DE RESULTAT AU 31 DECEMBRE 2023   | II- COMPTE DE RESULTAT AU 31 DECEMBRE 2023   |
+|-------------------------------------------------------------------------------|----------------------------------------------|----------------------------------------------|
+| PRODUITS ET CHARGES-En Millions de FCFA                                       | Montant au 31/12/2022                        | Montant au 31/12/2023                        |
+| INTERETS ET PRODUITS ASSIMILES                                                | 34 912                                       | 45 191                                       |
+| INTERETS ET CHARGES ASSIMILES                                                 | 7 128                                        | 7 797                                        |
+| REVENUS DES TITRES A REVENU VARIABLE                                          | 142                                          | 244                                          |
+| COMMISSIONS (Produits )                                                       | 19 404                                       | 18 861                                       |
+| COMMISSIONS (Charges )                                                        | 2 738                                        | 3 146                                        |
+| GAINS OU PERTES NETS SUR OPERATION DE PORTEFEUILLES DE NEGOCIATION            | 0                                            | 0                                            |
+| GAINS OU PERTES NETS SUR OPERATION DE PORTEFEUILLES DE PLACEMENT ET ASSIMILES | 0                                            | 0                                            |
+| AUTRES PRODUITS D' EXPLOITATION BANCAIRE                                      | 3 191                                        | 2 576                                        |
+| AUTRES CHARGES D' EXPLOITATION BANCAIRE                                       | 508                                          | 423                                          |
+| PRODUIT NET BANCAIRE                                                          | 47 275                                       | 55 506                                       |
+| SUBVENTION D'INVESTISSEMENT                                                   | 0                                            | 0                                            |
+| CHARGES GENERALES D'EXPLOITATION                                              | 29 533                                       | 35 579                                       |
+| DOTATIONS AUX AMORTISSEMENTS ET DEPRECIATIONS DES IMMOBILISATIONS             | 2 933                                        | 3 113                                        |
+| RESULTAT BRUT D'EXPLOITATION                                                  | 14 809                                       | 16 814                                       |
+| COUT DU RISQUE                                                                | 805                                          | 1 274                                        |
+| RESULTAT D'EXPLOITATION                                                       | 14 004                                       | 15 540                                       |
+| GAINS OU PERTES NETS SUR ACTIFS IMMOBILISES                                   | 169                                          | 2 573                                        |
+| RESULTAT AVANT IMPOT                                                          | 14 173                                       | 18 113                                       |
+| IMPOTS SUR LES BENEFICES                                                      | 1 782                                        | 1 419                                        |
+| RESULTAT NET                                                                  | 12 391                                       | 16 694                                       |

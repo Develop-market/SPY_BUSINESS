@@ -1,0 +1,95 @@
+## I - CHAMP D'APPLICATION
+
+Les conditions générales de banque, consignées dans le présent recueil, s'appliquent aux opérations réalisées en Côte d'Ivoire par la Banque Atlantique Côte d'Ivoire (BACI), au profit de sa clientèle. Les conditions et règlements édictés par les Autorités Monétaires s'appliquent de plein droit, même s'ils ne figurent pas explicitement dans le présent recueil. Il en est de même pour les normes découlant d'accords conclus entre la BACI et ses partenaire s. Les conditions sont déclinées conformément aux dispositions de l'Instruction n°004-5-2015 du 8 mai 2015 de la Banque Centrale des Etats de l'Afrique de l'Ouest (BCEAO), établissant un canevas de présentation harmonisée des tarifs des produits et services bancaires offerts par les Établissements de crédit à leur clientèle, à savoir :
+
+Pour toute réclamation, bien vouloir contacter
+
+le Service organisation et qualité au numéro :
+
++225 27 20 31 59 50
+
+<!-- image -->
+
+## II - DISPOSITIONS GÉNÉRALES
+
+De façon générale, sont à la charge du client, tous impôts et taxes quelconques
+
+présents et à venir prévus par les présentes conditions. Les tarifs mentionnés s'entendent hors taxes. Toutes les taxes, en particulier la TVA et l'IRC/IRVM, sont intégralement à la charge de la clientèle et retenues à la source suivant les textes en vigueur. Tout service ou opération donnera lieu à la perception d'une commission à la charge du client à l'exception de ceux définis par l'Instruction de la BCEAO n°004-6-2014 du 25 juin 2014 relative aux services bancaires offerts à titre gratuit par les Établissements de crédits de l'UMOA à leur clientèle.
+
+2.1. Places bancables et dates de valeur
+
+-Les places bancables sont celles où la BCEAO est soit installée, soit représentée. -Les dates de valeur sont toujours exprimées en jours ouvrables. Le samedi est considéré comme jour non ouvrable.
+
+2.2. Monnaie
+
+Les tarifs indiqués dans le présent recueil sont exprimés en Francs CFA (FCFA) hors TVA
+
+sauf disposition expresse contraire.
+
+Pour les tarifs en EURO, une parité fixe est établie entre l'EURO et le Franc CFA à raison de
+
+1 EUR pour 655,957 FCFA.
+
+2.3. Périodicité d'arrêté des comptes
+
+Les arrêtés sont effectués aux périodicités suivantes :
+
+-Comptes de chèques et comptes courants : chaque fin de mois
+
+-Comptes d'épargne : deux fois par an en fin juin et fin décembre
+
+<!-- image -->
+
+2.4. Opérations interbancaires
+
+2.6. Autres frais à la charge du client
+
+Les opérations entre banques ne sont pas soumises aux conditions fixées par le présent texte.
+
+En cas de crédit consortial, l'accord des banques du con ium peut amener à déroger aux sort
+
+conditions du présent texte.
+
+Une commission d'arrangement sera prise dans les cas de risk sharing inter-filiales.
+
+Les crédits aux financiers peuvent également être accordés à des conditions établissements
+
+spéciales.
+
+2.5. Taux débiteurs
+
+-Le Taux de Base Bancaire (TBB) est de : 10,75%
+
+-Le Taux d'usure est de 15% à partir du 1er janvier 2014
+
+-Le Taux Moyen Mensuel du Marché Monétaire (T.M.M) :  4,5% à fin mars 2019.
+
+-Le Meilleur Taux Débiteur (MTD) de la BACI varie en fonction des conditions du marché.
+
+Les frais de télex/Swift/téléphone/fax/courrier sont appliqués sur la base du tarif pratiqué par les différents prestataires et majorés comme ci-dessous.
+
+## 2.7. Protection des déposants
+
+Banque Atlantique Côte d'Ivoire est adhérente au Fonds de Garantie des Dépôts et de Résolution de l'Union Monétaire Ouest Africaine (FGDR - UMOA). Les petits déposants (particuliers titulaires de comptes courants, épargne…) pourront bénéficier dans ce cadre, d'un remboursement dont le plafond correspond à 1 400 000FCFA (montant fixé par le FGDR - UMOA et révisable) en cas de cessation de paiements.
+
+K = n
+
+=
+
+K = 1 ( 1 + i ) K' = 1 tk ( 1 + i ) tk'
+
+K' = n'
+
+P K
+
+R K'
+
+<!-- image -->
+
+Où
+
+- k est le numéro d'ordre d'un prêt ;
+- k' est le numéro d'ordre d'un remboursement ou d'un règlement de charges ;
+- Pk est le montant du prêt ;
+- Rk' est le montant du remboursement ou du paiement de charges numéro 1 ;
+- n est le numéro d'ordre du dernier prêt ;

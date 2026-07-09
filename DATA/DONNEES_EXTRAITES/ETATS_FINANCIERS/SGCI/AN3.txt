@@ -1,0 +1,602 @@
+================================================================================
+  EXTRACTION 3 — pdfminer.six + Docling AI
+  Pipeline  : extraction_3_pdfminer_docling
+  Source    : ETATS_FINANCIERS\SGCI\AN3.pdf
+  SHA256    : edcd61319f7c835d6eec8efd8f2e71c98b844c3af53ab0ad8915d250918700e7
+  Timestamp : 2026-05-22T07:01:20
+  Pages     : 4
+  Methode   : pdfminer_native+docling_tables
+  Total chars : 34,263
+================================================================================
+
+[PAGE 1]  [METRICS chars=67 density=0.1337 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+RAPPORT D’ACTIVITÉ
+RÉSULTATS ANNUELS 2025
+Abidjan, le 14 Avril 2026
+
+[PAGE 2]  [METRICS chars=7254 density=14.4745 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+I.  EXECUTIVE SUMMARY
+        Toutes ces actions ont permis de générer un produit net bancaire
+        en progression de +4,9 %.
+        Les  frais  généraux  augmentent  de  +7,3  %  en  raison  de  charges
+        non récurrentes liées notamment au projet de rénovation du siège.
+        Malgré  ces  charges  exceptionnelles,  le  coefficient  d’exploitation
+        ressort à 38,8%.
+Au 31 décembre 2025, le total bilan s’établit à 3 769 milliards FCFA,
+en progression de +4,3 % par rapport à 2024.
+Les encours de crédits ont atteint 2 546 milliards FCFA, en hausse
+de +2,9% comparée à l’année précédente. Cette évolution intervient
+dans un contexte de ralentissement de l’activité économique en lien
+avec les élections présidentielles qui se sont tenues au T4-2025. La
+croissance  est  soutenue  par  (i)  le  segment  Retail,  notamment  les
+crédits à la consommation qui ont permis de soutenir la dynamique
+commerciale et (ii) la hausse des crédits Corporate grâce aux crédits
+spécialisés (crédit-bail) et de trésorerie (spots, avances sur produits
+nantis, escomptes, etc.).
+        Le  coût  net  du  risque  augmente  de  +29,2  %  dans  le  cadre  d’une
+        gestion stricte et prudente de notre portefeuille. Le taux de créances
+        en souffrances (CDL) s’établit à 8 % avec des crédits en souffrance
+        couverts  à  82  %,  démontrant  ainsi  une  bonne  qualité  de  nos
+        encours.
+        Au  final,  le  résultat  net  s’établit  à  101,352  milliards  FCFA,
+        quasiment au même niveau que 2024.
+Les  dépôts  s’élèvent  à  2  908  milliards  FCFA,  en  augmentation
+de  +5,8  %.  Cette  progression  marque  un  net  redressement  après
+une année 2024 caractérisée par des tensions de liquidité. Dans ce
+contexte,  le  ratio  crédits/dépôts  s’établit  à  87,6  %  et  s’améliore
+sensiblement à près de 250 bps.
+II.  CONTEXTE ÉCONOMIQUE ET ENVIRONNEMENT
+         Le marché du crédit a continué de croître de manière modérée,
+        avec une attention accrue portée à la qualité des contreparties.
+L’économie  ivoirienne  a  poursuivi  une  trajectoire  de  croissance
+soutenue au cours de l’exercice 2025, portée par :
+ La résilience de la consommation intérieure,
+ La bonne tenue des secteurs agricole, industriel et des services.
+        Le secteur bancaire ivoirien a évolué dans un cadre réglementaire
+        renforcé, marqué notamment par :
+         L’application stricte des normes prudentielles de l’UMOA,
+         Le renforcement des exigences en matière de fonds propres,
+         L’intensification des dispositifs de lutte contre le blanchiment de
+Le cadre macroéconomique est resté globalement stable, malgré :
+ Un environnement international incertain,
+ Un  environnement  socio-politique  marqué  par  les  élections
+        capitaux et le financement du terrorisme (LBC/FT),
+présidentielles et législatives,
+         La  supervision  accrue  des  risques  de  crédit,  de  liquidité  et
+ Et une volatilité persistante du prix des matières premières.
+        opérationnels.
+La politique monétaire de la BCEAO est demeurée prudente, visant
+la  maîtrise  de  l’inflation,  la  stabilité  du  système  financier  et  le
+contrôle de la liquidité bancaire. Dans ce contexte :
+        Dans ce contexte, la banque a orienté son action vers :
+         Une croissance maîtrisée du portefeuille de crédits,
+         Une politique prudente de gestion des risques,
+         Le renforcement de la collecte de ressources stables,
+         L’amélioration continue de l’efficacité opérationnelle,
+         Et le maintien de ses investissements stratégiques.
+ Les conditions de refinancement se sont améliorées,
+ La gestion de la liquidité et du coût des ressources a constitué un
+enjeu majeur pour les banques,
+III.  ACTIVITÉS ET PERFORMANCES
+COMPTE DE RÉSULTAT *
+    Variations
+        L’exercice  2025  s’est  déroulé  dans  un  contexte  de  ralentissement
+        de  l’activité  économique  en  lien  avec  les  échéances  électorales
+        présidentielles.  Ce  contexte  a  entraîné  un  attentisme  des
+        impactant  nos
+        entreprises,  notamment  sur  certains  projets,
+        activités de banques d’investissements.
+Données financières (en millions FCFA)
+    déc-24
+    déc-25
+    Valeur
+    %
+Produit Net Bancaire
+    263 207
+    276 048
+    12 841
+    4,9%
+Frais Généraux
+    -99 723
+    -106 974
+    -7 251
+    7,3%
+Résultat Brut d'Exploitation
+    163 484
+    169 074
+    5 590
+    3,4%
+Coût Net du Risque
+    -36 235
+    -46 829
+    -10 593
+    29,2%
+        Dans cet environnement, la banque affiche un total bilan de 3 769
+        milliards FCFA, en progression de +4,3 % par rapport à 2024 (3 614
+        milliards FCFA). Cette évolution met en lumière la croissance des
+        emplois et le renforcement de la collecte des ressources.
+Résultat Avant impôt
+    127 561
+    126 507
+    -1 054
+    -0,8%
+Impôt
+    -26 333
+    -25 155
+    1 178
+    -4,5%
+Résultat Net
+    101 228
+    101 352
+    124
+    0,1%
+Données auditées
+*
+        Les encours de crédits s’établissent à 2 546 milliards contre 2 475
+        milliards FCFA en 2024, soit une hausse de +2,9 %.
+ENCOURS EN FIN DE PÉRIODE*
+    Variations
+        Les dépôts de la clientèle sont à 2 908 milliards FCFA, en hausse de
+        +5,8 % par rapport à 2024 (2 748 milliards FCFA). Cette performance
+        démontre  l’efficacité  des  actions  commerciales  menées  sur  les
+        dépôts à vue, à terme ainsi que les produits d’épargnes auprès de
+        l’ensemble de nos clients. Elles permettent ainsi une amélioration
+Données financières (en millions FCFA)
+    déc-24
+    déc-25
+    Valeur
+    %
+Crédits à la Clientèle
+    2 474 604
+    2 546 290
+    71 686
+    2,9%
+Dépôts de la Clientèle
+    2 747 507
+    2 907 675
+    160 168
+    5,8%
+* Données auditées
+
+[TABLEAUX DOCLING]
+|                                        |         |          | Variations   | Variations   |
+|----------------------------------------|---------|----------|--------------|--------------|
+| Données financières (en millions FCFA) | déc-24  | déc-25   | Valeur       | %            |
+| Produit Net Bancaire                   | 263 207 | 276 048  | 12 841       | 4,9%         |
+| Frais Généraux                         | -99 723 | -106 974 | -7 251       | 7,3%         |
+| Résultat Brut d'Exploitation           | 163 484 | 169 074  | 5 590        | 3,4%         |
+| Coût Net du Risque                     | -36 235 | -46 829  | -10 593      | 29,2%        |
+| Résultat Avant impôt                   | 127 561 | 126 507  | -1 054       | -0,8%        |
+| Impôt                                  | -26 333 | -25 155  | 1 178        | -4,5%        |
+| Résultat Net                           | 101 228 | 101 352  | 124          | 0,1%         |
+
+|                                        |           |           | Variations   | Variations   |
+|----------------------------------------|-----------|-----------|--------------|--------------|
+| Données financières (en millions FCFA) | déc-24    | déc-25    | Valeur       | %            |
+| Crédits à la Clientèle                 | 2 474 604 | 2 546 290 | 71 686       | 2,9%         |
+| Dépôts de la Clientèle                 | 2 747 507 | 2 907 675 | 160 168      | 5,8%         |
+
+[PAGE 3]  [METRICS chars=6315 density=12.6008 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+        Les frais généraux sont en hausse de +7,3 % en 2025. Cette hausse
+        s’explique  principalement  par  des  charges  exceptionnelles,  non
+        récurrentes.
+significative de notre situation de liquidité et une diversification des
+sources de financement.
+Cette dynamique de collecte a contribué à réduire considérablement
+le recours aux refinancements BCEAO et auprès des confrères, et in
+fine, les charges financières de la banque.
+        Le coefficient d’exploitation qui reste contenu à 38,8 % atteste de
+        l’efficacité opérationnelle de la banque.
+        Le coût net du risque quant à lui progresse de +29,2 % en lien avec
+        le  renforcement  des  dotations  sur  certains  segments  identifiés
+        comme  plus  exposés  dans  le  strict  respect  de  la  réglementation
+        prudentielle.
+Les créances en souffrance enregistrent une progression par rapport
+à  2024  en  raison  des  effets  différés  des  tensions  observées  sur  le
+marché PME. Toutefois, le profil risque du portefeuille reste maitrisé
+avec un taux de NPL à 8,0%. Le taux de couverture des créances
+en souffrance s’établit à un niveau confortable de 82 %, conforme
+à notre  politique de provisionnement strict et prudente.
+        Le résultat net s’élève à 101,352 milliards, quasi-stable par rapport
+        à  2024  (+0,1  %).  Cette  performance  confirme  la  forte  capacité  de
+        la banque à générer des résultats solides dans un environnement
+        hautement  concurrentiel  et  marqué  par  des  contraintes
+        réglementaires fortes.
+Le  produit  net  bancaire  progresse  de  +4,9  %  comparativement
+à  2024,  porté  par  la  résilience  de  l’activité  commerciale  et  la
+contribution  de  la  marge  d’intérêt  dans  un  contexte  de  marché
+exigeant qui compense la moindre contribution des commissions
+liées aux activités de marchés.
+IV.  FAITS MARQUANTS
+        L’année  2025  restera  également  marquée  par  la  réalisation  d’un
+        projet culturel structurant : l’inauguration de la Maison de l’Art à
+        Grand  Bassam,  en  mai  2025,  sous  le  haut  Patronage  du  Premier
+        Ministre.  Portée  par  la  Fondation  SGCI  en  partenariat  avec  le
+        ministère  de  la  Culture  et  de  la  Francophonie,  cette  initiative
+        emblématique,  implantée  dans  l’ancien  bâtiment  des  Postes
+        et  Douanes  au  cœur  de  la  ville  historique  classée  au  patrimoine
+        mondial  de  l’UNESCO,  incarne  l’engagement  de  la  Fondation
+        en  faveur  de  la  valorisation  du  patrimoine  et  de  la  création
+        contemporaine.  Ouverte  au  grand  public  en  septembre  2025,  la
+        Maison  de  l’Art  s’impose  désormais  comme  un  pôle  culturel  de
+        référence  dédié  à  la  création,  à  la  diffusion  et  à  la  transmission
+        artistique.
+L’année  2025  a  constitué  une  étape  majeure  pour  la  Fondation
+SGCI,  qui  a  poursuivi  et  renforcé  son  engagement  en  faveur  du
+développement durable et inclusif autour de ses axes stratégiques
+:  l’éducation,  l’insertion  professionnelle,  la  promotion  de  l’art
+contemporain et la protection de l’environnement. Dans un contexte
+marqué par des enjeux sociaux, économiques et environnementaux
+importants, la Fondation a placé l’humain au cœur de ses priorités,
+en  contribuant  à  l’autonomisation  des  jeunes  et  des  femmes  à
+travers  l’accès  au  savoir,  le  développement  des  compétences  et
+l’insertion économique, tout en menant des actions concrètes en
+faveur de la préservation de l’environnement.
+V.  PERSPECTIVES
+Dans un environnement qui demeure marqué par des incertitudes
+conjoncturelles mais dont les fondamentaux économiques restent
+solides,  nous  abordons  l’exercice  2026  avec  confiance.  Dotée  de
+fondamentaux  solides,  la  SGCI  se  positionne  pour  accompagner
+la  reprise  progressive  des  investissements  après  une  période
+d’attentisme en 2025.
+        de  croissance  durable  et  responsable.  La  qualité  du  portefeuille
+        demeurera une priorité en 2026.
+        Sur les dépôts, nous poursuivrons nos efforts de collecte, avec un
+        accent  particulier  sur  la  sécurisation  de  ressources  stables.  Cette
+        stratégie vise à préserver nos ratios de liquidité.
+        Un redéploiement de nos activités de marchés sera opéré.
+        Les  commissions  de  service  constitueront  un  axe  prioritaire  de
+        croissance  de  nos  revenus.  Le  développement  de  notre  base
+        clientèle devrait y contribuer.
+Les  perspectives  macroéconomiques  du  pays  restent    favorables,
+avec  une  croissance  portée  par  le  lancement  de  grands  projets
+structurants  et  par  la  poursuite  des  politiques  publiques  de
+développement. Dans ce contexte, nous maintenons notre politique
+volontariste  pour  renforcer  notre  rôle  de  partenaire  de  confiance
+engagé dans le financement de l’économie ivoirienne.
+        L’exercice  2026  s’inscrira  dans  la  continuité  des  transformations
+        organisationnelles  et  digitales  engagées.  Les  réorganisations
+        opérées en 2025 notamment l’internalisation de certaines activités
+        auront un effet favorable sur notre trajectoire de coûts à partir de
+        2026.
+Notre stratégie commerciale pour 2026 continuera de reposer sur
+un équilibre entre la croissance des crédits et la consolidation des
+ressources. Après une année 2025 marquée par un ralentissement
+des  investissements  en  raison  des  élections  présidentielles,  une
+reprise  progressive  des  activités  de  financement  est  attendue,  en
+lien avec le démarrage des projets structurants inscrits dans le Plan
+National  de  Développement  (PND)  2026-2030.  Nous  poursuivrons
+les  financements  en  privilégiant  la  qualité  des  engagements.
+Une  attention  particulière  sera  portée  au  développement  des
+financements  en  faveur  des  segments  présentant  un  potentiel
+        Par ailleurs, nous poursuivrons nos investissements stratégiques, en
+        particulier nos projets immobiliers, la digitalisation de nos services
+        et le renforcement de nos infrastructures informatiques.
+        La  qualité  du  portefeuille  et  la  préservation  de  nos  ratios  de
+        structures demeureront des priorités en 2026.
+
+[PAGE 4]  [METRICS chars=20627 density=41.1588 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+I.   ANNEXES : ÉTATS FINANCIERS
+BILAN (Millions XOF)
+            MONTANTS NETS
+    MONTANTS NETS
+        PASSIF ( en millions FCFA)
+            Dec.-24
+            Dec.-25
+ACTIF ( en millions FCFA)
+    Dec.-24
+    Dec.-25
+        Banque centrale, ccp
+            0
+            0
+Caisse, banque centrale, ccp
+    326 828
+    371 730
+        Dettes interbancaires et assimilées
+            262 554
+            229 970
+Effets publics et valeurs assimilées
+    570 639
+    68 638
+        Dettes à l'égard de la clientèle
+            2 747 507
+            2 907 675
+Créances interbancaires et assimilées
+    16 199
+    37 061
+        Dettes représentées par un titre
+            0
+            0
+Créances sur la clientèle
+    2 474 604
+    2 546 290
+        Autres passifs
+            75 196
+            53 641
+Obligations et autres titres à revenu fixe
+    64 503
+    545 180
+        Comptes de régularisation
+            62 473
+            64 780
+Actions et autres titres à revenu variable
+    31 595
+    54 248
+        Provisions
+            14 744
+            17 995
+Actionnaires ou associés
+    0
+    0
+        Emprunts et titres émis subordonnés
+            0
+            0
+Autres actifs
+    17 709
+    27 250
+        Capitaux propres et ressources assimilées
+            451 721
+            495 113
+Comptes de régularisation
+    13 456
+    10 025
+        Capital souscrit
+            20 004
+            20 004
+Participations et autres titres détenus à long
+terme
+    2 765
+    3 246
+        Primes liées au capital
+            2 429
+            2 429
+Parts dans les entreprises liées
+    668
+    503
+        Réserves
+            116 920
+            132 105
+Prêts subordonnés
+    0
+    0
+        Ecarts de réévaluation
+            0
+            0
+Immobilisations incorporelles
+    9 162
+    10 243
+        Provisions règlementées
+            160
+            160
+Immobilisations corporelles
+    86 067
+    94 760
+        Report à nouveau (+/-)
+            210 980
+            239 063
+        Résultat de l'exercice (+/-)
+            101 228
+            101 352
+        TOTAL
+            3 614 195
+            3 769 174
+TOTAL
+    3 614 195
+    3 769 174
+            MONTANTS NETS
+    MONTANTS NETS
+    Dec.-24
+COMPTE DE RESULTAT (en Millions FCFA)
+    Dec.-25
+        HORS BILAN ( en millions FCFA)
+            Dec.-24
+            Dec.-25
+Intérêts et produits assimilés
+Intérêts et charges assimilées
+Revenus des titres à revenu variable
+Commissions (produits)
+Commissions (charges)
+Gains ou pertes nets sur opérations des portefeuilles de
+négociation
+Gains ou pertes nets sur opérations des portefeuilles de
+placement et assimilés
+Autres produits d'exploitation bancaire
+Autres charges d'exploitation bancaire
+PRODUIT NET BANCAIRE
+    221 265
+    -49 557
+    2 954
+    74 612
+    -3 037
+    4 839
+    230 313
+    -47 775
+    4 853
+    72 603
+    -4 015
+    2 638
+        Engagements donnés
+            630 083
+            676 892
+        Engagements de financement
+            283 428
+            327 984
+        Engagement de garantie
+            346 655
+            348 908
+        Engagements sur titres
+            0
+            0
+        Engagements reçus
+            3 724 136
+            4 455 819
+    -6 958
+    -1 995
+        Engagements de financement
+            0
+            0
+    24 804
+    -5 716
+    263 207
+    25 038
+    -5 612
+    276 048
+        Engagement de garantie
+            3 724 136
+            4 455 819
+        Engagements sur titres
+            0
+            0
+Subventions d'investissement
+Charges générales d'exploitation
+Dotation aux amortissements et aux dépréciations des
+immobilisations incorporelles et corporelles
+FRAIS GENERAUX
+    -
+    -87 741
+    -11 982
+    -
+    -94 052
+    -12 922
+        Projet d’Affectation du Résultat de l’exercice clos
+        au 31 Décembre 2025
+            Montants (FCFA)
+        Résultat net de l'exercice
+            101 351 690 990
+    -99 723
+    -106 974
+        Report à nouveau antérieur
+            239 063 446 499
+        Bénéfice à répartir
+            340 415 137 489
+RESULTAT BRUT D'EXPLOITATION
+    163 484
+    169 074
+COUT NET DU RISQUE
+    -36 235
+    -46 829
+        Affectation
+        Réserve spéciale (15% du résultat net de l'exercice)
+            15 202 753 648
+RESULTAT D'EXPLOITATION
+    127 248
+    122 245
+        Dividendes bruts aux actionnaires
+            81 075 552 660
+        Report à nouveau
+            244 136 831 181
+Gains ou pertes nets sur actifs immobilisés
+    313
+    4 262
+        Total
+            340 415 137 489
+RESULTAT AVANT IMPÔT
+    127 561
+    126 507
+        Taux de distribution
+        Nombre d’actions
+        Dividende brut par action (en F CFA)                      2606
+            80%
+            31 111 110
+Impôts sur les bénéfices
+    -26 333
+    -25 155
+RESULTAT NET
+    101 228
+    101 352
+SOCIETE GENERALE COTE D’IVOIRE – Société Anonyme avec Conseil d’Administration au capital social de 20.004.443.730 FCFA - Siège social à Abidjan 5 et 7 avenue Joseph ANOMA 01 BP 1355
+Abidjan 01 RCCM CI-ABJ-01-1962-B14-02641 – Tél : 27 20 20 12 34 - Centre de relation clients : 27 20 20 10 10  - Site internet : www.societegenerale.ci
+
+[TABLEAUX DOCLING]
+|                                                      | MONTANTSNETS   | MONTANTSNETS   |
+|------------------------------------------------------|----------------|----------------|
+| ACTIF ( en millions FCFA)                            | Dec.-24        | Dec.-25        |
+| Caisse, banque centrale, ccp                         | 326 828        | 371 730        |
+| Effets publics et valeurs assimilées                 | 570 639        | 68 638         |
+| Créances interbancaires et assimilées                | 16 199         | 37 061         |
+| Créances sur la clientèle                            | 2 474 604      | 2 546 290      |
+| Obligations et autres titres à revenu fixe           | 64 503         | 545 180        |
+| Actions et autres titres à revenu variable           | 31 595         | 54 248         |
+| Actionnaires ou associés                             | 0              | 0              |
+| Autres actifs                                        | 17 709         | 27 250         |
+| Comptes de régularisation                            | 13 456         | 10 025         |
+| Participations et autres titres détenus à long terme | 2 765          | 3 246          |
+| Parts dans les entreprises liées                     | 668            | 503            |
+| Prêts subordonnés                                    | 0              | 0              |
+| Immobilisations incorporelles                        | 9 162          | 10 243         |
+| Immobilisations corporelles                          | 86 067         | 94 760         |
+
+|                                                                                                   | MONTANTSNETS   | MONTANTSNETS   |
+|---------------------------------------------------------------------------------------------------|----------------|----------------|
+| COMPTEDERESULTAT (en Millions FCFA)                                                               | Dec.-24        | Dec.-25        |
+| Intérêts et produits assimilés                                                                    | 221 265        | 230 313        |
+| Intérêts et charges assimilées                                                                    | -49 557        | -47 775        |
+| Revenus des titres à revenu variable                                                              | 2 954          | 4 853          |
+| Commissions (produits)                                                                            | 74 612         | 72 603         |
+| Commissions (charges)                                                                             | -3 037         | -4 015         |
+| Gains ou pertes nets sur opérations des portefeuilles de négociation                              | 4 839          | 2 638          |
+| Gains ou pertes nets sur opérations des portefeuilles de placement et assimilés                   | -6 958         | -1 995         |
+| Autres produits d'exploitation bancaire                                                           | 24 804         | 25 038         |
+| Autres charges d'exploitation bancaire                                                            | -5 716         | -5 612         |
+| PRODUIT NET BANCAIRE                                                                              | 263 207        | 276 048        |
+| Subventions d'investissement                                                                      | -              | -              |
+| Charges générales d'exploitation                                                                  | -87 741        | -94 052        |
+| Dotation aux amortissements et aux dépréciations des immobilisations incorporelles et corporelles | -11 982        | -12 922        |
+| FRAIS GENERAUX                                                                                    | -99 723        | -106 974       |
+| RESULTAT BRUTD'EXPLOITATION                                                                       | 163 484        | 169 074        |
+| COUT NET DURISQUE                                                                                 | -36 235        | -46 829        |
+| RESULTAT D'EXPLOITATION                                                                           | 127 248        | 122 245        |
+| Gains ou pertes nets sur actifs immobilisés                                                       | 313            | 4 262          |
+| RESULTAT AVANT IMPÔT                                                                              | 127 561        | 126 507        |
+| Impôts sur les bénéfices                                                                          | -26 333        | -25 155        |
+| RESULTAT NET                                                                                      | 101 228        | 101 352        |
+
+|                                                                                                                                                                                                                                                               | MONTANTSNETS                                                    | MONTANTSNETS                                                    |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|-----------------------------------------------------------------|
+| PASSIF ( en millions FCFA)                                                                                                                                                                                                                                    | Dec.-24                                                         | Dec.-25                                                         |
+| Banque centrale, ccp                                                                                                                                                                                                                                          | 0                                                               | 0                                                               |
+| Dettes interbancaires et assimilées                                                                                                                                                                                                                           | 262 554                                                         | 229 970                                                         |
+| Dettes à l'égard de la clientèle                                                                                                                                                                                                                              | 2 747 507                                                       | 2 907 675                                                       |
+| Dettes représentées par un titre                                                                                                                                                                                                                              | 0                                                               | 0                                                               |
+| Autres passifs                                                                                                                                                                                                                                                | 75 196                                                          | 53 641                                                          |
+| Comptes de régularisation                                                                                                                                                                                                                                     | 62 473                                                          | 64 780                                                          |
+| Provisions                                                                                                                                                                                                                                                    | 14 744                                                          | 17 995                                                          |
+| Emprunts et titres émis subordonnés                                                                                                                                                                                                                           | 0                                                               | 0                                                               |
+| Capitaux propres et ressources assimilées                                                                                                                                                                                                                     | 451 721                                                         | 495 113                                                         |
+| /gid00004/gid00028/gid00043/gid00036/gid00047/gid00028/gid00039/gid00001/gid00046/gid00042/gid00048/gid00046/gid00030/gid00045/gid00036/gid00047                                                                                                              | /gid00619/gid00617/gid00001/gid00617/gid00617/gid00621          | /gid00619/gid00617/gid00001/gid00617/gid00617/gid00621          |
+| /gid00017/gid00045/gid00036/gid00040/gid00032/gid00046/gid00001/gid00039/gid00036/gid00303/gid00032/gid00046/gid00001/gid00028/gid00048/gid00001/gid00030 /gid00028/gid00043/gid00036/gid00047/gid00028/gid00039                                              | /gid00619/gid00001/gid00621/gid00619/gid00626                   | /gid00619/gid00001/gid00621/gid00619/gid00626                   |
+| /gid00019/gid00303/gid00046/gid00032/gid00045/gid00049/gid00032/gid00046                                                                                                                                                                                      | /gid00618/gid00618/gid00623/gid00001/gid00626/gid00619/gid00617 | /gid00618/gid00620/gid00619/gid00001/gid00618/gid00617/gid00622 |
+| /gid00006/gid00030/gid00028/gid00045/gid00047/gid00046/gid00001/gid00031/gid00032/gid00001/gid00045/gid00303/gid00303/gid00049/gid00028/gid00039/gid00048/gid00028/gid00047/gid00036/gid00042/gid00041                                                        | /gid00617                                                       | /gid00617                                                       |
+| /gid00017/gid00045/gid00042/gid00049/gid00036/gid00046/gid00036/gid00042/gid00041/gid00046/gid00001/gid00045/gid00302/gid00034/gid00039/gid00032/gid00040/gid00032/gid00041/gid00047/gid00303/gid00032/gid00046                                               | /gid00618/gid00623/gid00617                                     | /gid00618/gid00623/gid00617                                     |
+| /gid00019/gid00032/gid00043/gid00042/gid00045/gid00047/gid00001/gid00262/gid00001/gid00041/gid00042/gid00048/gid00049/gid00032/gid00028/gid00048/gid00001/gid00704/gid00899/gid00710/gid00692/gid00705                                                        | /gid00619/gid00618/gid00617/gid00001/gid00626/gid00625/gid00617 | /gid00619/gid00620/gid00626/gid00001/gid00617/gid00623/gid00620 |
+| /gid00019/gid00303/gid00046/gid00048/gid00039/gid00047/gid00028/gid00047/gid00001/gid00031/gid00032/gid00001/gid00039/gid00680/gid00032/gid00051/gid00032/gid00045/gid00030/gid00036/gid00030 /gid00032/gid00001/gid00704/gid00899/gid00710/gid00692/gid00705 | /gid00618/gid00617/gid00618/gid00001/gid00619/gid00619/gid00625 | /gid00618/gid00617/gid00618/gid00001/gid00620/gid00622/gid00619 |
+| TOTAL                                                                                                                                                                                                                                                         | 3 614 195                                                       | 3 769 174                                                       |
+
+|                               | MONTANTSNETS   | MONTANTSNETS   |
+|-------------------------------|----------------|----------------|
+| HORSBILAN ( en millions FCFA) | Dec.-24        | Dec.-25        |
+| Engagements donnés            | 630 083        | 676 892        |
+| Engagements de financement    | 283 428        | 327 984        |
+| Engagement de garantie        | 346 655        | 348 908        |
+| Engagements sur titres        | 0              | 0              |
+| Engagements reçus             | 3 724 136      | 4 455 819      |
+| Engagements de financement    | 0              | 0              |
+| Engagement de garantie        | 3 724 136      | 4 455 819      |
+| Engagements sur titres        | 0              | 0              |
+
+| Projet d'Affectation du Résultat de l'exercice clos au 31 Décembre 2025   | Projet d'Affectation du Résultat de l'exercice clos au 31 Décembre 2025   | Montants (FCFA)   |
+|---------------------------------------------------------------------------|---------------------------------------------------------------------------|-------------------|
+| Résultat net de l'exercice                                                | Résultat net de l'exercice                                                | 101 351 690 990   |
+| Report à nouveau antérieur                                                | Report à nouveau antérieur                                                | 239 063 446 499   |
+| Bénéfice à répartir                                                       | Bénéfice à répartir                                                       | 340 415 137 489   |
+| Affectation                                                               |                                                                           |                   |
+| Réserve spéciale (15% du résultat net de l'exercice)                      | Réserve spéciale (15% du résultat net de l'exercice)                      | 15 202 753 648    |
+| Dividendes bruts aux actionnaires                                         | Dividendes bruts aux actionnaires                                         | 81 075 552 660    |
+| Report à nouveau                                                          | Report à nouveau                                                          | 244 136 831 181   |
+| Total                                                                     | Total                                                                     | 340 415 137 489   |
+| Taux de distribution Nombre d'actions                                     | Taux de distribution Nombre d'actions                                     | 80% 31 111 110    |
+| Dividende brut par action (en F CFA)                                      | 2606                                                                      |                   |

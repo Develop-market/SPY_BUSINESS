@@ -1,0 +1,750 @@
+================================================================================
+  EXTRACTION 3 — pdfminer.six + Docling AI
+  Pipeline  : extraction_3_pdfminer_docling
+  Source    : ETATS_FINANCIERS\SGCI\AN2.pdf
+  SHA256    : 9ab540d15ea407cb4ef9c4c5c8078590f71df97141b4af86e82fd64bee923735
+  Timestamp : 2026-05-22T06:59:32
+  Pages     : 5
+  Methode   : pdfminer_native+docling_tables
+  Total chars : 40,002
+================================================================================
+
+[PAGE 1]  [METRICS chars=60 density=0.1197 ocr_pct=0.0 tables=NON ocr_conf=N/A]
+
+RAPPORT D’ACTIVITÉ
+DÉCEMBRE 2024
+Abidjan, le 07 Février 2025
+
+[PAGE 2]  [METRICS chars=10557 density=21.0653 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+I.  EXECUTIVE SUMMARY
+        III. COMMENTAIRES
+En 2024, Société Générale Côte d’Ivoire (SGCI) réaffirme son rôle d’acteur
+majeur  dans  le  financement  de  l’économie  ivoirienne  en  maintenant
+sa  position  historique  de  leader  avec  respectivement  20%  de  part
+de  marché  sur  les  crédits  et  16%  sur  les  dépôts  selon  les  dernières
+statistiques de l’APBEF-CI datées d’Octobre 2024.
+En  effet,  SGCI  conserve  sa  position  de  leader  dans  le  soutien  de
+l’économie ivoirienne en accompagnant ses clients dans le financement
+de leurs projets, malgré un environnement contraignant marqué par des
+tensions  de  liquidité  et  des  exigences  règlementaires  de  plus  en  plus
+accrues en matière de renforcement de fonds de propres.
+Bien qu’impactée par les tensions de liquidité observées sur le marché
+bancaire régional, SGCI affiche au 31/12/2024 :
+
+
+
+        En  2024,  l’économie  ivoirienne  continue  de  démontrer  une  résilience
+        exceptionnelle,  portée  par  des  efforts  soutenus  des  autorités  pour
+        préserver  la  stabilité  économique  et  sociale.  Dans  un  environnement
+        mondial  marqué  par  des  incertitudes  croissantes  et  des  pressions
+        externes,  la  Banque  Centrale  et  les  pouvoirs  publics  ivoiriens  ont  su
+        mettre  en  œuvre  des  mesures  stratégiques  pour  protéger  le  pouvoir
+        d’achat des populations et limiter la hausse des prix.
+        Sur  2024,  la  BCEAO  a  maintenu  ses  principaux  taux  directeurs,  tout
+        en  augmentant  l’enveloppe  d’injection  de  liquidité  pour  répondre
+        efficacement  aux  besoins  de  l’économie  et  renforcer  la  stabilité
+        monétaire et financière, un pilier essentiel pour soutenir la dynamique
+        nationale et régionale.
+des encours de crédit en progression de 3,3%
+        Dans  ce  contexte,  SGCI  confirme  une  fois  de  plus  son  statut  d’acteur
+        incontournable du paysage bancaire ivoirien. Après une exceptionnelle
+        année  2023,  la  banque  s’illustre  en  2024  par  des  performances
+        commerciales et financières remarquables.
+        Sa  dynamique  commerciale  et  une  approche  proactive  de  la  gestion
+        des risques, lui permettent d’atteindre un résultat net record historique,
+        témoignant de sa capacité à conjuguer ambition et prudence.
+des encours de dépôts en hausse de 1,2%
+un Loan to deposit de 90% en progression de 1,9 pts par rapport à
+2023
+
+un coefficient d’exploitation en amélioration de 3,8 points (37.9%
+en 2024 vs 41,7% en 2023) –résultat de la bonne gestion et maitrise
+des frais généraux
+
+
+un ratio de Non Performing Loans (NPL) de 7,5%
+        La solidité financière de SGCI est une nouvelle fois mise en lumière à fin
+        décembre 2024, avec une structure de bilan solide. Le ratio de solvabilité,
+        mesuré au-delà de 16 %, dépasse largement les exigences réglementaires
+        (12,5%),  fruit  d’une  politique  stratégique  de  renforcement  des  fonds
+        propres engagée dès 2017 pour anticiper l’entrée en vigueur en 2018 de
+        nouvelles normes. Cette robustesse financière offre à SGCI une marge de
+        manœuvre  considérable  pour  non  seulement  répondre  aux  exigences
+        du régulateur, mais également soutenir activement sa croissance et sa
+        contribution dans l’économie ivoirienne.
+une structure de fonds propres solide et robuste induisant un ratio
+de solvabilité qui présente un coussin de sécurité de plus de 300bps
+par rapport aux exigences prudentielles
+
+une diversification du portefeuille d’encours de crédit satisfaisante
+avec  un  ratio  de  division  de  risques  attendu  à  22%  à  fin  2024  (en
+dessous des seuils règlementaires de 25%).
+L’année 2024 s’achève avec un résultat net de 101,228 Milliards de FCFA,
+en progression de +4,1%.
+Ce résultat exceptionnel illustre la résilience et la capacité de la banque à
+s’adapter dans un contexte en constante transformation.
+        Le profil de liquidité de SGCI demeure solide malgré une année marquée
+        par  un  contexte  de  liquidité  tendue  sur  le  marché.  Avec  un  niveau  de
+        dépôts  clientèles  de  2  747  Milliards  FCFA,  qui  financent  largement
+        les  prêts  octroyés  (2  475  Milliards  FCFA),  la  banque  maintient  un
+        ratio  prêts/dépôts  de  90%,  traduisant  un  équilibre  entre  croissance  et
+        stabilité. Par ailleurs, les ratios de liquidité à court terme et les ratios de
+        transformation à moyen et long terme s’inscrivent bien au-delà des seuils
+        réglementaires, renforçant la capacité de la banque à naviguer dans un
+        environnement exigeant tout en consolidant sa position de leader.
+II.  TABLEAU D’ACTIVITÉS ET DES RÉSULTATS
+COMPTE DE RÉSULTAT *
+    Variations
+Données financières (en millions FCFA)
+    Déc-23
+    Déc-24
+    Valeur
+    %
+        En termes de performances commerciales :
+Produit Net Bancaire
+253 286
+    263 207
+    9 921
+    3,9%
+Frais Généraux
+-105 585
+    -99 723
+    5 862
+    -5,6%
+        
+        La banque a continué de soutenir l’économie et d’accompagner ses
+        clients dans le financement de leurs projets avec une progression
+        des encours de crédits de +3,3% comparativement à 2023.
+Résultat Brut d’Exploitation
+147 701
+    163 484
+    15 783
+    10,7%
+Coût Net du Risque
+    -27 654
+    -36 235
+    -8 581
+    31,0%
+Résultat Avant impôt
+119 617
+    127 561
+    7 943
+    6,6%
+        
+        Parallèlement, bien que la dynamique de collecte des ressources ait
+        été  moins  soutenue  en  raison  des  tensions  de  liquidité  observées
+        sur  le  marché  bancaire  régional,  les  efforts  constants  des  équipes
+        commerciales ont permis une hausse des dépôts de +1,2%.
+Impôt
+    -22 387
+    -26 333
+    -3 946
+    17,6%
+Résultat Net
+    97 230
+    101 228
+    3 997
+    4,1%
+* Données auditées
+        En termes de performances financières :
+ENCOURS EN FIN DE PÉRIODE*
+    Variations
+        
+        Le  Produit  Net  Bancaire  est  en  forte  progression  en  2024  à  263
+        207 Millions FCFA, soit +3,9% vs 2023 portée notamment par une
+        performance  solide  de  la  marge  nette  d’intérêts  (+12%  vs  2023),
+        atténuée par un retrait de 8% (vs 2023) des commissions.
+Données financières (en millions FCFA)
+    Déc-23
+    Déc-24
+    Valeur
+    %
+Crédits à la Clientèle
+2 394 858 2 474 604
+    79 746
+    3,3%
+Dépôts de la Clientèle
+2 715 307 2 747 507
+    32 200
+    1,2%
+* Données auditées
+        
+        Les  frais  de  gestion  demeurent  maitrisés,  s’établissant  à  99  723
+        Millions FCFA, en économie de 5,6% par rapport à  2023. Cette baisse
+        s’inscrit dans la stratégie de la banque d’assurer une optimisation
+        de  ses  frais  généraux  tout  en  renforçant  son  maillage  territorial,
+        accélérant  sa  digitalisation  pour  offrir  une  meilleure  expérience
+        client et en optimisant ses processus internes.
+ENCOURS MOYENS
+    Variations
+Données financières (en millions FCFA)
+    Déc-23
+    Déc-24
+    Valeur
+    %
+Crédits à la Clientèle
+2 107 556 2 319 403
+    211 847
+    10,1%
+Dépôts de la Clientèle
+2 481 828 2 464 516
+    -17 312
+    -0,7%
+        Grâce à cette politique de maîtrise des coûts, le coefficient d’exploitation
+        s’améliore de 3,8 points à 37,9% en 2024 (vs 41,7% en 2023).
+        
+        Le coût net du risque en 2024 s’établit à 36 235 Millions FCFA en
+        2024,  soit  une  hausse  de  +31%  vs  2023.  Il  intègre  des  provisions
+        comptabilisées  conformément  à  la  réglementation  bancaire  pour
+        tenir compte des impayés, ainsi que des reclassements de provisions
+        de frais généraux vers le coût net du risque non commercial.
+
+[TABLEAUX DOCLING]
+|                                        |          |         | Variations   | Variations   |
+|----------------------------------------|----------|---------|--------------|--------------|
+| Données financières (en millions FCFA) | Déc-23   | Déc-24  | Valeur       | %            |
+| Produit Net Bancaire                   | 253 286  | 263 207 | 9 921        | 3,9%         |
+| Frais Généraux                         | -105 585 | -99 723 | 5 862        | -5,6%        |
+| Résultat Brut d'Exploitation           | 147 701  | 163 484 | 15 783       | 10,7%        |
+| Coût Net du Risque                     | -27 654  | -36 235 | -8 581       | 31,0%        |
+| Résultat Avant impôt                   | 119 617  | 127 561 | 7 943        | 6,6%         |
+| Impôt                                  | -22 387  | -26 333 | -3 946       | 17,6%        |
+| Résultat Net                           | 97 230   | 101 228 | 3 997        | 4,1%         |
+
+|                                                                                                                                                                    |           |           | Variations   | Variations   |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|-----------|--------------|--------------|
+| Données financières (en millions FCFA)                                                                                                                             | Déc-23    | Déc-24    | Valeur       | %            |
+| Crédits à la Clientèle                                                                                                                                             | 2 394 858 | 2 474 604 | 79 746       | 3,3%         |
+| Dépôts de la Clientèle                                                                                                                                             | 2 715 307 | 2 747 507 | 32 200       | 1,2%         |
+| /gid00714/gid00001/gid00005/gid00042/gid00041/gid00041/gid00303/gid00032/gid00046/gid00001/gid00028/gid00048/gid00031/gid00036/gid00047/gid00303/gid00032/gid00046 |           |           |              |              |
+
+|                                        |           |           | Variations   | Variations   |
+|----------------------------------------|-----------|-----------|--------------|--------------|
+| Données financières (en millions FCFA) | Déc-23    | Déc-24    | Valeur       | %            |
+| Crédits à la Clientèle                 | 2 107 556 | 2 319 403 | 211 847      | 10,1%        |
+| Dépôts de la Clientèle                 | 2 481 828 | 2 464 516 | -17 312      | -0,7%        |
+
+[PAGE 3]  [METRICS chars=8478 density=16.9169 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+        SOCÉTÉ GÉNÉRALE CÔTE D’IVOIRE
+Le portefeuille relativement sain et bien diversifié est illustré par un taux
+de  dégradation  qui  s’affiche  à  7,5%  à  12/24  en  progression  de  0,67  pt
+comparée à 12/23 tenant compte de ces impacts.
+            Juillet
+            2024
+        Fiche de Notation Financière
+            Validité :
+            Juin 2025
+        Catégorie
+        de valeurs
+        Echelle de
+        notation
+            Note
+            préc.
+        Monnaie
+        Note actu.
+            Date d’exp.
+            Perspective
+Finalement,  l’année  2024  s’achève  avec  un  résultat  net  record  de  101
+228  Millions  FCFA,  en  hausse  de  +4,1%  comparée  à  2023.  Ce  résultat
+exceptionnel,  au-delà  des  100  milliards  FCFA,  illustre  la  résilience  et  la
+capacité  de  la  banque  à  s’adapter  dans  un  contexte  de  transformation
+économique et bancaire.
+        Long
+        Terme
+        Monnaie
+        Locale
+        CFA
+        AAA
+            AA+
+            30/06/2025
+            Stable
+        Court
+        Terme
+        Monnaie
+        Locale
+        CFA
+        A1
+            A1
+            30/06/2025
+            Stable
+Au regard de ces performances financières solides et exceptionnelles, le
+Conseil d’Administration de Société Générale Côte d’ivoire proposera à
+la prochaine assemblée générale la distribution d’un dividende brut par
+action  de  1  863  FCFA  (en  progression  de  +8%  vs  2023)  correspondant
+à un taux de distribution de 57,25% du résultat net de 2024 (vs 55% en
+2023).
+        V.   PERSPECTIVES
+        Dans  un  environnement  qui  reste  très  volatile  et  face  aux  multiples
+        défis  structurels,  Société  Générale  Côte  d’Ivoire  demeure  attentive  à
+        ses  parties  prenantes  et  résolument  engagée  à  mettre  sa  raison  d’être
+        en action en 2025 « Être le partenaire de confiance, engagé auprès de
+        tous, dans le développement de la Côte d’Ivoire ».
+IV.  FAITS MARQUANTS
+Augmentation de Capital par incorporation de réserves
+        A ce titre, nous poursuivrons donc l’exécution de notre plan stratégique et
+        nos principales actions s’articuleront autour des enjeux de la satisfaction
+        de  nos  clients,  de  la  digitalisation,  de  l’innovation  s’appuyant  sur  la
+        DATA,  ainsi  que  la  maitrise  des  risques  à  la  fois  opérationnels  et  de
+        crédit. La multiplicité de nos moteurs de croissance nous protège d’un
+        ralentissement localisé d’activité.
+
+le  Conseil  d’Administration  de  SGCI,
+Après  soumission  par
+l’Assemblée Générale de Société Générale Côte d’Ivoire a validé en
+date du 28 mai 2024 l’augmentation du capital de la banque qui est
+passée de 15 555 555 000 FCFA à 20 004 443 730 FCFA.
+
+Cette augmentation de capital par incorporation de réserves a été
+faite  dans  un  contexte  d’évolution  réglementaire  en  lien  avec  la
+nouvelle instruction de la Banque Centrale relative au relèvement
+du  capital  minimum  des  banques  de  l’espace  UEMOA  désormais
+porter à 20 000 Millions FCFA à compter du 1er janvier 2024 (vs 10
+000 millions FCFA).
+        Nous  croyons  fermement  que  la  performance  économique  va  de
+        pair  avec  un  impact  positif  sur  la  société  et  l’environnement.  SGCI  est
+        résolument  engagée  dans  la  transition  environnementale,  sociale  et
+        écologique à la fois dans ses activités propres (employeur responsable),
+        dans ses rapports avec ses fournisseurs (acheteur responsable) ainsi que
+        vis-à-vis de ses clients et dans le cadre des financements mis en place
+        (financier responsable).
+        Ces  piliers  stratégiques  nous  permettent  d’assurer  un  développement
+        durable  et  responsable,  tout  en  consolidant  notre  position  de  leader
+        engagé au service de nos clients et partenaires.
+Transition Managériale
+L’année  2024  constitue  une  année  de  transition  managériale  à  la  tête
+de Société Générale Côte d’Ivoire. Une nouvelle équipe dirigeante a été
+mise en place afin de poursuivre et renforcer la dynamique de croissance
+saine de la filiale, en ligne avec la stratégie du groupe Société Générale.
+ M.  Patrick  BLAS  a  été  nommé  nouveau  Directeur  Général  de
+Société  Générale  Côte  d’Ivoire  en  remplacement  de  M.  Aymeric
+VILLEBRUN.
+        Au niveau du Corporate
+        Les investissements privés, encouragés par l’Etat dans la transformation
+        des matières premières agricoles, le développement des infrastructures
+        (routes,  énergies,  eau  potable…),  le  boom  de  la  distribution  moderne
+        sont  autant  de  facteurs  qui  devront  permettre  de  réaliser  une  bonne
+        croissance des encours de crédits.
+        Le développement des commissions, lié au développement d’expertises
+        rares  sur  le  marché  ou  sur  lesquelles  l’appartenance  au  groupe  SG,
+        procurera  à  Société  Générale  Côte  d’Ivoire  un  avantage  compétitif
+        (Financements structurés, Salle de marché, Trade finance).
+
+Trois (3) directeurs généraux adjoints ont été nommés, notamment
+M.  Magloire  N’GUESSAN  (Directeur  Général  Adjoint  en  charge  du
+Secrétariat Général, de la Finance et des Ressources), M. Baptiste
+HARTZ  (Directeur  Général  Adjoint  en  charge  de  la  clientèle
+Particuliers et Professionnels et de l’Innovation) et M. Brice OBLE
+(Directeur Général Adjoint en charge de la Clientèle des Entreprises
+et des Paiements).
+Impact sociétal
+        Au niveau du Retail
+La  fondation  SGCI  a  impacté  directement  plus  de  2200  personnes  à
+travers  un  investissement  significatif  de  plus  de  110  millions  FCFA  sur
+2024 dans des actions de formations professionnelles, d’amélioration de
+l’employabilité des jeunes mais aussi, d’aide à l’acquisition de matériels
+et de développement de mécanismes, d’appui à la création d’entreprises
+viables dans des secteurs porteurs de croissance et d’emplois.
+        La soif de consommation d’une classe moyenne en fort développement
+        ainsi  que  le  renforcement  permanent  de  notre  fonds  de  commerce
+        devraient  favoriser  la  croissance  de  nos  encours  de  crédits  à  la
+        consommation.
+        Les initiatives menées pour libérer du temps commercial, diversifier les
+        canaux de vente et augmenter la réactivité et la proactivité commerciales
+        devraient permettre d’augmenter encore l’équipement client.
+Amélioration de la Notation Financière
+L’année 2024 est également marquée par le rehaussement de la notation
+financière  de  Société  Générale  Côte  d’Ivoire  par  l’Agence  Bloomfield
+Investment Corporation de AA+ en 2023 à AAA cette année 2024.
+L’amélioration de la notation de Société Générale Côte d’Ivoire s’appuie
+sur  plusieurs  critères  de  la  qualité  de  son  profil  financier.  Société
+Générale  Côte  d’Ivoire  devient  ainsi  le  seul  acteur  bancaire  avec  une
+notation AAA sur le marché.
+        La  poursuite  de  l’optimisation  de  notre  maillage  du  territoire,  avec
+        l’intensification  des  points  de  contacts  et  produits  digitaux  nous
+        permettra de rester au plus proche des clients. En effet, cette digitalisation
+        permettra l’automatisation des process des entrées en relation client, la
+        sécurisation de la qualité des données ainsi que des évolutions continues
+        de nos fonctionnalités.
+        Au-delà, nous ferons de la satisfaction de la clientèle un pilier central et
+        un axe majeur de notre stratégie.
+
+[TABLEAUX DOCLING]
+| Fiche de Notation Financière   | Fiche de Notation Financière   | Fiche de Notation Financière   | Fiche de Notation Financière   | Validité :   | Juillet 2024   | Juin 2025   |
+|--------------------------------|--------------------------------|--------------------------------|--------------------------------|--------------|----------------|-------------|
+| Catégorie de valeurs           | Echelle de notation            | Monnaie                        | Note actu.                     | Note préc.   | Date d'exp.    | Perspective |
+| Long Terme                     | Monnaie Locale                 | CFA                            | AAA                            | AA+          | 30/06/2025     | Stable      |
+| Court Terme                    | Monnaie Locale                 | CFA                            | A1                             | A1           | 30/06/2025     | Stable      |
+
+[PAGE 4]  [METRICS chars=12695 density=25.3314 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+VI.  ANNEXES : ÉTATS FINANCIERS
+BILAN (Millions XOF)
+            MONTANTS NETS
+    MONTANTS NETS
+        PASSIF ( en millions XOF)
+            Dec.-23
+            Dec.-24
+ACTIF ( en millions XOF)
+    Dec.-23
+    Dec.-24
+        Banque centrale, ccp
+            0
+            0
+Caisse, banque centrale, ccp
+    315 778
+    326 828
+        Dettes interbancaires et assimilées
+            168 627
+            262 554
+Effets publics et valeurs assimilées
+    553 262
+    570 639
+        Dettes à l’égard de la clientèle
+            2 715 307
+            2 747 507
+Créances interbancaires et assimilées
+    17 327
+    16 199
+        Dettes représentées par un titre
+            0
+            0
+Créances sur la clientèle
+    2 394 858
+    2 474 604
+        Autres passifs
+            81 133
+            75 196
+Obligations et autres titres à revenu fixe
+    10 281
+    64 503
+        Comptes de régularisation
+            56 384
+            62 473
+Actions et autres titres à revenu variable
+    30 321
+    31 595
+        Provisions
+            12 245
+            14 744
+Actionnaires ou associés
+    0
+    0
+        Emprunts et titres émis subordonnés
+            0
+            0
+Autres actifs
+    17 163
+    17 708
+        Capitaux propres et ressources assimilées
+            403 973
+            451 721
+Comptes de régularisation
+    8 625
+    13 456
+        Capital souscrit
+            15 556
+            20 004
+Participations et autres titres détenus à long
+terme
+    2 433
+    2 765
+        Primes liées au capital
+            2 429
+            2 429
+Parts dans les entreprises liées
+    503
+    668
+        Réserves
+            102 336
+            116 920
+Prêts subordonnés
+    3 325
+    0
+        Ecarts de réévaluation
+            0
+            0
+Immobilisations incorporelles
+    7 566
+    9 162
+        Provisions règlementées
+            160
+            160
+Immobilisations corporelles
+    76 227
+    86 067
+        Report à nouveau (+/-)
+            186 263
+            210 980
+        Résultat de l’exercice (+/-)
+            97 230
+            101 228
+        TOTAL
+            3 437 669
+            3 614 195
+TOTAL
+    3 437 669
+    3 614 195
+    MONTANTS NETS
+HORS BILAN ( en millions XOF)
+    Dec.-23
+    Dec.-24
+Engagements donnés
+    575 446
+    630 083
+Engagements de financement
+    255 058
+    283 428
+Engagement de garantie
+    320 388
+    346 655
+Engagements sur titres
+    0
+    0
+Engagements reçus
+    3 001 581
+    3 724 136
+Engagements de financement
+    0
+    0
+Engagement de garantie
+    3 001 581
+    3 724 136
+Engagements sur titres
+    0
+    0
+
+[TABLEAUX DOCLING]
+|                                                      | MONTANTSNETS   | MONTANTSNETS   |
+|------------------------------------------------------|----------------|----------------|
+| ACTIF ( en millions XOF)                             | Dec.-23        | Dec.-24        |
+| Caisse, banque centrale, ccp                         | 315 778        | 326 828        |
+| Effets publics et valeurs assimilées                 | 553 262        | 570 639        |
+| Créances interbancaires et assimilées                | 17 327         | 16 199         |
+| Créances sur la clientèle                            | 2 394 858      | 2 474 604      |
+| Obligations et autres titres à revenu fixe           | 10 281         | 64 503         |
+| Actions et autres titres à revenu variable           | 30 321         | 31 595         |
+| Actionnaires ou associés                             | 0              | 0              |
+| Autres actifs                                        | 17 163         | 17 708         |
+| Comptes de régularisation                            | 8 625          | 13 456         |
+| Participations et autres titres détenus à long terme | 2 433          | 2 765          |
+| Parts dans les entreprises liées                     | 503            | 668            |
+| Prêts subordonnés                                    | 3 325          | 0              |
+| Immobilisations incorporelles                        | 7 566          | 9 162          |
+| Immobilisations corporelles                          | 76 227         | 86 067         |
+
+|                              | MONTANTSNETS   | MONTANTSNETS   |
+|------------------------------|----------------|----------------|
+| HORSBILAN ( en millions XOF) | Dec.-23        | Dec.-24        |
+| Engagements donnés           | 575 446        | 630 083        |
+| Engagements de financement   | 255 058        | 283 428        |
+| Engagement de garantie       | 320 388        | 346 655        |
+| Engagements sur titres       | 0              | 0              |
+| Engagements reçus            | 3 001 581      | 3 724 136      |
+| Engagements de financement   | 0              | 0              |
+| Engagement de garantie       | 3 001 581      | 3 724 136      |
+| Engagements sur titres       | 0              | 0              |
+
+|                                                                                                                                                                                                                                                                | MONTANTSNETS                                                    | MONTANTSNETS                                                    |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|-----------------------------------------------------------------|
+| PASSIF ( en millions XOF)                                                                                                                                                                                                                                      | Dec.-23                                                         | Dec.-24                                                         |
+| Banque centrale, ccp                                                                                                                                                                                                                                           | 0                                                               | 0                                                               |
+| Dettes interbancaires et assimilées                                                                                                                                                                                                                            | 168 627                                                         | 262 554                                                         |
+| Dettes à l'égard de la clientèle                                                                                                                                                                                                                               | 2 715 307                                                       | 2 747 507                                                       |
+| Dettes représentées par un titre                                                                                                                                                                                                                               | 0                                                               | 0                                                               |
+| Autres passifs                                                                                                                                                                                                                                                 | 81 133                                                          | 75 196                                                          |
+| Comptes de régularisation                                                                                                                                                                                                                                      | 56 384                                                          | 62 473                                                          |
+| Provisions                                                                                                                                                                                                                                                     | 12 245                                                          | 14 744                                                          |
+| Emprunts et titres émis subordonnés                                                                                                                                                                                                                            | 0                                                               | 0                                                               |
+| Capitaux propres et ressources assimilées                                                                                                                                                                                                                      | 403 973                                                         | 451 721                                                         |
+| /gid00004/gid00028/gid00043/gid00036/gid00047/gid00028/gid00039/gid00001/gid00046/gid00042/gid00048/gid00046/gid00030/gid00045/gid00036/gid00047                                                                                                               | /gid00618/gid00622/gid00001/gid00622/gid00622/gid00623          | /gid00619/gid00617/gid00001/gid00617/gid00617/gid00621          |
+| /gid00017/gid00045/gid00036/gid00040/gid00032/gid00046/gid00001/gid00039/gid00036/gid00303/gid00032/gid00046/gid00001/gid00028/gid00048/gid00001/gid00030 /gid00028/gid00043/gid00036/gid00047/gid00028/gid00039                                               | /gid00619/gid00001/gid00621/gid00619/gid00626                   | /gid00619/gid00001/gid00621/gid00619/gid00626                   |
+| /gid00019/gid00303/gid00046/gid00032/gid00045/gid00049/gid00032/gid00046                                                                                                                                                                                       | /gid00618/gid00617/gid00619/gid00001/gid00620/gid00620/gid00623 | /gid00618/gid00618/gid00623/gid00001/gid00626/gid00619/gid00617 |
+| /gid00006/gid00030/gid00028/gid00045/gid00047/gid00046/gid00001/gid00031/gid00032/gid00001/gid00045/gid00303/gid00303/gid00049/gid00028/gid00039/gid00048/gid00028/gid00047/gid00036/gid00042/gid00041                                                         | /gid00617                                                       | /gid00617                                                       |
+| /gid00017/gid00045/gid00042/gid00049/gid00036/gid00046/gid00036/gid00042/gid00041/gid00046/gid00001/gid00045/gid00302/gid00034/gid00039/gid00032/gid00040/gid00032/gid00041/gid00047/gid00303/gid00032/gid00046                                                | /gid00618/gid00623/gid00617                                     | /gid00618/gid00623/gid00617                                     |
+| /gid00019/gid00032/gid00043/gid00042/gid00045/gid00047/gid00001/gid00262/gid00001/gid00041/gid00042/gid00048/gid00049/gid00032/gid00028/gid00048/gid00001/gid00704/gid00899/gid00710/gid00692/gid00705                                                         | /gid00618/gid00625/gid00623/gid00001/gid00619/gid00623/gid00620 | /gid00619/gid00618/gid00617/gid00001/gid00626/gid00625/gid00617 |
+| /gid00019/gid00303/gid00046/gid00048/gid00039/gid00047/gid00028/gid00047/gid00001/gid00031/gid00032/gid00001/gid00039/gid00683 /gid00032/gid00051/gid00032/gid00045/gid00030/gid00036/gid00030 /gid00032/gid00001/gid00704/gid00899/gid00710/gid00692/gid00705 | /gid00626/gid00624/gid00001/gid00619/gid00620/gid00617          | /gid00618/gid00617/gid00618/gid00001/gid00619/gid00619/gid00625 |
+| TOTAL                                                                                                                                                                                                                                                          | 3 437 669                                                       | 3 614 195                                                       |
+
+[PAGE 5]  [METRICS chars=8212 density=16.3861 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+COMPTE DE RESULTAT (en Millions XOF)
+        INDICATEURS CLÉS
+    MONTANTS NETS
+    Dec.-23
+    Dec.-24
+            Dec.-23
+            Dec.-24
+            ∆ 24/23
+        Ratios Prêts/Dépôts
+            88,2%
+            90,1%
+            187 bps
+Intérêts et produits assimilés
+Intérêts et charges assimilées
+Revenus des titres à revenu variable
+Commissions (produits)
+Commissions (charges)
+Gains ou pertes nets sur opérations des portefeuilles de
+négociation
+Gains ou pertes nets sur opérations des portefeuilles de
+placement et assimilés
+Autres produits d'exploitation bancaire
+Autres charges d'exploitation bancaire
+Produit Net Bancaire
+    195 892
+    -43 248
+    2 167
+    71 655
+    -2 751
+    6 507
+    221 265
+    -49 557
+    2 954
+    74 612
+    -3 037
+    4 839
+        Taux brut de créances en souffrance
+            6,8%
+            7,5%
+            67 bps
+        Taux de couverture des Créances en
+        souffrance
+            95%
+            84% -1076 bps
+        Commissions/PNB
+            39,7%
+            34,8%
+            -497 bps
+        Coût Net du Risque(1)
+            131 bps
+            156 bps
+            25 bps
+        Coefficient d'exploitation
+            41,7%
+            37,9%
+            -380 bps
+    751
+    -6 958
+        Ratio de solvabilité
+            15,8%
+            16,3%
+            51 bps
+        Dividende brut par actions (en FCFA)
+            1 719
+            1 863
+            8,4%
+    27 210
+    -4 898
+    253 286
+    24 804
+    -5 716
+    263 207
+        (1) Y compris CNR Risques et charges
+Subventions d'investissement
+Charges générales d'exploitation
+Dotation aux amortissements et aux dépréciations des
+immobilisations incorporelles et corporelles
+Frais Généraux
+        Affectation du résultat de l’exercice clos au 31 Décembre 2024
+    -91 125
+    -14 460
+    -87 741
+    -11 982
+        Résultat net de l'exercice
+            101 227 728 744
+    -105 585
+    -99 723
+        Report à nouveau antérieur
+            210 979 874 978
+        Bénéfice à répartir
+            312 207 603 722
+Résultat brut d’exploitation
+    147 701
+    163 484
+        Affectation
+Coût du risque
+    -27 654
+    -36 235
+        Réserve spéciale (15% du résultat net de l'exercice)
+            15 184 159 312
+Résultat d’exploitation
+    120 046
+    127 248
+        Dividendes bruts aux actionnaires
+            57 959 997 930
+        Réserves Facultatives
+            239 063 446 480
+Gains ou pertes nets sur actifs immobilisés
+    -429
+    313
+        Report à nouveau
+            312 207 603 722
+        Total
+            283 493 302 895
+Résultat avant impôt
+    119 617
+    127 561
+Impôts sur les bénéfices
+    -22 387
+    -26 333
+        Taux de distribution
+        Nombre d’actions
+            57,25%
+            31 111 110
+Résultat net
+    97 230
+    101 228
+SOCIETE GENERALE COTE D’IVOIRE – Société Anonyme avec Conseil d’Administration au capital social de 20.004.443.730 FCFA - Siège social à Abidjan 5 et 7 avenue Joseph ANOMA 01 BP 1355
+Abidjan 01 RCCM CI-ABJ-01-1962-B14-02641 – Tél : 27 20 20 12 34 - Centre de relation clients : 27 20 20 10 10  - Site internet : www.societegenerale.ci
+
+[TABLEAUX DOCLING]
+|                                                                                                   | MONTANTSNETS   | MONTANTSNETS   |
+|---------------------------------------------------------------------------------------------------|----------------|----------------|
+|                                                                                                   | Dec.-23        | Dec.-24        |
+| Intérêts et produits assimilés                                                                    | 195 892        | 221 265        |
+| Intérêts et charges assimilées                                                                    | -43 248        | -49 557        |
+| Revenus des titres à revenu variable                                                              | 2 167          | 2 954          |
+| Commissions (produits)                                                                            | 71 655         | 74 612         |
+| Commissions (charges)                                                                             | -2 751         | -3 037         |
+| Gains ou pertes nets sur opérations des portefeuilles de négociation                              | 6 507          | 4 839          |
+| Gains ou pertes nets sur opérations des portefeuilles de placement et assimilés                   | 751            | -6 958         |
+| Autres produits d'exploitation bancaire                                                           | 27 210         | 24 804         |
+| Autres charges d'exploitation bancaire                                                            | -4 898         | -5 716         |
+| Produit Net Bancaire                                                                              | 253 286        | 263 207        |
+| Subventions d'investissement                                                                      |                |                |
+| Charges générales d'exploitation                                                                  | -91 125        | -87 741        |
+| Dotation aux amortissements et aux dépréciations des immobilisations incorporelles et corporelles | -14 460        | -11 982        |
+| Frais Généraux                                                                                    | -105 585       | -99 723        |
+| Résultat brut d'exploitation                                                                      | 147 701        | 163 484        |
+| Coût du risque                                                                                    | -27 654        | -36 235        |
+| Résultat d'exploitation                                                                           | 120 046        | 127 248        |
+| Gains ou pertes nets sur actifs immobilisés                                                       | -429           | 313            |
+| Résultat avant impôt                                                                              | 119 617        | 127 561        |
+| Impôts sur les bénéfices                                                                          | -22 387        | -26 333        |
+| Résultat net                                                                                      | 97 230         | 101 228        |
+
+|                                               | Dec.-23   | Dec.-24   | ∆24/23    |
+|-----------------------------------------------|-----------|-----------|-----------|
+| Ratios Prêts/Dépôts                           | 88,2%     | 90,1%     | 187 bps   |
+| Taux brut de créances en souffrance           | 6,8%      | 7,5%      | 67 bps    |
+| Taux de couverture des Créances en souffrance | 95%       | 84%       | -1076 bps |
+| Commissions/PNB                               | 39,7%     | 34,8%     | -497 bps  |
+| Coût Net du Risque (1)                        | 131 bps   | 156 bps   | 25 bps    |
+| Coefficient d'exploitation                    | 41,7%     | 37,9%     | -380 bps  |
+| Ratio de solvabilité                          | 15,8%     | 16,3%     | 51 bps    |
+| Dividende brut par actions (en FCFA)          | 1 719     | 1 863     | 8,4%      |
+
+| Résultat net de l'exercice                           | 101 227 728 744   |
+|------------------------------------------------------|-------------------|
+| Report à nouveau antérieur                           | 210 979 874 978   |
+| Bénéfice à répartir                                  | 312 207 603 722   |
+| Affectation                                          |                   |
+| Réserve spéciale (15% du résultat net de l'exercice) | 15 184 159 312    |
+| Dividendes bruts aux actionnaires                    | 57 959 997 930    |
+| Réserves Facultatives                                | 239 063 446 480   |
+| Report à nouveau                                     | 312 207 603 722   |
+| Total                                                | 283 493 302 895   |
+| Taux de distribution                                 | 57,25%            |
+| Nombre d'actions                                     | 31 111 110        |

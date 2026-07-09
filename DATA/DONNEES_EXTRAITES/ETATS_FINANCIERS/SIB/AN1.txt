@@ -1,0 +1,673 @@
+================================================================================
+  EXTRACTION 3 — pdfminer.six + Docling AI
+  Pipeline  : extraction_3_pdfminer_docling
+  Source    : ETATS_FINANCIERS\SIB\AN2.pdf
+  SHA256    : db49907b3a61cd78a316056ea2a82d32b9f2d6996dbfbf49c51880119c527062
+  Timestamp : 2026-05-22T07:05:59
+  Pages     : 4
+  Methode   : pdfminer_native+docling_tables
+  Total chars : 22,074
+================================================================================
+
+[PAGE 1]  [METRICS chars=3824 density=5.442 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+    RAPPORT D'ACTIVITÉ
+    2023
+        De  concert  avec  La  Holding  AWA  et  le  Groupe
+        Attijariwafa  bank,  la  SIB  a  poursuivi  ses  efforts
+        visant le renforcement du dispositif de conformité
+        et  de  contrôle  interne  à  tous  les  niveaux  de
+        l'organisation,  afin  de  garantir  une  conduite
+        éthique et conforme aux Meilleurs standards de la
+        profession.
+ENVIRONNEMENT MACRO ÉCONOMIQUE
+La  reprise  économique  mondiale  se  poursuit
+lentement, malgré les défis posés par la pandé-
+mie,  le  conflit  russo-ukrainien,  les  tensions  au
+Moyen-Orient et la crise du coût de la vie.
+En Côte d'Ivoire, la croissance devrait se situer aux
+alentours de 6,2 % en 2023, principalement grâce à
+l'agriculture, à l'industrie, aux travaux publics, aux
+transports, au commerce, aux télécommunications,
+ainsi  qu'aux  investissements  et  à  la  consommation.
+L'inflation  continue  sur  sa  tendance  baissière,  en
+raison notamment d'une offre adéquate de produits
+locaux  et  de  la  baisse  des  prix  alimentaires  à
+l'échelle mondiale.
+        Pour diversifier ses offres de produits et services,
+        la  SIB  a  lancé  en  2023  de  nouveaux  produits  de
+        bancassurance  et  de  banque  assistance  et  une
+        refonte  de  son  application  de  mobile  banking
+        (Sibnet).
+        En  2023,  la  SIB  a  poursuivi  sa  trajectoire  de
+        croissance. Les encours Crédits et Ressources ont
+        enregistré une augmentation respective de 8 % et
+        2 % par rapport à l'année précédente, tandis que le
+        total bilan s'est consolidé pour atteindre
+        1 606  milliards  XOF,  en  progression  de  +7%  par
+        rapport à l'année précédente.
+Néanmoins,  la  fin  de  l'année  2023  fut  difficile  en
+raison d'une crise de liquidité.
+Les  conditions  financières  internationales  se  sont
+globalement durcies en 2023, en raison de la hausse
+continue  des  taux  directeurs  par  la  plupart  des
+banques  centrales,  y  compris  la  BCEAO  qui  a
+augmenté ses taux directeurs pour la troisième fois
+consécutive,  les  portant  à  3,5  %  pour  le  taux
+directeur et 5,5 % pour le taux du guichet du prêt
+marginal.
+            Variation
+            %
+        Données (en Milliards FCFA)
+        31/12/2022
+        31/12/2023
+        Total Bilan
+        Crédits à la clientèle
+        Dépôts de la clientele
+        Capitaux propres
+        1 500
+        964
+        1 271
+        148
+            1 606
+            1 037
+            1 292
+            164
+            7%
+            8%
+            2%
+            11%
+            -
+            -
+        Au  niveau  de  la  rentabilité  la  banque  affiche  des
+        résultats financiers robustes en décembre 2023.
+        Le produit net bancaire a atteint 96 milliards XOF,
+        enregistrant  une  croissance  significative  de  +14%,
+        principalement  soutenue  par  l'augmentation  des
+        revenus  de  services  (+23.5%)  et  des  activités  de
+        marché (+12%).
+ACTIVITÉS ET RESULTATS DE LA SIB
+En 2023, malgré un contexte économique difficile,
+les indicateurs d'activité et de rentabilité de la SIB
+sont bien orientés.
+A la suite d'une mission de notation, la SIB a
+conservé sa notation à long terme AA- avec une
+perspective stable.
+            1/4
+Linked
+
+[TABLEAUX DOCLING]
+| Données (en Milliards FCFA)   | 31/12/2022   | 31/12/2023   | Variation %   |
+|-------------------------------|--------------|--------------|---------------|
+| Total Bilan                   | 1 500        | 1 606        | 7%            |
+| Crédits à la clientèle        | 964          | 1 037        | 8%            |
+| Dépôts de la clientele        | 1 271        | 1 292        | 2%            |
+| Capitaux propres              | 148          | 164          | 11%           |
+
+[PAGE 2]  [METRICS chars=4372 density=6.2219 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+        Croire en vous
+        Au  regard  de  ces  performances,  le  Conseil
+        d'Administration de la SIB se propose de soumettre
+        à  la  prochaine  Assemblée  Générale  Ordinaire
+        des  Actionnaires  un  montant  de  dividende  brut  à
+        distribuer représentant près de 63% du résultat net
+        de l'exercice sous revue.
+    Variation
+Données (en Milliards FCFA)
+    31/12/2022
+    31/12/2023
+    %
+    -
+    14%
+    -
+    7%
+    20%
+    251%
+    8%
+    5%
+    9%
+    -261bp
+Produit Net Bancaire
+Frais généraux
+Résultat Brut d'exploitation
+Coût du risque
+Résultat d’exploitation
+Résultat avant impôts
+Résultat net
+Coefficient d’exploitation
+    83,5
+    -36,0
+    47,6
+    -2,3
+    45,3
+    46,4
+    40,1
+    43,07%
+    95,6
+    -38,7
+    56,9
+    -7,99
+    48,9
+    48,7
+    43,5
+    40,46%
+        Cela  équivaudrait  à  un  rendement  de  l'action
+        d'environ 10% sur la base du cours au 31 décembre
+        2023,  qui  a  lui-même  a  augmenté  de  +16,68%  par
+        rapport à décembre 2022.
+Les frais de gestion s'élèvent à 39 milliards XOF en
+progression de +7% en glissement annuel.
+Cependant, grâce à des initiatives visant à optimiser
+les coûts et à améliorer les processus internes, le
+ratio  d'efficience  opérationnelle  s'améliore  de  261
+points de base.
+        Par ailleurs, animées par notre engagement envers
+        le développement de la Côte d'Ivoire et le bien-être
+        de ses habitants, les équipes de la SIB poursuivent
+        leur implication dans les domaines de la santé, de
+        l'éducation,  de  la  culture  et  de  la  préservation  de
+        l'environnement.  La  politique  RSE  de  la  SIB  se
+        veut citoyenne, solidaire et impactante.
+Le  résultat  brut  d'exploitation  s'accroit  de  +20%,
+atteignant  58  milliards  XOF,  grâce  à  une  forte
+progression  du  PNB  couplée  à  une  discipline
+renforcée en matière de contrôle des coûts.
+Le  coût  du  risque  s’affiche  à  8  milliards  FCFA  en
+hausse  comparativement  à  décembre  2022,  dont
+une  provision  de  2  milliards  FCFA  au  titre  des
+risques opérationnels enregistrés en 2023.
+        PERSPECTIVES
+        Pour 2024, les perspectives économiques restent
+        marquées  par  des  incertitudes  eu  égard  aux
+        évolutions de la conjoncture économique mondiale
+        et  de  la  situation  socio-politique  et  sécuritaire
+        dans notre zone.
+Enfin, et en dépit de cet effort de provisionnement,
+la  SIB  réalise  une  performance  remarquable  avec
+un  résultat  net  de  43.5G  en  croissance  de  9%  par
+rapport à celui de décembre 2022.
+        L’année 2024 sera la première année du nouveau
+        plan stratégique de la SIB 2024-2028.
+        Les  équipes  de  la  SIB  redoubleront  d'efforts  et
+        d’engagement,  dans  ce  contexte  difficile,  afin  de
+        continuer à soutenir et accompagner les clients,
+        financer  l’économie  ivoirienne  et  afficher  une
+        solidité et une résilience à toute épreuve.
+La SIB respecte l'ensemble des ratios prudentiels et
+dispose  d'un  niveau  de  fonds  propres  confortable,
+confirmant ainsi sa solidité et sa résilience.
+Cette  croissance,  soutenue  par  une  forte
+dynamique  commerciale,  a  été  récompensée  par
+deux trophées de meilleure banque en Côte d'Ivoire,
+décernés par le prestigieux magazine financier
+« The International Banker », dans les catégories de
+l'innovation en Banque de détail, et de respect des
+principes  ESG  (Environnementaux,  Sociaux,  et  de
+Gouvernance).
+            2/4
+
+[TABLEAUX DOCLING]
+| Données (en Milliards FCFA)   | 31/12/2022   | 31/12/2023   | Variation %   |
+|-------------------------------|--------------|--------------|---------------|
+| Produit Net Bancaire          | 83,5         | 95,6         | - 14%         |
+| Frais généraux                | -36,0        | -38,7        | - 7%          |
+| Résultat Brut d'exploitation  | 47,6         | 56,9         | 20%           |
+| Coût du risque                | -2,3         | -7,99        | 251%          |
+| Résultat d'exploitation       | 45,3         | 48,9         | 8%            |
+| Résultat avant impôts         | 46,4         | 48,7         | 5%            |
+| Résultat net                  | 40,1         | 43,5         | 9%            |
+| Coefficient d'exploitation    | 43,07%       | 40,46%       | -261bp        |
+
+[PAGE 3]  [METRICS chars=7468 density=10.6279 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+BILAN AU 31 DECEMBRE 2023
+En Millions de FCFA
+POSTE ACTIF
+        31/12/2022
+            Var (%)
+        Var N/N-1
+        31/12/2023
+        69 164
+        114 910
+A1
+A2
+A3
+A4
+A5
+A6
+CAISSE BANQUE CENTRALE, CCP
+EFFETS PUBLICS ET VALEURS ASSIMILEES
+CREANCES INTERBANCAIRES ET ASSIMILEES
+CREANCES SUR LA CLIENTELE
+OBLIGATIONS ET AUTRES TITRES A REVENUS FIXE
+ACTIONS ET AUTRES TITRES A REVENUS VARIABLES
+            66%
+            -5%
+            9%
+            8%
+            -
+            7%
+            -
+        45 746
+        -20 159
+        3 070
+        73 115
+        -
+        462
+        -
+        381 123
+        360 964
+        35 026
+        38 096
+        963 846
+        1 036 960
+        -
+        6 728
+        -
+        -
+        6 266
+A7
+A8
+A9
+A10
+ACTIONNARES OU ASSOCIES
+AUTRES ACTIFS
+COMPTE DE REGULARISATION
+        -
+        23 416
+            8 %
+            8%
+        1 874
+        324
+        25 290
+        4 441
+        4 116
+            0%
+            0%
+            -
+PARTICIPATIONS ET AUTRES TITRES DETENUS A LONG TERME
+PARTS DANS LES ENTREPRISES LIEES
+PRETS SUBORDONNES
+            -
+            -
+            -
+        263
+        597
+        400
+        263
+        597
+A11
+A12
+A13
+        -
+            -61%
+            16%
+IMMOBILISATIONS INCORPORELLES
+IMMOBILISATIONS CORPORELLES
+        -867
+        2 356
+        555
+        16 669
+        1 423
+A14
+        14 313
+        1 499 554
+            7%
+TOTAL ACTIFS
+        106 321
+        1 605 875
+En Millions de FCFA
+POSTE PASSIF
+        31/12/2022
+        31/12/2023
+        Var N/N-1
+            Var (%)
+        -
+            -
+        -
+            -
+BANQUE CENTRALE, CCP
+DETTES INTERBANCAIRES ET ASSIMLEES
+DETTES A L'EGARD DE LA CLIENTELE
+DETTES REPRESENTEES PAR UN TITRE
+P1
+P2
+P3
+P4
+        15 665
+        1 271 199
+            459%
+            2%
+            -
+        71 887
+        23 219
+        -
+        87 552
+        1 294 418
+        -
+        -
+        30 686
+        10 250
+        7 331
+            -9%
+            -5%
+            73%
+AUTRES PASSIFS
+COMPTES DE REGULARISATION
+PROVISIONS
+P5
+P6
+P7
+        -2 648
+        -519
+        5 380
+        28 038
+        9 731
+        12 711
+        16 034
+        148 389
+            -44%
+            11%
+EMPRUNTS ET TITRES EMIS SUBORDONNES
+P8
+        -7 012
+        16 013
+        9 022
+        164 402
+CAPITAUX PROPRES ET RESSOURCES ASSIMILEES
+CAPITAL SOUSCRIT
+P9
+P10
+        10 000
+            0%
+            -
+        10 000
+        -
+            -
+        -
+            -
+PRIMES LIEES AU CAPITAL
+RESERVES
+P11
+P12
+        98 299
+        -
+            13%
+            -
+        12 590
+        -
+        110 889
+        -
+ECARTS DE REEVALUATION
+P13
+        -
+        -
+            -
+            -
+        -
+        -
+            -
+            -
+PROVISIONS REGLEMENTEES
+REPORT A NOUVEAU
+RESULTAT DE L'EXERCICE
+P14
+P15
+P16
+        40 090
+            9%
+        3 423
+        43 513
+TOTAL PASSIFS
+        1 499 554
+            7%
+        106 321
+        1 605 875
+            3/4
+Linked
+
+[TABLEAUX DOCLING]
+| POSTE        | ACTIF                                                | 31/12/2022   | 31/12/2023   | Var N/N-1   | Var (%)   |
+|--------------|------------------------------------------------------|--------------|--------------|-------------|-----------|
+| A1           | CAISSE BANQUE CENTRALE, CCP                          | 69 164       | 114 910      | 45 746      | 66%       |
+| A2           | EFFETS PUBLICS ET VALEURS ASSIMILEES                 | 381 123      | 360 964      | -20 159     | -5%       |
+| A3           | CREANCES INTERBANCAIRES ET ASSIMILEES                | 35 026       | 38 096       | 3 070       | 9%        |
+| A4           | CREANCES SUR LA CLIENTELE                            | 963 846      | 1 036 960    | 73 115      | 8%        |
+| A5           | OBLIGATIONS ET AUTRES TITRES A REVENUS FIXE          | -            | -            | -           | -         |
+| A6           | ACTIONS ET AUTRES TITRES A REVENUS VARIABLES         | 6 266        | 6 728        | 462         | 7%        |
+| A7           | ACTIONNARES OU ASSOCIES                              | -            | -            | -           | -         |
+| A8           | AUTRES ACTIFS                                        | 23 416       | 25 290       | 1 874       | 8%        |
+| A9           | COMPTE DE REGULARISATION                             | 4 116        | 4 441        | 324         | 8%        |
+| A10          | PARTICIPATIONS ET AUTRES TITRES DETENUS A LONG TERME | 263          | 263          | -           | 0%        |
+| A11          | PARTS DANS LES ENTREPRISES LIEES                     | 597          | 597          | -           | 0%        |
+| A12          | PRETS SUBORDONNES                                    | -            | 400          | -           | -         |
+| A13          | IMMOBILISATIONS INCORPORELLES                        | 1 423        | 555          | -867        | -61%      |
+| A14          | IMMOBILISATIONS CORPORELLES                          | 14 313       | 16 669       | 2 356       | 16%       |
+| TOTAL ACTIFS | TOTAL ACTIFS                                         | 1 499 554    | 1 605 875    | 106 321     | 7%        |
+
+| POSTE         | PASSIF                                    | 31/12/2022   | 31/12/2023   | Var N/N-1   | Var (%)   |
+|---------------|-------------------------------------------|--------------|--------------|-------------|-----------|
+| P1            | BANQUE CENTRALE, CCP                      | -            | -            | -           | -         |
+| P2            | DETTES INTERBANCAIRES ET ASSIMLEES        | 15 665       | 87 552       | 71 887      | 459%      |
+| P3            | DETTES A L'EGARD DE LA CLIENTELE          | 1 271 199    | 1 294 418    | 23 219      | 2%        |
+| P4            | DETTES REPRESENTEES PAR UN TITRE          | -            | -            | -           | -         |
+| P5            | AUTRES PASSIFS                            | 30 686       | 28 038       | -2 648      | -9%       |
+| P6            | COMPTES DE REGULARISATION                 | 10 250       | 9 731        | -519        | -5%       |
+| P7            | PROVISIONS                                | 7 331        | 12 711       | 5 380       | 73%       |
+| P8            | EMPRUNTS ET TITRES EMIS SUBORDONNES       | 16 034       | 9 022        | -7 012      | -44%      |
+| P9            | CAPITAUX PROPRES ET RESSOURCES ASSIMILEES | 148 389      | 164 402      | 16 013      | 11%       |
+| P10           | CAPITAL SOUSCRIT                          | 10 000       | 10 000       | -           | 0%        |
+| P11           | PRIMES LIEES AU CAPITAL                   | -            | -            | -           | -         |
+| P12           | RESERVES                                  | 98 299       | 110 889      | 12 590      | 13%       |
+| P13           | ECARTS DE REEVALUATION                    | -            | -            | -           | -         |
+| P14           | PROVISIONS REGLEMENTEES                   | -            | -            | -           | -         |
+| P15           | REPORT A NOUVEAU                          | -            | -            | -           | -         |
+| P16           | RESULTAT DE L'EXERCICE                    | 40 090       | 43 513       | 3 423       | 9%        |
+| TOTAL PASSIFS | TOTAL PASSIFS                             | 1 499 554    | 1 605 875    | 106 321     | 7%        |
+
+[PAGE 4]  [METRICS chars=6410 density=9.1222 ocr_pct=0.0 tables=OUI ocr_conf=N/A]
+
+        Croire en vous
+HORS BILAN AU 31 DECEMBRE 2023
+En Millions de FCFA
+POSTE
+HORS BILAN
+        31/12/2022
+            31/12/2023
+ENGAGEMENTS DONNES
+        -194 447
+            -197 623
+HB1
+ENGAGEMENTS DE FINANCEMENT
+        -27 730
+            -26 137
+HB2
+HB3
+ENGAGEMENTS DE GARANTIE
+ENGAGEMENTS SUR TITRES
+        -166 717
+        -
+            -171 486
+            -
+ENGAGEMENTS RECUS
+        1 660 092
+            1 782 827
+        -
+            -
+ENGAGEMENTS DE FINANCEMENT
+ENGAGEMENTS DE GARANTIE
+ENGAGEMENTS SUR TITRES
+HB4
+HB5
+HB6
+        1 660 092
+        -
+            1 782 827
+            -
+En Millions de FCFA
+        Var N/N-1
+        31/12/2023
+POSTE
+COMPTE DE RESULTAT
+    31/12/2022
+            Var(%)
+C1
+        10 937
+        78 814
+INTERETS ET PRODUITS ASSIMILES
+        67 877
+            16%
+            7%
+C2
+C3
+        -972
+        314
+        -15 504
+        513
+INTERETS ET CHARGES ASSIMILEES
+REVENUS DES TITRES A REVENU VARIABLE
+        -14 532
+        199
+            158%
+            20%
+C4
+        5 517
+        33 682
+COMMISSIONS PRODUITS
+        28 166
+            77%
+C5
+        -2 794
+        -6 407
+COMMISSIONS CHARGES
+GAINS OU PERTES NETS SUR OPERATIONS
+DES PORTEFEUILLES DE NEGOCIATION
+        -3 614
+C6
+        192
+        3 263
+        3 071
+            6%
+GAINS OU PERTES NETS SUR OPERATIONS
+DES PORTEFEUILLES DE PLACEMENT ET ASSIMILES
+C7
+        -894
+        1 311
+        2 205
+            -41%
+C8
+        -66
+        146
+AUTRES PRODUITS D'EXPLOITATION BANCAIRE
+        212
+            -31%
+            492%
+C9
+        -206
+        -248
+AUTRES CHARGES D'EXPLOITATION BANCAIRE
+        -42
+C10
+        12 029
+        95 571
+PRODUIT NET BANCAIRE
+        83 542
+            14%
+        -
+        -
+        -
+            -
+            7%
+C11
+C12
+SUBVENTION D'INVESTISSEMENT
+CHARGES GENERALES D'EXPLOITATION
+        -2 287
+        -34 900
+        -32 613
+DOTATIONS AUX AMORTISSEMENTS
+ET AUX DEPRESSIATIONS DES IMMOBILISATIONS
+            13%
+C13
+        -432
+        -3 800
+        -3 368
+            20%
+C14
+        9 310
+        56 871
+RESULTAT BRUT D'EXPLOITATION
+        47 561
+C15
+        -5 716
+        -7 992
+        -2 276
+            251%
+COÛT DU RISQUE
+RESULTAT D'EXPLOITATION
+GAINS OU PERTES NETS SUR ACTIFS IMMOBILISES
+        3 595
+        -1 287
+C16
+C17
+C18
+        48 879
+        -208
+        45 285
+        1 079
+        46 364
+            8%
+            -119%
+RESULTAT AVANT IMPÔTS
+        2 307
+        1 116
+        48 671
+        -5 158
+            5%
+            -18%
+C19
+        -6 273
+IMPÔTS SUR LES BENEFICES
+RESULTAT NET
+        3 423
+C20
+        43 513
+        40 090
+            9%
+            4/4
+
+[TABLEAUX DOCLING]
+| POSTE   | HORSBILAN                | 31/12/2022   | 31/12/2023   |
+|---------|--------------------------|--------------|--------------|
+|         | ENGAGEMENTSDONNES        | -194447      | -197623      |
+| HB1     | ENGAGEMENTSDEFINANCEMENT | -27730       | -26137       |
+| HB2     | ENGAGEMENTSDEGARANTIE    | -166717      | -171486      |
+| HB3     | ENGAGEMENTSSURTITRES     | -            | -            |
+|         | ENGAGEMENTSRECUS         | 1660092      | 1782827      |
+| HB4     | ENGAGEMENTSDEFINANCEMENT | -            | -            |
+| HB5     | ENGAGEMENTSDEGARANTIE    | 1660092      | 1782827      |
+| HB6     | ENGAGEMENTSSURTITRES     | -            | -            |
+
+| POSTE   | COMPTEDERESULTAT                                                      | 31/12/2022   | 31/12/2023   | VarN/N-1   | Var(%)   |
+|---------|-----------------------------------------------------------------------|--------------|--------------|------------|----------|
+| C1      | INTERETSETPRODUITSASSIMILES                                           | 67877        | 78814        | 10937      | 16%      |
+| C2      | INTERETSETCHARGESASSIMILEES                                           | -14532       | -15504       | -972       | 7%       |
+| C3      | REVENUSDESTITRESAREVENUVARIABLE                                       | 199          | 513          | 314        | 158%     |
+| C4      | COMMISSIONSPRODUITS                                                   | 28166        | 33682        | 5517       | 20%      |
+| C5      | COMMISSIONSCHARGES                                                    | -3614        | -6407        | -2794      | 77%      |
+| C6      | GAINSOUPERTESNETSSUROPERATIONS DESPORTEFEUILLESDENEGOCIATION          | 3071         | 3263         | 192        | 6%       |
+| C7      | GAINSOUPERTESNETSSUROPERATIONS DESPORTEFEUILLESDEPLACEMENTETASSIMILES | 2205         | 1311         | -894       | -41%     |
+| C8      | AUTRESPRODUITSD'EXPLOITATIONBANCAIRE                                  | 212          | 146          | -66        | -31%     |
+| C9      | AUTRESCHARGESD'EXPLOITATIONBANCAIRE                                   | -42          | -248         | -206       | 492%     |
+| C10     | PRODUITNETBANCAIRE                                                    | 83542        | 95571        | 12029      | 14%      |
+| C11     | SUBVENTIOND'INVESTISSEMENT                                            | -            | -            | -          | -        |
+| C12     | CHARGESGENERALESD'EXPLOITATION                                        | -32613       | -34900       | -2287      | 7%       |
+| C13     | DOTATIONSAUXAMORTISSEMENTS ETAUXDEPRESSIATIONSDESIMMOBILISATIONS      | -3368        | -3800        | -432       | 13%      |
+| C14     | RESULTATBRUTD'EXPLOITATION                                            | 47561        | 56871        | 9310       | 20%      |
+| C15     | COÛTDURISQUE                                                          | -2276        | -7992        | -5716      | 251%     |
+| C16     | RESULTATD'EXPLOITATION                                                | 45285        | 48879        | 3595       | 8%       |
+| C17     | GAINSOUPERTESNETSSURACTIFSIMMOBILISES                                 | 1079         | -208         | -1287      | -119%    |
+| C18     | RESULTATAVANTIMPÔTS                                                   | 46364        | 48671        | 2307       | 5%       |
+| C19     | IMPÔTSSURLESBENEFICES                                                 | -6273        | -5158        | 1116       | -18%     |
+| C20     | RESULTATNET                                                           | 40090        | 43513        | 3423       | 9%       |

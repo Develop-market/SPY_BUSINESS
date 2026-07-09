@@ -1,0 +1,76 @@
+======================================================================
+  PRETRAITEMENT — Nettoyage sans LLM
+======================================================================
+
+======================================================================
+  MODULE EF — ETATS_FINANCIERS
+======================================================================
+
+  BACI
+    [ANS→AN1] 2021 : 56 lignes → AN1_clean.xlsx
+    [ANS→AN2] 2022 : 55 lignes → AN2_clean.xlsx
+    [ANS→AN3] 2023 : 56 lignes → AN3_clean.xlsx
+  [WARN] ANS_CORRECT.xlsx / Sheet : format mono-colonne (données OCR concaténées) → feuille ignorée
+    [ANS_CORRECT] AUCUNE DONNEE (XLSX)
+
+  BICICI
+    [AN1] 78 lignes propres (TXT) → AN1_clean.xlsx
+    [AN2] 106 lignes propres (XLSX) → AN2_clean.xlsx
+    [AN3] 112 lignes propres (XLSX) → AN3_clean.xlsx
+
+  BNI
+    [ANS→AN1] 2021 : 56 lignes → AN1_clean.xlsx
+    [ANS→AN2] 2022 : 56 lignes → AN2_clean.xlsx
+    [ANS→AN3] 2023 : 56 lignes → AN3_clean.xlsx
+
+  ECOBANK
+  [WARN] AN1.xlsx / T1 : aucune unité détectée dans le fichier source — vérifier le PDF
+  [WARN] AN1.xlsx / T2 : aucune unité détectée dans le fichier source — vérifier le PDF
+  [WARN] AN1.xlsx / T3 : aucune unité détectée dans le fichier source — vérifier le PDF
+  [WARN] AN1.xlsx / T4 : aucune unité détectée dans le fichier source — vérifier le PDF
+  [WARN] AN1.xlsx / T5 : aucune unité détectée dans le fichier source — vérifier le PDF
+  [WARN] AN1.xlsx / T6 : aucune unité détectée dans le fichier source — vérifier le PDF
+    [AN1] 99 lignes propres (TXT) → AN1_clean.xlsx
+  [WARN] AN2.xlsx / T0 : format mono-colonne (données OCR concaténées) → feuille ignorée
+  [WARN] AN2.xlsx / T1 : aucune unité détectée dans le fichier source — vérifier le PDF
+  [WARN] AN2.xlsx / T2 : format mono-colonne (données OCR concaténées) → feuille ignorée
+  [WARN] AN2.xlsx / T3 : format mono-colonne (données OCR concaténées) → feuille ignorée
+    [AN2] 62 lignes propres (TXT) → AN2_clean.xlsx
+  [WARN] AN3.xlsx / T0 : aucune unité détectée dans le fichier source — vérifier le PDF
+    [AN3] 106 lignes propres (TXT) → AN3_clean.xlsx
+
+  NSIA
+  [WARN] AN1.xlsx / T0 : aucune unité détectée dans le fichier source — vérifier le PDF
+  [WARN] AN1.xlsx / T1 : format mono-colonne (données OCR concaténées) → feuille ignorée
+    [AN1] 91 lignes propres (TXT) → AN1_clean.xlsx
+  [WARN] AN2.xlsx / T0 : aucune unité détectée dans le fichier source — vérifier le PDF
+  [WARN] AN2.xlsx / T1 : format mono-colonne (données OCR concaténées) → feuille ignorée
+    [AN2] 93 lignes propres (TXT) → AN2_clean.xlsx
+  [WARN] AN3.xlsx / T0 : aucune unité détectée dans le fichier source — vérifier le PDF
+  [WARN] AN3.xlsx / T1 : format mono-colonne (données OCR concaténées) → feuille ignorée
+    [AN3] 94 lignes propres (TXT) → AN3_clean.xlsx
+
+  SGCI
+  [WARN] AN1.xlsx / T0 : format mono-colonne (données OCR concaténées) → feuille ignorée
+    [AN1] 120 lignes propres (XLSX) → AN1_clean.xlsx
+  [WARN] AN2.xlsx / T0 : aucune unité détectée dans le fichier source — vérifier le PDF
+  [WARN] AN2.xlsx / T1 : aucune unité détectée dans le fichier source — vérifier le PDF
+    [AN2] 105 lignes propres (TXT) → AN2_clean.xlsx
+  [WARN] AN3.xlsx / T0 : aucune unité détectée dans le fichier source — vérifier le PDF
+    [AN3] 112 lignes propres (TXT) → AN3_clean.xlsx
+
+  SIB
+  [WARN] AN1_DOCLING.xlsx / Sheet : aucune unité détectée dans le fichier source — vérifier le PDF
+    [AN1] 1 lignes propres (TXT) → AN1_clean.xlsx
+    [AN2] 98 lignes propres (TXT) → AN2_clean.xlsx
+    [AN3] 92 lignes propres (TXT) → AN3_clean.xlsx
+    [REPAIR AN1] SIB : 1 lignes → copie 48 lignes (2022) depuis AN2
+
+  Rapport : C:\Users\ALPHEE COLOMBE\Desktop\BACK\DATA\DONNEES_PRETRAITEES\rapport.xlsx
+
+======================================================================
+  BILAN FINAL
+======================================================================
+  EF: 22 fichiers | 1704 lignes propres
+
+  Sorties dans : C:\Users\ALPHEE COLOMBE\Desktop\BACK\DATA\DONNEES_PRETRAITEES

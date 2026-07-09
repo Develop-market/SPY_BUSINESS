@@ -1,0 +1,1182 @@
+================================================================================
+  PIPELINE 2 — Docling OCR (EasyOCR fr+en)
+  Source  : S2_P.jpg
+  Pages   : 1
+  Méthode : docling_easyocr
+  Total chars : 18,145
+================================================================================
+
+[PAGE 1]  [chars=18145 tables=NON method=docling_easyocr]
+
+CONDITIONS GENERALES DU COMPTE
+CODE
+111
+1.1.11
+11.1.2
+1113
+1.11.
+1.1.1
+11.1.6
+1117.2
+1.1.1.8.
+111.8.2
+1.1.1.11
+1.2.2
+1.2.3
+1.2.4
+1.2.5
+127
+1.2.7.1
+127.2
+12.8
+1.2.8.1
+1.2.8.
+1.2.9
+1.2.10
+1.2.11
+CODE
+211
+21.11
+2.1.1.3
+2.1.1.4
+2115
+LIBELLE
+Gestion de comptes
+Conditions débitrices et frais
+Meilleur taux débiteur appliaué
+clientèle
+Frais de tenue com
+Commission livret dépargne
+; fort découvert
+Commission mouvement débit du compte
+Commission de dépassement sur compte autorisé
+2.11.6
+dépassement compte non autoris
+Commission
+Frais compt 2.1.1.7.1 Frais de tenue compte (client hors package)
+Particuliers salariés domiciliés
+Particuliers salariés non domiciliés
+MONTANT OU VALEUR
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+200 000
+Compte dépargne
+Prim
+3 990 à 218 815
+000
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Gratuit
+Frais réels
+25 000
+Gratuit
+MONTANT OU VALEUR
+10,75%
+Gratuit
+NIA
+14,75%/
+4 900
+Compte de dépôt
+Compte dépargne
+Gratuit
+Package Privilège
+367
+2.1.1.7.2
+Package Elite
+15 165
+2.1.1.7.5
+Package Club
+2.1.1.7.4
+Package Essentiel
+5 033
+Package Service
+3 646
+2118
+Arrêté
+compte
+Gratuit
+Relevé dIdentité Bancaire (RIB)
+Gratuit
+2.1.1.10
+Autres types
+conditions débitrices
+Tarif assureur
+2.1.1.11
+Assurance prévoyance obsèques en fon
+1 formule choisie
+l'âge
+,l'assuré,
+montant des capitaux
+mode
+paiement
+Tarif assureur
+2.1.1.12
+urance automobile
+Tarif assureur
+2.1.1.13
+Frais de forcage
+Nou
+consulter
+21.2
+21.2.2
+21.2.3
+21.3
+21.4
+2.1.5
+2.1.5.1
+2.1.5.2
+2.15.4
+2.1.6
+2.1.7
+2.1.8
+2.1.8.1
+2.1.8.2
+2.1.8.3
+2.1.8.4
+218.5
+2.1.8.6
+2.2
+221
+2211
+2.2.111
+2.2.1.1.3
+2.2.11
+2.2.1.1.5
+2.2.11.6
+2.2.1.2
+2.2.1.3
+2.2.1.4
+2.2.1.5
+2.2.1.6
+2.2.1.7
+2.2.1.8
+2.2.1.9
+2.2.1.10
+2.2.1.11
+2.2.1.13
+2.2.1.14.1
+2.2.1.14.2
+222
+Relevés de compte
+Mensuel
+Ala demande (mois cours)
+Autre période (tarif par mois)
+Relevé récapitulatif des frais annuels
+type releve de comptes
+Autre
+Attestations bancaires
+Attestation solde
+Attestation de non engagement
+Autres types dattestations bancaires
+Attestation de redevance
+Frais de timbre rsement despeces en compte
+Frais pour procuration
+Conditions réditrices
+Plan dépa ctuelle autres produits dép
+dépôts produits dépargne
+Intérêts créditeurs pour les plans dépa et autre produits d'épargne
+Intérêts créditeurs pour comptes d'épargne simple
+Intérêts créditeurs sur les bons de caisse et comptes à terme
+Autres conditions créditrices
+Moyens de paiement
+Chèques
+Délivrance de chéquier
+Chèques barrés endossables
+Chèque
+Lettres-chèques
+Chèaues banaue sur place
+Chèques
+Chèaues banque UEMOA
+banque compte
+Chèques uichet
+Certification chèque
+Frais annulation chequ de banque
+Opposition sur chèque ou chéquier par ('émetteur
+Renouvellement d'opposition sur chèque chéquier par l'émetteur
+Frais destruction chéqui
+Frais linsuffisance reiet impavé suite
+'provisions
+Forfait chèque impavé
+Montant X FCFA (montant à préciser)
+Expédition chéquier à domicile (sous
+Expédition simple)
+chéquier à domicile (sous
+Autres types de chèques
+Assurance perte et vol movens
+cheques
+Encaissement
+Encaissement chèques dans l'UEMOA
+chèques hors UEMOA
+Cartes bancaires
+Renouvellement /Cotisation annuelle
+22211 Carte privative
+2.2.2.1.2 Carte interbancaire (nationa UEMOA)
+2.2.2.1.2.2
+Guichets Automatiques de Banque (GAB) de la banque du client
+Coût des retraits a
+Consultation
+Coût des traits
+Mini relevé
+Frais
+'gestion mensuels
+Frais annuels
+services de transi rapide
+leur roupe
+Carte interbancair internation
+Carte prépayée
+Chargem carte
+Retrait Guichets Automatiques
+Retrai Guich utomatiques
+(banque
+Retrai Guichets Automatiaues
+Transfert de carte
+2.2.2.1.2
+2.2.2.1.2.5
+2.2.2.1.2.6
+2.2.2.1.3
+2.2.2.1.4
+22225
+2.2.2.1.5-
+2.2.2.1.5.3
+215.4
+2.2.2.1.5.5
+carte
+2.2.2.1.5.6
+Paiement
+Achat Terminal ctronique (TPE) pays
+2.2.2.1.5.7 Achat Terminal Paiement Electronique (TPE) et internet hors pays X
+2.2.2.1.5.8
+'solde
+Consultation
+22.215.9
+Guichets Automatiques de Banque (GAB)
+2.2.2.1.5.10
+2.2.2.1.5.11
+2.2.2.1.5.12
+2.2.2.1.5.13
+2.2.2.2
+2.2.2.2.1
+2.2.2.3
+2.2.2.3.1
+2.2.2.4.1
+22.25
+Autorisation refusée sur les Guichets Automatiques de Banque (GAB)
+Terminaux
+Provision insuffisante sur les Guichet Banaue (GAB) et Automatiaues
+Remplacement de carte
+Relevé de compte en ligne
+Assistance clientèle par opérateur banque
+Délivrance additionnelle (à décliner par type)
+Confection de carte en urgence
+Frais de confection urgence
+Frais de reconfection de carte (sauf défectuosité)
+Frais reconfection carte
+Réédition code confidentiel
+2.2.2.6
+Demande d'autorisation pour dépassement client Banaue (GAB) de la banaue
+Guichets Automatiaues
+Guiche Bana
+(GAB
+la zone UEMOA
+confrères
+fonds développés dautres institutions bancaires
+(avec VISA; MASTERCARD, etc
+Banque (GAB)
+Banque (GAB) (pays hors Guich
+Banaue
+(GAB) hors pays X
+sein de
+Automatiques
+(GAB
+Banque
+Paiements Electroniques (TPE)
+Terminaux Paiements Electroniaues (TPE)
+Essentiel Nous
+Espace Nous
+Visa Platinum Nous
+Privilège
+Aisance
+Essentiel
+Espace
+Privilège
+Platinum
+Aisance
+Essentiel
+Espace
+Privilège
+Visa Platinum
+Aisance
+Essentiel
+Esp
+Privilège
+Visa Platinum
+recommandé)
+iement
+Ivignette
+LIBELLE
+Conditions d'ouverture de compte
+Ouverture de compte (avec remise de la convention de compte)
+Compte chèques
+Compte dépargne simpl
+Dépôt terme
+Compte dépargne logement
+Plan épargne logement
+livret (délivrance livret dépargne)
+Compte joint
+Compte chèques
+Compte dépargne
+Compte indivis
+Compte chèques
+Compte dépargne
+Autres
+Dépôts initiaux pour
+'types de compte
+Assurance
+Capital aaranti
+Plafond plura en cas contra
+Conditions de clôture de compte
+ompte chèques
+Compte dépargn
+'simpl
+Dépôt
+Compte dépargne logement
+Plan épargne logement
+Compte livre
+Compte cheques
+Compte dépargne
+Compte indivis
+Compte chèques
+Compte dépargne
+Lettre clôture iuridiaue
+Attestation de clôture de compt
+types compte clôture SERVICES RATTACHÉS AU FONCTIONNEMENT DU COMPTE
+ouvertures compte
+cidentel compt chèque souscrits)
+devises (minimum et maximum)
+plafond ontractuelle
+TARIFS DES PRODUITS ET SERVICES OFFERTS LA CLIENTELE DES PARTICULIERS
+Taux de Base Bancaire, TBB = 10,75%
+22.27
+2.2.2.7.1
+2.2.2.7.2
+2.2.2.8
+2.2.2.9
+2.2.2.10
+2.2.2.12
+22.2.13.1
+2.2.2.13.1.1
+2.2.2.13.1.2
+2.2.2.13.1.3
+2.2.2.13.1.4
+22.2.13.2
+22.2.13.2.1
+2.2.2.13.2.2
+2.2.2.13.2.3
+22.2.13.2.4
+2.2.2.14
+2.2.2.14.1
+2.2.2.14.2
+2.2.3
+E231
+2.2.311
+2.2.3.1.2
+2.2.3.13.1
+2.2.3.13.2
+2.2.3.15
+2.2.3.1.6
+223.17
+Zone Euro
+2000 + 2 59/ du Montant
+10 000
+NIA
+2000
+Gratuit
+NIA
+NIA
+Gratuit
+450
+TTHU (0.6%/) Minimum 2500
+Opposition carte
+le client perte ou vol
+Par la banque : usage abusif (particulier)
+Frais en opposition /usage abusif non restitution
+Modification de contrat (carte; plafond
+Expédition domic
+: frais denvoi minimum
+Ouverture de dossier de fraude
+Frais décliner cartes carte)
+tvpe
+aestion
+Prestations monétiques (consultation/édition de solde ; consultation /édition de solde dhistorique
+Retrait d'espèces dans les Distributeurs Automatiques de Billets (DAB
+Distributeurs Automatiaues de Billets (DAB)
+Distributeurs Automatiques de Billets (DAB) autres banques locales (GIM UEMOA)
+banque du client
+Distributeurs Automatiques Billets (DAB
+dans zone UEMOA (GIM UEMOA)
+Distributeurs Automatiques de Billets (DAB
+Hors zone UEMOA
+Hors zone Euro
+2000
+Services accessibles via les Guichets Automatiques de Banques (GAB) / Distributeurs Automatiques de Billets (DAB)
+Consulta client la bang lédition solde
+Consultation /édition de solde dans les autres banaues
+Consultation /édition dhistorique
+Changement Code PIN via GAB SIB
+solde (mini relevé)
+Dans UEMOA
+Hors zone UEMOA
+Virements et Prélèvements
+Virements
+Domiciliation salaires émis
+Virement
+'place vers un tie
+(STAR-UEMOA)
+SICA
+Virement entre agences en faveur d'un tiers
+Virement dans ('UEMOA (STAR-UEMOA)
+Encaissement de virements nationaux;
+Mise en place de Virem
+2.2.3.1.7.1
+Création
+dossier
+Gratuit
+2.2.3.1.7.2
+Exécution
+opérations
+sein
+banque
+Gratuit
+3 000
+2.2.3.1.8
+Modification de Virem
+Permanent
+Gratuit
+2.2.3.1.9
+Mise à disposition de fonds (dans la limite
+000
+CFA )
+caisse
+2.2.3.1.10
+Frais dimpay
+virement
+2000
+2.2.3.2
+2.2.3.21
+Prélèvements
+Mise en place de l'autorisation
+2.3.3.2.1.1
+dossier
+Gratuit
+Exécution de l'opération
+Gratuit
+2.2.3.2.2
+Frais d'opposition sur avis de prélèvement
+2.2.3.2.3
+Emission de prélèvement par
+entreprise
+NIA
+Paie
+dun prélèvement
+Support maanétiaue
+700
+ligne
+Support papier
+000
+ordre
+223.25
+Remise davis
+prélèv
+ent (suppo
+télétransmission)
+Gratuit
+2.2.3.2.6
+Frais
+prélèvement impavé (sans provision)
+2 500
+dimpayé
+2.2.3.2.7
+Rejet de prélèvement à ('initiative du client
+NIA
+ligne
+SERVICES BANCAIRES
+CODE
+3.11
+3.1.2
+3.1.3
+3.14
+3.1.5
+3.1.6
+3.2.1
+LIBELLE
+Dates de valeurs appliquées
+Virements recus
+Remis de chèque
+Remise deffets
+Virements émis, domiciliation deffets, paiement de chèques
+Versement et retrait
+'espèces
+Livret d'épargne
+Frais liés aux services bancaires
+Dépôt despèces dans L
+banaue
+client
+aue soit le
+timbre fiscal)
+Gratuit
+3.2.2
+Retrait d'espèces dans
+banaue
+quichet.
+'exception des
+opérations par chèques de quichet
+Gratuit
+3.2.3
+Emission
+èque
+banque
+FCFA
+Frais dossier
+000
+Port de lettre (PDL)
+800
+Commission
+0,15%/ du montant
+cheque
+min 5 000
+3.2.4
+Emission chèque
+banque en autre devises
+NIA
+3.2.5
+Reiet
+chèque
+000
+3.2.6
+Demande d'opposition
+3.2.7
+Incident sur compte Avis à Tiers Détenteur (ATD), Saisie-arrêt
+Protêt
+Frais protêt
+000
+3.2.9
+Frais
+circularisation
+NIA
+3.2.10
+Changement
+signat
+Gratuit
+3.2.11
+Modification dintitulé
+compte
+Gratuit
+3.2.12
+Changement d'éléments constitutifs du dossier du client, notamment d'identification
+Gratuit
+3.2.13
+Changement
+titre
+NIA
+Frais de nantissement
+Selon barême
+3.2.15
+Frais
+saisie attribution Avis à Tiers Détenteur (ATD
+000
+3.2.16
+Frais
+reclassement
+Gratuit
+quel
+garde
+' guichet (hors acquittement de
+SERVICES
+BANQUE A DISTANCE
+CODE
+LIBELLE
+MONTANT OU VALEUR
+Avis
+débit et de crédit par voie électronique
+Gratuit
+Banque en
+SIBNET Particulier
+000
+4.3
+Gestion Internet; téléphon
+mobile (par type de produit adossé)
+Virement électronique vers un autre établissement bancaire
+SIBNET
+4.5
+Banque par téléphone (accès au quide vocal)
+NIA
+4.6
+Services SMS
+Compte de dépôt et profe
+ionnel
+' Offre de base
+mois
+Offre avancée limitée
+950
+'mois
+Offre avancée illimitée
+mois
+'delà
+150 sms/50f
+sms)
+Compt
+dépargne
+690 / mois
+Accès
+service de consultation
+gestion
+'compte sur Internet et Internet mobile
+(seuls les coûts sont à la charge du client)
+Gratuit
+Téléchargement de fichiers WEB (demande
+'relevés de comp
+en ligne)
+Gratuit
+' GAB, 1% du montant transféré (Minimum 200)
+MAD au
+Transfert partir d'une carte GESTION DES INCIDENTS DE PAIEMENT
+MONTANT OU VALEUR
+NIA
+15 000
+000
+000
+Gratuit
+000
+Nous consulter
+MONTANT OU VALEUR
+Nous consulter
+655.957 pour Euro
+Nous consulter
+NIA
+NIA
+NIA
+MONTANT
+OU VALEUR
+4.9
+CODE
+5.2
+5.3
+CODE
+6.12
+VII
+CODE
+7.11
+712
+715
+7.21
+DATE MONTANT OU VALEUR
+Chèque SIB
+SIB
+Chèqu
+Crédit J+15
+Confrère et J-1
+:débit J-15
+MOA et hors Zone UEMOA
+Euro : 2.5%
+Euro
+ique)
+unauta et internationaux Montant TTHU (0,6%/)
+montant TTHU(O,6%/) + Frais fixes 500
+Frais
+2.5% du Montant + TTHU (0,6%/)
+29/
+Montant
+Transaction minimum 2500
+Gratuit
+500
+NIA
+1000
+Gratuit
+is fixes 500
+change 2%
+Gratuit
+Gratuit
+000
+Nous consulter
+7.3
+1.3.2
+7.41
+7.4.2
+7.4.3
+7.4.6
+7.4.8
+74 9
+7.4.10
+7.4.71
+7.4.12
+7.4.13
+7.4.14
+7.4.15
+7.4.16
+7.4.18
+1.4.19
+7.4.20
+VIII
+CODE
+8.1.1
+8.1.1.1
+8.112
+8.113
+8.1.1.4
+8.21
+8.2.2
+8.2.3
+8.25
+8.26
+8.2.7
+8.3
+8.3.1
+8.41
+8.4.2
+8.4.21
+8.4.3
+CODE
+9.11
+9.1.2
+9.1.3
+9.1.5
+9.5
+9.9.2
+9.9.3
+9.10
+9.11.1
+9.11.2
+9.12
+9.13
+9.14.2
+9.14.2.1
+Commission borde
+OPERATIONS AVEC L'ETRANGER
+LIBELLE
+Chèque payable à ('étranger ou dans la zone UEMOA (traités hors compensation régionale)
+Frais dencaiss
+Frais de manipulation
+Frais port de lettre
+Chèque libellé en devises : commission de change
+Frais d'impayés
+Chèques et effets gratuits reçus de ('étranger ou de la zone UEMOA
+Chèques reçus par la compensa réaionale
+Frais Yencaissement
+Frais
+'manipulation
+Frais SWIFT
+Frais de port lettre
+Frais chèque en souffrance
+Frais Yimpayés
+Emission de chèques de banque à destination d'un pays étranger
+Frais
+,dossier
+Transferts
+Transferts UEMOA
+Transferts hors zone UEMOA
+Virement hors UEMOA (Transfert SWIFT avec change
+Virement hor UEMOA (Transfert SWIFT sans change)
+type transferts
+Frais de correspondant sur operations
+LIBELLE
+Frais de recherche de documents (en unité)
+30 iours
+60 jours
+60 à 90 jours
+Plus dun an
+Supplém photocopi
+Boîte à lettres
+coffre-fort
+Location d
+Frais de reproduction de clé
+Demande de renseignements sur client
+Demande renseignements financiers
+Demande de renseignements comptables (commissaires
+Abonnement au site internet mensuel
+Successions
+Frais douverture comptes)
+dossier succession
+Frais succession (au règlement selon ('actif)
+Frais annuels de tenue
+Frais annuel
+'compte inactif (créances arriérées)
+Frais relatif saisie-arrêtlavis à tiers détention pposition
+Lettre
+"avertissement
+Lettre d'inionction
+Attestation davoirs
+Reconstitution dextrait
+Autres types de services
+Trans électronique Monnai
+Transfert monna
+Opération
+Opération
+(Orange Mobile monev)
+'électronique (MTN Mobile Money)
+(Transf ctronique monna
+Pull (Transfert compte bancaire
+Formule et methode calcul Taux Effectif Globa
+Taux Effectif Glob
+'nsemble des frais liés aux prêts
+'taux qui intègre
+nota ent
+intérêts les frais de dossier autres frais
+annexes (les frais d'assurances, notaire etc)
+EG)
+bancaire)
+porte monnaie électroniaue
+Exe mple
+nt du prêt
+X dintere
+Les montants indiqués sont en FCFA Hors TOB. La présente grille est actualisée au 01 février 2026
+transferts
+AUTRES SERVICES (DIVERS)
+Crédit-bail
+Mobilier
+Immobilier
+Autres opérations connexes aux opérations de crédit
+Frais dhypoth
+Assuranc uliers
+Mainlevée hypothèque partielle
+' totale (hors frais notariés
+Frais de mainlevée
+Demande dédition d'enregistrement)
+promesse dhypothèque
+tableau Yamortissement
+Frais dimpayé
+remboursem
+Frais détat dengagement
+Frais danticipation
+Frais d'étude dossiers de prêt
+Autres opérations
+Autres assurances particuliers
+Avenant sur contrat prêt
+Modification simple (date déchéanc compte périodicité)
+Modification
+; taux avec réédition du tableau damortissement
+Autres odifications nécessitant une rédaction dacte
+Demande dédition tableau d'amortissement
+Frais déchéance impayée (selon périodicité)
+Commission d'engagement
+Frais commissions d'escompte
+Cautions et avals
+Relevé pour VISA
+3,59/ (dans limit
+Voir uits d'épa
+chèques
+chèques
+Lettre-chèque barrée
+delà de 5 000 000
+Aisance
+Essentiel
+Espace
+Privilège
+Visa Platinum Taux Gratuit
+000 /page
+Nous consulter
+Gratuit
+15 000
+000
+000
+000
+3,5%/
+4,5%
+3,5%
+Nous consulter
+Nous consulter
+Gratuit
+non barrée
+370
+Selon bareme
+min 5000
+12 000
+NIA
+2 000
+NIA
+10 000
+20 000 HT/opposition
+000
+10 000
+NIA
+Nous consulter
+Nous consulter
+NIA
+NIA
+Gratuit
+Gratuit
+NIA
+Gratuit
+Gratuit
+450
+Gratuit
+583
+667
+1288
+5303
+136 500
+NIA
+NIA
+NIA
+NIA
+NIA
+NIA
+NIA
+NIA
+ulter
+consulter
+consulter
+consulter
+consulter
+000
+000
+000
+500
+000
+000
+5 000
+000
+50 000 HT
+Frais
+Frais
+Lettre
+Lettre déclaration dopposition à la Banque Centrale mainlevee dopposition Banque Centrale relance pour compte débiteur (pli recommandé)
+Lettre CIP
+déclaration
+Lettre d'information préalable au rejet de chèque
+Certificat de non-paiement
+Autres frais incidents de paiement provision OPERATIONS DE CHANGE
+LIBELLE
+Achat et vente de billets de banque (commission manipulation achat et vente)
+Vente FCFA
+Acha FCFA
+Achat et vente prévoir)
+chèques de voyage Euro (commission
+Achat et vente prévoir)
+chèques de voyage en autres devises cotées (commissions
+Autres crédits à court terme (TBB+Marge)
+OPERATIONS DE CREDIT
+LIBELLE
+Crédit à la consommation (taux dintérêt à déterminer par rapport au MTD + Marge)
+Découvert compte convenu et formalis
+(MTD+Marge)
+Découvert en convenu et non forma
+compt
+Facilités
+Autres crédits à court terme
+Frais d'annulation
+,dossier
+Crédits à ('habita
+Move terme (MDT+Marge)
+Long terme (MTD+Marge)
+' (MTD+Marge)
+Nous consulter
+TBB+Marge
+Intérêts
+TBB+marge
+Frais
+dossier
+Assurance
+Nous consulter
+PDL
+1000
+Intérêts
+TBB+marge
+Frais
+dossier et Assurance
+Nous consulter
+PDL
+1000
+Franco
+térêt
+TBB+marge
+Frais
+dossier et Assurance
+Nous consulter
+Taux de prime applicable sur le capital restant
+hors sur prime
+#Assurance
+0.639/
+*Assurance Incendie
+0,07%
+Intérêts
+TBB+marae
+Frais
+dossi
+Assurance
+Nous consulter
+Taux de prime applicable sur le capital restant
+hors
+#Assurance
+0.63%/
+*Assurance Incendie
+compte dans
+credit Lettre d'avertissement Lettre d'injonction Port Lettre par tvpe Euro Client SIB
+Client Non SIB
+Autre devises
+Euro
+Autre devises lettre compte autres devises)
+dministrative Retour Express Impayé
+pour mille (minimum
+bénéficiaire
+*Dossi
+'admissib
+Taux
+#Dossier admissible
+SUS
+Frais dossier
+Frais SWIFT
+Commission
+PDL
+Frais finex
+TTHU
+'Doss admissible
+Taux
+'Dossier non admissible
+de refinancement BCEAO
+En sus
+Frais ssie
+Frais SWIF
+PDL
+Frais finex
+TTHU
+change
+000
+Remise documentaire : taux
+chèques frai dossie
+000) à la charge
+Commission RTGS
+NIA
+NIA
+Taux Variables
+Durée de moins de 24 mois
+0,509/
+Durée entre 25 et 59 mois
+Durée entre 60 et 72 mois
+0,70%
+0,759
+50 000
+Gratuit
+Gratuit
+NIA
+NIA
+Gratuit
+NIA
+Nous consulter
+000 / contrat
+Gratuit
+Gratuit
+Gratuit
+6 000
+Taux Variables
+, 0,3333%/ du montant Minimum
+0.025% du montant
+Minimum
+Précompté par trimestre
+MONTANT OU VALEUR
+NIA
+1000
+NIA
+0,4 pour mille
+30 000
+Gratuit
+Gratuit
+Gratuit
+1000
+NIA
+NIA
+NIA
+6000
+Commission transfert :
+refinancement CEAO
+min: 10 000
+' guichet Taux marché
+000
+barème min: 15 000
+légation s'il y a lieu)
+10 000
+0,6%
+Commission fixe transfert
+BCEAO
+000
+'marché
+000
+000
+lieu)
+'délégation
+0.6%
+En sus frais de dossier , Port de Lettre
+Taux et frais Variables Nous consulter
+0-3.279.788
+3.279.789-8.199.465
+500
+8.199.466-32.797.853
+500
+[32.797.854
+131.191.403 ]
+37 500
+[ 131.191.404
+46500
+590.361.304
+56500
+MONTANT OU VALEUR
+5 000
+5 000
+Gratuit
+000
+000
+100 000
+200 000
+X 30 x 20
+x 30 x 65
+Gratuit
+Nous consulter
+Nous consulter
+Gratuit
+Gratuit
+Nous consulter (Minimum 12 000)
+NIA
+NIA
+NIA
+15 000
+Nous consulter
+NIA
+000
+5 000
+25 001à 100 000
+001 à 250 000
+001
+400
+100
+250 000
+250 001 à 400 000
+àtrois
+Plus de trois ans
+LOCATION COFFRE
+X 30 X
+LOCATION COFFRE
+LOCATION COFFRE
+LOCATION COFFRE
+LOCATION COFFRE
+Taux
+000
+2 000
+3 600
+500
+1000

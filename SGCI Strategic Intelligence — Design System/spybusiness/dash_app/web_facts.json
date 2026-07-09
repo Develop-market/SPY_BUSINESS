@@ -1,0 +1,325 @@
+{
+  "maj": "2026-06-24",
+  "_avertissement": "Faits externes issus de sources publiques fiables (BCEAO, APBEF-CI, classements UMOA, presse économique), chacun cité et daté. Alimenté par run_veille.py (registre de sources). Aucun chiffre non sourcé — un fait sans source n'entre pas.",
+  "secteur": [
+    {
+      "cle": "politique_monetaire",
+      "titre": "Politique monétaire BCEAO",
+      "valeur": "3,00%",
+      "detail": "Taux directeur de la BCEAO",
+      "lien_analyse": "Coût des ressources encadré et orienté à la baisse : la marge d'intérêt se comprime → prime à la diversification des commissions (cf. levier PNB).",
+      "source": "BCEAO 2026",
+      "url": "https://www.bceao.int/sites/default/files/2026-03/RAPPORT-SUR-LA-POLITIQUE-MONETAIRE-DANS-L-UMOA-DE-MARS-2026.pdf",
+      "date": "2026-06-24",
+      "fiabilite": "officielle",
+      "_maj_auto": true
+    },
+    {
+      "cle": "npl_secteur",
+      "titre": "Qualité du portefeuille de crédit (secteur)",
+      "valeur": "7,7% de créances dégradées",
+      "detail": "Taux brut de dégradation du portefeuille des banques nationales de l'UMOA = 7,7% en 2024. Poids des créances en souffrance ≈ 8,5% des encours du secteur.",
+      "lien_analyse": "Référence sectorielle directe du coût du risque : le portefeuille de SGCI (coût du risque 17% du PNB, le pire des 7) est nettement plus exposé que la moyenne du secteur — confirme que c'est un problème spécifique, pas conjoncturel.",
+      "source": "BCEAO — Rapport annuel de la Commission Bancaire de l'UMOA 2024",
+      "url": "https://www.bceao.int/fr/publications/rapport-annuel-de-la-commission-bancaire-de-lumoa-2024",
+      "date": "2024",
+      "fiabilite": "officielle",
+      "_a_rafraichir": true
+    },
+    {
+      "cle": "solvabilite_secteur",
+      "titre": "Solvabilité moyenne du secteur",
+      "valeur": "14,7%",
+      "detail": "Ratio de solvabilité des établissements de crédit",
+      "lien_analyse": "Benchmark de solidité : situe la solvabilité de SGCI par rapport au secteur et conforte l'argument « solidité » des atouts.",
+      "source": "BCEAO 2024",
+      "url": "https://www.bceao.int/fr/publications/rapport-annuel-de-la-commission-bancaire-de-lumoa-2024",
+      "date": "2026-06-24",
+      "fiabilite": "officielle",
+      "_maj_auto": true
+    },
+    {
+      "cle": "mobile_money",
+      "titre": "Mobile money — gisement à capter",
+      "valeur": "82,2% (CI, 2e UEMOA)",
+      "detail": "La Côte d'Ivoire est 2e de l'UEMOA pour l'usage de la monnaie électronique (82,2% des utilisateurs du numérique). UEMOA : 248,7 millions de comptes e-money en 2024, dont 76,9 millions actifs.",
+      "lien_analyse": "À la marge du jeu concurrentiel entre banques : ces millions d'utilisateurs mobile money sont des clients bancarisables. Opportunité (pas seulement menace) : passerelles compte bancaire ↔ wallet, comptes 100% mobiles, capter les flux e-money vers l'épargne et le crédit — ce que les fintechs ne savent pas faire.",
+      "source": "BCEAO / GSMA — relayé par 7info",
+      "url": "https://www.7info.ci/monnaie-electronique-la-cote-divoire-2e-pays-utilisateur-en-2024-dans-luemoa/",
+      "date": "2024",
+      "fiabilite": "haute",
+      "_a_rafraichir": true
+    },
+    {
+      "cle": "bancarisation",
+      "titre": "Taux de bancarisation (gisement de croissance)",
+      "valeur": "51%",
+      "detail": "Inclusion financière",
+      "lien_analyse": "Gisement de croissance : ~2 adultes sur 3 restent hors du système bancaire classique → marge d'acquisition pour le levier « relance de la croissance » du leader qui décélère.",
+      "source": "Banque mondiale 2025",
+      "url": "https://sbs-software.com/fr/insights/tendances-marche/secteur-bancaire-cote-divoire",
+      "date": "2026-06-24",
+      "fiabilite": "haute",
+      "_maj_auto": true
+    },
+    {
+      "cle": "structure_marche",
+      "titre": "Structure du marché bancaire ivoirien",
+      "valeur": "29 banques",
+      "detail": "LISTE DES BANQUES",
+      "lien_analyse": "Intensité concurrentielle (Porter) : marché dense (29 acteurs) et leader régional → rivalité forte et peu de barrières sur la banque de détail.",
+      "source": "BCEAO 2025",
+      "url": "https://www.bceao.int/sites/default/files/2026-04/LISTE%20DES%20%C3%89TABLISSEMENTS%20DE%20CR%C3%89DIT%20AGR%C3%89%C3%89S%20DANS%20L%27UMOA%20au%2031%20d%C3%A9cembre%202025.pdf",
+      "date": "2026-06-24",
+      "fiabilite": "haute",
+      "_maj_auto": true
+    },
+    {
+      "cle": "cout_credit",
+      "titre": "Coût du crédit & plafond d'usure",
+      "valeur": "14%",
+      "detail": "Taux d'usure pour les banques",
+      "lien_analyse": "Contextualise nos taux CB : le meilleur taux débiteur SGCI (~6%) est SOUS la moyenne ivoirienne (6,97%) et très loin du plafond d'usure (14%) → confirme par une source externe l'atout « taux compétitifs ».",
+      "source": "BCEAO 2025",
+      "url": "https://www.bceao.int/sites/default/files/2026-01/Decision-No19-du-29-12-2025_CMUMOA_fixant_le_taux_de_l-usure.pdf",
+      "date": "2026-06-24",
+      "fiabilite": "haute",
+      "_maj_auto": true
+    },
+    {
+      "cle": "croissance_macro",
+      "titre": "Environnement macroéconomique",
+      "valeur": "PIB +6,7%",
+      "detail": "Croissance économique estimée",
+      "lien_analyse": "Toile de fond porteuse : la demande de crédit est soutenue par une croissance forte et une inflation maîtrisée → fenêtre favorable pour développer des revenus sains (commissions, corporate).",
+      "source": "BCEAO 2025",
+      "url": "https://www.bceao.int/sites/default/files/2026-03/RAPPORT-SUR-LA-POLITIQUE-MONETAIRE-DANS-L-UMOA-DE-MARS-2026.pdf",
+      "date": "2026-06-24",
+      "fiabilite": "officielle",
+      "_maj_auto": true
+    },
+    {
+      "cle": "clients_sgci",
+      "titre": "Portefeuille clients SGCI",
+      "valeur": "606 400 clients · 113 agences",
+      "detail": "SGCI sert 606 400 clients (600 000 particuliers + 6 400 entreprises) via 113 agences et 188 DAB. Parts de marché : 20% des crédits et 16% des dépôts (1ʳᵉ du pays). Bénéfice net 2024 : 101,2 Mds FCFA (+4,1%) — cohérent au franc près avec notre donnée interne.",
+      "lien_analyse": "99% des clients SGCI sont des particuliers (600k) ; seulement 6 400 entreprises — mais ce sont elles qui portent le corporate à forte valeur. Avec le mobile money à 82%, la base retail est la plus exposée aux substituts → priorité défensive : retenir et approfondir les 6 400 comptes entreprises.",
+      "source": "SGCI — Rapport d'activité 2024 (BRVM) / Agence Ecofin",
+      "url": "https://www.brvm.org/sites/default/files/20250207_-_rapport_dactivites_annuel_-_exercice_2024_-_societe_generale_ci.pdf",
+      "date": "2024",
+      "fiabilite": "haute"
+    }
+  ],
+  "banques": {
+    "SGCI": {
+      "groupe": "Filiale du groupe Société Générale (France)",
+      "positionnement": "Banque universelle, forte présence particuliers + entreprises",
+      "total_bilan_2024": "3 615 Mds FCFA (5,09% du marché UMOA)",
+      "rang_total_bilan": "1er de l'UMOA (leader)",
+      "depots_2024": "2 760 Mds FCFA — 1er collecteur de dépôts UMOA (5,75%)",
+      "fondee": "1962",
+      "_note": "VALIDATION EXTERNE de notre analyse interne : SGCI est confirmée LEADER de l'UMOA en total bilan ET en dépôts clientèle 2024 (trio de tête dépôts : SGCI, BNI, NSIA). Modèle de banque universelle, fort accent digital.",
+      "_sources": [
+        "BLOOMFIELD",
+        "BCEAO"
+      ],
+      "_url": "https://www.lejecos.com/CLASSEMENT-2024-TOP-50-DES-BANQUES-DE-L-UMOA_a30413.html",
+      "_date": "2024"
+    },
+    "BICICI": {
+      "groupe": "Banque Internationale pour le Commerce et l'Industrie de la Côte d'Ivoire",
+      "positionnement": "Historiquement orientée commerce, industrie et entreprises (corporate)",
+      "_note": "Orientation historique commerce/industrie/corporate — cohérent avec notre constat : sa croissance fulgurante (+118,8% de RN) repose sur une clientèle corporate sélectionnée et une discipline du risque (coût du risque 1,9%, le plus bas).",
+      "_sources": [
+        "BICICI"
+      ]
+    },
+    "BNI": {
+      "positionnement": "Banque Nationale d'Investissement — banque publique, financement de l'économie",
+      "_note": "Membre du trio de tête pour la collecte de dépôts clientèle UMOA 2024 (avec SGCI et NSIA). PNB en croissance moyenne annuelle de +22,3% (rapport APBEF-CI).",
+      "_sources": [
+        "APBEF_CI"
+      ],
+      "_url": "https://apbef-ci.net/cote-divoire-le-produit-net-bancaire-de-la-bni-connait-une-croissance-moyenne-annuelle-de-223-rapport/",
+      "_date": "2024"
+    },
+    "NSIA": {
+      "positionnement": "NSIA Banque — bancassurance, forte collecte de dépôts",
+      "_note": "Membre du trio de tête pour la collecte de dépôts clientèle UMOA 2024 — cohérent avec son catalogue de services le plus large du marché (445+ services CB).",
+      "_sources": [
+        "BCEAO"
+      ],
+      "_date": "2024"
+    },
+    "SIB": {
+      "groupe": "Société Ivoirienne de Banque — filiale du groupe marocain Attijariwafa Bank",
+      "positionnement": "Banque rentable, discipline de coûts du modèle Attijariwafa",
+      "cause_rentabilite": "Sa marge nette record (~52%) s'explique par un environnement de revenus stable + une gestion continue des coûts héritée du modèle Attijariwafa (discipline, faible coût du risque 3,3%).",
+      "_note": "POURQUOI SIB est la plus rentable : ce n'est pas la taille (3ᵉ) mais la DISCIPLINE de coûts et de risque du groupe Attijariwafa — exactement la compétence qui manque à SGCI.",
+      "_sources": [
+        "BLOOMFIELD"
+      ],
+      "_url": "https://www.agenceecofin.com/finance/1406-119521-societe-ivoirienne-de-banque-une-rentabilite-qui-frole-les-52",
+      "_date": "2024"
+    },
+    "ECOBANK": {
+      "groupe": "Ecobank Côte d'Ivoire — groupe panafricain ETI",
+      "positionnement": "Agresseur prix + leader de l'innovation d'agence digitale",
+      "innovation": "A lancé un nouveau modèle d'agence digitale (écrans interactifs, bornes self-service, espace de démonstration des produits digitaux) pour faire gagner du temps au client.",
+      "_note": "ECOBANK combine agressivité prix (win-rate #1) ET innovation d'expérience (agence digitale) — un double front à surveiller et à copier en mieux.",
+      "_sources": [
+        "BLOOMFIELD"
+      ],
+      "_url": "https://www.sikafinance.com/marches/cote-d-ivoire-ecobank-lance-son-nouveau-modele-dagence-bancaire-axe-sur-le-digital_41732",
+      "_date": "2024"
+    }
+  },
+  "innovations": [
+    {
+      "acteur": "ECOBANK",
+      "quoi": "Agence digitale nouvelle génération (écrans interactifs, bornes libre-service, espace démo)",
+      "lecon": "Repenser l'agence en lieu d'expérience self-care → réduit le coût de service ET attire les clients jeunes/urbains. À copier en mieux (intégrer le conseil à valeur ajoutée que les fintechs n'ont pas).",
+      "source": "Sikafinance",
+      "url": "https://www.sikafinance.com/marches/cote-d-ivoire-ecobank-lance-son-nouveau-modele-dagence-bancaire-axe-sur-le-digital_41732",
+      "date": "2024"
+    },
+    {
+      "acteur": "Orange Bank Africa",
+      "quoi": "Néobanque 100% digitale (micro-crédit et épargne via mobile, sans agence)",
+      "lecon": "L'acquisition de masse se joue sur le mobile. SGCI peut riposter par un compte 100% mobile adossé à sa solidité de leader — ce qu'une néobanque seule ne peut offrir (crédit, sécurité des dépôts).",
+      "source": "Agence Ecofin",
+      "url": "https://www.agenceecofin.com/",
+      "date": "2024"
+    },
+    {
+      "acteur": "Standard Chartered",
+      "quoi": "Banque en ligne / mobile lancée dès 2018 en Côte d'Ivoire",
+      "lecon": "Le digital-first n'est plus optionnel. Industrialiser le parcours 100% en ligne (ouverture de compte, crédit) pour ne pas laisser ce terrain.",
+      "source": "Agence Ecofin",
+      "url": "https://www.agenceecofin.com/banque/2502-64251",
+      "date": "2018"
+    },
+    {
+      "acteur": "Néobanques africaines (tendance)",
+      "quoi": "Épargne mobile AUTOMATISÉE (arrondi à l'euro supérieur, virement programmé) + dépôts à terme depuis le téléphone",
+      "lecon": "23% des adultes africains épargnent déjà via mobile [2024]. À adapter : une épargne SGCI qui met de côté automatiquement à chaque transaction, plus un dépôt à terme souscrit en 2 clics.",
+      "source": "Afrique IT News / GSMA",
+      "url": "https://afriqueitnews.com/finance/epargne-digitale-explose-afrique-credit-mobile-stagne/",
+      "date": "2024"
+    },
+    {
+      "acteur": "Attijariwafa (groupe de SIB)",
+      "quoi": "Lancement de la néobanque « Simple » (compte 100% mobile, ouverture à distance)",
+      "lecon": "Le groupe derrière SIB déploie déjà une néobanque. SGCI doit lancer sa propre offre 100% mobile avant d'être devancée localement.",
+      "source": "Consonews",
+      "url": "https://consonews.ma/66493.html",
+      "date": "2024"
+    },
+    {
+      "acteur": "Néobanques (modèle d'acquisition)",
+      "quoi": "Parrainage récompensé + carte internationale sans dépôt minimum + suivi instantané des dépenses (catégorisation)",
+      "lecon": "Acquisition virale à bas coût. À copier : carte d'entrée gratuite + bonus de parrainage + une appli qui catégorise les dépenses du client.",
+      "source": "Innogence Consulting",
+      "url": "https://www.innogenceconsulting.com/post/l-essor-des-offres-digitales-dans-le-paysage-bancaire-africain",
+      "date": "2024"
+    }
+  ],
+  "reglementation": [
+    {
+      "cle": "services_gratuits",
+      "titre": "Services bancaires gratuits OBLIGATOIRES (BCEAO)",
+      "regle": "Depuis le 1er oct. 2014 : ouverture de compte, délivrance et tenue de livret d'épargne, relevés de compte, dépôt et retrait d'espèces sont GRATUITS dans toute l'UEMOA.",
+      "levier": "SGCI ne doit pas seulement respecter ce minimum (gratuité 19,7% < marché) : en faisant de la gratuité un argument au-delà du minimum, elle se différencie tout en restant conforme.",
+      "source": "BCEAO — Communiqué services bancaires gratuits UMOA",
+      "url": "https://www.bceao.int/fr/communique-presse/communique-de-presse-services-bancaires-offrir-titre-gratuit-par-les",
+      "date": "2014"
+    },
+    {
+      "cle": "taux_usure",
+      "titre": "Plafond du taux d'usure (BCEAO)",
+      "regle": "Taux d'usure des banques abaissé de 15% à 14% l'an (au 1er juin 2026) ; 24% pour la microfinance.",
+      "levier": "Le meilleur taux débiteur SGCI (~6%) est très loin du plafond (14%) : marge de pricing sur les bons risques, ET argument de banque « responsable » vs microfinance (24%).",
+      "source": "BCEAO — relayé par 7info",
+      "url": "https://www.7info.ci/uemoa-taux-dusure-ce-qui-change-des-ce-1er-juin-dans-les-banques/",
+      "date": "2026"
+    },
+    {
+      "cle": "services_paiement",
+      "titre": "Instruction n°001-01-2024 — services de paiement",
+      "regle": "Entrée en vigueur le 23 janvier 2024 : encadre les prestataires de services de paiement dans l'UMOA (interopérabilité, agrément).",
+      "levier": "Cadre légal qui AUTORISE et sécurise une passerelle banque ↔ mobile money : SGCI peut lancer son pont e-money en toute conformité.",
+      "source": "BCEAO / Cabinet Houda",
+      "url": "https://www.avocatshouda.com/uemoa-entree-en-vigueur-de-linstruction-n001-01-2024-relative-aux-services-depaiement-dans-les-etats-membres-de-lumoa/",
+      "date": "2024"
+    },
+    {
+      "cle": "inclusion",
+      "titre": "Politique d'inclusion financière BCEAO",
+      "regle": "Taux d'inclusion financière UEMOA 73,6% (2024) ; la BCEAO encourage activement mobile money, fintech et éducation financière.",
+      "levier": "Lancer des produits d'inclusion (compte mobile, micro-épargne) va dans le SENS du régulateur : appui institutionnel et image, en plus du marché.",
+      "source": "BCEAO — Tableau de bord inclusion financière 2024",
+      "url": "https://www.bceao.int/fr/publications/tableau-de-bord-de-linclusion-financiere-dans-luemoa-au-titre-de-lannee-2024",
+      "date": "2024"
+    },
+    {
+      "cle": "transparence",
+      "titre": "Transparence tarifaire (BCEAO)",
+      "regle": "Obligation d'information préalable et de transparence sur les conditions de banque (publication des plaquettes tarifaires).",
+      "levier": "Tout réajustement tarifaire (cf. Direction Commerciale) doit être communiqué clairement ; en faire un gage de confiance plutôt qu'une contrainte.",
+      "source": "BCEAO — Conditions de banque UEMOA",
+      "url": "https://www.bceao.int/",
+      "date": "2024"
+    }
+  ],
+  "sources": [
+    {
+      "ref": "BCEAO — Rapport annuel de la Commission Bancaire de l'UMOA 2024 (NPL 7,7%, solvabilité 14,5%)",
+      "url": "https://www.bceao.int/fr/publications/rapport-annuel-de-la-commission-bancaire-de-lumoa-2024",
+      "fiabilite": "officielle",
+      "date": "2024"
+    },
+    {
+      "ref": "BCEAO — Politique monétaire (taux directeur 3,00%)",
+      "url": "https://www.bceao.int/",
+      "fiabilite": "officielle",
+      "date": "2025-12"
+    },
+    {
+      "ref": "BCEAO — Rapport sur les conditions de banque dans l'UEMOA 2024 (juillet 2025)",
+      "url": "https://www.bceao.int/sites/default/files/2025-07/Rapport%20sur%20les%20conditions%20de%20banque%20dans%20l'UEMOA%20-%202024_compressed.pdf",
+      "fiabilite": "officielle",
+      "date": "2025-07"
+    },
+    {
+      "ref": "Classement Top 50 des Banques de l'UMOA 2024 — SGCI 1er en total bilan & dépôts",
+      "url": "https://www.lejecos.com/CLASSEMENT-2024-TOP-50-DES-BANQUES-DE-L-UMOA_a30413.html",
+      "fiabilite": "haute",
+      "date": "2024"
+    },
+    {
+      "ref": "APBEF-CI — Association Professionnelle des Banques et Établissements Financiers CI",
+      "url": "https://www.apbef-ci.org/",
+      "fiabilite": "officielle",
+      "date": "2024"
+    },
+    {
+      "ref": "Monnaie électronique : la Côte d'Ivoire 2e de l'UEMOA en 2024 (82,2%) — 7info",
+      "url": "https://www.7info.ci/monnaie-electronique-la-cote-divoire-2e-pays-utilisateur-en-2024-dans-luemoa/",
+      "fiabilite": "haute",
+      "date": "2024"
+    },
+    {
+      "ref": "Coût du crédit UMOA 7,15% (mai 2024) — Sikafinance",
+      "url": "https://www.sikafinance.com/marches/umoa-le-cout-du-credit-bancaire-grimpe-a-7-15-en-mai-2024_48063",
+      "fiabilite": "haute",
+      "date": "2024"
+    },
+    {
+      "ref": "Secteur bancaire CI : 25 570 Mds FCFA, +16% — Economies Africaines Magazine / Agence Ecofin",
+      "url": "https://economiesafricainesmagazine.com/tous-les-articles/a-25-570-milliards-de-fcfa-un-total-bilan-en-hausse-de-16-pour-les-banques-en-2024/",
+      "fiabilite": "haute",
+      "date": "2024"
+    }
+  ],
+  "_veille_maj_auto": "2026-06-24"
+}

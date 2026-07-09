@@ -1,0 +1,176 @@
+================================================================================
+  PIPELINE 2 — Docling OCR (EasyOCR fr+en)
+  Source  : AN2.pdf
+  Pages   : 10
+  Méthode : docling_easyocr
+  Total chars : 16,089
+================================================================================
+
+[PAGE 1]  [chars=58 tables=NON method=docling_easyocr]
+
+RAPPORT D'ACTIVITES
+Décembre 2024
+Abidjan; le 20 mars 2025
+
+[PAGE 2]  [chars=2971 tables=OUI method=docling_easyocr]
+
+En 2024, Ecobank Cl poursuit sa croissance Des revenus de 122 milliards de FCFA et un résultat net de 57 milliards de FCFA, en hausse de 20%
+Le 14 mars 2025, sous la présidence de M. Michel AKA-ANGHUI; le Conseil dadministration dEcobank Côte dIvoire s'est réuni pour examiner et valider les résultats de l'exercice 2024.
+Le tableau ci-après résume les principales lignes de la performance
+
+[TABLEAUX DOCLING]
+|                                |          |           | Variation Déc 2024 Déc 2023   | Variation Déc 2024 Déc 2023   |
+|--------------------------------|----------|-----------|-------------------------------|-------------------------------|
+| (en millions de FCFA)          | Déc 2023 | Déc 2024  | (%                            | Valeur                        |
+| COMPTE DE RESULTAT             |          |           |                               |                               |
+| Produit Net Bancaire           | 710 189  | 122 316   | +11,0%                        | 12 127                        |
+| Frais Généraux                 | 49 875   | 54 977    | +10,2%                        | 5 102                         |
+| Résultat Brut d 'Exploitation  | 60 314   | 67 339    | +71,6%                        |                               |
+| Coût du risque                 | 5 933    | 2 935     | ~50,5%                        | 2 998                         |
+| Résultat Exceptionnel          | 60       | 28        | -146,7%                       | 88                            |
+| Résultat Avant Impôt           | 54 321   | 64 432    | +18,6%                        |                               |
+| Résultat Net                   | 48 071   | 57 477    | +19,6%                        | 9 406                         |
+| BILAN                          |          |           |                               |                               |
+| Total Bilan                    | 1953 299 | 2 050 681 | +5,0%                         | 97 382                        |
+| Crédits nets à la clientèle    | 1045 020 | 972 571   | ~6,9%                         | 72 449                        |
+| Dépôts de la clientèle         | 450 927  | 1412 512  | -2,6%                         | 38 416                        |
+| RATIOS                         |          |           |                               |                               |
+| Coefficient dexploitation      |          | 44,9%     |                               |                               |
+| Coût net du risque             | 0,5%     | 0,3%      |                               |                               |
+| Rendement des capitaux propres | 27,0%    | 28,8%     |                               |                               |
+| Rendement des actifs           | 2,5%     | 2,8%      |                               |                               |
+| Prêts sur les dépôts           | 74,8%    | 71,4%     |                               |                               |
+
+[PAGE 3]  [chars=2586 tables=NON method=docling_easyocr]
+
+FAITS MARQUANTS
+En décembre 2023, Ecobank Côte dlvoire est devenue sponsor officiel de la CAN CAF TotalEnergies 2023, renforçant ainsi sa présence sur la scène panafricaine: Dans la continuité de cet engagement; la banque a lancé en janvier 2024 la campagne Un meilleur choix, pour une Afrique meilleure mettant en avant son réseau et sa connectivité à travers le continent, avec pour  ambition daccompagner ses clients dans la construction dun avenir meilleur . Les actions de communication pendant la CAN se traduisent par le Prix OpinionWay de la   banque la plus visible, confirmant I'efficacité de sa stratégie   marketing et digitale.
+Ecobank Côte d'Ivoire a consolidé son engagement en faveur de l'innovation; de l'éducation et de l'égalité des   genres à travers une série dinitiatives complémentaires. Lors de I'Ecobank Day organisé à Yamoussoukro avec INPHB; la banque a mis en avant l'apport de artificielle dans Iamélioration des compétences scolaires en annonçant le gagnant de son premier Hackathon; démontrant ainsi l'impact de la data science sur I'évolution bancaire:
+Durant I'année 2024, Ecobank Côte dIvoire a renouvelé son engagement pour les droits de la   femme Cet engagement s'est vU renforcé par des actionnaires tenue en octobre 2024 du projet d'émission d'obligation basée sur le genre; soulignant la détermination de la banque à promouvoir légalité des genres et à favoriser l'accès au financement par les femmes.
+En 2024, Ecobank Côte dlvoire a confirmé son leadership à travers une série de distinctions et de partenariats stratégiques Son engagement en matière de protection des données a été reconnu par le Prix FNPDCP 2024, suivi par le titre de Marque africaine de l'année aux African Business Leadership Awards:
+PERFORMANCES FINANCIERES
+En 2024, malgré un contexte économique complexe; a affiché une croissance dynamique avec un PIB en hausse de 7% . Les mesures  ciblées de la Banque Centrale et des pouvoirs publics, visant à protéger le pouvoir dachat et contenir l'inflation, ont renforcé la résilience nationale et créé un environnement favorable: Dans ce cadre, Ecobank Côte d'Ivoire a enregistré des performances remarquables, avec un bénéfice record de 57 milliards de FCFA et des revenus de 122 milliards de FCFA
+Evolution du compte de résultat
+Au 31 décembre   2024, le Produit Net Bancaire est en croissance de 11,0% en glissement annuel et se situe à 122,3 milliards de FCFA Cette hausse est soutenue de manière  équilibrée par la marge nette dintérêts et les revenus hors intérêts, qui contribuent respectivement à hauteur de 52 % et 48 %
+
+[PAGE 4]  [chars=1643 tables=NON method=docling_easyocr]
+
+Le coût du risque a été réduit de moitié pour atteindre 2,9 milliards de FCFA à fin décembre 2024, soulignant l'amélioration continue du de risque du portefeuille et permettant une baisse de 26 points de base du ratio de coût du risque qui s'établit ainsi à 0,3%. profil
+en 2024 à 55,0 milliards de FCFA contre 49,9 milliards de FCFA en 2023. Cette augmentation; principalement liée à des investissements ciblés en capital humain technologie; communication et soutien des activités commerciales, s'inscrit dans une dynamique de croissance, sans affecter la stabilité du coefficient d'exploitation:
+En 2024, performance financière d'Ecobank se démarque par un Résultat Avant Impôt atteignant 64,4 milliards de FCFA, en progression de 18,6% par rapport aux 54,3 milliards de FCFA enregistrés en décembre 2023.
+Cette dynamique positive se reflète également dans les indicateurs de rentabilité le rendement des actifs s'établit à 2,8% (+34 points de base VS 2023) et le rendement des capitaux propres atteint 28,8% (+186  points de base en glissement annuel).
+Evolution du bilan
+Les dépôts clients ont diminué de 2,6 %, passant de 1 450,9 milliards de FCFA en décembre 2023 à 1412,5 milliards de FCFA en décembre 2024, tandis que le portefeuille de prêts s'est replié de 6,9 % pour   s'établir à 973 milliards de FCFA contre 1 045 milliards de FCFA I'exercice précédent. Toutefois , ces baisses n'ont pas freiné la dynamique de croissance des revenus En optimisant la gestion de ses ressources et en recentrant son activité sur des prêts de meilleure qualité, Ecobank Côte d'Ivoire a su maintenir une performance solide et renforcer sa rentabilité
+
+[PAGE 5]  [chars=1902 tables=NON method=docling_easyocr]
+
+Pour les autres éléments du bilan
+Les créances en souffrance ont diminué de 5,9 milliards de FCFA pour s'établir à 35,7 milliards de FCFA à fin 2024, avec une couverture de 100% grâce aux provisions constituées:
+Le portefeuille titres a progressé de 32,2% par rapport à décembre 2023, porté par un renforcement des investissements dans les titres Côte d'Ivoire:
+Au 31 décembre 2024, tous les ratios prudentiels restent conformes aux exigences réglementaires et affichent une marge confortable par rapport aux seuils requis.
+REMUNERATION DES ACTIONNAIRES
+En prélude à la prochaine Assemblée Générale, le Conseil d'Administration d'Ecobank Côte d'voire propose un dividende brut de 804 FCFA par action, marquant une hausse de 21,8% par rapport à l'exercice précédent:. Cette distribution; qui   représente  77,0% du résultat net de 2024, témoigne de la volonté de la banque de créer toujours plus de valeur pour ses actionnaires tout en renforçant sa solidité financière:
+PERSPECTIVES 2025
+Après une année 2024 marquée par une transformation   stratégique réussie et des performances solides, 2025 s'annonce comme une étape clé pour accélérer cette dynamique. La banque poursuivra ses efforts pour renforcer son positionnement sur le marché et offrir une expérience client unique à travers I'ensemble de son réseau, tout en soutenant la vision d'une Afrique unie et prospère Cependant; dans un environnement marqué par des incertitudes géopolitiques et des risques émergents, nous continuerons à adopter une approche agile et résiliente: Notre objectif est de saisir les opportunités de   développement tout en assurant une gestion prudente des risques , garantissant ainsi la   pérennité de notre croissance et la maximisation de la valeur pour nos actionnaires. Nous restons pleinement engagés à faire de Ecobank un en offrant à nos clients des solutions bancaires de qualité adaptées aux défis futurs.
+
+[PAGE 6]  [chars=1768 tables=OUI method=docling_easyocr]
+
+
+
+[TABLEAUX DOCLING]
+|                                                     | MONTANTS NETS   | MONTANTS NETS   |
+|-----------------------------------------------------|-----------------|-----------------|
+| (en millions de FCFA)                               | Déc 2023        | Déc 2024        |
+| ACTIF                                               |                 |                 |
+| CAISSE, BANQUE CENTRALE, CCP                        | 177 511         | 170 285         |
+| EFFETS PUBLICS ET VALEURS ASSIMILES                 | 582 813         | 771 705         |
+| CREANCES INTERBANCAIRES ET ASSIMILES                | 45 768          | 33 226          |
+| CREANCES SUR LA CLIENTELE                           | 1045 020        | 972 571         |
+| OBLIGATIONS ET AUTRES TITRES A REVENU FIXE          |                 |                 |
+| ACTIONS ET AUTRES TITRES A REVENU VARIABLE          | 28 537          | 28 977          |
+| ACTIONNAIRES OU ASSOCIES                            |                 |                 |
+| AUTRES ACTIFS                                       | 29 351          | 26 972          |
+| COMPTE DE REGULARISATION                            | 13 489          | 13 364          |
+| PARTICIPATION ET AUTRES TITRES DETENUS A LONG TERME | 3 602           | 3 602           |
+| PART DANS LS ENTREPRISES LIEES                      |                 |                 |
+| PRETS SUBORDONNES                                   |                 |                 |
+| IMMOBILISATIONS INCORPORELLES                       | 255             | 2 183           |
+| IMMOBILISATIONS CORPORELLES                         | 26 953          | 27 796          |
+| TOTAL DE L'ACTIF                                    | 1953 299        | 2 050 681       |
+
+[PAGE 7]  [chars=802 tables=OUI method=docling_easyocr]
+
+
+
+[TABLEAUX DOCLING]
+| BANQUES CENTRALES, CCP                    |
+|-------------------------------------------|
+| DETTES INTERBANCAIRES ET ASSIMILES        |
+| DETTES A L'EGARD DE LA CLIENTELE          |
+| DETTES REPREENTEES PAR UN TITRE           |
+| AUTRES PASSIFS                            |
+| COMPTES DE REGULARISATION                 |
+| PROVISIONS                                |
+| EMPRUNTS ET TITRS EMIS SUBORDONNES        |
+| CAPITAUX PROPRES ET RESSOURCES ASSIMILEES |
+| CAPITAL SOUSCRIT                          |
+| PRIMES LIEES AU CAPITAL                   |
+| RESERVES                                  |
+| ECARTS DE REEVALUATION                    |
+| PROVISION REGLEMENTEES                    |
+| REPORT A NOUVEAU (+/-)                    |
+| RESULTAT DE L'EXERCICE (+/-)              |
+
+[PAGE 8]  [chars=824 tables=OUI method=docling_easyocr]
+
+
+
+[TABLEAUX DOCLING]
+|                            | MONTANTS NETS   | MONTANTS NETS   |
+|----------------------------|-----------------|-----------------|
+| (en millions de FCFA)      | Déc 2023        | Déc 2024        |
+| HORS BILAN                 |                 |                 |
+| ENGAGEMENTS DONNES         | 262 990         | 225 0O9         |
+| ENGAGEMENTS DE FINANCEMENT |                 |                 |
+| ENGAGEMENT DE GARANTIE     | 262 990         | 225 009         |
+| ENGAGEMENT SUR TITRES      |                 |                 |
+| ENGAGEMENTS RECUS          | 178 394         | 197 450         |
+| ENGAGEMENTS DE FINANCEMENT |                 |                 |
+| ENGAGEMENT DE GARANTIE     | 178 394         | 197 450         |
+| ENGAGEMENT SUR TITRES      |                 |                 |
+
+[PAGE 9]  [chars=3332 tables=OUI method=docling_easyocr]
+
+
+
+[TABLEAUX DOCLING]
+|                                                                                                   | MONTANTS NETS   | MONTANTS NETS   |
+|---------------------------------------------------------------------------------------------------|-----------------|-----------------|
+| (en millions de FCFA)                                                                             | Déc 2023        | Déc 2024        |
+| COMPTE DE RESULTAT                                                                                |                 |                 |
+| INTERETS ET PRODUITS ASSIMILES                                                                    | 101 361         | 109 474         |
+| INTERETS ET CHARGES ASSIMILES                                                                     | (28 041)        | (29 794)        |
+| REVENUS DES TITRES A REVENU VARIABLE                                                              | 238             | 159             |
+| COMMISSIONS(PRODUITS)                                                                             | 34 192          | 34 397          |
+| COMMISSIONS(CHARGES)                                                                              | (254)           | (333)           |
+| GAINS OU PERTES NETS SUR OPERATIONS DES PORTEFEUILLES DE NEGOCIATION                              | 4 879           | 209             |
+| GAINS OU PERTES NETS SUR OPERATIONS DES PORTEFEUILLES DE PLACEMENT ASSIMILES                      | 1752            | 3 912           |
+| AUTRES PRODUITS D'EXPLOITATION BANCAIRE                                                           | 2 458           | 2 906           |
+| AUTRES CHARGES D'EXPLOITATION BANCAIRE                                                            | (6 396)         | (5 614)         |
+| PRODUIT NET BANCAIRE                                                                              | 110 189         | 122 316         |
+| SUBVENTIONS D'INVESTISSSEMENT                                                                     |                 |                 |
+| CHARGES GENERALES D'EXPLOITATION                                                                  | (47 332)        | (55 320)        |
+| DOTATION AUX AMORTISSEMENTS ET AUX DEPRECIATIONS DES IMMOBILISATIONS INCORPORELLES ET CORPORELLES | (2 543)         | (2 657)         |
+| RESULTAT BRUT D'EXPLOITATION                                                                      | 60 314          | 67 339          |
+| COÛT DU RISQUE                                                                                    | (5 933)         | (2 935)         |
+| RESULTAT D'EXPLOITATION                                                                           | 54 381          | 64 404          |
+| GAINS OU PERTES NETS SUR ACTIFS IMMOBILISES                                                       | (60)            | 28              |
+| RESULTAT AVANT IMPOT                                                                              | 54 321          | 64 432          |
+| IMPÔTS DUR LES BENEFICES                                                                          | 6 250)          | 955)            |
+| RESULTAT NET                                                                                      | 48 071          | 57 477          |
+
+[PAGE 10]  [chars=203 tables=NON method=docling_easyocr]
+
+Contacts
+Emmanuel AMANI Responsable Relations Investisseurs +225 0501065400
+Relations Investisseurs irci@ecobank com Cynthia KOIDIO Responsable Corporate Communication +225 0787733729 ckoidio@ecobank com

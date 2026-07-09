@@ -1,0 +1,45 @@
+======================================================================
+  STOCKAGE_BD — Chargement PostgreSQL
+  Base    : intelligence_bancaire @ localhost:5432
+  Donnees : C:\Users\ALPHEE COLOMBE\Desktop\BACK\DATA\DONNEES_PRETRAITEES
+======================================================================
+
+──────────────────────────────────────────────────────────────────────
+  ETATS FINANCIERS (EF)
+──────────────────────────────────────────────────────────────────────
+    [EF] BACI/AN1_clean.xlsx : 56 lignes (56 is_primary)
+    [EF] BACI/AN2_clean.xlsx : 55 lignes (55 is_primary)
+    [EF] BACI/AN3_clean.xlsx : 56 lignes (56 is_primary)
+    [EF] BICICI/AN1_clean.xlsx : 78 lignes (39 is_primary)
+    [EF] BICICI/AN2_clean.xlsx : 106 lignes (53 is_primary)
+    [EF] BICICI/AN3_clean.xlsx : 112 lignes (56 is_primary)
+    [EF] BNI/AN1_clean.xlsx : 56 lignes (56 is_primary)
+    [EF] BNI/AN2_clean.xlsx : 56 lignes (56 is_primary)
+    [EF] BNI/AN3_clean.xlsx : 56 lignes (56 is_primary)
+    [EF] ECOBANK/AN1_clean.xlsx : 85 lignes (42 is_primary)
+    [EF] ECOBANK/AN2_clean.xlsx : 62 lignes (32 is_primary)
+    [EF] ECOBANK/AN3_clean.xlsx : 106 lignes (56 is_primary)
+    [EF] NSIA/AN1_clean.xlsx : 91 lignes (46 is_primary)
+    [EF] NSIA/AN2_clean.xlsx : 93 lignes (47 is_primary)
+    [EF] NSIA/AN3_clean.xlsx : 94 lignes (47 is_primary)
+    [EF] SGCI/AN1_clean.xlsx : 120 lignes (60 is_primary)
+    [EF] SGCI/AN2_clean.xlsx : 105 lignes (52 is_primary)
+    [EF] SGCI/AN3_clean.xlsx : 112 lignes (56 is_primary)
+    [EF] SIB/AN1_clean.xlsx : 48 lignes (48 is_primary)
+    [EF] SIB/AN2_clean.xlsx : 98 lignes (50 is_primary)
+    [EF] SIB/AN3_clean.xlsx : 92 lignes (46 is_primary)
+  [EF] Total : 1737 lignes inserees.
+
+──────────────────────────────────────────────────────────────────────
+  RESUME DE LA BASE
+──────────────────────────────────────────────────────────────────────
+  banques         : 7
+  cb_tarifs       : 30131 lignes | 7 banques | annees 2024–2026
+  ef_indicateurs  : 3438 lignes | 7 banques | annees 2021–2025
+  regl_documents  : 88 chunks | 2 documents
+  ef is_primary   : 2111 lignes (donnees annee principale)
+──────────────────────────────────────────────────────────────────────
+
+======================================================================
+  STOCKAGE_BD termine — base prete.
+======================================================================

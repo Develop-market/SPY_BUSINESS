@@ -1,0 +1,42 @@
+{
+  "pipeline": "pipeline_2",
+  "timestamp": "2026-05-23T22:49:24",
+  "args": {
+    "type": "ETATS_FINANCIERS",
+    "banque": "SGCI",
+    "force": false
+  },
+  "total": 3,
+  "ok": 3,
+  "skip": 0,
+  "errors": 0,
+  "files": [
+    {
+      "file": "ETATS_FINANCIERS\\SGCI\\AN1.pdf",
+      "status": "ok",
+      "type": "NATIF",
+      "elapsed": 8.16,
+      "out": "C:\\Users\\ALPHEE COLOMBE\\Desktop\\BACK\\EXTRACTIONS\\PIPELINE_2\\ETATS FINANCIERS\\SGCI\\AN1.xlsx",
+      "method": "camelot_stream",
+      "tables": 6
+    },
+    {
+      "file": "ETATS_FINANCIERS\\SGCI\\AN2.pdf",
+      "status": "ok",
+      "type": "NATIF",
+      "elapsed": 6.95,
+      "out": "C:\\Users\\ALPHEE COLOMBE\\Desktop\\BACK\\EXTRACTIONS\\PIPELINE_2\\ETATS FINANCIERS\\SGCI\\AN2.xlsx",
+      "method": "camelot_lattice",
+      "tables": 2
+    },
+    {
+      "file": "ETATS_FINANCIERS\\SGCI\\AN3.pdf",
+      "status": "ok",
+      "type": "NATIF",
+      "elapsed": 6.48,
+      "out": "C:\\Users\\ALPHEE COLOMBE\\Desktop\\BACK\\EXTRACTIONS\\PIPELINE_2\\ETATS FINANCIERS\\SGCI\\AN3.xlsx",
+      "method": "camelot_lattice",
+      "tables": 1
+    }
+  ]
+}

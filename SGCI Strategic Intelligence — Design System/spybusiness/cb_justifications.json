@@ -1,0 +1,80 @@
+{
+  "_meta": {
+    "objet": "Justifications PRÉCALCULÉES (recherche analyste + sources publiques) du caractère exclusif / inimitable / transformatif des services SGCI. Affichées en cache — jamais d'appel LLM en direct.",
+    "avertissement": "L'EXCLUSIVITÉ est vérifiée sur les données (aucun équivalent chez les 6 concurrents). L'INIMITABILITÉ est un JUGEMENT argumenté (barrière réglementaire, marque, réseau, techno, partenariat) — presque jamais absolue : un concurrent peut souvent répliquer un service avec du temps et des moyens. Les niveaux ci-dessous sont des estimations prudentes, à valider.",
+    "maj": "2026-06-19",
+    "echelle_inimitabilite": "Faible = copiable rapidement · Moyen = réplicable avec effort/partenariat · Élevé = forte barrière (réglementaire, réseau, marque installée)"
+  },
+  "produits": [
+    {
+      "match": ["diaspora"],
+      "titre": "Pack Diaspora",
+      "exclusif": "Offre groupée (compte + services) à tarif fixe dédiée aux Ivoiriens de l'étranger — packaging propre à SGCI, sans équivalent nommé chez les concurrents du panier.",
+      "inimitabilite": "Moyen",
+      "pourquoi_inimitable": "S'appuie sur le réseau international du groupe Société Générale (relais dans les pays d'accueil) — un concurrent local peut créer un pack diaspora mais difficilement la même couverture internationale.",
+      "transformatif": "Capte l'épargne et les transferts de la diaspora (flux récurrents à forte valeur) via une porte d'entrée unique.",
+      "source": "https://particuliers.societegenerale.ci/fr/banque-quotidien/packages/pack-diaspora/"
+    },
+    {
+      "match": ["connect", "sans carte", "retrait sans"],
+      "titre": "CONNECT — retrait sans carte & banque à distance",
+      "exclusif": "Application mobile/web propriétaire permettant notamment le retrait d'espèces SANS carte aux GAB SGCI, les virements vers SGCI et autres banques, et des services à valeur ajoutée.",
+      "inimitabilite": "Moyen à élevé",
+      "pourquoi_inimitable": "Combine une appli propriétaire + le parc de GAB SGCI compatibles + l'intégration interbancaire. Réplicable techniquement, mais demande investissement, parc d'automates et adoption client (effet d'usage/fidélité).",
+      "transformatif": "Réduit la dépendance à la carte physique et à l'agence — coûts de sortie élevés une fois le client équipé.",
+      "source": "https://particuliers.societegenerale.ci/fr/banque-quotidien/produits-banque-distance/connect-lappli-mobile-web-societe-generale-cote-divoire/"
+    },
+    {
+      "match": ["yaconfort"],
+      "titre": "YACONFORT (prévoyance)",
+      "exclusif": "Produit de prévoyance (invalidité, décès, frais d'obsèques) commercialisé sous marque propre SGCI.",
+      "inimitabilite": "Moyen",
+      "pourquoi_inimitable": "Repose sur un partenariat assurance (SanlamAllianz Côte d'Ivoire). Exclusif tant que ce partenariat et le nom le sont ; un concurrent peut nouer un partenariat équivalent avec un autre assureur.",
+      "transformatif": "Fidélise en couvrant un besoin de protection familiale, au-delà du compte bancaire.",
+      "source": "https://particuliers.societegenerale.ci/fr/assurer/assurance-vie/yaconfort/"
+    },
+    {
+      "match": ["soge-invest", "soge invest", "sogeprimo", "soge"],
+      "titre": "Gamme SOGE (placement / épargne premium)",
+      "exclusif": "Produits d'épargne/placement de marque SOGE — dénomination propre à SGCI.",
+      "inimitabilite": "Faible à moyen",
+      "pourquoi_inimitable": "La mécanique de placement est standard et réplicable ; la différenciation tient surtout à la marque et au conseil patrimonial.",
+      "transformatif": "Élargit la relation vers la gestion d'épargne (montée en gamme du client).",
+      "source": "https://societegenerale.ci/fr/particuliers/vos-packages-services-connexes/packages/"
+    },
+    {
+      "match": ["prestibad"],
+      "titre": "Package PRESTIBAD",
+      "exclusif": "Package de services groupés sous nom propre SGCI, sans équivalent nommé dans le panier concurrent.",
+      "inimitabilite": "Faible",
+      "pourquoi_inimitable": "Un package est une composition d'offres : facilement réplicable par un concurrent qui regrouperait des services similaires sous un autre nom.",
+      "transformatif": "Simplifie l'accès à plusieurs services pour un segment ciblé.",
+      "source": "https://societegenerale.ci/fr/particuliers/vos-packages-services-connexes/packages/"
+    },
+    {
+      "match": ["avance conventionnelle", "act", "decouvert confirme", "découvert confirmé"],
+      "titre": "Découverts structurés (ACT, découvert confirmé gagé)",
+      "exclusif": "Formes de crédit court terme formalisées (Avance Conventionnelle de Trésorerie, découvert confirmé avec gage espèces) au nommage propre SGCI.",
+      "inimitabilite": "Faible",
+      "pourquoi_inimitable": "Produits de crédit classiques : tout concurrent dispose d'équivalents (découvert, facilité de caisse). La distinction est surtout contractuelle/tarifaire.",
+      "transformatif": "Sécurise la trésorerie du client — effet de rétention modéré.",
+      "source": "https://societegenerale.ci/fr/"
+    },
+    {
+      "match": ["assurance deces emprunteur", "ade", "deces emprunteur"],
+      "titre": "Assurance Décès Emprunteur (ADE)",
+      "exclusif": "Couverture liée au crédit, présentée comme service SGCI.",
+      "inimitabilite": "Faible",
+      "pourquoi_inimitable": "L'ADE est un standard de marché adossé à tout crédit ; toutes les banques en proposent une forme. Peu différenciant en soi.",
+      "transformatif": "Sécurise le prêt — attendu plutôt que distinctif.",
+      "source": "https://societegenerale.ci/fr/"
+    }
+  ],
+  "vrist_methode": {
+    "V": "Valeur — mesurée au volume d'exclusivités réelles (services absents des 6 concurrents). Donnée vérifiable.",
+    "R": "Rareté — être absent de tout le panier concurrent est déjà rare ; socle élevé puis croissance avec le nombre d'exclusivités.",
+    "I": "Inimitable — JUGEMENT, non prouvable depuis les données. Estimé via la nature de la barrière : réglementaire / partenariat / réseau international / marque installée / techno propriétaire. Rarement absolu.",
+    "S": "Durable — couverture des 9 sections BCEAO : une présence structurelle large tient mieux dans le temps.",
+    "T": "Transformatif — intensité de gratuité + services digitaux qui changent l'usage (coûts de sortie élevés)."
+  }
+}

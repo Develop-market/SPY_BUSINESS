@@ -1,0 +1,564 @@
+{
+  "services": {
+    "pack infinite": {
+      "_libelle": "Pack Infinite",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le prix du Pack Infinite à 60000 F se situe en dessous de la médiane du marché ivoirien, qui est de 100000 F, mais au-dessus du prix actuel de la SGCI, qui est de 40000 F.",
+      "ok": true,
+      "nuance": "Cependant, il convient de considérer le risque de perte de parts de marché si les clients perçoivent cette augmentation comme excessive par rapport à la concurrence.",
+      "sources": [
+        "https://particuliers.societegenerale.ci/fr/banque-quotidien/packages/pack-infinite",
+        "https://www.facebook.com/BNI.Cotedivoire/posts/avec-la-carteelite_bni-acc%C3%A9dez-%C3%A0-un-vaste-r%C3%A9seau-de-retraits-et-de-paiements-24h/2507053632717567",
+        "https://boacoteivoire.com/wp-content/uploads/2021/04/Part-2021_A4.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "frais pour annulation de chèque de banque": {
+      "_libelle": "Frais pour annulation de chèque de banque",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais pour annulation de chèque de banque à 16 500 F CFA est supérieur à la médiane du marché ivoirien, qui se situe autour de 10 000 F CFA.",
+      "ok": true,
+      "nuance": "La recommandation de baisser le frais à 10 000 F CFA semble raisonnable, car plusieurs banques ivoiriennes pratiquent déjà ce tarif, ce qui pourrait limiter les risques de perte de parts de marché.",
+      "sources": [
+        "https://boacoteivoire.com/wp-content/uploads/2025/03/13-03-25_CI-CB-2024-PartWeb.pdf",
+        "https://www.utb.tg/publication/pdf/7",
+        "https://www.boaburkinafaso.com/wp-content/uploads/2024/02/28-12-23_BF_C.B-2024_Web_ENT.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "compte chèque": {
+      "_libelle": "Compte chèque",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le prix de 4950 F pour le compte chèque est supérieur à la médiane du marché ivoirien, qui est de 1400 F, ce qui suggère une marge de baisse pour rester compétitif.",
+      "ok": true,
+      "nuance": "La baisse du prix pourrait être bénéfique pour améliorer la compétitivité, mais il est important de considérer les risques potentiels sur le PNB et l'élasticité de la demande.",
+      "sources": [
+        "https://orangebank.ci/wp-content/uploads/2022/12/Conditions-de-banque.pdf",
+        "https://boacoteivoire.com/wp-content/uploads/2024/08/CI-CB-2024-PartWeb.pdf",
+        "https://www.ubacotedivoire.com/wp-content/uploads/sites/12/2026/04/Conditions-tarifaires-Entreprises-UBA-CI-2026.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "la même banque)": {
+      "_libelle": "la même banque)",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de 2500 F proposé est inférieur à la fourchette courante de 900 à 5 000 F CFA pour les frais bancaires en Côte d'Ivoire",
+      "ok": true,
+      "nuance": "Cependant, il convient de considérer le risque de perte de revenus pour la banque et l'élasticité de la demande des clients",
+      "sources": [
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_PARTICULIERS_JANVIER_2026.pdf",
+        "https://www.facebook.com/ecobankciv/posts/1-ttc-de-frais-oui-1-ttc-de-frais-dans-toute-la-zone-uemoaavec-xpress-cash-perme/1298870467204577",
+        "https://www.ubacotedivoire.com/wp-content/uploads/sites/12/2026/04/Conditions-tarifaires-Entreprises-UBA-CI-2026.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "modification de virement permanent": {
+      "_libelle": "Modification de Virement Permanent",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le prix de 5500 F pour la modification de virement permanent est supérieur à la médiane du marché ivoirien, qui se situe autour de 3000 F.",
+      "ok": true,
+      "nuance": "La baisse vers 3000 F semble justifiée, mais il convient de considérer les risques potentiels liés à la perte de revenus et à la réaction des concurrents.",
+      "sources": [
+        "https://orangebank.ci/wp-content/uploads/2022/12/Conditions-de-banque.pdf",
+        "https://sib.ci/wp-content/uploads/2022/07/Conditions-de-banque-SIB_14-juillet-2020-1.pdf",
+        "https://www.bni.ci/documents/20250102_134536_63af3f63b44dbed6c856aef4e.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "procuration sur compte": {
+      "_libelle": "Procuration sur compte",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le prix de 4500 F pour la procuration sur compte est inférieur à la médiane marché ivoirienne de 6000 F, mais supérieur au prix actuel de 3000 F de la SGCI.",
+      "ok": false,
+      "nuance": "Il convient de faire preuve de prudence, car une augmentation du prix pourrait entraîner une perte de parts de marché en raison de l'élasticité de la demande et de la concurrence sur le marché ivoirien.",
+      "sources": [
+        "https://www.boabenin.com/wp-content/uploads/2020/05/Tarifs-conditions-PME-et-Entreprise-BOA-B%C3%A9nin-format-portrait-1.pdf",
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_PARTICULIERS_JANVIER_2026.pdf",
+        "https://cotedivoire.coris.bank/wp-content/uploads/2022/04/Conditions-de-banque-CBI-CI.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "emission chèque de banque en fcfa": {
+      "_libelle": "Emission chèque de banque en FCFA",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais d'émission de chèque de banque en FCFA de 10 000 F est dans la fourchette basse du marché ivoirien, avec plusieurs banques proposant ce service à ce tarif ou à des tarifs similaires.",
+      "ok": true,
+      "nuance": "La recommandation de baisser le prix à 10 000 F semble confirmée par les pratiques des concurrents, mais il convient de surveiller l'impact sur le PNB et l'élasticité de la demande.",
+      "sources": [
+        "https://orangebank.ci/wp-content/uploads/2022/12/Conditions-de-banque.pdf",
+        "https://fr.scribd.com/document/693345331/COMPIL-CONDITION-270422-R",
+        "https://www.bni.ci/documents/20251219_175735_e64ceeb2609e93ce2fc9275c3.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "frais d’envoi dhl": {
+      "_libelle": "Frais d’envoi DHL",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais d'envoi DHL de 15000 F proposé est inférieur au prix actuel de 30250 F et proche de la médiane marché de 15250 F",
+      "ok": true,
+      "nuance": "La recommandation de baisser le frais d'envoi DHL vers 15000 F semble raisonnable, mais il convient de considérer les coûts réels de DHL et les barrières de sortie pour éviter une perte financière",
+      "sources": [
+        "https://www.upela.com/fr/tarifs-dhl-234.html",
+        "https://www.packlink.com/fr-FR/transporteurs/dhl",
+        "https://www.dhl.com/fr-fr/home/obtenir-un-devis.html"
+      ],
+      "date": "2026-07-02"
+    },
+    "port lettre": {
+      "_libelle": "Port lettre",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais de 'Port lettre' à 2000 F CFA est dans la fourchette haute des pratiques ivoiriennes, avec des concurrents proposant des tarifs allant de 6 000 à 15 000 F CFA.",
+      "ok": false,
+      "nuance": "Il convient de considérer le risque de perte de parts de marché due à une élasticité élevée des clients face à une augmentation significative de ce frais.",
+      "sources": [
+        "https://www.banqueatlantique.net/wp-content/uploads/2019/01/BACI.Conditions-revu.pdf",
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_PARTICULIERS_JANVIER_2026.pdf",
+        "https://orangebank.ci/wp-content/uploads/2023/11/OBA-digital-CondGen-ENTREPRISE-.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "supplément par photocopie": {
+      "_libelle": "Supplément par photocopie",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais de supplément par photocopie de 500 F est inférieur à la médiane du marché ivoirien, qui est de 1100 F, mais supérieur au prix actuel de 275 F.",
+      "ok": false,
+      "nuance": "Il convient de faire preuve de prudence, car une augmentation de ce frais pourrait entraîner une perte de compétitivité par rapport aux concurrents ivoiriens.",
+      "sources": [
+        "https://boacoteivoire.com/wp-content/uploads/2023/06/04-05-23_C.B-2023-CI_EntA4.pdf",
+        "https://afgbankcotedivoire.com/wp-content/uploads/2024/04/AFG-Bank-Conditions-de-banque-Retail-03-Mars-2024.pdf",
+        "https://www.ubacotedivoire.com/wp-content/uploads/sites/12/2025/01/Conditions-tarifaires-Entreprises-UBA-CI-2025.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "création de certificat de titres": {
+      "_libelle": "Création de certificat de titres",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le prix de 8000 F pour la création de certificat de titres est inférieur à la médiane marché ivoirienne de 10000 F, mais supérieur au prix actuel de 5000 F de la SGCI.",
+      "ok": true,
+      "nuance": "Cependant, il convient de considérer le risque de perte de parts de marché en cas d'augmentation des tarifs, notamment si les concurrents maintiennent leurs prix actuels.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres",
+        "https://particuliers.societegenerale.ci/fr/epargner/placements/compte-titres",
+        "https://www.ubacotedivoire.com/wp-content/uploads/sites/12/2024/03/Conditions-bancaires-entreprises.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "chèques de banque sur place": {
+      "_libelle": "Chèques de banque sur place",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le prix de 13 000 F pour les chèques de banque sur place est dans la fourchette basse du marché ivoirien, proche de la médiane.",
+      "ok": true,
+      "nuance": "La recommandation de baisser le prix à 13 000 F semble raisonnable, mais il convient de surveiller l'impact sur le revenu net bancaire.",
+      "sources": [
+        "https://orangebank.ci/wp-content/uploads/2022/12/Conditions-de-banque.pdf",
+        "https://www.banqueatlantique.net/wp-content/uploads/2019/01/BACI.Conditions-revu.pdf",
+        "https://boacoteivoire.com/wp-content/uploads/2021/04/Part-2021_A4.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "chèques de banque uemoa": {
+      "_libelle": "Chèques de banque UEMOA",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le prix de 13000 F pour les chèques de banque UEMOA se situe dans la fourchette inférieure du marché ivoirien, avec des concurrents proposant des tarifs allant de 10000 F à 20000 F.",
+      "ok": true,
+      "nuance": "La recommandation de baisser le prix à 13000 F semble raisonnable, mais il convient de surveiller l'impact sur le PNB et l'élasticité de la demande.",
+      "sources": [
+        "https://www.bni.ci/documents/20240102_110529_c5ff92062dfb13c670b77ba85.pdf",
+        "https://www.boasenegal.com/wp-content/uploads/2020/05/Conditions-de-banque-2020-2.pdf",
+        "https://www.facebook.com/ecobankciv/posts/1-ttc-de-frais-oui-1-ttc-de-frais-dans-toute-la-zone-uemoaavec-xpress-cash-perme/1298870467204577"
+      ],
+      "date": "2026-07-02"
+    },
+    "pack premier": {
+      "_libelle": "Pack PREMIER",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais de tenue de compte du Pack Premier de la Société Générale Côte d'Ivoire est actuellement inférieur à la médiane du marché ivoirien, qui est de 15000 F.",
+      "ok": true,
+      "nuance": "La recommandation d'augmenter le prix vers 15000 F semble raisonnable, mais il convient de considérer les risques de perte de parts de marché et l'élasticité de la demande.",
+      "sources": [
+        "https://www.facebook.com/BNI.Cotedivoire/posts/la-cartepremier_bni-est-une-carte-haut-de-gamme-qui-vous-permet-dacc%C3%A9der-%C3%A0-un-va/2508325912590339",
+        "https://cotedivoire.coris.bank/wp-content/uploads/2025/10/Conditions-de-banque-CBI-CI-Semestre-2-2025.pdf",
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_PARTICULIERS_JANVIER_2026.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "frais pour procuration": {
+      "_libelle": "Frais pour procuration",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de procuration de 5000 F est supérieur à la médiane du marché ivoirien, qui est de 3000 F.",
+      "ok": true,
+      "nuance": "La baisse du frais de procuration vers 3000 F pourrait améliorer la compétitivité de la banque sans impacter significativement les revenus.",
+      "sources": [
+        "https://www.boasenegal.com/wp-content/uploads/2020/05/Conditions-de-banque-2020-2.pdf",
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_PARTICULIERS_JANVIER_2026.pdf",
+        "https://afrikabanque.ci/wp-content/uploads/2026/02/Conditions-Bancaires-AFRIKA-BANQUE-Fevrier-2026_VF_1.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "par le client : perte , vol ou fraude sur la carte": {
+      "_libelle": "Par le client : perte , vol ou fraude sur la carte",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de perte, vol ou fraude sur la carte bancaire à 10000 F proposé est inférieur à la médiane du marché ivoirien, qui est de 10250 F, et inférieur au prix actuel de 11000 F",
+      "ok": true,
+      "nuance": "La recommandation de baisser le prix à 10000 F semble raisonnable, mais il convient de considérer les risques potentiels de perte de revenus et les barrières de sortie pour les clients",
+      "sources": [
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_PARTICULIERS_JANVIER_2026.pdf",
+        "https://orangebank.ci/wp-content/uploads/2022/12/Conditions-de-banque.pdf",
+        "https://www.boaburkinafaso.com/wp-content/uploads/2025/04/17-03-25_BF_A4-C.B-2025_ENT-1.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "frais annuels de location": {
+      "_libelle": "Frais annuels de location",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais annuel de location de 3300 F proposé est nettement inférieur au prix actuel de 66000 F et se situe légèrement au-dessus de la médiane du marché ivoirien de 3280 F.",
+      "ok": true,
+      "nuance": "La recommandation de baisser le frais annuel de location vers 3300 F semble raisonnable, mais il convient de surveiller l'impact sur le PNB et l'élasticité de la demande.",
+      "sources": [
+        "https://orangebank.ci/wp-content/uploads/2022/12/Conditions-de-banque.pdf",
+        "https://cotedivoire.coris.bank/wp-content/uploads/2025/10/Conditions-de-banque-CBI-CI-Semestre-2-2025.pdf",
+        "https://www.nsiabanque.ci/wp-content/uploads/2025/05/CONDITIONS-DE-BANQUE-DE-LA-CLIENTELE-DES-PARTICULIERS.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "par série de numéros de vignettes non successifs": {
+      "_libelle": "Par série de numéros de vignettes non successifs",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de 15 000 F CFA pour les vignettes non successifs est nettement supérieur à la médiane du marché ivoirien, qui est de 2 000 F CFA.",
+      "ok": false,
+      "nuance": "Il convient de prendre en compte le risque de perte de parts de marché et l'élasticité de la demande avant de baisser les frais, car une réduction pourrait entraîner une augmentation de la demande et potentiellement déstabiliser les revenus de la banque.",
+      "sources": [
+        "https://fr.scribd.com/document/701633476/CB-PARTICULIERS-JUILLET-2023",
+        "https://orangebank.ci/wp-content/uploads/2022/12/Conditions-de-banque.pdf",
+        "https://www.banqueatlantique.net/wp-content/uploads/2019/01/BACI.Conditions-revu.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "par série de numéros de vignettes successifs": {
+      "_libelle": "Par série de numéros de vignettes successifs",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de 15 000 F pour les vignettes successives est nettement supérieur à la médiane du marché ivoirien, qui est de 2 000 F.",
+      "ok": false,
+      "nuance": "Il convient de considérer le risque de perte de parts de marché si les frais ne sont pas réduits, car les clients pourraient être sensibles à cette différence de coût.",
+      "sources": [
+        "https://professionnels.societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/PDF/brochure_tarifaire_pro.pdf",
+        "https://fr.scribd.com/document/644271248/brochure-tarifaire-pri-pdf",
+        "https://www.facebook.com/ecobankciv/posts/1-ttc-de-frais-oui-1-ttc-de-frais-dans-toute-la-zone-uemoaavec-xpress-cash-perme/1298870467204577"
+      ],
+      "date": "2026-07-02"
+    },
+    "package prestibad classic": {
+      "_libelle": "Package PRESTIBAD CLASSIC",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais de tenue de compte du package PRESTIBAD CLASSIC est inférieur à la médiane du marché ivoirien, qui se situe autour de 27 500 F, mais la recommandation d'augmenter vers 7 200 F reste en dessous de certains tarifs constatés sur le marché, tels que 8 545 F pour le Pack CLASSIC.",
+      "ok": false,
+      "nuance": "Il convient de faire preuve de prudence, car une augmentation significative pourrait entraîner une perte de parts de marché en raison de l'élasticité de la demande et de la concurrence sur le marché bancaire ivoirien.",
+      "sources": [
+        "https://fr.scribd.com/document/515238382/brochure-tarifaire-pri",
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_PARTICULIERS_JANVIER_2026.pdf",
+        "https://www.boabenin.com/wp-content/uploads/2020/05/Tarifs-conditions-PME-et-Entreprise-BOA-B%C3%A9nin-format-portrait-1.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "compte eco": {
+      "_libelle": "Compte ECO",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le prix de 990 F pour le compte ECO est nettement inférieur à la médiane du marché ivoirien, qui est de 10 000 F.",
+      "ok": true,
+      "nuance": "Cependant, il convient de considérer les risques potentiels liés à une baisse de prix, tels que l'impact sur le revenu net bancaire et les barrières de sortie pour les clients.",
+      "sources": [
+        "https://edctradingportal.ecobank.com/IWECI/Content/GRILLE%20TARIFAIRE%20EIC.pdf",
+        "https://fr.scribd.com/document/774826236/conditions-de-banque-ecobank",
+        "https://apbef.bj/wp-content/uploads/2016/07/CONDITIONS-DE-BANQUES-ECOBANK.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "plan épargne logement": {
+      "_libelle": "Plan épargne logement",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais de 25000 F pour le plan épargne logement est inférieur à la médiane marché ivoirienne de 50000 F",
+      "ok": true,
+      "nuance": "La recommandation d'augmenter le frais vers 25000 F semble raisonnable, mais il convient de considérer le risque de perte de parts de marché",
+      "sources": [
+        "https://orangebank.ci/wp-content/uploads/2022/12/Conditions-de-banque.pdf",
+        "https://professionnels.societegenerale.ci/fr/epargner/epargne/plan-epargne-logement-1",
+        "https://versusbank.ci/nos-produits/particuliers/epargne/plan-epargne-logement-pel"
+      ],
+      "date": "2026-07-02"
+    },
+    "dépôt à terme": {
+      "_libelle": "Dépôt à terme",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais de dépôt à terme de 500 F proposé est inférieur à la médiane du marché ivoirien, qui est de 1000 F, mais supérieur à certains tarifs gratuits ou très bas proposés par certaines banques comme la BNI.",
+      "ok": false,
+      "nuance": "Il convient de faire preuve de prudence, car une augmentation des frais pourrait entraîner une perte de parts de marché, notamment si les clients sont sensibles aux coûts et peuvent facilement changer de banque.",
+      "sources": [
+        "https://www.bni.ci/documents/c6b66d9ac3bb2ed94cf497ccf1ad03f9.pdf",
+        "https://www.ubacotedivoire.com/wp-content/uploads/sites/12/2025/01/Conditions-tarifaires-Entreprises-UBA-CI-2025.pdf",
+        "https://www.bceao.int/sites/default/files/2025-07/Rapport%20sur%20les%20conditions%20de%20banque%20dans%20l%27UEMOA%20-%202024_compressed.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "plus d’un (01) an": {
+      "_libelle": "Plus d’un (01) an",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais de 19800 F proposé est inférieur à la médiane marché ivoirienne de 25000 F, mais supérieur au prix actuel de 11000 F, ce qui le positionne dans une fourchette compétitive.",
+      "ok": true,
+      "nuance": "Cependant, il convient de considérer le risque de perte de parts de marché si les concurrents ajustent leurs tarifs en conséquence.",
+      "sources": [
+        "https://www.nsiabanque.ci/wp-content/uploads/2020/05/CONDITIONS-DE-BANQUE-PARTICULIERS-FEV2020_.pdf",
+        "https://afrikabanque.ci/wp-content/uploads/2026/02/Conditions-Bancaires-AFRIKA-BANQUE-Fevrier-2026_VF_1.pdf",
+        "https://www.facebook.com/ecobankciv/posts/1-ttc-de-frais-oui-1-ttc-de-frais-dans-toute-la-zone-uemoaavec-xpress-cash-perme/1298870467204577"
+      ],
+      "date": "2026-07-02"
+    },
+    "associations": {
+      "_libelle": "Associations",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de tenue de compte pour les associations en Côte d'Ivoire varie entre 3 300 FCFA et 12 500 FCFA par mois, ce qui situe le prix actuel de la SGCI à un niveau compétitif mais susceptible d'être ajusté à la baisse pour améliorer l'attractivité.",
+      "ok": true,
+      "nuance": "La recommandation de baisser les frais de tenue de compte doit être validée en considérant les risques potentiels sur le PNB et l'élasticité de la demande, ainsi que les barrières de sortie pour les clients existants.",
+      "sources": [
+        "https://www.ubacotedivoire.com/wp-content/uploads/sites/12/2025/01/Conditions-tarifaires-Entreprises-UBA-CI-2025.pdf",
+        "https://www.boabenin.com/wp-content/uploads/2020/05/Tarifs-conditions-PME-et-Entreprise-BOA-B%C3%A9nin-format-portrait-1.pdf",
+        "https://www.banqueatlantique.net/wp-content/uploads/2019/01/BACI.Conditions-revu.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "commission d’annulation": {
+      "_libelle": "Commission d’annulation",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais d'annulation de 35 000 F proposé est supérieur à la médiane du marché ivoirien, qui est de 30 000 F, mais certains établissements bancaires pratiquent des tarifs plus élevés, allant jusqu'à 50 000 F.",
+      "ok": false,
+      "nuance": "Il convient d'exercer une certaine prudence, car une augmentation excessive pourrait entraîner une perte de parts de marché en raison de l'élasticité de la demande et des barrières de sortie relativement faibles pour les clients.",
+      "sources": [
+        "https://www.boabenin.com/wp-content/uploads/2020/05/Tarifs-conditions-PME-et-Entreprise-BOA-B%C3%A9nin-format-portrait-1.pdf",
+        "https://afrikabanque.ci/wp-content/uploads/2026/02/Conditions-Bancaires-AFRIKA-BANQUE-Fevrier-2026_VF_1.pdf",
+        "https://www.bni.ci/documents/20240102_110529_c5ff92062dfb13c670b77ba85.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "guichet (hors acquittement de frais de timbre (fiscal)": {
+      "_libelle": "guichet (hors acquittement de frais de timbre (fiscal)",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le prix de 10000 F pour le service de guichet hors acquittement de frais de timbre fiscal est dans la fourchette des pratiques ivoiriennes, avec une médiane marché à 10000 F",
+      "ok": true,
+      "nuance": "La recommandation de baisser le prix à 10000 F semble confirmée par les pratiques des concurrents ivoiriens, sans risque majeur de perte de revenus",
+      "sources": [
+        "https://www.bni.ci/documents/20221230_111351_d8e98ad5e7589d80d6a053f35.pdf",
+        "https://www.boasenegal.com/wp-content/uploads/2020/05/Conditions-de-banque-2020-2.pdf",
+        "https://cotedivoire.coris.bank/wp-content/uploads/2025/10/Conditions-de-banque-CBI-CI-Semestre-2-2025.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "frais d’envoi lettre": {
+      "_libelle": "Frais d’envoi lettre",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais d'envoi lettre de 1800 F proposé est inférieur à la médiane marché ivoirienne qui se situe autour de 15000 F",
+      "ok": false,
+      "nuance": "Il convient de faire preuve de prudence, car une augmentation significative pourrait entraîner une perte de parts de marché en raison d'une élasticité potentielle de la demande",
+      "sources": [
+        "https://www.bni.ci/documents/c6b66d9ac3bb2ed94cf497ccf1ad03f9.pdf",
+        "https://professionnels.societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/PDF/BROCHURE_CONDITIONS_CLIPRO.pdf",
+        "https://www.banqueatlantique.net/wp-content/uploads/2026/01/MISE-A-JOUR-ENTREPRISES_CONDITIONS-DEBITRICES-BACI-Semestre-1-2026.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "frais de recherche de documents": {
+      "_libelle": "Frais de recherche de documents",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais de recherche de documents de 9000 F proposé est inférieur à la médiane du marché ivoirien qui varie entre 10 000 F et 30 000 F",
+      "ok": false,
+      "nuance": "Il convient de faire preuve de prudence car une augmentation vers 9000 F pourrait être perçue comme élevée par rapport à certains concurrents qui offrent ce service à 0 F ou à des tarifs plus bas",
+      "sources": [
+        "https://www.bni.ci/documents/20240102_110529_c5ff92062dfb13c670b77ba85.pdf",
+        "https://afrikabanque.ci/wp-content/uploads/2026/02/Conditions-Bancaires-AFRIKA-BANQUE-Fevrier-2026_VF_1.pdf",
+        "https://www.cb-umoa.org/sites/default/files/2022-01/INSTRUCTION%20N%C2%B0%20004-05-2015%20CANEVAS%20DE%20PRESENTATION%20HARMONISEE%20DES%20TARIFS%20%20ET%20SERVICES%20BANCAIRES_0.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "chèque de banque en autres devises": {
+      "_libelle": "Chèque de banque en autres devises",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais de chèque de banque en autres devises est positionné en dessous de la médiane du marché ivoirien, qui est de 11 500 F, avec un prix actuel de 10 000 F.",
+      "ok": true,
+      "nuance": "La recommandation d'augmenter le prix vers 11 500 F semble confirmée par les pratiques des concurrents, mais il convient de considérer les risques de perte de parts de marché et l'élasticité de la demande.",
+      "sources": [
+        "https://orangebank.ci/wp-content/uploads/2022/12/Conditions-de-banque.pdf",
+        "https://afrikabanque.ci/wp-content/uploads/2025/04/Conditions-Bancaires-AFRIKA-BANQUE-MARS-2025.pdf",
+        "https://www.bni.ci/documents/20250102_134536_63af3f63b44dbed6c856aef4e.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "pack pme commercant elite": {
+      "_libelle": "PACK PME COMMERCANT ELITE",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de tenue de compte du PACK PME COMMERCANT ELITE est supérieur à la médiane du marché ivoirien, qui est de 15 000 F CFA.",
+      "ok": false,
+      "nuance": "Il convient de prendre en compte le risque de perte de parts de marché si les frais ne sont pas ajustés à la concurrence.",
+      "sources": [
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_ENTREPRISES_JANVIER_2026.pdf",
+        "https://bicici.ci/documents/d/website-bicici/01-bicici-conditions_pme_janvier-2026-091226-1",
+        "https://www.nsiabanque.ci/entreprises/ouvrir-un-compte/packs-entreprises"
+      ],
+      "date": "2026-07-02"
+    },
+    "pack pme commercant essentiel": {
+      "_libelle": "PACK PME COMMERCANT ESSENTIEL",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de tenue de compte de 30 000 F proposé par SGCI est supérieur à la médiane du marché ivoirien, qui est de 15 000 F.",
+      "ok": true,
+      "nuance": "La baisse vers 15 000 F pourrait être bénéfique pour rester compétitif, mais il convient de considérer les risques potentiels sur le PNB et l'élasticité de la demande.",
+      "sources": [
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_ENTREPRISES_JANVIER_2026.pdf",
+        "https://www.nsiabanque.ci/entreprises/ouvrir-un-compte/packs-entreprises",
+        "https://bicici.ci/documents/d/website-bicici/01-bicici-conditions_pme_janvier-2026-091226-1"
+      ],
+      "date": "2026-07-02"
+    },
+    "pack pme elite": {
+      "_libelle": "PACK PME ELITE",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de tenue de compte du PACK PME ELITE est actuellement positionné à 30 000 F, soit au-dessus de la médiane marché ivoirienne qui est de 15 000 F.",
+      "ok": true,
+      "nuance": "La baisse vers 15 000 F semble justifiée, car les concurrents proposent des offres similaires à des prix inférieurs, ce qui pourrait améliorer la compétitivité du PACK PME ELITE.",
+      "sources": [
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_ENTREPRISES_JANVIER_2026.pdf",
+        "https://boacoteivoire.com/particuliers/comptes-services/pack-mon-business",
+        "https://www.boaburkinafaso.com/particuliers/comptes-services/pack-elite"
+      ],
+      "date": "2026-07-02"
+    },
+    "pack pme essentiel": {
+      "_libelle": "PACK PME ESSENTIEL",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le prix de 18 500 F pour le pack PME Essentiel est dans la fourchette basse du marché ivoirien, proche de la médiane",
+      "ok": true,
+      "nuance": "La baisse vers 18 500 F semble raisonnable, mais il convient de surveiller l'impact sur le PNB et la réaction des concurrents",
+      "sources": [
+        "https://www.nsiabanque.ci/entreprises/ouvrir-un-compte/packs-entreprises",
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_ENTREPRISES_JANVIER_2026.pdf",
+        "https://bicici.ci/documents/d/website-bicici/01-bicici-conditions_pme_janvier-2026-091226-1"
+      ],
+      "date": "2026-07-02"
+    },
+    "par le client : perte ou vol": {
+      "_libelle": "Par le client : perte ou vol",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de perte ou vol de cartes bancaires à 9000 F est supérieur à la médiane du marché ivoirien, qui est de 7750 F, mais inférieur au prix actuel de la SGCI, qui est de 11000 F.",
+      "ok": false,
+      "nuance": "Il convient de faire preuve de prudence, car une baisse du prix à 9000 F pourrait ne pas suffire à améliorer la compétitivité de la SGCI sur le marché ivoirien.",
+      "sources": [
+        "https://societegenerale.ci/fileadmin/user_upload/cote_ivoire/PDF/brochure_tarifaire_pro.pdf",
+        "https://www.boaburkinafaso.com/wp-content/uploads/2023/01/03-01-23_C.T-2023_BFWeb_ENT.pdf",
+        "https://boacoteivoire.com/wp-content/uploads/2021/04/Part-2021_A4.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "consultation de solde dans l’uemoa": {
+      "_libelle": "Consultation de solde dans l’UEMOA",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de consultation de solde dans l'UEMOA est positionné à 500 F, ce qui est similaire à la médiane du marché ivoirien.",
+      "ok": true,
+      "nuance": "La recommandation de baisser ce frais semble raisonnable, mais il convient de considérer les risques potentiels sur le PNB et l'élasticité de la demande.",
+      "sources": [
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_PARTICULIERS_JANVIER_2026.pdf",
+        "https://www.nsiabanque.ci/wp-content/uploads/2020/05/CONDITIONS-DE-BANQUE-PARTICULIERS-FEV2020_.pdf",
+        "https://www.boasenegal.com/wp-content/uploads/2020/05/Conditions-de-banque-2020-2.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "consultation de solde hors zone uemoa": {
+      "_libelle": "Consultation de solde hors zone UEMOA",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de consultation de solde hors zone UEMOA est positionné à 500 F, ce qui correspond à la médiane du marché ivoirien.",
+      "ok": true,
+      "nuance": "La recommandation de baisser ce frais doit être validée avec prudence, car une baisse excessive pourrait impacter la rentabilité de la banque.",
+      "sources": [
+        "https://societegenerale.ci/fileadmin/user_upload/SG_Cote_ivoire/Home_Reboot/Pdf/CONDITIONS_BANCAIRES_PARTICULIERS_JANVIER_2026.pdf",
+        "https://afrikabanque.ci/wp-content/uploads/2026/02/Conditions-Bancaires-AFRIKA-BANQUE-Fevrier-2026_VF_1.pdf",
+        "https://www.bni.ci/documents/20251219_175735_e64ceeb2609e93ce2fc9275c3.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "consultation de solde dans les autres banques locales": {
+      "_libelle": "Consultation de solde dans les autres banques locales",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de consultation de solde dans les autres banques locales est positionné à 500 F, soit à la médiane du marché ivoirien, avec des pratiques concurrentes variant de 300 à 800 F",
+      "ok": false,
+      "nuance": "Il convient de faire preuve de prudence, car une baisse pourrait être perçue comme une agression de marché, mais les tarifs concurrentiels varient considérablement, ce qui pourrait laisser une marge de manœuvre pour une révision",
+      "sources": [
+        "https://cotedivoire.coris.bank/wp-content/uploads/2026/05/Conditions-de-banque-CBI-CI-mai-2026.pdf",
+        "https://orangebank.ci/wp-content/uploads/2022/12/Conditions-de-banque.pdf",
+        "https://www.banqueatlantique.net/wp-content/uploads/2026/01/MISE-A-JOUR-ENTREPRISES_CONDITIONS-DEBITRICES-BACI-Semestre-1-2026.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "distributeurs automatiques (dab) autres banques locales (gim)": {
+      "_libelle": "Distributeurs Automatiques (DAB) autres banques locales (GIM)",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de retrait aux distributeurs automatiques de billets (DAB) autres banques locales (GIM UEMOA) est positionné à 500 F, soit à la médiane du marché ivoirien.",
+      "ok": true,
+      "nuance": "La recommandation de baisser ce frais semble confirmée, car plusieurs banques ivoiriennes proposent des tarifs similaires ou inférieurs, notamment 450 FCFA ou 454 FCFA.",
+      "sources": [
+        "https://www.bni.ci/documents/20251219_175735_e64ceeb2609e93ce2fc9275c3.pdf",
+        "https://www.utb.tg/publication/pdf/7",
+        "https://www.bicici.ci/documents/d/website-bicici/bicici-conditions-de-banque-juillet-2026-compile"
+      ],
+      "date": "2026-07-02"
+    },
+    "frais de modification": {
+      "_libelle": "Frais de modification",
+      "verdict_ref": "AUGMENTER",
+      "contexte": "Le frais de modification de 15000 F est dans la fourchette haute des pratiques ivoiriennes, mais reste compétitif par rapport à certains établissements bancaires de la zone UEMOA",
+      "ok": true,
+      "nuance": "Cependant, il convient de considérer le risque de perte de parts de marché si les clients perçoivent ce frais comme excessif par rapport à la concurrence",
+      "sources": [
+        "https://www.boaniger.com/wp-content/uploads/2023/07/07-07-23_NG_A4_ENT_CONDITIONS-DE-BANQUE.pdf",
+        "https://www.ubacotedivoire.com/wp-content/uploads/sites/12/2026/04/Conditions-tarifaires-Entreprises-UBA-CI-2026.pdf",
+        "https://www.bni.ci/documents/20240102_110529_c5ff92062dfb13c670b77ba85.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "inscription de nantissement": {
+      "_libelle": "Inscription de nantissement",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais d'inscription de nantissement de 20 000 F CFA est dans la fourchette haute du marché ivoirien, avec certains établissements proposant ce service à titre gratuit",
+      "ok": false,
+      "nuance": "Il convient de faire preuve de prudence, car une baisse du prix à 15 000 F CFA pourrait entraîner une perte de revenus sans garantie de gain de parts de marché",
+      "sources": [
+        "https://www.bni.ci/documents/20250102_134536_63af3f63b44dbed6c856aef4e.pdf",
+        "https://www.boasenegal.com/wp-content/uploads/2020/05/Conditions-de-banque-2020-2.pdf",
+        "https://www.ubacotedivoire.com/wp-content/uploads/sites/12/2026/04/Conditions-tarifaires-Entreprises-UBA-CI-2026.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "réédition du code confidentiel": {
+      "_libelle": "Réédition du code confidentiel",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le prix de réédition du code confidentiel de 5000 F est dans la fourchette basse des tarifs pratiqués par les banques ivoiriennes, avec une médiane de 5000 F.",
+      "ok": true,
+      "nuance": "La recommandation de baisser le prix à 5000 F semble raisonnable, mais il convient de considérer les risques potentiels sur le produit net bancaire (PNB) et l'élasticité de la demande.",
+      "sources": [
+        "https://www.odemocratagb.com/wp-content/uploads/2021/06/conditions-generales-de-banque-BAGB-1er-semestre-2021-corrige.pdf",
+        "https://www.bni.ci/documents/c6b66d9ac3bb2ed94cf497ccf1ad03f9.pdf",
+        "https://sib.ci/wp-content/uploads/2025/06/Conditions-de-banque-Particuliers-2-Aout.pdf"
+      ],
+      "date": "2026-07-02"
+    },
+    "commission de transmission (client confrère)": {
+      "_libelle": "Commission de transmission (client confrère)",
+      "verdict_ref": "BAISSER",
+      "contexte": "Le frais de commission de transmission (client confrère) de 12 000 F pratiqué par la SGCI est nettement supérieur à la médiane du marché ivoirien, qui se situe autour de 2 000 F.",
+      "ok": true,
+      "nuance": "La recommandation de baisser le frais vers 2 000 F semble raisonnable, mais il convient de considérer les risques potentiels sur le PNB et l'élasticité de la demande.",
+      "sources": [
+        "https://afrikabanque.ci/wp-content/uploads/2025/04/Conditions-Bancaires-AFRIKA-BANQUE-MARS-2025.pdf",
+        "https://www.facebook.com/ecobankciv/posts/1-ttc-de-frais-oui-1-ttc-de-frais-dans-toute-la-zone-uemoaavec-xpress-cash-perme/1298870467204577",
+        "https://www.boasenegal.com/wp-content/uploads/2020/05/Conditions-de-banque-2020-2.pdf"
+      ],
+      "date": "2026-07-02"
+    }
+  },
+  "_maj": "2026-07-02"
+}
