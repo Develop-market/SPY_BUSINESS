@@ -2350,7 +2350,7 @@ function _paneShow(group, sel){
     if(!window.Plotly) return;
     (map[sel]||[]).forEach(n=>{
       if(!n.querySelectorAll) return;
-      n.querySelectorAll('.js-plotly-plot').forEach(p=>{ try{ Plotly.Plots.resize(p); }catch(e){} });
+      n.querySelectorAll('.js-plotly-plot').forEach(p=>{ if(p.offsetParent===null) return; try{ Plotly.Plots.resize(p); }catch(e){} });
     });
   });
 }
@@ -7947,6 +7947,11 @@ window.addEventListener("load", ()=>{
 
 window.addEventListener("resize", ()=>{
   document.querySelectorAll(".js-plotly-plot").forEach(p=>{
+    // offsetParent===null → élément caché (display:none, dans un onglet non sélectionné, etc.).
+    // Sur mobile, l'événement "resize" se déclenche très souvent (barre d'adresse, clavier virtuel,
+    // rotation) : appeler resize() sur un graphique caché fait planter Plotly en interne et peut
+    // laisser le graphique vide/cassé au moment où son onglet redevient visible.
+    if(p.offsetParent===null) return;
     try{ Plotly.Plots.resize(p); }catch(e){}
   });
 });
