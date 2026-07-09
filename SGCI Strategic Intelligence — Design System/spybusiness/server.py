@@ -15,10 +15,14 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 HERE     = os.path.dirname(os.path.abspath(__file__))
-BACK_DIR = os.path.join(os.path.expanduser("~"), "Desktop", "BACK")
+# BACK_DIR = racine du dépôt (2 niveaux au-dessus de spybusiness/), pas ~/Desktop/BACK —
+# reste correct quel que soit l'utilisateur/OS/conteneur tant que la structure du repo est préservée.
+BACK_DIR = os.environ.get("BACK_DIR") or os.path.dirname(os.path.dirname(HERE))
 RAG_DIR  = os.path.join(BACK_DIR, "RAG")
 
-# Charger .env depuis BACK_DIR (contient les clés Groq, DB, etc.)
+# Charger .env depuis BACK_DIR (contient les clés Groq, DB, etc.) — en local uniquement.
+# En prod (Cloud Run, etc.), les variables sont injectées directement par la plateforme
+# et ce fichier n'existe pas : os.environ.setdefault ne fait alors rien, sans erreur.
 _env_file = os.path.join(BACK_DIR, ".env")
 if os.path.isfile(_env_file):
     with open(_env_file, encoding="utf-8") as _ef:
@@ -250,7 +254,7 @@ def api_chat():
             return jsonify({"reponse": f"⚠️ Erreur RAG : {e}", "source": "error"})
 
     return jsonify({
-        "reponse": "Le RAG est hors-ligne. Vérifiez vos clés API dans BACK/.env.",
+        "reponse": "💬 Le chat IA n'est pas disponible sur cet environnement (ressources insuffisantes pour le modèle de recherche sémantique). Le reste du dashboard fonctionne normalement.",
         "source": "offline",
     })
 
@@ -4615,8 +4619,18 @@ Pour chaque menace (fintechs, digital, concurrents spécifiques) :
 import uuid as _uuid, subprocess as _sub, threading as _th, tempfile as _tmp
 
 _INGEST_SCRIPT = os.path.join(BACK_DIR, "PIPELINE", "ingest.py")
+# En prod (image cloud allégée), PIPELINE/ingest.py n'est pas embarqué (dépendances lourdes
+# d'extraction — docling/paddleocr/torch). Le bouton "Ajouter des données" est alors masqué
+# côté front (/api/features) et les routes ci-dessous répondent une erreur claire plutôt
+# que de tenter de lancer un script absent.
+_INGEST_AVAILABLE = os.path.isfile(_INGEST_SCRIPT)
 _JOBS = {}                       # job_id → {stage,status,result,log,type}
 _JOBS_LOCK = _th.Lock()
+
+
+@app.route("/api/features")
+def api_features():
+    return jsonify({"ingest_available": _INGEST_AVAILABLE, "chat_available": _RAG_OK})
 
 
 def _run_ingest_job(job_id, args):
@@ -4931,6 +4945,8 @@ def ajout_prochaine_periode():
 @app.route("/api/ajout/extraire", methods=["POST"])
 def ajout_extraire():
     """Reçoit le document + métadonnées → lance extraction+nettoyage+aperçu (async)."""
+    if not _INGEST_AVAILABLE:
+        return jsonify({"ok": False, "message": "Ajout de données indisponible sur cet environnement (pipeline d'extraction non installé ici). Utilisez un poste local avec le pipeline complet."}), 503
     f = request.files.get("fichier")
     if not f or not f.filename:
         return jsonify({"ok": False, "message": "Aucun fichier fourni."}), 400
@@ -4972,6 +4988,8 @@ def ajout_extraire():
 @app.route("/api/ajout/stocker", methods=["POST"])
 def ajout_stocker():
     """Confirme l'aperçu validé → stockage ciblé en base (async)."""
+    if not _INGEST_AVAILABLE:
+        return jsonify({"ok": False, "message": "Ajout de données indisponible sur cet environnement (pipeline d'extraction non installé ici). Utilisez un poste local avec le pipeline complet."}), 503
     b = request.get_json(force=True, silent=True) or {}
     typ = (b.get("type") or "CB").upper()
     banque = (b.get("banque") or "").upper().strip()
@@ -5111,4 +5129,4 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"[cache] warm échoué strategie({seg}): {e}")
     threading.Thread(target=_warm, daemon=True).start()
-    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False, threaded=True)

@@ -1,0 +1,24 @@
+# Non copiés par le Dockerfile (seuls spybusiness/ et RAG/ le sont), mais exclus ici
+# pour ne pas les envoyer inutilement au démon Docker (contexte de build plus rapide,
+# et aucun risque qu'un secret ou un gros dossier parte "par erreur").
+.git/
+.claude/
+.sixth/
+venv/
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+.env
+DATA/
+PIPELINE/
+node_modules/
+*.log
+screenshots_audit/
+run_qualite_complete.py
+requirements.txt
+README.md
+FORMULES_ET_SOURCES*.md
+FORMULES_ET_SOURCES_CB.pdf
+METHODOLOGIE_INDICATEURS_CB.md
+DEMARRER_DASHBOARD.bat

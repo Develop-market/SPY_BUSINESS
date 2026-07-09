@@ -7761,6 +7761,13 @@ function _bootApp(){
     });
   _checkLlmStatus();
   setInterval(_checkLlmStatus, 90000);   // ré-affiche/masque le bandeau si l'état change en cours de session
+  // Masque "Ajouter des données" sur les environnements où le pipeline d'extraction n'est pas embarqué (ex. cloud allégé).
+  fetch("/api/features").then(r=>r.json()).then(f=>{
+    if(f && f.ingest_available===false){
+      const nav = document.getElementById("nav-ajout");
+      if(nav) nav.style.display = "none";
+    }
+  }).catch(()=>{});
   // Tampon discret de traçabilité (filigrane) — date/heure de la session en cours.
   const _wmStamp = document.getElementById("app-watermark-stamp");
   if(_wmStamp) _wmStamp.textContent = "Direction Innovation SGCI · " + new Date().toLocaleString("fr-FR", {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"});

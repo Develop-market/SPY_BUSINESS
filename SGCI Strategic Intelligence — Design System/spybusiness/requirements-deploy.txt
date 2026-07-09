@@ -1,0 +1,21 @@
+# Dépendances de PRODUCTION pour le dashboard SpyBusiness (Render, plan gratuit 512 Mo).
+# Volontairement distinct du requirements.txt racine (qui couvre en plus tout le pipeline
+# d'extraction PDF→BD : docling, paddleocr, torch-vision, streamlit... inutile ici et beaucoup
+# trop lourd pour l'image servie). Ce fichier ne liste que ce que server.py / dash_app
+# importent réellement à l'exécution.
+#
+# Volontairement ABSENTS : torch / sentence-transformers / langchain-* (chat IA à recherche
+# sémantique locale). Ces paquets pèsent 2+ Go et ne rentrent pas dans les 512 Mo du plan
+# gratuit. server.py détecte leur absence proprement (_RAG_OK=False) et désactive juste le
+# chat avec un message clair — le reste du dashboard (Santé financière, Conditions bancaires,
+# Stratégie) n'en dépend pas et fonctionne normalement.
+
+Flask==3.1.2
+flask-cors==6.0.1
+psycopg2-binary==2.9.11
+requests==2.32.5
+python-dotenv==1.1.1
+
+# LLM (API — léger, pas de modèle local)
+groq==0.37.1
+anthropic==0.99.0
