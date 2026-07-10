@@ -283,10 +283,11 @@ async function loadCB(annee=2026, semestre="S1", segment="Particuliers"){
 
 /* ── Theme helpers ─────────────────────────────────────────────────── */
 function pk(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-// Écrans tactiles (mobile/tablette) : le pincer-zoomer sur un graphique Plotly entre en
-// conflit avec le défilement de la page et peut le laisser vide/cassé. On désactive donc
-// le zoom interactif UNIQUEMENT sur tactile — la souris (desktop) garde le zoom habituel.
-const _IS_TOUCH = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+// Graphiques figés partout (mobile ET desktop) : le zoom/pan interactif de Plotly (pincer
+// sur tactile, cliquer-glisser à la souris) est plus gênant qu'utile sur ce dashboard de
+// lecture, et pouvait laisser un graphique vide/cassé sur mobile. Nom conservé (_IS_TOUCH)
+// pour ne pas toucher tous les points d'usage, mais s'applique désormais à tous les appareils.
+const _IS_TOUCH = true;
 function baseLayout(extra={}){
   const grid = pk("--plot-grid") || "#26262b";
   const font = pk("--plot-font") || "#9A9AA2";
