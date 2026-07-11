@@ -4989,6 +4989,7 @@ ${_v3sec('1','#378ADD',"Qu'est-ce qui a globalement changé sur 3 ans ?","Catalo
     </div>
     ${rankBars}
     <div id="cb-q1-rank-llm" style="font:400 13px var(--sans);color:var(--ink);line-height:1.7;padding:14px 16px;background:var(--bg-raise);border-radius:8px;margin-top:16px;border:1px solid var(--line)"><span style="color:var(--faint);font-style:italic">Analyse stratégique en cours…</span></div>
+    <div id="cb-q1-rank-llm-stale-badge" style="display:none"></div>
   </div>
   <div class="panel">
     <div class="panel-title">Mouvements tarifaires SGCI ${fP} → ${lP}</div>
@@ -5012,7 +5013,7 @@ ${_v3sec('1','#378ADD',"Qu'est-ce qui a globalement changé sur 3 ans ?","Catalo
         hausses:allHausses.slice(0,8).map(r=>({libelle:(r.libelle||'').slice(0,50),avant:r.montant_avant,apres:r.montant_apres,pct:Math.round(r.delta_pct||0)})),
         baisses:allBaisses.slice(0,5).map(r=>({libelle:(r.libelle||'').slice(0,50),avant:r.montant_avant,apres:r.montant_apres,pct:Math.round(r.delta_pct||0)}))
       };
-      return`<div id="cb-q1-repricing-llm" style="font:400 13px var(--sans);color:var(--ink);line-height:1.7;padding:14px 16px;background:var(--bg-raise);border-radius:8px;border:1px solid var(--line);margin-top:14px"><span style="color:var(--faint);font-style:italic">Analyse stratégique en cours…</span></div>`;
+      return`<div id="cb-q1-repricing-llm" style="font:400 13px var(--sans);color:var(--ink);line-height:1.7;padding:14px 16px;background:var(--bg-raise);border-radius:8px;border:1px solid var(--line);margin-top:14px"><span style="color:var(--faint);font-style:italic">Analyse stratégique en cours…</span></div><div id="cb-q1-repricing-llm-stale-badge" style="display:none"></div>`;
     })()}
   </div>
 </div>
@@ -5059,7 +5060,7 @@ ${_v3sec('1','#378ADD',"Qu'est-ce qui a globalement changé sur 3 ans ?","Catalo
       nRetraits:sorted.length,avecConcurrence:withC.length,
       services:sorted.slice(0,10).map(d=>({libelle:d.libelle,concurrents:d.concurrent_ont||[]}))
     };
-    return`<div style="max-height:300px;overflow-y:auto;margin-bottom:8px">${items}${restL}</div><div id="cb-q1-retrait-llm" style="font:400 10.5px var(--sans);color:var(--ink);line-height:1.6;padding:8px 12px;background:var(--bg-raise);border-radius:7px;border:1px solid var(--line);margin-top:4px"><span style="color:var(--faint);font-style:italic">Analyse stratégique en cours…</span></div>`;
+    return`<div style="max-height:300px;overflow-y:auto;margin-bottom:8px">${items}${restL}</div><div id="cb-q1-retrait-llm" style="font:400 10.5px var(--sans);color:var(--ink);line-height:1.6;padding:8px 12px;background:var(--bg-raise);border-radius:7px;border:1px solid var(--line);margin-top:4px"><span style="color:var(--faint);font-style:italic">Analyse stratégique en cours…</span></div><div id="cb-q1-retrait-llm-stale-badge" style="display:none"></div>`;
   })()}
 </div>
 <div class="panel" style="margin-bottom:4px">
@@ -5081,6 +5082,7 @@ ${_v3sec('1','#378ADD',"Qu'est-ce qui a globalement changé sur 3 ans ?","Catalo
   <div id="cb-q1-llm" style="font:400 11px var(--sans);color:var(--ink);line-height:1.7;padding:2px 0">
     <span style="color:var(--faint);font-style:italic">Analyse en cours…</span>
   </div>
+  <div id="cb-q1-llm-stale-badge" style="display:none"></div>
 </div>`;
   // Payload pour l'appel LLM async — calculé depuis les données déjà traitées
   window._q1LlmPayload={
@@ -5300,6 +5302,7 @@ async function _fireQ1LLM(){
       const d=await res.json();
       if(d.analyse){rankDiv.dataset.loaded='1';rankDiv.innerHTML=_llmPfx+_fmtAnalyse(d.analyse);}
       else{rankDiv.innerHTML='';}
+      _showStaleBadge('cb-q1-rank-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
     }catch(e){rankDiv.innerHTML='';}
   }
   // Appel 2 : repricing
@@ -5316,6 +5319,7 @@ async function _fireQ1LLM(){
     const d=await res.json();
     if(d.analyse){div.dataset.loaded='1';div.innerHTML=_llmPfx+_fmtAnalyse(d.analyse);}
     else{div.innerHTML='';}
+    _showStaleBadge('cb-q1-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
   }catch(e){div.innerHTML='';}
 }
 
@@ -5329,6 +5333,7 @@ async function _fireQ1RepricingLLM(){
     const d=await res.json();
     if(d.analyse){div.dataset.loaded='1';div.innerHTML=_llmPfx+_fmtAnalyse(d.analyse);}
     else{div.innerHTML='';}
+    _showStaleBadge('cb-q1-repricing-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
   }catch(e){div.innerHTML='';}
 }
 
@@ -5342,6 +5347,7 @@ async function _fireQ1RetraitLLM(){
     const d=await res.json();
     if(d.analyse){div.dataset.loaded='1';div.innerHTML=_llmPfx+_fmtAnalyse(d.analyse);}
     else{div.innerHTML='';}
+    _showStaleBadge('cb-q1-retrait-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
   }catch(e){div.innerHTML='';}
 }
 
@@ -5362,6 +5368,7 @@ async function _fireQ2MarketLLM(){
     const cur=document.getElementById('cb-q2-market-llm');
     if(d.analyse&&cur){cur.dataset.loaded='1';cur.innerHTML=_llmPfx+_fmtAnalyse(d.analyse);}
     else if(cur){cur.innerHTML='';}
+    _showStaleBadge('cb-q2-market-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
   }catch(e){
     const cur=document.getElementById('cb-q2-market-llm');
     if(cur)cur.innerHTML='';
@@ -5380,6 +5387,7 @@ async function _fireQ2InnoLLM(){
     const cur=document.getElementById('cb-q2-inno-llm');
     if(d.analyse&&cur){cur.dataset.loaded='1';cur.innerHTML=_llmPfx+_fmtAnalyse(d.analyse);}
     else if(cur){cur.innerHTML='';}
+    _showStaleBadge('cb-q2-inno-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
   }catch(e){
     const cur=document.getElementById('cb-q2-inno-llm');
     if(cur)cur.innerHTML='';
@@ -5410,6 +5418,7 @@ async function _fireQ2LLM(){
       } else {
         div.style.display='none';
       }
+      _showStaleBadge(`cb-q2-llm-${safeId}-stale-badge`, {stale:d.stale, generated_at:d.generated_at});
     }catch(e){
       div.style.display='none';
     }
@@ -5601,6 +5610,7 @@ async function _fireQ4LLM(){
     const d=await res.json();
     if(d.analyse){div.dataset.loaded='1';div.innerHTML=pfx+_fmtAnalyse(d.analyse);}
     else{div.innerHTML='';}
+    _showStaleBadge('cb-q4-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
   }catch(e){div.innerHTML='';}
 }
 
@@ -6049,6 +6059,7 @@ function _renderQ2(data){
         ${topNames?`<div style="font:400 10.5px var(--sans);line-height:1.8;margin-bottom:6px">${topNames}</div>`:''}
         <div style="font:400 10.5px var(--sans);color:#64748B;line-height:1.5">${diag}</div>
         <div id="cb-q2-llm-${safeId}" style="margin-top:12px;font:400 13px var(--sans);color:var(--ink);line-height:1.7;border-top:1px solid #E2E8F0;padding-top:10px;display:none"></div>
+        <div id="cb-q2-llm-${safeId}-stale-badge" style="display:none"></div>
       </div>`;
     }).join('')||'<div style="color:var(--faint);font-size:12px">Aucun concurrent actif sur la période.</div>'
     :_v3ins('Données concurrentes en chargement (~13s après démarrage).');
@@ -6088,12 +6099,14 @@ ${_v3sec('2','#1D9E75',"Innovation marché 2024–2026",hdrSub)}
     </div>
     <div id="cb-q2-rattrapage"></div>
     <div id="cb-q2-market-llm" style="font:400 13px var(--sans);color:var(--ink);line-height:1.7;padding:14px 16px;background:var(--bg-raise);border-radius:8px;margin-top:14px;border:1px solid var(--line)"><span style="color:var(--faint);font-style:italic">${evAll?'Analyse stratégique en cours…':'Chargement des données concurrentes…'}</span></div>
+    <div id="cb-q2-market-llm-stale-badge" style="display:none"></div>
   </div>
   <div class="panel">
     <div class="panel-title">Innovations par banque — catalogue comparé</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${filterBtns}</div>
     ${innoPanels}
     <div id="cb-q2-inno-llm" style="font:400 13px var(--sans);color:#1E293B;line-height:1.7;padding:14px 16px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;margin-top:16px"><span style="color:var(--faint);font-style:italic">${evAll?'Analyse comparative en cours…':'Chargement des données concurrentes…'}</span></div>
+    <div id="cb-q2-inno-llm-stale-badge" style="display:none"></div>
   </div>
 </div>
 
@@ -6380,6 +6393,7 @@ ${_v3sec('4','#E91E63','Avantage concurrentiel durable — Analyse VRIST','Index
 <div class="panel">
   <div class="panel-title">Analyse stratégique</div>
   <div id="cb-q4-llm" class="insight" style="margin-top:14px"><span style="font:400 12.5px var(--sans);color:var(--faint);font-style:italic">Analyse stratégique en cours…</span></div>
+  <div id="cb-q4-llm-stale-badge" style="display:none"></div>
 </div>`;
 }
 // ── Q5 : filtre banque — chargement lazy axe BCEAO par banque ────────────────
@@ -6820,7 +6834,13 @@ async function _fireQ6SubSectionComparison(){
     const insights_plus=[], insights_moins=[];
 
     const _nAct=recap.reduce((t,s)=>t+s.items.length,0);
-    let html=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+    // Transparence : quand l'IA (Groq/Claude) a échoué et que les verdicts viennent du
+    // repli déterministe (règles de marge, pas de raisonnement IA), le prévenir une fois
+    // en tête plutôt que de laisser croire que CHAQUE verdict est un raisonnement IA.
+    const _estimBanner = rp.engine==='estimation'
+      ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 12px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;font:600 11px var(--sans);color:#92400E">⚠️ IA indisponible pour cette génération — verdicts ci-dessous calculés par règle déterministe (marge/écart marché), pas par raisonnement IA.</div>`
+      : '';
+    let html=_estimBanner+`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
   <button id="rp-tab-cat" onclick="_rpSwitchView('cat')" style="font:700 11px var(--sans);padding:7px 14px;border-radius:8px;border:1px solid var(--accent-2);background:var(--accent-2);color:#fff;cursor:pointer">Détail par service</button>
   <button id="rp-tab-recap" onclick="_rpSwitchView('recap')" style="font:700 11px var(--sans);padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg-raise,#f1f5f9);color:var(--muted);cursor:pointer">Récap actions${_nAct?` (${_nAct})`:''}</button>
 </div>

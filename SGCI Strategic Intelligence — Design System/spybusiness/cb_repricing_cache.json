@@ -463,6 +463,14 @@
       "cible": 500,
       "justif": "Sous la médiane marché (750 F) — marge de hausse sans perte de rang.",
       "src": "estimation"
+    },
+    "II||prélèvements": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition à bas prix, tous les concurrents sont à 0F",
+      "src": "groq"
     }
   },
   "2026_S1_Entreprises": {
