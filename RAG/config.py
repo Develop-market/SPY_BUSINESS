@@ -103,6 +103,20 @@ def _charger_banques_officielles():
 
 
 BANQUES_OFFICIELLES = _charger_banques_officielles()
+
+
+def refresh_banques_officielles():
+    """Recharge BANQUES_OFFICIELLES EN PLACE (mutation, pas réaffectation) — les modules qui
+    ont fait `BANQUES = config.BANQUES_OFFICIELLES` (ex. structured_tools.py) pointent vers
+    le MÊME objet liste et voient donc la mise à jour immédiatement, sans réimport ni
+    redémarrage du process. Même principe que dash_app/db.py:refresh_banks() (`BANKS[:] = fresh`).
+    Appelé automatiquement par server.py juste après un ajout de données réussi — pour que
+    le chat, en production/déployé, n'ait JAMAIS besoin d'un redémarrage manuel du process
+    pour voir apparaître une nouvelle banque dans ses comparaisons."""
+    BANQUES_OFFICIELLES[:] = _charger_banques_officielles()
+    return list(BANQUES_OFFICIELLES)
+
+
 BANQUE_PRINCIPALE   = "SGCI"
 BANQUES_CONSOLIDEES = {"BACI", "BNI"}   # EF consolidé multi-années, pas de filtre par annee
 

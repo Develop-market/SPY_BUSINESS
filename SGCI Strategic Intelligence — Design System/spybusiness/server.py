@@ -4673,6 +4673,15 @@ def _run_ingest_job(job_id, args):
                         db.refresh_banks()
                     except Exception as _e:
                         print(f"[ajout] refresh_banks post-store: {_e}")
+                    # Même chose côté chat (RAG/config.py) : sans cet appel, une banque tout
+                    # juste ajoutée n'apparaissait dans les comparaisons du chat (ROE, PNB...)
+                    # qu'après un redémarrage MANUEL du process — impraticable une fois
+                    # déployé (pas d'accès serveur direct pour un utilisateur non technique).
+                    try:
+                        import config as _rag_config
+                        _rag_config.refresh_banques_officielles()
+                    except Exception as _e:
+                        print(f"[ajout] refresh_banques_officielles post-store: {_e}")
     except Exception as e:
         with _JOBS_LOCK:
             _JOBS[job_id].update(status="error", result={"ok": False, "message": str(e)[:300]})
