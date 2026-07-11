@@ -6,6 +6,7 @@ Tous les autres modules importent ce fichier.
 """
 
 import os
+import psycopg2
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -79,7 +80,29 @@ MAX_CONTEXT_CHARS_COMPARAISON = 200000 if LLM_PROVIDER == "gemini" else 6000
 MEMORY_MAX_TURNS = 5
 
 # ── Référentiel banques ───────────────────────────────────────────────────────
-BANQUES_OFFICIELLES = ["BACI", "BICICI", "BNI", "ECOBANK", "NSIA", "SIB", "SGCI"]
+# Chargé DEPUIS la table `banques` (source faisant autorité, utilisée aussi pour la
+# contrainte FK à l'ingestion d'une nouvelle banque) plutôt qu'une liste figée en dur —
+# trouvé le 2026-07-11 : le dashboard (dash_app/db.py, BANKS) est déjà dynamique et se
+# recharge automatiquement après un ajout de données (refresh_banks()), mais CETTE liste
+# ne l'était pas → une banque ajoutée via « Ajouter des données » n'apparaissait PAS
+# automatiquement dans les comparaisons du chat (ROE, PNB, CB...) tant que ce fichier
+# n'était pas édité à la main. Liste figée ci-dessous gardée UNIQUEMENT comme filet de
+# sécurité si la base est indisponible au démarrage.
+def _charger_banques_officielles():
+    try:
+        cx = psycopg2.connect(**DB_PARAMS)
+        cur = cx.cursor()
+        cur.execute("SELECT code FROM banques ORDER BY code")
+        codes = [r[0] for r in cur.fetchall()]
+        cur.close(); cx.close()
+        if codes:
+            return codes
+    except Exception as e:
+        print(f"[config] liste banques dynamique indisponible → filet de sécurité ({e})")
+    return ["BACI", "BICICI", "BNI", "ECOBANK", "NSIA", "SIB", "SGCI"]
+
+
+BANQUES_OFFICIELLES = _charger_banques_officielles()
 BANQUE_PRINCIPALE   = "SGCI"
 BANQUES_CONSOLIDEES = {"BACI", "BNI"}   # EF consolidé multi-années, pas de filtre par annee
 
