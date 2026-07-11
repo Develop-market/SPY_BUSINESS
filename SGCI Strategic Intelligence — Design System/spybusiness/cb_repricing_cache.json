@@ -2498,5 +2498,447 @@
       "justif": "Nettement le plus cher du marché — risque de fuite.",
       "src": "estimation"
     }
+  },
+  "2025_S1_Entreprises": {
+    "I||conditions de clôture de compte": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "I||dépôt à terme": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, tous les concurrents sont à gratuit",
+      "src": "groq"
+    },
+    "II||frais de rejet impayé suite à l’absence ou l’insuffisance de provisions (avertissement)": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Frais de sanction (incident/impayé) : dissuasif par nature — le baisser encouragerait le comportement pénalisé.",
+      "src": "regle_metier"
+    },
+    "II||impayé prélèvement": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Frais de sanction (incident/impayé) : dissuasif par nature — le baisser encouragerait le comportement pénalisé.",
+      "src": "regle_metier"
+    },
+    "II||attestation de non engagement": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "II||attestation de solde": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "II||attestation de capacité financière": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "II||attestation de ligne de crédit": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "II||attestation de clôture de compte": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "II||attestation de non-redevance": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "II||attestation de préfinancement": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "II||dans la zone uemoa": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition",
+      "src": "groq"
+    },
+    "II||par la banque : usage abusif": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition",
+      "src": "groq"
+    },
+    "II||première carte (frais de destruction de chéquier)": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Concurrentiel à 10000F",
+      "src": "groq"
+    },
+    "II||réédition du code confidentiel": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Proche de la médiane",
+      "src": "groq"
+    },
+    "II||par le client : perte ou vol": {
+      "verdict": "BAISSER",
+      "fleche": "down",
+      "montant": 2000,
+      "cible": 9000,
+      "justif": "Plus cher qu'ECOBANK",
+      "src": "groq"
+    },
+    "II||chèques de banque uemoa": {
+      "verdict": "BAISSER",
+      "fleche": "down",
+      "montant": 4500,
+      "cible": 12000,
+      "justif": "Plus cher qu'ECOBANK",
+      "src": "groq"
+    },
+    "II||frais pour annulation de chèque de banque": {
+      "verdict": "BAISSER",
+      "fleche": "down",
+      "montant": 6500,
+      "cible": 10000,
+      "justif": "Plus cher que BNI",
+      "src": "groq"
+    },
+    "II||chèques barrés non endossables": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit comme les concurrents",
+      "src": "groq"
+    },
+    "II||chèques de banque sur place": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Proche de la médiane",
+      "src": "groq"
+    },
+    "II||encaissement de chèques hors uemoa": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit comme les concurrents",
+      "src": "groq"
+    },
+    "II||encaissement de chèques dans i’uemoa": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit comme les concurrents",
+      "src": "groq"
+    },
+    "II||encaissement de virements nationaux, communautaires et internationaux": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit comme les concurrents",
+      "src": "groq"
+    },
+    "II||exécution de l’opération": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit comme les concurrents",
+      "src": "groq"
+    },
+    "II||virement entre agences en faveur d’un tiers": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit comme les concurrents",
+      "src": "groq"
+    },
+    "II||virement interne reçu ou émis (de compte à compte dans la même banque)": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit comme les concurrents",
+      "src": "groq"
+    },
+    "II||relevé d’identité bancaire (rib)": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit comme les concurrents",
+      "src": "groq"
+    },
+    "II||mensuel": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit comme les concurrents",
+      "src": "groq"
+    },
+    "II||consultation de solde dans l’uemoa": {
+      "verdict": "BAISSER",
+      "fleche": "down",
+      "montant": 500,
+      "cible": null,
+      "justif": "Plus cher que BNI",
+      "src": "groq"
+    },
+    "II||consultation de solde hors zone uemoa": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, BNI et NSIA gratuits",
+      "src": "groq"
+    },
+    "II||frais pour procuration": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Prix déjà bien positionné, médiane marché égale",
+      "src": "groq"
+    },
+    "II||consultation de solde dans les autres banques locales": {
+      "verdict": "BAISSER",
+      "fleche": "down",
+      "montant": 500,
+      "cible": null,
+      "justif": "Concurrents gratuits, acquisition",
+      "src": "groq"
+    },
+    "II||consultation/édition de solde dans la banque du client": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Service gratuit, barrière de sortie",
+      "src": "groq"
+    },
+    "II||distributeurs automatiques (dab) de la banque du client": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Service gratuit, barrière de sortie",
+      "src": "groq"
+    },
+    "II||frais de timbre pour versement d’espèces en compte": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Prix déjà bien positionné, médiane marché égale",
+      "src": "groq"
+    },
+    "II||associations": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Frais réglementaire, ne pas baisser",
+      "src": "groq"
+    },
+    "III||demande d’opposition": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "III||frais de mainlevée saisie attribution / avis à tiers déten- teurs (atd)": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "III||incident sur compte avis à tiers détenteur (atd), (saisie-ar- rêt)": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Frais de sanction (incident/impayé) : dissuasif par nature — le baisser encouragerait le comportement pénalisé.",
+      "src": "regle_metier"
+    },
+    "III||emission chèque de banque en fcfa": {
+      "verdict": "BAISSER",
+      "fleche": "down",
+      "montant": 3200,
+      "cible": 10000,
+      "justif": "Concurrentiel, ECOBANK à 5500F",
+      "src": "groq"
+    },
+    "III||modification d’intitulé de compte": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, gratuit",
+      "src": "groq"
+    },
+    "IV||avis de débit et de crédit par voie électronique": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, gratuit comme BACI et BNI",
+      "src": "groq"
+    },
+    "V||frais de déclaration d’opposition à la banque centrale": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "V||frais de mainlevée d’opposition à la banque centrale": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "V||frais d’impayés": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Frais de sanction (incident/impayé) : dissuasif par nature — le baisser encouragerait le comportement pénalisé.",
+      "src": "regle_metier"
+    },
+    "VIII||frais swift": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Frais réglementaire, marge de manœuvre limitée",
+      "src": "groq"
+    },
+    "VIII||frais de télex ou swift": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Frais réglementaire, marge de manœuvre limitée",
+      "src": "groq"
+    },
+    "VIII||frais dossier": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Prix variable selon type de compte",
+      "src": "groq"
+    },
+    "VIII||frais de dossier": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Prix variable selon type de compte",
+      "src": "groq"
+    },
+    "VIII||port lettre": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, compétitif à 1000F",
+      "src": "groq"
+    },
+    "VIII||frais d’envoi lettre": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Competitif par rapport à BNI (25000F)",
+      "src": "groq"
+    },
+    "IX||frais fixe": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, compétitif à 20000F",
+      "src": "groq"
+    },
+    "IX||reproduction de clé": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit, arme d'acquisition",
+      "src": "groq"
+    },
+    "IX||supplément par photocopie": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Bien positionné à 250F",
+      "src": "groq"
+    },
+    "IX||frais annuels de location": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie, prix élevé",
+      "src": "groq"
+    }
   }
 }

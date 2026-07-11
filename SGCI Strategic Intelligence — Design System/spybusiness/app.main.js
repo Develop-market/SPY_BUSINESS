@@ -1,5 +1,26 @@
 /* SpyBusiness — shell : routing, thème, pages, chat RAG. */
 
+/* Icône assistant IA — tête de robot moderne et colorée (pas monochrome currentColor :
+   dégradé blanc/gris pour un rendu "3D" doux, yeux bleus lumineux, antenne rouge accent).
+   Auto-suffisante (fonctionne sur n'importe quel fond, clair ou sombre). */
+const AI_ICON_SVG = '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width:74%;height:74%">'
+  + '<defs>'
+  + '<linearGradient id="rh-head" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF"/><stop offset="100%" stop-color="#D7DBE3"/></linearGradient>'
+  + '<linearGradient id="rh-eye" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6FEFFF"/><stop offset="100%" stop-color="#1FA6FF"/></linearGradient>'
+  + '</defs>'
+  + '<line x1="16" y1="3" x2="16" y2="7" stroke="#C3C9D4" stroke-width="1.7" stroke-linecap="round"/>'
+  + '<circle cx="16" cy="2.4" r="1.7" fill="#FF4D62"/>'
+  + '<rect x="3.3" y="14" width="2.7" height="6.4" rx="1.35" fill="#C3C9D4"/>'
+  + '<rect x="26" y="14" width="2.7" height="6.4" rx="1.35" fill="#C3C9D4"/>'
+  + '<rect x="6" y="8" width="20" height="17.5" rx="6.2" fill="url(#rh-head)" stroke="#AEB4BF" stroke-width="0.6"/>'
+  + '<rect x="8.3" y="10.4" width="15.4" height="9.4" rx="4.2" fill="#EEF1F5"/>'
+  + '<circle cx="12.2" cy="16.8" r="2.25" fill="url(#rh-eye)"/>'
+  + '<circle cx="19.8" cy="16.8" r="2.25" fill="url(#rh-eye)"/>'
+  + '<circle cx="12.95" cy="16.05" r="0.6" fill="#ffffff" opacity=".9"/>'
+  + '<circle cx="20.55" cy="16.05" r="0.6" fill="#ffffff" opacity=".9"/>'
+  + '<rect x="12.4" y="20.9" width="7.2" height="1.8" rx="0.9" fill="#C7CCD6"/>'
+  + '</svg>';
+
 /* ─── thème ─────────────────────────────────────────────────────────── */
 function setTheme(t){
   document.documentElement.setAttribute("data-theme", t);
@@ -3655,7 +3676,7 @@ function renderMsgs(){
   if(!box) return;
   if(!CHAT.length){
     box.innerHTML=`<div class="empty">
-      <div class="bigmark">SB</div>
+      <div class="bigmark">${AI_ICON_SVG}</div>
       <h2>Bonjour. Je suis l'intelligence bancaire ivoirienne.</h2>
       <p>Posez-moi n'importe quelle question sur les 7 banques de Côte d'Ivoire — tarifs, performance, réglementation.</p>
       <div class="sugg">${SUGG.map(s=>`<button onclick="askIA('${s[1].replace(/'/g,"\\'")}')"><span class="si">${s[0]}</span><span class="st">${s[1]}</span></button>`).join("")}</div>
@@ -3663,7 +3684,7 @@ function renderMsgs(){
     return;
   }
   box.innerHTML = CHAT.map((m,i)=>{
-    const ava   = `<div class="ava">${m.role==="u"?"DG":"SB"}</div>`;
+    const ava   = `<div class="ava">${m.role==="u"?"DG":AI_ICON_SVG}</div>`;
     const chart = m.chart ? `<div id="cm-${i}" style="height:240px;margin-top:11px"></div>` : "";
     const body  = m.role==="a" ? mdToHtml(m.content) : m.content;
     return `<div class="msg ${m.role==="u"?"u":"a"}">${ava}<div><div class="bubble">${body}</div>${chart}</div></div>`;

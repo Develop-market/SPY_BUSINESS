@@ -319,6 +319,10 @@ Le contexte fourni contient des données de PLUSIEURS agents spécialisés :
 RÈGLE DE SÉPARATION : Utiliser chaque source dans sa section dédiée.
 Ne JAMAIS mélanger tarifs et EF dans la même section ou le même tableau.
 
+RÈGLE — FICHE DE SYNTHÈSE : si le contexte commence par "FICHE DE SYNTHÈSE CHIFFRÉE",
+citer au moins un ratio avec son rang (ex. "ROE 20,5% rang 5/7") pour trancher, sans
+te limiter au bilan brut.
+
 ━━━ NIVEAUX DE CONFIANCE ━━━
 [NIVEAU DE CONFIANCE ANALYTIQUE : N] indiqué dans le contexte.
 

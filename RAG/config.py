@@ -27,13 +27,10 @@ GEMINI_MODEL   = "gemini-2.0-flash"
 
 GROQ_MODEL   = "llama-3.1-8b-instant"  # 70b quotas épuisés — repasser à llama-3.3-70b-versatile demain
 
-# Toutes les clés Groq — rotation automatique sur quota épuisé
-GROQ_API_KEYS = [k for k in [
-    os.getenv("GROQ_API_KEY",   ""),
-    os.getenv("GROQ_API_KEY_2", ""),
-    os.getenv("GROQ_API_KEY_3", ""),
-    os.getenv("GROQ_API_KEY_4", ""),
-] if k]
+# Toutes les clés Groq — rotation automatique sur quota épuisé (journalier OU budget par
+# minute plein). Seules 4 clés sur les 12 disponibles dans .env étaient utilisées ici,
+# limitant fortement la marge de manœuvre de la rotation en cas de 413/429.
+GROQ_API_KEYS = [k for k in [os.getenv(f"GROQ_API_KEY{('_'+str(i)) if i>1 else ''}", "") for i in range(1, 13)] if k]
 GROQ_API_KEY = GROQ_API_KEYS[0] if GROQ_API_KEYS else ""
 
 # LLM actif : "gemini" ou "groq"  (Gemini nécessite activation billing Google)
@@ -53,15 +50,30 @@ MAX_CHUNKS_BANQUE    = 950   # au-delà pour 1 banque → sémantique k=100
 LLM_TEMPERATURE_FACTUEL    = 0.1   # CB + EF — précision max, zéro invention
 LLM_TEMPERATURE_ANALYTIQUE = 0.7   # Multi + REGL + recommandations
 
-# Groq free tier : 6000 TPM = INPUT + MAX_OUTPUT_TOKENS par requête
-# Système prompt ≈ 1750 tokens, contexte ≈ 1250 tokens, question ≈ 100 tokens → input ≈ 3100
-# Budget restant pour output : 6000 - 3100 = 2900 → on garde 2000 avec marge
-LLM_MAX_TOKENS  = 2000
+# Groq free tier : 6000 TPM = INPUT + MAX_OUTPUT_TOKENS DEMANDÉ (Groq compte le budget de
+# sortie réservé, pas seulement ce qui est réellement généré). Mesuré en direct après la
+# vectorisation CB/EF (système prompt réel + contexte ≈ 4200 tok, bien au-dessus des 3100
+# estimés dans le commentaire d'origine) : Requested 6207 pour Limit 6000. Les prompts de
+# comparaison/analyse (niveau 3, plusieurs banques) ont un système prompt plus long que le
+# prompt factuel simple → budget contexte réduit spécifiquement pour ce cas (voir
+# MAX_CONTEXT_CHARS_COMPARAISON) plutôt que de pénaliser toutes les questions ici.
+LLM_MAX_TOKENS  = 1500
 SHOW_QUERY_DEBUG = os.getenv("SHOW_QUERY_DEBUG", "True").lower() == "true"
 
-# Gemini 1M tokens → on envoie TOUT sans truncation
-# Garder une limite raisonnable pour éviter les très longues réponses (~200k chars)
-MAX_CONTEXT_CHARS = 200000
+# Gemini 1M tokens → on envoie TOUT sans troncature (~200k chars).
+# Groq (fournisseur actif par défaut, 6000 TPM INPUT+OUTPUT) : budget plus petit, mais le
+# garde-fou RÉEL (chain.py, section 8b) mesure désormais la taille EXACTE du prompt assemblé
+# (système + contexte + question) juste avant l'envoi et retronque si besoin — ces deux
+# constantes ne sont donc plus qu'un PREMIER filtre grossier (évite de formatter un contexte
+# énorme pour rien), pas plus. Elles peuvent être généreuses : au départ fixées à 5000/1500
+# par précaution avant que 8b existe, ce qui étranglait à outrance les réponses (ex. "frais de
+# virement SGCI" répondait "non disponible" alors que la donnée EXISTE — juste écartée par la
+# troncature agressive) → relevées à 9000/6000, le garde-fou 8b reste le filet de sécurité final.
+MAX_CONTEXT_CHARS = 200000 if LLM_PROVIDER == "gemini" else 9000
+# Comparaisons multi-banques (7 banques × plusieurs domaines) : système prompt plus long
+# que le prompt factuel simple → budget contexte plus serré pour ce cas précis uniquement
+# (voir chain.py, branche "comparaison"), sans pénaliser les questions simples ci-dessus.
+MAX_CONTEXT_CHARS_COMPARAISON = 200000 if LLM_PROVIDER == "gemini" else 6000
 
 # ── Mémoire conversationnelle ─────────────────────────────────────────────────
 MEMORY_MAX_TURNS = 5
