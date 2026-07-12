@@ -670,17 +670,27 @@ def api_radar_agent():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+def _concurrents_txt():
+    """Liste des concurrents de SGCI (toutes les banques sauf SGCI), dynamique — voir
+    db.BANKS/refresh_banks(). Utilisé dans les prompts LLM CB qui énuméraient auparavant les
+    6 concurrents en dur (« absents de BICICI, SIB, BACI, NSIA, ECOBANK et BNI »), ce qui
+    aurait omis silencieusement toute banque ajoutée après les 7 historiques."""
+    return ", ".join(b for b in db.BANKS if b != "SGCI") or "BACI, BICICI, BNI, ECOBANK, NSIA, SIB"
+
+
 def _fmt_strategic_ctx(q_id, data, annee, semestre, segment):
     """Formate les données SQL en texte structuré pour le LLM stratégique."""
-    banks = ["SGCI", "BACI", "BICICI", "BNI", "ECOBANK", "NSIA", "SIB"]
     lines = []
 
     if q_id == 1:
-        # Pivot : par banque, montrer l'évolution des 3 indicateurs clés
+        # Pivot : par banque, montrer l'évolution des 3 indicateurs clés. Itère sur les
+        # banques RÉELLEMENT présentes dans `data` (pas une liste figée) : une banque
+        # nouvellement ajoutée dont la requête SQL en amont renvoie des lignes doit
+        # apparaître ici sans qu'on ait à éditer ce fichier.
         pivot = {}
         for r in data:
             pivot.setdefault(r["banque"], []).append(r)
-        for b in banks:
+        for b in sorted(pivot.keys()):
             pts = pivot.get(b, [])
             if not pts:
                 continue
@@ -1100,7 +1110,7 @@ def _rp_generate_chunk(roman, titre, chunk):
 
 {_rp_web_context()}
 
-Voici des services de la famille « {roman}. {titre} », avec le prix SGCI et ceux des concurrents (BACI, BICICI, BNI, ECOBANK, NSIA, SIB).
+Voici des services de la famille « {roman}. {titre} », avec le prix SGCI et ceux des concurrents ({_concurrents_txt()}).
 Pour CHAQUE service, décide l'action tarifaire pour SGCI EN APPLIQUANT LES RÈGLES DG ci-dessus. RAISONNE PRODUIT PAR PRODUIT (jamais une règle uniforme), et EXPLIQUE l'intention :
 - "NE_PAS_TOUCHER" : prix stratégique à préserver — soit une ARME D'ACQUISITION à bas prix (le monter tue le « pourquoi SGCI »), soit une BARRIÈRE DE SORTIE à prix élevé (retenir le client). Dis lequel.
 - "AUGMENTER" : seulement si SGCI peut monter SANS perdre en compétitivité ET sans casser son avantage. Hausse MODÉRÉE (jamais doubler). Donne un prix cible réaliste.
@@ -2887,9 +2897,10 @@ def api_analyse_strategique():
     ctx      = _fmt_strategic_ctx(q_id, data, annee, semestre, segment)
     question = _QUESTIONS_STRATEGIQUES(annee, semestre)[q_id]
 
+    _banks_list = ", ".join(db.BANKS) if db.BANKS else "SGCI, BACI, BICICI, BNI, ECOBANK, NSIA, SIB"
     SYSTEM = (
         "Tu es un analyste stratégique senior spécialisé en banque de détail (marché ivoirien, BCEAO/UEMOA). "
-        "Tu analyses les conditions tarifaires de 7 banques : SGCI, BACI, BICICI, BNI, ECOBANK, NSIA, SIB. "
+        f"Tu analyses les conditions tarifaires de {len(db.BANKS) or 7} banques : {_banks_list}. "
         "SGCI est la banque de référence. "
         "Règles : utilise UNIQUEMENT les données fournies — jamais tes connaissances générales. "
         "Chiffres exacts, conclusions directes, format markdown structuré. "
@@ -3513,7 +3524,7 @@ def api_cb_q3_llm():
 
     if scope == "domains":
         prompt = f"""Tu es un directeur commercial bancaire, marché ivoirien (UEMOA).
-SGCI a {n_total} services exclusifs absents de BICICI, SIB, BACI, NSIA, ECOBANK et BNI, segment {segment}.
+SGCI a {n_total} services exclusifs absents de {_concurrents_txt()}, segment {segment}.
 Répartition par domaine : {dom_txt}.
 
 En 2 phrases PRÉCISES et nominatives :
@@ -3524,7 +3535,7 @@ Commence directement. Cite BICICI, SIB, ECOBANK ou d'autres concurrents par leur
         max_tok = 380
     else:
         prompt = f"""Tu es un directeur commercial bancaire, marché ivoirien (UEMOA).
-SGCI possède {n_total} services exclusifs (absents de BICICI, SIB, BACI, NSIA, ECOBANK, BNI) dont {n_grat} gratuits, segment {segment}.
+SGCI possède {n_total} services exclusifs (absents de {_concurrents_txt()}) dont {n_grat} gratuits, segment {segment}.
 Domaines leaders : {dom_txt}.
 Exclusivités gratuites phares : {grat_txt}.
 Exclusivités payantes : {pay_txt}.
@@ -3719,7 +3730,7 @@ def api_cb_q3_exclusif_llm():
     ) or "  (liste non disponible)"
 
     prompt = f"""Tu es un analyste bancaire senior expert du marché ivoirien (UEMOA).
-SGCI a {n_total} services identifiés comme EXCLUSIFS (absents de BICICI, SIB, BACI, NSIA, ECOBANK, BNI) dont {n_grat} gratuits, segment {segment}.
+SGCI a {n_total} services identifiés comme EXCLUSIFS (absents de {_concurrents_txt()}) dont {n_grat} gratuits, segment {segment}.
 La comparaison est sémantique (similarité ~72%) mais des erreurs restent possibles.
 
 Services exclusifs candidats (extrait) :
@@ -3786,7 +3797,7 @@ Résumé par concurrent :
 {bank_txt}
 
 En 3 phrases nominatives et chiffrées :
-1. Quel concurrent spécifique (parmi BICICI, SIB, BACI, ECOBANK, BNI, NSIA) présente le plus fort avantage gap vs SGCI — combien de services uniques a-t-il, et comment en fait-il un argument commercial concret ?
+1. Quel concurrent spécifique (parmi {_concurrents_txt()}) présente le plus fort avantage gap vs SGCI — combien de services uniques a-t-il, et comment en fait-il un argument commercial concret ?
 2. Parmi les {n_grat_crit} gaps gratuits critiques, lesquels sont les plus visibles lors d'une comparaison — un client qui ouvre les tableaux de conditions bancaires de BICICI et SGCI côte à côte, que verra-t-il immédiatement ?
 3. Si SGCI ne comble aucun de ces {n_crit} gaps dans 12 mois, quelle clientèle spécifique (segment, profil) risque de partir en premier vers quel concurrent ?"""
         cache_key = f"q5_gaps_v5_{segment}_{n_crit}_{n_imp}_{n_grat_crit}"
@@ -4279,7 +4290,7 @@ Ce que les concurrents proposent dans cet axe :
 MISSION : Valide quels produits SGCI sont VÉRITABLEMENT EXCLUSIFS (absents de toute banque concurrente, même sous un nom différent).
 
 RÈGLES STRICTES :
-✅ Cite un produit comme exclusif seulement s'il est fonctionnellement INTROUVABLE chez BICICI, SIB, BACI, NSIA, ECOBANK, BNI
+✅ Cite un produit comme exclusif seulement s'il est fonctionnellement INTROUVABLE chez {_concurrents_txt()}
 ✅ Un produit nommé différemment mais fonctionnellement identique N'EST PAS exclusif (ex. "Virement FCFA" = "Virement UEMOA")
 ⚠️ Ajoute ⚠️ si un concurrent propose quelque chose de très proche
 
@@ -4718,8 +4729,9 @@ def _run_ingest_job(job_id, args):
                         import config as _rag_config
                         _rag_config.refresh_banques_officielles()
                         _rag_config.refresh_etats_financiers_annees()
+                        _rag_config.refresh_banque_aliases()
                     except Exception as _e:
-                        print(f"[ajout] refresh_banques_officielles/annees_ef post-store: {_e}")
+                        print(f"[ajout] refresh_banques_officielles/annees_ef/aliases post-store: {_e}")
     except Exception as e:
         with _JOBS_LOCK:
             _JOBS[job_id].update(status="error", result={"ok": False, "message": str(e)[:300]})

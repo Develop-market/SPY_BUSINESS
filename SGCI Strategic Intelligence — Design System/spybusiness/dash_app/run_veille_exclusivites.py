@@ -26,7 +26,21 @@ import os, sys, json, time, datetime
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 VALID_PATH = os.path.join(HERE, "exclusivites_validation.json")
-BANKS = ["SGCI", "BICICI", "NSIA", "ECOBANK", "SIB", "BNI", "BACI"]
+
+
+def _charger_banks():
+    """Toutes les banques, chargées depuis db.BANKS (dynamique, table `banques`) — filet de
+    sécurité figé seulement si la BD est indisponible."""
+    try:
+        import db as _db
+        if _db.BANKS:
+            return list(_db.BANKS)
+    except Exception:
+        pass
+    return ["SGCI", "BICICI", "NSIA", "ECOBANK", "SIB", "BNI", "BACI"]
+
+
+BANKS = _charger_banks()
 
 
 def _load_env():

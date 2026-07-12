@@ -578,6 +578,7 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
         context  = context,
         history  = history,
         question = question,
+        disponibilite_ef = retriever.texte_disponibilite_ef(),
     )
 
     # 8b. Garde-fou final basé sur la TAILLE RÉELLE du prompt assemblé (système + humain),
@@ -613,6 +614,7 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
                 context  = context,
                 history  = history,
                 question = question,
+                disponibilite_ef = retriever.texte_disponibilite_ef(),
             )
 
     temp_used = (config.LLM_TEMPERATURE_FACTUEL
@@ -733,7 +735,7 @@ def _detect_factuel_ef_unique(question: str):
     banques = retriever.detect_banques(question)
     if len(banques) != 1:
         return None
-    annee_m = re.search(r"\b(2021|2022|2023|2024|2025|2026)\b", q)
+    annee_m = re.search(r"\b(202[0-9]|2030)\b", q)
     annee = int(annee_m.group(1)) if annee_m else None
     for key in _EF_KEYS:
         if key in q:
@@ -844,7 +846,7 @@ def _detect_comparaison_ef_banques(question: str):
     q = question.lower()
     for key in _EF_KEYS:
         if key in q:
-            annee_m = re.search(r"\b(2021|2022|2023|2024|2025|2026)\b", q)
+            annee_m = re.search(r"\b(202[0-9]|2030)\b", q)
             annee = int(annee_m.group(1)) if annee_m else None
             if key in ("roe", "rentabilité", "rentabilite", "return on equity"):
                 return {"kind": "roe", "banques": banques, "annee": annee}

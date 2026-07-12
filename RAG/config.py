@@ -169,7 +169,18 @@ def refresh_etats_financiers_annees():
 CONDITIONS_ANNEES = [2024, 2025, 2026]
 
 # ── Aliases banques (détection dans les questions) ────────────────────────────
-BANQUE_ALIASES = {
+# PROBLÈME TROUVÉ (audit du 2026-07-12) : contrairement à BANQUES_OFFICIELLES et
+# ETATS_FINANCIERS_ANNEES ci-dessus, ce dict était 100% figé et JAMAIS rafraîchi après un
+# ajout de données. Conséquence concrète : une 8e banque ajoutée via « Ajouter des données »
+# apparaît bien dans les comparaisons globales (BANQUES_OFFICIELLES), mais retriever.py::
+# detect_banques() ne reconnaît AUCUN de ses noms dans une question du chat (« Quels sont
+# les frais chez X ? ») tant que ce dict n'est pas mis à jour — le chat ne peut alors ni la
+# citer, ni filtrer sur elle, ni résoudre une question de suivi. Corrigé : les alias courts/
+# idiomatiques historiques (non déductibles automatiquement, ex. « sg », « atlantique »)
+# restent curatés à la main ci-dessous, mais on complète TOUJOURS avec au minimum le code et
+# le nom complet (en minuscules) de CHAQUE banque de la table `banques` — une banque toute
+# juste ajoutée est donc reconnaissable via son code dès l'ajout, même sans alias court dédié.
+_BANQUE_ALIASES_CURATED = {
     "sgci"              : "SGCI",
     "société générale"  : "SGCI",
     "societe generale"  : "SGCI",
@@ -187,6 +198,38 @@ BANQUE_ALIASES = {
     "société ivoirienne": "SIB",
     "societe ivoirienne": "SIB",
 }
+
+
+def _construire_aliases_banques():
+    aliases = dict(_BANQUE_ALIASES_CURATED)
+    try:
+        cx = psycopg2.connect(**DB_PARAMS)
+        cur = cx.cursor()
+        cur.execute("SELECT code, nom_complet FROM banques")
+        for code, nom in cur.fetchall():
+            if code:
+                aliases.setdefault(code.lower(), code)
+            if nom:
+                aliases.setdefault(nom.lower(), code)
+        cur.close(); cx.close()
+    except Exception as e:
+        print(f"[config] alias banques dynamiques indisponibles → alias curatés seuls ({e})")
+    return aliases
+
+
+BANQUE_ALIASES = _construire_aliases_banques()
+
+
+def refresh_banque_aliases():
+    """Recharge BANQUE_ALIASES EN PLACE (clear+update) — même principe que
+    refresh_banques_officielles()/refresh_etats_financiers_annees() : retriever.py fait
+    `BANQUE_ALIASES = config.BANQUE_ALIASES` (même objet dict), donc la mise à jour est
+    visible immédiatement, sans redémarrage. Appelé automatiquement par server.py juste
+    après un ajout de données réussi."""
+    fresh = _construire_aliases_banques()
+    BANQUE_ALIASES.clear()
+    BANQUE_ALIASES.update(fresh)
+    return dict(BANQUE_ALIASES)
 
 # ── Mots-clés routing par domaine ─────────────────────────────────────────────
 MOTS_REGLEMENTATION = [

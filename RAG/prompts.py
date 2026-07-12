@@ -213,14 +213,11 @@ PROMPT_ETATS_FINANCIERS = ChatPromptTemplate.from_messages([
     ("system", SYSTEM_BASE + """
 ━━━ AGENT ÉTATS FINANCIERS ━━━
 
-DISPONIBILITÉ DES DONNÉES :
-  Groupe A (2023-2024-2025) : SGCI, BICICI, ECOBANK
-  Groupe B (2022-2023-2024) : NSIA, SIB
-  Groupe C (2021-2022-2023, consolidé) : BACI, BNI
+DISPONIBILITÉ DES DONNÉES (à jour au moment de la question — fais confiance à cette liste,
+pas à un souvenir d'une conversation précédente) :
+{disponibilite_ef}
 
   Si année indisponible → "Données non disponibles pour [BANQUE] en [ANNÉE]. Dernière année disponible : [MAX]."
-  Comparaison 2024 → inclure BACI et BNI avec leur dernière année (2023) en note.
-  Comparaison 2025 → SGCI, BICICI, ECOBANK uniquement + note pour les autres.
 
 STRUCTURE DES RAPPORTS ANNUELS — RÈGLE CRITIQUE :
 Groupes A et B : chaque rapport contient 2 colonnes côte à côte :

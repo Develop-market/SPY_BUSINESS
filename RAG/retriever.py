@@ -645,6 +645,23 @@ def banques_disponibles_ef(annee: int):
     return dispo, indispo
 
 
+def texte_disponibilite_ef() -> str:
+    """Construit la liste « quelle banque a quelles années » injectée dans le prompt LLM
+    EF — RECALCULÉE à chaque appel depuis ETATS_FINANCIERS_ANNEES (dynamique, cf. config.py),
+    au lieu d'un texte figé recopiant un instantané des années au moment où le prompt a été
+    écrit. Regroupe les banques qui partagent EXACTEMENT les mêmes années (évite de répéter
+    la même plage 7 fois)."""
+    groupes = {}
+    for banque, annees in ETATS_FINANCIERS_ANNEES.items():
+        cle = tuple(sorted(annees))
+        groupes.setdefault(cle, []).append(banque)
+    lignes = []
+    for annees, banques in sorted(groupes.items(), key=lambda kv: -max(kv[0])):
+        plage = "-".join(str(a) for a in annees)
+        lignes.append(f"  {plage} : {', '.join(sorted(banques))}")
+    return "\n".join(lignes) if lignes else "  (aucune donnée EF disponible)"
+
+
 # ═══════════════════════════════════════════════════════════
 #  RECHERCHE PAR BANQUE PRÉCISE — EXHAUSTIF
 # ═══════════════════════════════════════════════════════════

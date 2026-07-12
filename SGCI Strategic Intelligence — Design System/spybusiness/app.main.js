@@ -1257,9 +1257,9 @@ function pageApercu(){
             <stop offset="0%" stop-color="#FF3B4E"/><stop offset="100%" stop-color="#9E0A18"/>
           </linearGradient></defs>
         </svg>
-        <div class="ctr"><div class="rk">#${k.sgci_rang_rn}<small>/7</small></div><div class="lab">${k.sgci_rang_rn===1?"Leader":ord(k.sgci_rang_rn)}</div></div>
+        <div class="ctr"><div class="rk">#${k.sgci_rang_rn}<small>/${Object.keys(k.rn_data||{}).length||7}</small></div><div class="lab">${k.sgci_rang_rn===1?"Leader":ord(k.sgci_rang_rn)}</div></div>
       </div>
-      <div class="cap">${ord(k.sgci_rang_rn)} sur 7 banques · ${anxKey} = ${k.sgci_rn_annee}</div>
+      <div class="cap">${ord(k.sgci_rang_rn)} sur ${Object.keys(k.rn_data||{}).length||7} banques · ${anxKey} = ${k.sgci_rn_annee}</div>
     </div>
 
     <div class="tile insight c12" style="animation-delay:.14s">
@@ -1684,7 +1684,8 @@ function afterApercu(){
   const k   = KPI_DATA;
   const arc = document.getElementById("ap-arc");
   if(arc && k){
-    const score = 1 - (k.sgci_rang_rn - 1) / 6;
+    const nbB   = Object.keys(k.rn_data||{}).length || 7;
+    const score = 1 - (k.sgci_rang_rn - 1) / Math.max(nbB - 1, 1);
     requestAnimationFrame(()=>{
       arc.style.transition = "stroke-dashoffset 1.6s var(--ease)";
       arc.style.strokeDashoffset = 597 * (1 - score);
@@ -2044,7 +2045,8 @@ function analysePerf(seg){
   const medianG = gvals.length ? +(gvals[Math.floor(gvals.length/2)].toFixed(1)) : 0;
   const fastest = Object.entries(gdata).filter(([b])=>b!=="SGCI").sort((a,b)=>b[1]-a[1])[0] || ["?",0];
   const fasterN = Object.entries(gdata).filter(([b,v])=>b!=="SGCI"&&v>(gdata["SGCI"]||0)).length;
-  const avgShare= (100/Object.keys(RN2025).length).toFixed(1);
+  const nbB2025 = Object.keys(RN2025).length;
+  const avgShare= (100/nbB2025).toFixed(1);
 
   // Bump — rangs AN1 vs AN3
   const vBanks = Object.keys(RN_SERIES).filter(b=>RN_SERIES[b]&&RN_SERIES[b].values&&RN_SERIES[b].values.length>=3);
@@ -2099,7 +2101,7 @@ function analysePerf(seg){
     <div class="tile c5 tpad" style="animation-delay:.05s;min-height:300px">
       <div class="chead"><div class="tt">Le podium</div><div class="ts">Résultat net · Mds FCFA</div></div>
       <div class="podium">${podHTML}</div>
-      ${C("TOP 3 (" + top.slice(0,3).map(([b])=>b).join(" · ") + ") = <b>" + top3pct + "%</b> des bénéfices. SGCI seul : <b>" + sgciPct + "%</b> — soit <b>" + sgciMult + "×</b> la part d'une banque moyenne (1/7 = " + avgShare + "%).")}
+      ${C("TOP 3 (" + top.slice(0,3).map(([b])=>b).join(" · ") + ") = <b>" + top3pct + "%</b> des bénéfices. SGCI seul : <b>" + sgciPct + "%</b> — soit <b>" + sgciMult + "×</b> la part d'une banque moyenne (1/" + nbB2025 + " = " + avgShare + "%).")}
     </div>
 
     <div class="tile c7 tpad" style="animation-delay:.12s;min-height:300px">
@@ -2139,7 +2141,7 @@ function analysePerf(seg){
     <div class="tile c5 tpad" style="animation-delay:.36s;min-height:280px">
       <div class="chead"><div class="tt">Répartition des bénéfices</div><div class="ts">Part de chaque banque sur le total secteur</div></div>
       <div id="an-share" style="height:240px"></div>
-      ${C("SGCI génère <b>" + sgciMult + "×</b> la part équitable (1/7 = " + avgShare + "%). Une seule banque absorbe <b>" + sgciPct + "%</b> des bénéfices — position structurellement dominante.")}
+      ${C("SGCI génère <b>" + sgciMult + "×</b> la part équitable (1/" + nbB2025 + " = " + avgShare + "%). Une seule banque absorbe <b>" + sgciPct + "%</b> des bénéfices — position structurellement dominante.")}
     </div>
 
   </div>`;

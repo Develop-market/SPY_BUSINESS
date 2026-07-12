@@ -22,7 +22,21 @@ import os, sys, json, time, datetime
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 VALID_PATH = os.path.join(HERE, "gaps_validation.json")
-BANKS = ["BICICI", "NSIA", "ECOBANK", "SIB", "BNI", "BACI"]   # concurrents (pas SGCI)
+
+
+def _charger_concurrents():
+    """Concurrents de SGCI (toutes les banques sauf SGCI), chargés depuis db.BANKS (dynamique,
+    table `banques`) — filet de sécurité figé seulement si la BD est indisponible."""
+    try:
+        import db as _db
+        if _db.BANKS:
+            return [b for b in _db.BANKS if b != "SGCI"]
+    except Exception:
+        pass
+    return ["BICICI", "NSIA", "ECOBANK", "SIB", "BNI", "BACI"]
+
+
+BANKS = _charger_concurrents()   # concurrents (pas SGCI)
 
 
 def _load_env():

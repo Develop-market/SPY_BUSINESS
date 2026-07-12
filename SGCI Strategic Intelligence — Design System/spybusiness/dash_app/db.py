@@ -1891,9 +1891,8 @@ def cb_all_evolutions_summary(segment="Particuliers"):
     Utilisé par le bar chart Q1 pour afficher des deltas cohérents (matching label
     par label) plutôt que le simple comptage brut qui inclut le bruit OCR.
     """
-    banks = ["SGCI", "BACI", "BICICI", "BNI", "ECOBANK", "NSIA", "SIB"]
     result = {}
-    for b in banks:
+    for b in BANKS:
         try:
             ev = cb_evolution_details(segment=segment, banque=b)
             n_app = len(ev.get("apparus", []))
