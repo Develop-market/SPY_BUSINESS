@@ -122,5 +122,51 @@
     "probleme": "Le véritable problème réside dans le coût du risque, qui est le pire du marché à <b>17,0%</b>, et qui est en hausse continue. <br>Cette situation contraste avec la médiane du marché, qui est de <b>7,5%</b>, et avec le meilleur, le BICICI, qui affiche un coût du risque de <b>1,9%</b>.",
     "faire": "L'action prioritaire consiste à mieux sélectionner et suivre le risque de crédit, ce qui pourrait générer un gain estimé à environ <b>+26 Mds FCFA/an</b> si le coût du risque revenait à la médiane du marché. <br>Cela nécessite une attention particulière à la gestion des risques.",
     "surveiller": "Il est essentiel de surveiller le BICICI, qui affiche la croissance la plus rapide du résultat net, avec une augmentation de <b>+119%</b>, car il constitue un modèle de gestion efficace du risque et de croissance rentable."
+  },
+  "narr_v3_Particuliers_c6dc65c7f6": {
+    "verdict": "La SGCI domine le marché bancaire ivoirien en termes de résultat net, avec <b>33,9%</b> des bénéfices, et figure parmi les mieux gérées. <br>Cependant, son coût du risque, le pire du marché, et sa croissance lente la freinent. <br>Maîtriser ce seul risque suffirait à la hisser au premier rang de la rentabilité.",
+    "bien": "La SGCI se classe <b>1/7</b> en termes de résultat net, avec une avance de <b>76,1%</b> sur le deuxième, ECOBANK.",
+    "probleme": "Le vrai problème de la SGCI réside dans son coût du risque, qui est le pire du marché, et sa trajectoire stable. <br>Le coût du risque de la SGCI est de <b>?%</b>, ce qui la place dernière du marché.",
+    "faire": "L'action prioritaire pour la SGCI est de mieux sélectionner et suivre le risque de crédit, ce qui pourrait lui permettre de réduire son coût du risque. <br>En réduisant son coût du risque, la SGCI pourrait améliorer sa rentabilité et renforcer sa position sur le marché.",
+    "surveiller": "Il est essentiel de surveiller le concurrent le plus rapide, BNI, qui affiche une croissance de <b>+19%</b>, pour comprendre les facteurs clés de son succès et ajuster la stratégie de la SGCI en conséquence."
+  },
+  "narr_v3_Particuliers_c6dc65c7f6@meta": {
+    "generated_at": "2026-07-12T09:06:11",
+    "stale": false
+  },
+  "narr2_v2_Particuliers_e073d2e0ae": {
+    "diag": "Le problème le plus grave pour SGCI est la montée en puissance de BNI, qui affiche une croissance de résultat net de <b>+19,1%</b>, ce qui réduit l'écart avec SGCI. <br>Cette menace est d'autant plus préoccupante qu'elle est liée à la discipline du risque de BNI, qui pourrait se révéler être un facteur clé de succès à long terme. <br>La croissance de SGCI, qui est de <b>+14,8%</b>, n'est pas un problème en soi, mais elle est dépassée par celle de BNI, ce qui souligne la nécessité pour SGCI de se renforcer.",
+    "swot": "La force majeure de SGCI est son bénéfice le plus élevé du marché, avec une avance de <b>+76,1%</b> en résultat net sur ECOBANK, ce qui lui confère une certaine stabilité financière. <br>La faiblesse critique de SGCI est la montée en puissance de BNI, qui pourrait éroder son avance si elle déploie son modèle à grande échelle. <br>La décision que cette matrice impose est de renforcer la discipline du risque de SGCI.",
+    "porter": "La pression concurrentielle est maximale dans le secteur bancaire ivoirien, avec une intensité de rivalité très élevée, ce qui oblige SGCI à être constamment innovante et à améliorer son offre. <br>Cette pression concurrentielle a des implications importantes pour SGCI, car elle doit trouver un équilibre entre la nécessité de maintenir sa position de leader et la nécessité de faire face à la concurrence de BNI et d'autres banques.",
+    "vrist": "L'avantage le plus durable de SGCI est son caractère inimitable, avec un score de <b>8/10</b>, ce qui lui confère une certaine protection contre la concurrence. <br>Cependant, son maillon faible est son caractère transformatif, avec un score de <b>4/10</b>, ce qui souligne la nécessité pour SGCI de se renouveler et de s'adapter aux changements du marché.",
+    "plan": "La logique d'ensemble du plan à 3 ans de SGCI est de renforcer sa position de leader en renforçant sa discipline du risque et en améliorant son offre. <br>La réussite de ce plan conditionne la capacité de SGCI à maintenir son avance sur ECOBANK et à faire face à la montée en puissance de BNI, ce qui nécessite une stratégie claire et une exécution rigoureuse.",
+    "rev_0": "En clair, la montée en puissance de BNI est due à sa discipline du risque, ce qui lui permet de cumuler des bénéfices importants sans augmenter nécessairement son volume d'activité. <br>SGCI doit se renforcer.",
+    "rev_detail_0": "La croissance de <b>+19,1%</b> de BNI est due à sa discipline du risque, qui lui permet de sélectionner une clientèle entreprises bien choisie et de gérer ses risques de manière efficace. <br>Ceci se traduit par une croissance de son résultat net, qui est supérieure à celle de SGCI, avec <b>+19,1%</b> contre <b>+14,8%</b>. <br>La discipline du risque de BNI est un facteur clé de son succès, car elle lui permet de gérer ses risques de manière efficace et de maintenir une marge bénéficiaire importante. <br>Ceci souligne la nécessité pour SGCI de se renforcer."
+  },
+  "narr2_v2_Particuliers_e073d2e0ae@meta": {
+    "generated_at": "2026-07-12T09:06:15",
+    "stale": false
+  },
+  "narr3_v3_Particuliers_1d8c88195d": {
+    "swot_forces_0": "La position de leader en résultat net, avec le bénéfice le plus élevé du marché, conforte notre statut de numéro un sur le marché bancaire ivoirien",
+    "swot_forces_1": "Notre avance en résultat net sur ECOBANK, qui s'élève à +76,1%, démontre notre capacité à générer des bénéfices supérieurs à ceux de notre principal concurrent",
+    "swot_faiblesses_0": "La montée en puissance de BNI, caractérisée par une croissance du résultat net de +19,1%, la plus rapide du marché, nous oblige à renforcer notre position pour maintenir notre avance",
+    "swot_opportunites_0": "La conformité stricte aux exigences de la BCEAO, notamment en matière de gratuités obligatoires et de ratios prudentiels de solvabilité et de liquidité, offre un argument concret de sécurité et de confiance pour nos dépôts, à valoriser auprès de nos clients",
+    "swot_opportunites_1": "La conversion des utilisateurs de mobile money, qui représentent 82% de la population ivoirienne, en clients bancaires, en leur offrant des passerelles entre wallet et compte, ainsi que des services d'épargne et de crédit, constitue une opportunité à saisir pour développer notre clientèle",
+    "swot_menaces_1": "L'essor du mobile money, qui grignote les paiements du quotidien, doit être transformé en opportunité plutôt que subi, en proposant des services innovants pour capter ce marché en pleine expansion",
+    "porter_rivalite": "Concurrence exacerbée",
+    "porter_entrants": "Barrières fortes ouvertes",
+    "porter_substituts": "Innovation grignote",
+    "porter_clients": "Tarifs comparables",
+    "porter_fournisseurs": "Coût des ressources maîtrisé",
+    "plan_theme_0": "Lever le verrou du risque",
+    "plan_theme_1": "Rendre la baisse du risque structurelle",
+    "plan_theme_2": "Transformer l'avance en croissance",
+    "rev_titre_0": "BNI décrypté",
+    "rev_action_0": "Défendre notre base corporate en adoptant la discipline d'octroi de BNI, là où nous perdons 17% de notre produit net bancaire"
+  },
+  "narr3_v3_Particuliers_1d8c88195d@meta": {
+    "generated_at": "2026-07-12T09:06:19",
+    "stale": false
   }
 }

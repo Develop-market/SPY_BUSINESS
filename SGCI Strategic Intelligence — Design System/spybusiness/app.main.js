@@ -2774,6 +2774,7 @@ function _renderStrategie(d){
         _pestelHTML(d.pestel))
     + sect("st-plan","⑦","Décisions & recommandations","<b>En clair :</b> à partir du SWOT, du PESTEL et des données, des recommandations d'actions concrètes sont formulées par direction. <b>Filtre par direction.</b> Chaque chiffre est vérifié.",
         `<div class="bento" style="margin-bottom:8px">${_narrBox('plan')}</div>
+         <div id="strat-props-partial-banner" style="display:none;align-items:center;gap:8px;margin-bottom:10px;padding:8px 12px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;font:600 11px var(--sans);color:#92400E"></div>
          <div id="strat-props-bar" style="margin-bottom:8px"></div>
          <div id="strat-props"><div style="padding:34px;color:var(--muted);font:500 12px var(--sans);display:flex;gap:10px;align-items:center"><span class="spin"></span> Analyse des données et rédaction des recommandations par direction…</div></div>
          <div id="strat-comite-fallback" style="display:none"><div style="font:600 10px var(--sans);color:var(--faint);margin:6px 0">Socle sourcé déterministe (secours, IA indisponible) :</div><div class="bento">${comite}</div></div>
@@ -3220,20 +3221,31 @@ function _renderProps(md, verif){
 }
 async function _stratLLM(){
   const box=document.getElementById("strat-props"), fb=document.getElementById("strat-comite-fallback");
+  const partial=document.getElementById("strat-props-partial-banner");
   try{
     const r=await fetch(`/api/strategie_llm`);
     const d=await r.json();
     if(d.analyse && d.source && d.source!=="fallback"){
       _renderProps(d.analyse, d.verif);
       if(fb) fb.style.display="none";
+      if(partial){
+        if(Array.isArray(d.missing_directeurs) && d.missing_directeurs.length){
+          partial.style.display="flex";
+          partial.textContent=`⚠️ IA indisponible pour ${d.missing_directeurs.join(', ')} — les autres directions affichées ci-dessous sont à jour.`;
+        } else {
+          partial.style.display="none";
+        }
+      }
     } else {                              // LLM indisponible → socle déterministe en secours
       if(box) box.style.display="none";
       const bar=document.getElementById('strat-props-bar'); if(bar) bar.innerHTML="";
       if(fb) fb.style.display="";
+      if(partial) partial.style.display="none";
     }
   }catch(e){
     if(box) box.style.display="none";
     if(fb) fb.style.display="";
+    if(partial) partial.style.display="none";
   }
 }
 

@@ -2744,10 +2744,14 @@ FORMAT markdown STRICT (squelette à REMPLIR avec TES données — n'imite que l
             if a:
                 results[ckey] = a
     parts = [results[ckey] for icon, nom, ckey, p in _jobs if ckey in results]   # ordre des directeurs préservé
+    # Directeur(s) dont l'IA a échoué même après la nouvelle tentative (65 s) : leur volet est
+    # absent du texte final. Signalé au frontend (au lieu de disparaître silencieusement),
+    # même trou que celui déjà corrigé sur CB (stale/estimation jamais remonté au frontend).
+    missing_noms = [nom for icon, nom, ckey, p in _jobs if ckey not in results]
     txt = "\n\n".join(parts)
     src = "groq" if parts else "fallback"
     if not txt:
-        return jsonify({"analyse": "", "source": "fallback"})
+        return jsonify({"analyse": "", "source": "fallback", "missing_directeurs": missing_noms})
     import re as _re
     # NETTOYAGE : le modèle recopie parfois mes RÈGLES internes dans sa sortie → on les retire.
     txt = _re.sub(r"\s*⛔[^\n]*", "", txt)                    # bloc « ⛔ ÉCHECS AUTOMATIQUES … »
@@ -2806,7 +2810,7 @@ FORMAT markdown STRICT (squelette à REMPLIR avec TES données — n'imite que l
         verif = strategie.verifier_chiffres(txt, dossier)
     except Exception:
         verif = None
-    return jsonify({"analyse": txt, "source": src, "verif": verif})
+    return jsonify({"analyse": txt, "source": src, "verif": verif, "missing_directeurs": missing_noms})
 
 
 @app.route("/api/cb_evolutions_all")
@@ -4787,7 +4791,7 @@ def _refresh_analyses_job(job_id, section):
             _stage(f"Reconstruction du dossier Stratégie — {seg}…")
             for path in (f"/api/strategie_narr2?segment={seg}", f"/api/strategie_narr3?segment={seg}",
                          f"/api/strategie_narr?segment={seg}", f"/api/pestel_analyse?segment={seg}",
-                         f"/api/vrist_analyse?segment={seg}"):
+                         f"/api/vrist_analyse?segment={seg}", f"/api/strategie_llm?segment={seg}"):
                 try:
                     r = client.get(path)
                     (warmed if r.status_code == 200 else failed).append(path)
