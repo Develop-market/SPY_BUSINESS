@@ -259,6 +259,39 @@ def api_chat():
     })
 
 
+# Historique des conversations — persisté CÔTÉ SERVEUR (en plus du localStorage navigateur).
+# Raison : localStorage est isolé PAR ORIGINE (protocole+hôte+port) — un même serveur Flask
+# accédé tantôt via http://localhost:5000, tantôt via http://127.0.0.1:5000 ou l'IP LAN
+# (192.168.x.x:5000, cf. logs serveur montrant les deux) donne 3 historiques localStorage
+# DIFFÉRENTS et isolés, ce qui se manifeste pour l'utilisateur comme un historique qui
+# « disparaît ». Le fichier ci-dessous est commun à toutes les origines puisqu'il vit sur
+# le serveur, pas dans le navigateur — la source de vérité ne dépend donc plus de l'URL
+# utilisée pour accéder à l'app.
+_CONV_HISTORY_FILE = os.path.join(HERE, "chat_conversations.json")
+
+
+@app.route("/api/conv_history", methods=["GET"])
+def api_conv_history_get():
+    try:
+        with open(_CONV_HISTORY_FILE, "r", encoding="utf-8") as f:
+            return jsonify(json.load(f))
+    except Exception:
+        return jsonify([])
+
+
+@app.route("/api/conv_history", methods=["POST"])
+def api_conv_history_post():
+    body = request.get_json(force=True, silent=True)
+    if not isinstance(body, list):
+        return jsonify({"ok": False, "error": "payload doit être une liste"}), 400
+    try:
+        with open(_CONV_HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(body[:100], f, ensure_ascii=False, indent=2)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 @app.route("/api/cb_bd")
 def api_cb_bd():
     """Positionnement CB réel — tarif minimum par banque pour chaque service clé."""
@@ -4684,8 +4717,9 @@ def _run_ingest_job(job_id, args):
                     try:
                         import config as _rag_config
                         _rag_config.refresh_banques_officielles()
+                        _rag_config.refresh_etats_financiers_annees()
                     except Exception as _e:
-                        print(f"[ajout] refresh_banques_officielles post-store: {_e}")
+                        print(f"[ajout] refresh_banques_officielles/annees_ef post-store: {_e}")
     except Exception as e:
         with _JOBS_LOCK:
             _JOBS[job_id].update(status="error", result={"ok": False, "message": str(e)[:300]})

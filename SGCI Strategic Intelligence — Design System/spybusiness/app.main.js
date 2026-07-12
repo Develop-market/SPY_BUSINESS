@@ -3806,9 +3806,36 @@ function _convLoad(){
   try{ CONVOS = JSON.parse(localStorage.getItem(_CONV_KEY) || "[]"); }
   catch(e){ CONVOS = []; }
   if(!Array.isArray(CONVOS)) CONVOS = [];
+  _convSyncFromServer();   // fusionne avec l'historique côté serveur (voir plus bas)
 }
 function _convStore(){
   try{ localStorage.setItem(_CONV_KEY, JSON.stringify(CONVOS.slice(0,100))); }catch(e){}
+  // Copie aussi côté serveur : localStorage est isolé PAR ORIGINE (localhost / 127.0.0.1 /
+  // IP LAN = 3 stockages différents pour le même serveur) → l'historique semble
+  // « disparaître » selon l'URL utilisée pour accéder à l'app. Le serveur, lui, est unique
+  // quelle que soit l'URL d'accès. Fire-and-forget : jamais bloquant pour l'utilisateur.
+  fetch("/api/conv_history", {
+    method: "POST", headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(CONVOS.slice(0,100)),
+  }).catch(()=>{});
+}
+// Fusionne l'historique local avec celui du serveur (le plus récent par conversation gagne),
+// pour retrouver ses conversations même en changeant d'URL d'accès (localhost/IP LAN/...).
+async function _convSyncFromServer(){
+  try{
+    const r = await fetch("/api/conv_history");
+    const remote = await r.json();
+    if(!Array.isArray(remote) || !remote.length) return;
+    const byId = {};
+    CONVOS.forEach(c=>{ byId[c.id]=c; });
+    remote.forEach(c=>{
+      const cur = byId[c.id];
+      if(!cur || (c.ts||0) > (cur.ts||0)) byId[c.id] = c;
+    });
+    CONVOS = Object.values(byId);
+    try{ localStorage.setItem(_CONV_KEY, JSON.stringify(CONVOS.slice(0,100))); }catch(e){}
+    _renderConvList((document.getElementById("conv-search")||{}).value || "");
+  }catch(e){ /* serveur indisponible → on garde le localStorage local tel quel */ }
 }
 function _convEsc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function _convTitle(msgs){

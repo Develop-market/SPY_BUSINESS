@@ -121,15 +121,50 @@ BANQUE_PRINCIPALE   = "SGCI"
 BANQUES_CONSOLIDEES = {"BACI", "BNI"}   # EF consolidé multi-années, pas de filtre par annee
 
 # ── Années disponibles EF par banque ─────────────────────────────────────────
-ETATS_FINANCIERS_ANNEES = {
-    "SGCI"    : [2023, 2024, 2025],
-    "BICICI"  : [2023, 2024, 2025],
-    "ECOBANK" : [2023, 2024, 2025],
-    "NSIA"    : [2022, 2023, 2024],
-    "SIB"     : [2022, 2023, 2024],
-    "BACI"    : [2021, 2022, 2023],
-    "BNI"     : [2021, 2022, 2023],
-}
+# Chargé DEPUIS `ef_indicateurs` (même principe que BANQUES_OFFICIELLES ci-dessus) plutôt
+# qu'une liste figée en dur — sinon une année ajoutée pour une banque (ex. SGCI 2026) ne
+# serait jamais vue par check_disponibilite_ef(), qui continuerait de dire « dernière année
+# disponible : 2025 ». Filet de sécurité (dernières valeurs connues) si la base est
+# indisponible au démarrage.
+def _charger_annees_ef():
+    try:
+        cx = psycopg2.connect(**DB_PARAMS)
+        cur = cx.cursor()
+        cur.execute("SELECT DISTINCT banque, annee_donnee FROM ef_indicateurs "
+                    "WHERE is_primary=TRUE ORDER BY banque, annee_donnee")
+        rows = cur.fetchall()
+        cur.close(); cx.close()
+        if rows:
+            out = {}
+            for b, a in rows:
+                out.setdefault(b, []).append(a)
+            return out
+    except Exception as e:
+        print(f"[config] années EF dynamiques indisponibles → filet de sécurité ({e})")
+    return {
+        "SGCI"    : [2023, 2024, 2025],
+        "BICICI"  : [2023, 2024, 2025],
+        "ECOBANK" : [2023, 2024, 2025],
+        "NSIA"    : [2022, 2023, 2024],
+        "SIB"     : [2022, 2023, 2024],
+        "BACI"    : [2021, 2022, 2023],
+        "BNI"     : [2021, 2022, 2023],
+    }
+
+
+ETATS_FINANCIERS_ANNEES = _charger_annees_ef()
+
+
+def refresh_etats_financiers_annees():
+    """Recharge ETATS_FINANCIERS_ANNEES EN PLACE (clear+update, pas réaffectation) — même
+    principe que refresh_banques_officielles() : retriever.py fait
+    `ETATS_FINANCIERS_ANNEES = config.ETATS_FINANCIERS_ANNEES` (même objet dict), donc la
+    mise à jour est visible immédiatement, sans redémarrage. Appelé automatiquement par
+    server.py juste après un ajout de données réussi."""
+    fresh = _charger_annees_ef()
+    ETATS_FINANCIERS_ANNEES.clear()
+    ETATS_FINANCIERS_ANNEES.update(fresh)
+    return dict(ETATS_FINANCIERS_ANNEES)
 
 CONDITIONS_ANNEES = [2024, 2025, 2026]
 
