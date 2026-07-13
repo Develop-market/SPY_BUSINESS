@@ -841,6 +841,22 @@
       "cible": null,
       "justif": "Arme d'acquisition à bas prix, gratuit",
       "src": "groq"
+    },
+    "II||virement interne reçu ou émis (de compte à compte dans la même banque)": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, gratuit comme BICICI et SIB",
+      "src": "groq"
+    },
+    "II||mensuel": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, gratuit comme BICICI, BNI, NSIA et SIB",
+      "src": "groq"
     }
   },
   "2024_S1_Particuliers": {

@@ -17,8 +17,14 @@ import psycopg2
 BANQUES = config.BANQUES_OFFICIELLES
 
 # Indicateurs EF : nom courant → motif ILIKE
+# BUG TROUVÉ (2026-07-13, en testant l'ajout de BNI 2024) : le motif PNB "%produit net
+# bancaire%" (singulier) ne matchait PAS "PRODUITS NET BANCAIRE" (pluriel) — libellé utilisé
+# par BACI et BNI depuis toujours (donnée déjà en base, pas propre à mon ajout). "Quel est le
+# PNB de BNI en 2023 ?" échouait déjà silencieusement avant ce correctif. Motif élargi avec des
+# jokers entre les mots pour couvrir singulier/pluriel ET la variante SIB sans espaces
+# ("PRODUITNETBANCAIRE").
 EF_PATTERNS = {
-    "pnb": "%produit net bancaire%", "produit net bancaire": "%produit net bancaire%",
+    "pnb": "%produit%net%bancaire%", "produit net bancaire": "%produit%net%bancaire%",
     "résultat net": "%sultat net%", "resultat net": "%sultat net%", "rn": "%sultat net%",
     "capitaux propres": "%capitaux propres%", "fonds propres": "%capitaux propres%",
     "résultat d'exploitation": "%sultat d'exploitation%", "resultat d'exploitation": "%sultat d'exploitation%",
@@ -56,7 +62,8 @@ def comparer_ef(indicateur: str, mode: str = "AN3", banques: list = None) -> dic
                 continue
             cur.execute("""SELECT DISTINCT ROUND(montant::numeric,0) FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
-                             AND libelle ILIKE %s AND montant IS NOT NULL""", (b, y, pat))
+                             AND libelle ILIKE %s AND libelle NOT ILIKE %s
+                             AND montant IS NOT NULL""", (b, y, pat, "%avant%"))
             vals = [float(r[0]) for r in cur.fetchall()]
             if vals:
                 out[b] = {"annee": y, "valeur": max(vals)}   # valeur représentative
@@ -80,7 +87,8 @@ def valeur_ef(banque: str, indicateur: str, annee: int = None) -> dict:
             return {}
         cur.execute("""SELECT DISTINCT ROUND(montant::numeric,0) FROM ef_indicateurs
                        WHERE banque=%s AND annee_donnee=%s AND is_primary
-                         AND libelle ILIKE %s AND montant IS NOT NULL""", (banque, y, pat))
+                         AND libelle ILIKE %s AND libelle NOT ILIKE %s
+                         AND montant IS NOT NULL""", (banque, y, pat, "%avant%"))
         vals = [float(r[0]) for r in cur.fetchall()]
         return {"annee": y, "valeur": max(vals)} if vals else {}
     finally:

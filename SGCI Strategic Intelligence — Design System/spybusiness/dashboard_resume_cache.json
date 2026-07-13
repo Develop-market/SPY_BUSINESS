@@ -319,5 +319,27 @@
   "resume_v8_ef_Particuliers_33af5225b110@meta": {
     "generated_at": "2026-07-08T15:38:18",
     "stale": false
+  },
+  "resume_v8_cb_Particuliers_0d11e30a6738": {
+    "titre": "Conditions bancaires pour les particuliers",
+    "executif": "La position de la SGCI sur le marché des services bancaires pour les particuliers présente des défis, notamment en termes de catalogue et de gratuité des services. Le classement de la SGCI en quatrième position en termes de nombre de services offerts, avec un pourcentage de services gratuits inférieur à la moyenne, souligne la nécessité d'une réflexion approfondie sur l'offre de services. La concurrence est forte, avec des banques comme NSIA et BACI proposant un plus grand nombre de services, dont un pourcentage plus élevé de services gratuits. La capacité de la SGCI à se démarquer par des exclusivités et à combler les manques par rapport à la concurrence sera déterminante pour son succès.",
+    "points": [
+      "Le catalogue de services de la SGCI compte 184 services, dont 19,7% sont gratuits.",
+      "La SGCI occupe la deuxième place en termes de win-rate, avec un taux de 63,3%.",
+      "La banque propose 8 exclusivités confirmées.",
+      "Elle présente des manques face à au moins 3 concurrents pour 10 services.",
+      "Le classement des catalogues de services place NSIA en première position avec 445 services, dont 28,3% gratuits.",
+      "BACI se situe en deuxième position avec 257 services, dont 27,3% gratuits.",
+      "ECOBANK propose 177 services, dont 44,9% gratuits, ce qui constitue le pourcentage le plus élevé de services gratuits.",
+      "Le win-rate de la SGCI, à 63,3%, indique une position solide en termes de capacité à gagner des clients."
+    ],
+    "analyse": "L'analyse des chiffres révèle que la SGCI doit renforcer son offre de services. La faible proportion de services gratuits par rapport à la concurrence constitue un point faible. Les exclusivités proposées par la SGCI sont un atout, mais elles doivent être renforcées pour compenser les manques par rapport à la concurrence. La capacité de la SGCI à innover et à adapter son offre aux besoins des clients sera déterminante pour son succès à long terme.",
+    "conclusion": "La priorité absolue pour la SGCI est d'élargir son catalogue de services et d'augmenter le pourcentage de services gratuits. Cela nécessitera une analyse approfondie des besoins des clients et une stratégie ciblée pour combler les manques par rapport à la concurrence, tout en renforçant les exclusivités qui constituent un atout pour la banque.",
+    "section": "Conditions bancaires",
+    "segment": "Particuliers"
+  },
+  "resume_v8_cb_Particuliers_0d11e30a6738@meta": {
+    "generated_at": "2026-07-13T14:07:15",
+    "stale": false
   }
 }
