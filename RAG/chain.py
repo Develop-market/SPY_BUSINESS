@@ -644,7 +644,12 @@ _COMP_KW = ("quelle banque", "laquelle", "la plus", "le plus", "la moins", "le m
 _EF_KEYS = ("produit net bancaire", "pnb", "résultat net", "resultat net",
             "capitaux propres", "résultat d'exploitation", "résultat brut",
             "roe", "rentabilité", "rentabilite", "return on equity",
-            "coefficient d'exploitation", "coefficient d exploitation")
+            "coefficient d'exploitation", "coefficient d exploitation",
+            "total bilan", "total actif", "total de l'actif",
+            "coût du risque", "cout du risque",
+            "charges générales", "charges generales",
+            "charges générales d'exploitation", "charges generales d'exploitation",
+            "frais généraux", "frais generaux")
 
 
 def _detect_comparatif(question: str):
@@ -752,6 +757,12 @@ _EF_LABELS = {
     "résultat net": "résultat net", "resultat net": "résultat net",
     "capitaux propres": "capitaux propres", "résultat d'exploitation": "résultat d'exploitation",
     "résultat brut": "résultat brut d'exploitation",
+    "total bilan": "total bilan", "total actif": "total bilan", "total de l'actif": "total bilan",
+    "coût du risque": "coût du risque", "cout du risque": "coût du risque",
+    "charges générales": "charges générales d'exploitation", "charges generales": "charges générales d'exploitation",
+    "charges générales d'exploitation": "charges générales d'exploitation",
+    "charges generales d'exploitation": "charges générales d'exploitation",
+    "frais généraux": "charges générales d'exploitation", "frais generaux": "charges générales d'exploitation",
 }
 
 

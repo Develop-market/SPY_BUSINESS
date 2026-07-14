@@ -29,6 +29,18 @@ EF_PATTERNS = {
     "capitaux propres": "%capitaux propres%", "fonds propres": "%capitaux propres%",
     "résultat d'exploitation": "%sultat d'exploitation%", "resultat d'exploitation": "%sultat d'exploitation%",
     "résultat brut": "%sultat brut d'exploitation%", "résultat brut d'exploitation": "%sultat brut d'exploitation%",
+    # Ajoutés le 2026-07-14 — trou trouvé en testant : ces indicateurs existent bien en base
+    # mais n'avaient pas d'entrée ici, donc une question dessus ratait le chemin SQL rapide
+    # (valeur_ef/comparer_ef) et tombait dans le RAG générique, plus fragile (a échoué en
+    # 413 Groq sur "total bilan de BNI en 2024" alors que la donnée existe et est correcte).
+    "total bilan": "%total%actif%", "total actif": "%total%actif%", "total de l'actif": "%total%actif%",
+    "coût du risque": "%cout du risque%", "cout du risque": "%cout du risque%",
+    "charges générales": "%charges generales%exploitation%",
+    "charges generales": "%charges generales%exploitation%",
+    "charges générales d'exploitation": "%charges generales%exploitation%",
+    "charges generales d'exploitation": "%charges generales%exploitation%",
+    "frais généraux": "%charges generales%exploitation%",
+    "frais generaux": "%charges generales%exploitation%",
 }
 
 
@@ -60,7 +72,7 @@ def comparer_ef(indicateur: str, mode: str = "AN3", banques: list = None) -> dic
             y = _an_year(cur, b, mode)
             if not y:
                 continue
-            cur.execute("""SELECT DISTINCT ROUND(montant::numeric,0) FROM ef_indicateurs
+            cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND libelle ILIKE %s AND libelle NOT ILIKE %s
                              AND montant IS NOT NULL""", (b, y, pat, "%avant%"))
@@ -85,7 +97,7 @@ def valeur_ef(banque: str, indicateur: str, annee: int = None) -> dict:
         y = annee or _an_year(cur, banque, "AN3")
         if not y:
             return {}
-        cur.execute("""SELECT DISTINCT ROUND(montant::numeric,0) FROM ef_indicateurs
+        cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
                        WHERE banque=%s AND annee_donnee=%s AND is_primary
                          AND libelle ILIKE %s AND libelle NOT ILIKE %s
                          AND montant IS NOT NULL""", (banque, y, pat, "%avant%"))
@@ -223,12 +235,12 @@ def comparer_roe(mode: str = "AN3", banques: list = None) -> dict:
             # aussi — bug trouvé le 2026-07-14 (BACI/BNI en avaient les deux, max() prenait à tort
             # le résultat AVANT impôt, gonflant le ROE affiché par le chat, ex. BNI 2024 : 22,7%
             # au lieu de 21,5%).
-            cur.execute("""SELECT DISTINCT ROUND(montant::numeric,0) FROM ef_indicateurs
+            cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND libelle ILIKE %s AND libelle NOT ILIKE '%%avant%%' AND montant IS NOT NULL""",
                         (b, y, "%sultat net%"))
             rn_vals = [float(r[0]) for r in cur.fetchall()]
-            cur.execute("""SELECT DISTINCT ROUND(montant::numeric,0) FROM ef_indicateurs
+            cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND libelle ILIKE %s AND montant IS NOT NULL""",
                         (b, y, "%capitaux propres%"))
@@ -254,12 +266,12 @@ def comparer_coefficient_exploitation(mode: str = "AN3", banques: list = None) -
             y = _an_year(cur, b, mode)
             if not y:
                 continue
-            cur.execute("""SELECT DISTINCT ROUND(montant::numeric,0) FROM ef_indicateurs
+            cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND libelle ILIKE %s AND montant IS NOT NULL""",
                         (b, y, "%produit net bancaire%"))
             pnb_vals = [float(r[0]) for r in cur.fetchall()]
-            cur.execute("""SELECT DISTINCT ROUND(montant::numeric,0) FROM ef_indicateurs
+            cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND (libelle ILIKE %s OR libelle ILIKE %s) AND montant IS NOT NULL""",
                         (b, y, "%frais g%raux%", "%charges g%rales d%exploitation%"))
