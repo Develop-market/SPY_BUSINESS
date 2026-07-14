@@ -283,11 +283,17 @@ async function loadCB(annee=2026, semestre="S1", segment="Particuliers"){
 
 /* ── Theme helpers ─────────────────────────────────────────────────── */
 function pk(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-// Graphiques figés partout (mobile ET desktop) : le zoom/pan interactif de Plotly (pincer
-// sur tactile, cliquer-glisser à la souris) est plus gênant qu'utile sur ce dashboard de
-// lecture, et pouvait laisser un graphique vide/cassé sur mobile. Nom conservé (_IS_TOUCH)
-// pour ne pas toucher tous les points d'usage, mais s'applique désormais à tous les appareils.
+// Zoom/pan interactif de Plotly (pincer sur tactile, cliquer-glisser à la souris) bloqué
+// PARTOUT (mobile ET desktop) via fixedrange/scrollZoom ci-dessous — plus gênant qu'utile
+// sur ce dashboard de lecture. Nom conservé (_IS_TOUCH) pour ne pas toucher tous les points
+// d'usage, mais s'applique désormais à tous les appareils.
 const _IS_TOUCH = true;
+// Détection RÉELLE du tactile (contrairement à _IS_TOUCH ci-dessus) — utilisée UNIQUEMENT
+// pour staticPlot (survol + clic légende). staticPlot:true désactive TOUT (zoom, survol,
+// légende), pas seulement le zoom — le forcer partout cassait le clic légende même sur
+// desktop (signalé le 2026-07-13). Restauré ici pour desktop, en gardant la protection
+// d'origine sur mobile (staticPlot évitait un graphique vide/cassé au pincer-zoomer tactile).
+const _REAL_TOUCH = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
 function baseLayout(extra={}){
   const grid = pk("--plot-grid") || "#26262b";
   const font = pk("--plot-font") || "#9A9AA2";
@@ -305,11 +311,7 @@ function baseLayout(extra={}){
     showlegend:false, transition:{ duration:400, easing:"cubic-in-out" },
   }, extra);
 }
-// staticPlot:true tuerait AUSSI le survol (tooltips) et le clic sur légende (masquer/
-// afficher une banque) en plus du zoom/pan — régression signalée le 2026-07-13 ("avant
-// c'était possible de désélectionner une banque via la légende"). fixedrange (ci-dessus)
-// suffit à lui seul à bloquer le zoom/pan gênant, sans ces effets de bord.
-const CFG = { displayModeBar:false, responsive:true, scrollZoom:!_IS_TOUCH, staticPlot:false };
+const CFG = { displayModeBar:false, responsive:true, scrollZoom:!_IS_TOUCH, staticPlot:_REAL_TOUCH };
 
 function redGreenScale(values){
   // bas = vert (bon/pas cher), haut = rouge (mauvais/cher)

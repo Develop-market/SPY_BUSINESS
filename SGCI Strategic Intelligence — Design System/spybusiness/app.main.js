@@ -3293,7 +3293,7 @@ function _stratCharts(d){
         text:"<b>cible "+fmt(cen[3])+"</b>",font:{size:9.5,color:G},
         showarrow:true,arrowhead:3,arrowcolor:G,arrowwidth:1.3,bgcolor:"rgba(255,255,255,.04)"
       }]
-    },{responsive:true,displayModeBar:false,staticPlot:false});
+    },{responsive:true,displayModeBar:false,staticPlot:_REAL_TOUCH});
   });
 }
 
@@ -6302,7 +6302,7 @@ function _renderQ4(data){
       paper_bgcolor:'transparent',font:{family:'Inter,sans-serif',size:11,color:'#555'},
       margin:{t:20,b:20,l:28,r:28},
       legend:{font:{size:10,color:'#666'},bgcolor:'transparent',orientation:'h',y:-0.16}
-    },{responsive:true,displayModeBar:false,scrollZoom:!_IS_TOUCH,staticPlot:false});
+    },{responsive:true,displayModeBar:false,scrollZoom:!_IS_TOUCH,staticPlot:_REAL_TOUCH});
   }
   window._vristSelectBank=b=>{
     window._vristBankFilter=b;
@@ -7588,7 +7588,7 @@ async function _renderEvolutionTemporelle(){
          hovertemplate:'%{x} : rang %{text}/'+nb+'<extra></extra>'}
       ],{...structuredClone(_baseLayout),margin:{t:16,b:26,l:34,r:12},showlegend:false,
         yaxis:{range:[nb+0.6,0.4],dtick:1,tickprefix:'#',tickfont:{size:11},gridcolor:'rgba(150,150,150,.18)',zeroline:false,fixedrange:_IS_TOUCH}
-      },{responsive:true,displayModeBar:false,scrollZoom:!_IS_TOUCH,staticPlot:false});
+      },{responsive:true,displayModeBar:false,scrollZoom:!_IS_TOUCH,staticPlot:_REAL_TOUCH});
       // Graphe 2 — Gratuité SGCI vs médiane marché (même axe %)
       Plotly.newPlot('cb-evo-grat',[
         {x,y:grat,name:'SGCI',mode:'lines+markers+text',text:grat.map(v=>Math.round(v)+'%'),textposition:'bottom center',cliponaxis:false,
@@ -7600,7 +7600,7 @@ async function _renderEvolutionTemporelle(){
       ],{...structuredClone(_baseLayout),margin:{t:16,b:38,l:34,r:12},
         legend:{orientation:'h',y:-0.24,font:{size:10.5}},
         yaxis:{ticksuffix:'%',range:[0,Math.max(...gratM,...grat)*1.35],tickfont:{size:11},gridcolor:'rgba(150,150,150,.18)',zeroline:false,fixedrange:_IS_TOUCH}
-      },{responsive:true,displayModeBar:false,scrollZoom:!_IS_TOUCH,staticPlot:false});
+      },{responsive:true,displayModeBar:false,scrollZoom:!_IS_TOUCH,staticPlot:_REAL_TOUCH});
     }
     // ── Analyse dynamique métier (aide à la décision) ──
     const f=data[0],l=data[data.length-1],dR=f.sgci_rang-l.sgci_rang;
