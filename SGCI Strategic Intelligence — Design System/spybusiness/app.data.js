@@ -305,7 +305,11 @@ function baseLayout(extra={}){
     showlegend:false, transition:{ duration:400, easing:"cubic-in-out" },
   }, extra);
 }
-const CFG = { displayModeBar:false, responsive:true, scrollZoom:!_IS_TOUCH, staticPlot:_IS_TOUCH };
+// staticPlot:true tuerait AUSSI le survol (tooltips) et le clic sur légende (masquer/
+// afficher une banque) en plus du zoom/pan — régression signalée le 2026-07-13 ("avant
+// c'était possible de désélectionner une banque via la légende"). fixedrange (ci-dessus)
+// suffit à lui seul à bloquer le zoom/pan gênant, sans ces effets de bord.
+const CFG = { displayModeBar:false, responsive:true, scrollZoom:!_IS_TOUCH, staticPlot:false };
 
 function redGreenScale(values){
   // bas = vert (bon/pas cher), haut = rouge (mauvais/cher)
