@@ -5187,5 +5187,13 @@ if __name__ == "__main__":
                 print(f"[cache] strategie({seg}) OK")
             except Exception as e:
                 print(f"[cache] warm échoué strategie({seg}): {e}")
+        # PERSISTE sur disque ce qui vient d'être reconstruit frais — sans ce _strat_build_persist(),
+        # le fichier disque restait figé indéfiniment (trouvé le 2026-07-14 : dernier vécu le
+        # 2026-07-07, une semaine avant la correction du bug de fenêtre glissante EF is_primary).
+        # Aujourd'hui ça ne se voyait pas car _warm() tourne AVANT toute requête et laisse
+        # _STRAT_CACHE non-vide, donc _strat_build_load() ne rechargeait jamais le disque périmé —
+        # mais un redémarrage sans _warm() (crash, requête arrivant avant la fin du warmup) aurait
+        # silencieusement servi les anciennes données depuis le disque, sans aucune alerte.
+        _strat_build_persist()
     threading.Thread(target=_warm, daemon=True).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False, threaded=True)

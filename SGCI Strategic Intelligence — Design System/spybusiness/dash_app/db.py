@@ -1265,12 +1265,18 @@ def roe_by_anx(anx=3):
 
 def croissance_series():
     """Taux de croissance AN1→AN3 par banque — Formule #1 FORMULES_ET_SOURCES.
-    Utilise la première et la dernière année disponible par banque (7 banques).
-    Conforme au doc : SGCI +4.2% → #6/7 → score 29/100."""
+    Utilise la première et la dernière année de la fenêtre 3 ans par banque (7 banques).
+    Conforme au doc : SGCI +4.2% → #6/7 → score 29/100.
+
+    Retronque explicitement à 3 ans (comme ef_cout_risque_3ans/kpis_vue_ensemble) au lieu
+    de faire confiance à is_primary pour ne JAMAIS renvoyer plus de 3 années — trouvé le
+    2026-07-14 : is_primary a eu un bug de fenêtre glissante (4 banques avec 4 années
+    actives au lieu de 3), corrigé en base, mais cette fonction ne se protégeait pas elle-
+    même contre une récidive future du même bug en amont."""
     series = resultat_net_series()  # {bank: {year: value}}
     growths = {}
     for bank, year_data in series.items():
-        years = sorted(year_data.keys())
+        years = sorted(year_data.keys())[-3:]
         if len(years) >= 2:
             v1, v3 = year_data[years[0]], year_data[years[-1]]
             if v1 != 0:
@@ -1323,11 +1329,14 @@ def ef_cout_risque_3ans():
 
 def ef_series_all_for_agent():
     """Séries RN complètes pour le contexte agent — toutes banques.
-    Retourne {bank: {"series": [{"anx":1,"annee":2023,"montant":97230}, ...], "croissance_an1_an3": 4.2}}."""
+    Retourne {bank: {"series": [{"anx":1,"annee":2023,"montant":97230}, ...], "croissance_an1_an3": 4.2}}.
+
+    Retronque explicitement à 3 ans — même raison que croissance_series() ci-dessus
+    (défense en profondeur contre une récidive du bug de fenêtre glissante is_primary)."""
     series = resultat_net_series()
     result = {}
     for bank, year_data in series.items():
-        years = sorted(year_data.keys())
+        years = sorted(year_data.keys())[-3:]
         pts = [{"anx": i + 1, "annee": yr, "montant": year_data[yr]} for i, yr in enumerate(years)]
         g = None
         if len(years) >= 2:

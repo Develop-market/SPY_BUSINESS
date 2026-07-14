@@ -232,5 +232,92 @@
   "narr3_v3_Particuliers_3386b86b09@meta": {
     "generated_at": "2026-07-13T14:07:42",
     "stale": false
+  },
+  "narr_v3_Particuliers_82d0dce937": {
+    "verdict": "La Société Générale Côte d'Ivoire (SGCI) domine le marché bancaire ivoirien en termes de résultat net, avec <b>27,0%</b> des bénéfices, et figure parmi les mieux gérées, comme en témoigne son coefficient d'exploitation. <br>Cependant, son coût du risque, le pire du marché à <b>17,0%</b>, et sa croissance lente la freinent. <br>Maîtriser ce seul risque suffirait à la hisser au premier rang de la rentabilité.",
+    "bien": "Le résultat net de la SGCI est en tête du marché, avec <b>27,0%</b> des bénéfices, et son coefficient d'exploitation est le deuxième meilleur, ce qui indique une gestion efficace.",
+    "probleme": "Le véritable problème de la SGCI réside dans son coût du risque, qui est le pire du marché à <b>17,0%</b>, et qui est en hausse continue. <br>Cette situation contraste avec la médiane du marché, qui est de <b>7,5%</b>, et avec le meilleur, le BICICI, qui est à <b>1,9%</b>.",
+    "faire": "L'action prioritaire consiste à mieux sélectionner et suivre le risque de crédit, ce qui permettrait de réduire le coût du risque et d'augmenter la rentabilité. <br>Un tel ajustement pourrait générer un gain estimé à environ <b>+26 Mds FCFA/an</b>.",
+    "surveiller": "Il est essentiel de surveiller le BICICI, qui affiche la croissance la plus rapide du résultat net, avec une augmentation de <b>+119%</b>, afin de comprendre les facteurs clés de son succès et de tirer des enseignements pour améliorer la performance de la SGCI."
+  },
+  "narr_v3_Particuliers_82d0dce937@meta": {
+    "generated_at": "2026-07-14T14:39:51",
+    "stale": false
+  },
+  "narr2_v2_Entreprises_48fdb2c6a9": {
+    "diag": "Le problème le plus grave est le coût du risque élevé et en hausse, qui pèse lourdement sur les résultats de SGCI, avec un coût du risque de 13,9% du PNB en moyenne sur trois ans, bien au-dessus de la médiane marché de 5,6%. <br>Ce problème est étroitement lié à la croissance lente de SGCI, qui perd des parts de marché, avec une croissance du résultat net de seulement 4,2% sur trois ans, contre une médiane marché de 32,1%. <br>La rentabilité des fonds propres de SGCI, avec un ROE de 20,5%, est également inférieure à celle de certains concurrents, mais ce n'est pas un problème majeur en soi, car SGCI reste leader en résultat net.",
+    "swot": "La force majeure de SGCI est sa position de leader en résultat net, avec une avance de 59,7% sur ECOBANK, ce qui lui donne une certaine stabilité et une capacité à investir dans son développement. <br>La faiblesse critique de SGCI est son coût du risque élevé et en hausse, qui grève ses résultats et la rend vulnérable à la concurrence. <br>Cette matrice impose à SGCI de prendre des décisions stratégiques pour réduire son coût du risque et accroître sa rentabilité, en investissant dans la gestion des risques et en diversifiant ses activités.",
+    "porter": "La pression concurrentielle est maximale dans le secteur bancaire ivoirien, avec une intensité de rivalité très élevée, ce qui oblige SGCI à être constamment innovante et à améliorer son offre. <br>Cette pression concurrentielle implique que SGCI doit être très vigilante sur ses coûts, sa gestion des risques et sa capacité à innover.",
+    "vrist": "L'avantage le plus durable de SGCI est sa rareté, avec un score de 10/10, ce qui signifie qu'elle possède des ressources et des capacités uniques qui sont difficiles à reproduire pour la concurrence. <br>Cependant, son maillon faible est sa durabilité, avec un score de 5/10.<br>SGCI doit travailler à renforcer sa capacité à pérenniser son avantage concurrentiel sur le long terme.",
+    "plan": "La logique d'ensemble du plan d'affaires de SGCI sur trois ans consiste à réduire son coût du risque, à accroître sa rentabilité et à maintenir sa position de leader sur le marché, en investissant dans la gestion des risques, la diversification de ses activités et l'innovation. <br>La réussite de ce plan conditionne la capacité de SGCI à mettre en place des stratégies efficaces pour gérer ses risques, innover et améliorer sa rentabilité, tout en maintenant sa position sur le marché.",
+    "rev_0": "SGCI est l'une des banques les plus efficientes du marché, avec un coefficient d'exploitation de 38,8%, mais que son ROE est inférieur à celui de certains concurrents.<br>SGCI doit améliorer sa capacité à générer des profits. <br>SGCI doit travailler à réduire son coût du risque, qui pèse lourdement sur ses résultats, et à améliorer sa rentabilité.",
+    "rev_1": "BICICI affiche la croissance la plus fulgurante du marché, avec une croissance du résultat net de 118,8%.<br>SGCI doit analyser les facteurs de succès de BICICI, tels que sa discipline dans la gestion des risques, pour améliorer sa propre performance.",
+    "rev_2": "SGCI tire la majeure partie de son PNB des intérêts, avec 76,0% du PNB, ce qui la rend vulnérable aux fluctuations des taux d'intérêt. <br>SGCI doit diversifier ses activités pour réduire sa dépendance aux intérêts et améliorer sa rentabilité.",
+    "rev_3": "NSIA gagne 76,5% des duels de prix.<br>SGCI doit être compétitive sur les prix. <br>SGCI doit analyser les stratégies de prix de NSIA.",
+    "rev_4": "SGCI est leader en résultat net, mais qu'elle est en queue de peloton en termes de croissance, avec une croissance du résultat net de seulement 4,2% sur trois ans.",
+    "rev_5": "SIB convertit 51,2% de son PNB en résultat net.<br>SGCI doit améliorer sa capacité à générer des profits. <br>SGCI doit analyser les facteurs de succès de SIB, tels que sa capacité à gérer les risques, pour améliorer sa propre performance.",
+    "rev_6": "NSIA publie 446 services, soit 2,5 fois la médiane marché.<br>SGCI doit être innovante. <br>SGCI doit investir dans l'innovation et la digitalisation pour améliorer sa capacité à répondre aux besoins des clients.",
+    "rev_detail_0": "SGCI est l'une des banques les plus efficientes du marché, avec un coefficient d'exploitation de 38,8%, ce qui signifie qu'elle est capable de gérer ses coûts de manière efficace. <br>Cependant, son ROE est inférieur à celui de certains concurrents.<br>SGCI doit améliorer sa capacité à générer des profits. <br>Le coût du risque de SGCI est de 13,9% du PNB, ce qui pèse lourdement sur ses résultats et la rend vulnérable à la concurrence. <br>SGCI doit travailler à réduire son coût du risque.",
+    "rev_detail_1": "BICICI affiche la croissance la plus fulgurante du marché, avec une croissance du résultat net de 118,8%.<br>La croissance de BICICI est due à sa discipline dans la gestion des risques, avec un coût du risque de seulement 1,9% du PNB. <br>SGCI doit analyser les facteurs de succès de BICICI pour améliorer sa propre performance. <br>La capacité de BICICI à gérer les risques de manière efficace lui permet de générer des profits de manière durable.",
+    "rev_detail_2": "SGCI tire la majeure partie de son PNB des intérêts, avec 76,0% du PNB, ce qui la rend vulnérable aux fluctuations des taux d'intérêt. <br>SGCI doit diversifier ses activités pour réduire sa dépendance aux intérêts et améliorer sa rentabilité. <br>Le coût du risque de SGCI est de 17,0% du PNB, ce qui pèse lourdement sur ses résultats et la rend vulnérable à la concurrence. <br>SGCI doit travailler à réduire son coût du risque.",
+    "rev_detail_3": "NSIA gagne 76,5% des duels de prix.<br>SGCI doit être compétitive sur les prix. <br>La stratégie de prix de NSIA est basée sur sa capacité à offrir des services à des prix compétitifs, ce qui lui permet de gagner des parts de marché. <br>SGCI doit analyser les stratégies de prix de NSIA. <br>La capacité de NSIA à gagner des duels de prix lui permet de maintenir sa position sur le marché.",
+    "rev_detail_4": "SGCI est leader en résultat net, mais elle est en queue de peloton en termes de croissance, avec une croissance du résultat net de seulement 4,2% sur trois ans. <br>La médiane marché est de 32,1% de croissance sur trois ans.<br>SGCI doit accroître sa croissance. <br>SGCI doit investir dans l'innovation et la digitalisation pour améliorer sa capacité à répondre aux besoins des clients.",
+    "rev_detail_5": "SIB convertit 51,2% de son PNB en résultat net.<br>SGCI doit améliorer sa capacité à générer des profits. <br>La capacité de SIB à gérer les risques de manière efficace lui permet de générer des profits de manière durable. <br>SGCI doit analyser les facteurs de succès de SIB pour améliorer sa propre performance. <br>Le coût du risque de SIB est de 3,3% du PNB.<br>SIB est capable de gérer les risques de manière efficace.",
+    "rev_detail_6": "NSIA publie 446 services, soit 2,5 fois la médiane marché.<br>SGCI doit être innovante. <br>La capacité de NSIA à offrir une large gamme de services lui permet de répondre aux besoins des clients de manière efficace. <br>SGCI doit investir dans l'innovation et la digitalisation pour améliorer sa capacité à répondre aux besoins des clients. <br>La médiane marché est de 178 services.<br>SGCI doit accroître son offre de services."
+  },
+  "narr2_v2_Entreprises_48fdb2c6a9@meta": {
+    "generated_at": "2026-07-14T14:42:36",
+    "stale": false
+  },
+  "narr3_v3_Entreprises_b2b70c51ae": {
+    "swot_forces_0": "La SGCI se distingue en tant que leader en résultat net, occupant la première place sur sept, avec le bénéfice le plus élevé du marché",
+    "swot_forces_1": "La SGCI affiche une avance significative en termes de résultat net, avec une augmentation de +59,7% par rapport à ECOBANK, qui se situe à la deuxième place",
+    "swot_forces_2": "La SGCI bénéficie d'une bonne compétitivité en termes de prix, se classant troisième en win-rate, ce qui lui permet de maintenir une position solide sur le marché",
+    "swot_faiblesses_0": "La SGCI est confrontée à un coût du risque élevé et en hausse, avec un coût du risque moyen de 13,9% du PNB sur trois ans, alors que la médiane du marché est de 5,6%, et une trajectoire allant de 10,9% à 13,8% puis à 17,0%",
+    "swot_faiblesses_1": "La SGCI connaît une croissance lente, se situant à la septième place en termes de croissance du résultat net sur trois ans, avec une augmentation de seulement +4,2%, ce qui la place parmi les plus lentes des sept banques",
+    "swot_faiblesses_2": "La SGCI présente une rentabilité des fonds propres (ROE) inférieure à la moyenne du marché, se classant cinquième sur six avec un ROE de 20,5%",
+    "swot_faiblesses_3": "La SGCI est confrontée à la montée en puissance de BICICI, qui affiche la croissance du résultat net la plus rapide du marché, avec une augmentation de +118,8%",
+    "swot_opportunites_0": "La SGCI a l'opportunité de reprendre l'initiative face aux banques qui innovent, en copiant et en dépassant les 114 services où un concurrent a pris de l'avance",
+    "swot_opportunites_1": "La SGCI peut regagner les clients sensibles au prix qui ont été repris par les autres banques, en se concentrant sur les services à fort volume",
+    "swot_opportunites_2": "La SGCI peut valoriser sa conformité stricte aux exigences de la BCEAO, en mettant en avant la sécurité des dépôts et la confiance, ce qui peut constituer un argument concret pour attirer les clients",
+    "swot_opportunites_3": "La SGCI a l'opportunité de convertir les utilisateurs de mobile money, qui représentent 82% en Côte d'Ivoire, en clients bancaires, en proposant des passerelles entre les wallets et les comptes, ainsi que des services d'épargne et de crédit",
+    "swot_menaces_0": "La SGCI est menacée par la croissance rapide de BICICI, qui peut éroder son avance en termes de résultat net, avec une augmentation de +118,8% et un risque maîtrisé",
+    "swot_menaces_1": "La SGCI est confrontée à la stratégie agressive de NSIA, qui est la moins chère sur 76,5% des services comparables, ce qui peut attirer les clients sensibles au prix",
+    "swot_menaces_2": "La SGCI doit surveiller l'évolution du mobile money, qui peut grignoter les paiements du quotidien, mais qui peut également être transformé en opportunité",
+    "porter_rivalite": "Rivalité accrue",
+    "porter_entrants": "Barrières fortes",
+    "porter_substituts": "Substituts émergents",
+    "porter_clients": "Pouvoir de négociation",
+    "porter_fournisseurs": "Coût des ressources maîtrisé",
+    "plan_theme_0": "Lever le verrou du risque",
+    "plan_theme_1": "Rendre la baisse du risque structurelle",
+    "plan_theme_2": "Relancer la croissance",
+    "rev_titre_0": "Le paradoxe SGCI",
+    "rev_action_0": "Il est essentiel de faire du coût du risque la priorité, car l'efficience et la taille sont déjà acquises, mais le risque est le seul verrou qui doit être levé",
+    "rev_titre_1": "L'ascension de BICICI",
+    "rev_action_1": "Il est nécessaire de défendre la base corporate et de copier la discipline d'octroi de BICICI, notamment là où la SGCI perd 17% de PNB",
+    "rev_titre_2": "La diversification compte double",
+    "rev_action_2": "Il est crucial de traiter la diversification des commissions comme un levier de résilience prioritaire, et non seulement comme un moyen de générer des revenus",
+    "rev_titre_3": "NSIA fait du prix une arme",
+    "rev_action_3": "Il est essentiel de cartographier les services à fort volume où l'agresseur attaque et de défendre par la valeur, plutôt que de se lancer dans une guerre des prix",
+    "rev_titre_4": "Le leader qui décélère",
+    "rev_action_4": "Il est nécessaire de fixer un objectif de croissance supérieur ou égal à la médiane du marché, qui est de 32,1%, en utilisant trois moteurs précis : les commissions de service, la conquête corporate et l'acquisition digitale",
+    "rev_action_5": "Il est essentiel d'importer la discipline de sélection du risque de SIB, qui est la filiale du groupe marocain Attijariwafa, car l'efficience opérationnelle est déjà présente chez la SGCI",
+    "rev_action_6": "Il est préférable de ne pas courir à l'exhaustivité, mais plutôt d'approfondir les services à forte valeur, plutôt que de multiplier les lignes de produits"
+  },
+  "narr3_v3_Entreprises_b2b70c51ae@meta": {
+    "generated_at": "2026-07-14T14:42:45",
+    "stale": false
+  },
+  "narr_v3_Entreprises_82d0dce937": {
+    "verdict": "La Société Générale Côte d'Ivoire (SGCI) domine le marché bancaire ivoirien en termes de résultat net, avec <b>27,0%</b> des bénéfices, et figure parmi les mieux gérées avec un coefficient d'exploitation de <b>#2/7</b>. <br>Cependant, son coût du risque, le pire du marché à <b>17,0%</b>, et sa croissance lente, avec une progression du résultat net en dernière position à <b>#7/7</b>, la freinent. <br>Maîtriser ce seul risque suffirait à la hisser au premier rang de la rentabilité.",
+    "bien": "Le résultat net de la SGCI est en tête de liste, avec <b>27,0%</b> des bénéfices, et son coefficient d'exploitation est <b>#2/7</b>, ce qui indique une gestion efficace.",
+    "probleme": "Le coût du risque de la SGCI est le pire du marché, à <b>17,0%</b>, soit plus du double de la médiane du marché à <b>7,5%</b>, et il est en hausse continue. <br>Ce coût du risque élevé pèse lourdement sur la rentabilité de la banque, avec un impact négatif sur la marge nette et le ROE, respectivement à <b>#6/7</b> et <b>#5/7</b>.",
+    "faire": "L'action prioritaire est de mieux sélectionner et suivre le risque de crédit, ce qui pourrait permettre à la SGCI de réduire son coût du risque et d'augmenter sa rentabilité, avec un gain estimé à environ <b>+26 Mds FCFA/an</b> si le coût du risque revenait à la médiane du marché. <br>Cela nécessite une vigilance accrue dans la gestion des crédits et une amélioration des processus de sélection et de suivi des risques.",
+    "surveiller": "Il est essentiel de surveiller le concurrent le plus rapide, BICICI, qui a enregistré une croissance de résultat net de <b>+119%</b>, afin de comprendre les facteurs clés de son succès et de tirer des enseignements pour améliorer la performance de la SGCI."
+  },
+  "narr_v3_Entreprises_82d0dce937@meta": {
+    "generated_at": "2026-07-14T14:42:49",
+    "stale": false
   }
 }

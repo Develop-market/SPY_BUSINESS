@@ -335,6 +335,17 @@ def load_cb(conn, reset=False):
                 if not rows:
                     continue
                 with conn.cursor() as cur:
+                    # DELETE scopé avant INSERT (même garde-fou que PIPELINE/ingest.py:271-273) :
+                    # sans lui, relancer ce script SANS --reset après une première ingestion
+                    # complète réinsérerait chaque fichier déjà en base → doublons massifs.
+                    # Trouvé par audit préventif le 2026-07-14 (recherche de bugs analogues à
+                    # la fenêtre glissante EF is_primary) — pas un bug déjà déclenché en
+                    # production (données actuelles vérifiées propres), mais un vrai risque latent.
+                    cur.execute(
+                        """DELETE FROM cb_tarifs
+                           WHERE banque=%s AND annee=%s AND semestre=%s AND segment=%s""",
+                        (banque, annee, semestre, segment)
+                    )
                     execute_values(cur,
                         """INSERT INTO cb_tarifs
                            (banque,annee,semestre,segment,section,contexte,
