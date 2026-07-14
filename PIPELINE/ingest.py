@@ -295,6 +295,24 @@ def do_store(a):
                 """INSERT INTO ef_indicateurs
                    (banque,fichier,libelle,annee_label,annee_donnee,annee_rapport,
                     is_primary,unite,valeur_brute,valeur_propre,montant) VALUES %s""", rows)
+            # FENÊTRE GLISSANTE 3 ANS : is_primary (posé par ST._parse_ef_xlsx) ne compare
+            # que l'année du FICHIER à sa propre annee_rapport — il suppose implicitement
+            # qu'une banque n'a jamais plus de 3 fichiers (AN1-AN3). Ajouter une 4e année
+            # (ex. BNI 2024) laissait alors 4 années à is_primary=TRUE au lieu de 3, cassant
+            # tous les graphiques/classements qui supposent exactement 3 points (AN1→AN3).
+            # Recalcul ICI, après CHAQUE insertion EF, pour que la fenêtre glisse toujours
+            # automatiquement — bug trouvé le 2026-07-14 en ajoutant BNI 2024 à la main.
+            cur.execute("""
+                WITH rang AS (
+                    SELECT DISTINCT annee_donnee,
+                           RANK() OVER (ORDER BY annee_donnee DESC) AS r
+                    FROM ef_indicateurs
+                    WHERE banque=%s AND annee_donnee IS NOT NULL
+                )
+                UPDATE ef_indicateurs e
+                SET is_primary = (e.annee_donnee IN (SELECT annee_donnee FROM rang WHERE r<=3))
+                WHERE e.banque=%s AND e.annee_donnee IS NOT NULL
+            """, (a.banque, a.banque))
         conn.commit()
         n = len(rows)
 

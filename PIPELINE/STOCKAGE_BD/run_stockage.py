@@ -479,6 +479,26 @@ def load_ef(conn, reset=False):
             n_primary = sum(1 for r in rows if r[6])
             print(f"    [EF] {banque}/{xlsx.name} : {len(rows)} lignes ({n_primary} is_primary)")
 
+        # FENÊTRE GLISSANTE 3 ANS (par banque, une fois tous ses fichiers chargés) : is_primary
+        # posé plus haut ne compare que l'année de CHAQUE fichier à sa propre annee_rapport —
+        # correct seulement si une banque a exactement 3 fichiers (AN1-AN3). Une 4e année
+        # (ex. BNI/AN4) laisse alors 4 années à is_primary=TRUE au lieu de 3, cassant tout ce
+        # qui suppose exactement 3 points (AN1→AN3). Recalcul systématique ici. Même correctif
+        # que PIPELINE/ingest.py (bug trouve le 2026-07-14 en ajoutant BNI 2024).
+        with conn.cursor() as cur:
+            cur.execute("""
+                WITH rang AS (
+                    SELECT DISTINCT annee_donnee,
+                           RANK() OVER (ORDER BY annee_donnee DESC) AS r
+                    FROM ef_indicateurs
+                    WHERE banque=%s AND annee_donnee IS NOT NULL
+                )
+                UPDATE ef_indicateurs e
+                SET is_primary = (e.annee_donnee IN (SELECT annee_donnee FROM rang WHERE r<=3))
+                WHERE e.banque=%s AND e.annee_donnee IS NOT NULL
+            """, (banque, banque))
+        conn.commit()
+
     print(f"  [EF] Total : {total} lignes inserees.")
 
 
