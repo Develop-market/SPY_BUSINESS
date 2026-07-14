@@ -219,9 +219,13 @@ def comparer_roe(mode: str = "AN3", banques: list = None) -> dict:
             y = _an_year(cur, b, mode)
             if not y:
                 continue
+            # NOT ILIKE '%avant%' : exclut "RESULTAT NET AVANT IMPOTS" que '%sultat net%' matchait
+            # aussi — bug trouvé le 2026-07-14 (BACI/BNI en avaient les deux, max() prenait à tort
+            # le résultat AVANT impôt, gonflant le ROE affiché par le chat, ex. BNI 2024 : 22,7%
+            # au lieu de 21,5%).
             cur.execute("""SELECT DISTINCT ROUND(montant::numeric,0) FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
-                             AND libelle ILIKE %s AND montant IS NOT NULL""",
+                             AND libelle ILIKE %s AND libelle NOT ILIKE '%%avant%%' AND montant IS NOT NULL""",
                         (b, y, "%sultat net%"))
             rn_vals = [float(r[0]) for r in cur.fetchall()]
             cur.execute("""SELECT DISTINCT ROUND(montant::numeric,0) FROM ef_indicateurs
