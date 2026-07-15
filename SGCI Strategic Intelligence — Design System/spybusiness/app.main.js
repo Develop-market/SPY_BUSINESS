@@ -5612,7 +5612,7 @@ function _buildQ3AxesHTML(d){
   const _ndiff=_ranked.filter(it=>it.verdict==='differenciant').length;
   const _seNames=_ranked.filter(it=>it.verdict!=='differenciant').slice(0,3).map(it=>it.name||_itemLib(it));
   const iaCommentary=`<div style="margin-bottom:14px;padding:11px 13px;background:#F8F7FF;border-radius:10px;border:1px solid #E0E7FF">
-    <div style="font:700 10px var(--sans);color:var(--accent-2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">🤖 Analyse — pourquoi ces services sont distinctifs</div>
+    <div style="font:700 10px var(--sans);color:var(--accent-2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">◆ Analyse — pourquoi ces services sont distinctifs <span style="opacity:.6;text-transform:none;letter-spacing:0">(calcul automatique, pas IA)</span></div>
     <div style="font:400 11px/1.65 var(--sans);color:var(--ink)">
       Sur <b>${total}</b> services distinctifs validés par l'Agent Web :
       <b style="color:#15803D">${_nse} sans équivalent</b> (aucun concurrent trouvé — grille publiée <b>+ recherche web</b> ; plausible, non certifié)
@@ -5758,7 +5758,7 @@ function _buildQ5AxesHTML(d,banque){
   // ── Analyse GROUNDED (synthèse depuis les données, sans LLM) ──
   const _nGrat=_ranked.filter(it=>it.est_gratuit).length;
   const iaCommentary5=`<div style="margin-bottom:14px;padding:11px 13px;background:#FFF5F5;border-radius:10px;border:1px solid #FECACA">
-    <div style="font:700 10px var(--sans);color:var(--red);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">🤖 Analyse — pourquoi ce sont des manques</div>
+    <div style="font:700 10px var(--sans);color:var(--red);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">◆ Analyse — pourquoi ce sont des manques <span style="opacity:.6;text-transform:none;letter-spacing:0">(calcul automatique, pas IA)</span></div>
     <div style="font:400 11px/1.65 var(--sans);color:#1E293B">
       <b>${total}</b> services proposés par <b>${banque}</b> et <b>absents</b> du catalogue SGCI (validés sémantiquement — pas des variantes de nommage).
       ${_nGrat?` Dont <b style="color:var(--red)">${_nGrat} GRATUITS</b> chez ${banque} : les plus urgents (fuite des clients sensibles au prix).`:''}
@@ -7250,10 +7250,15 @@ function toggleGlossContext(){
 }
 
 /* Encadré "◆ Analyse" — même codes visuels que la page Santé financière
-   (texte explicatif en langage clair, pas un empilement de chiffres bruts). */
+   (texte explicatif en langage clair, pas un empilement de chiffres bruts).
+   TRANSPARENCE : ce texte est un calcul déterministe (comptage/comparaison des
+   tarifs), PAS une génération LLM — contrairement aux autres blocs "Analyse"
+   du dashboard qui, eux, viennent d'un vrai appel Groq/Gemini. Précisé
+   explicitement pour ne pas laisser croire à une analyse IA (trouvé le
+   2026-07-14 lors d'un audit de transparence demandé par l'utilisateur). */
 function _cbAnalyse(txt){
   return`<div style="margin-top:12px;padding:13px 16px;background:rgba(56,209,240,.06);border-left:3px solid #38D1F0;border-radius:0 8px 8px 0">
-    <div style="font:700 9px var(--sans);text-transform:uppercase;letter-spacing:.08em;color:#38D1F0;margin-bottom:6px">◆ Analyse — en clair</div>
+    <div style="font:700 9px var(--sans);text-transform:uppercase;letter-spacing:.08em;color:#38D1F0;margin-bottom:6px">◆ Analyse — en clair <span style="opacity:.6;text-transform:none;letter-spacing:0">(calcul automatique, pas IA)</span></div>
     <div style="font:500 12.5px/1.65 var(--sans);color:var(--ink)">${txt}</div></div>`;
 }
 function pageCB(){return CB_SEG==="Particuliers"?pageCBPar():pageCBEnt();}
