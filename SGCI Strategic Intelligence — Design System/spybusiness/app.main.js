@@ -8034,6 +8034,9 @@ function _soDirectives(d, sect, dossiersHtml){
       ${_soSignal(x.signal)}
       ${_soTerrain(x.terrain)}
       ${ligne("Ce qu'il faut faire", x.action, true)}
+      ${x.premier_pas?`<div style="margin-top:7px;padding:7px 10px;background:var(--bg-raise);border-radius:6px;
+        font:600 12px/1.5 var(--sans);color:var(--ink)">
+        <span style="color:var(--accent-2);font-weight:800">▸ Sous 30 jours</span> ${_soEsc(x.premier_pas)}</div>`:""}
       ${ligne("Cible", x.cible)}
       ${ligne("Indicateur de suivi", x.indicateur)}
       <div style="margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font:500 11.5px/1.55 var(--sans);color:var(--faint)">

@@ -1108,6 +1108,15 @@ def api_radar_agent():
                 _cur.execute("SELECT COUNT(*) FROM cb_tarifs WHERE embedding IS NOT NULL")
                 _cb_vect = _cur.fetchone()[0] > 0
 
+        # LA RECHERCHE SEMANTIQUE EXIGE LE MODELE LOCAL (2026-08-07).
+        # `_cb_vect` dit seulement que les lignes PORTENT un vecteur en base ; il ne dit rien
+        # de la capacite a encoder la QUESTION, qui reclame sentence-transformers. Or
+        # requirements-deploy.txt exclut deliberement torch et sentence-transformers (2+ Go,
+        # hors des 512 Mo du plan gratuit) : le chat le gere via _RAG_OK, mais ce radar-ci ne
+        # le consultait pas. Sur un deploiement allege, il serait tombe sur un ImportError
+        # alors qu'un repli SQL complet existe juste en dessous.
+        _cb_vect = _cb_vect and _RAG_OK
+
         cb_lines   = []
         # Liste DYNAMIQUE des banques (SGCI d'abord, puis les autres depuis la base) → une nouvelle
         # banque ajoutée est automatiquement prise en compte par le radar. Plus aucune liste figée.

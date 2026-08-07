@@ -5,10 +5,33 @@
 # importent réellement à l'exécution.
 #
 # Volontairement ABSENTS : torch / sentence-transformers / langchain-* (chat IA à recherche
-# sémantique locale). Ces paquets pèsent 2+ Go et ne rentrent pas dans les 512 Mo du plan
-# gratuit. server.py détecte leur absence proprement (_RAG_OK=False) et désactive juste le
-# chat avec un message clair — le reste du dashboard (Santé financière, Conditions bancaires,
-# Stratégie) n'en dépend pas et fonctionne normalement.
+# sémantique locale). server.py détecte leur absence proprement (_RAG_OK=False) et désactive
+# juste le chat avec un message clair — le reste du dashboard (Santé financière, Conditions
+# bancaires, Stratégie) n'en dépend pas et fonctionne normalement.
+#
+# POIDS MESURÉ (2026-08-07), pour que le choix soit documenté et non supposé :
+#     torch                                        509 Mo
+#     transformers, scipy, sklearn, numpy…          292 Mo
+#     modèle paraphrase-multilingual-mpnet-base-v2 1 126 Mo
+#     ────────────────────────────────────────────────────
+#     total pour la recherche sémantique          ≈ 1,9 Go
+#
+# Le cache Hugging Face de la machine de développement pèse 7,4 Go, mais le chat n'utilise
+# qu'UN seul de ces modèles : le reste (docling, bart-large-mnli, modèles de sentiment) sert
+# au pipeline d'extraction des PDF, qui n'a pas à être déployé.
+#
+# POUR EMBARQUER LE CHAT SANS LES 1,9 Go — piste retenue, non encore appliquée :
+# exporter le MÊME modèle au format ONNX et l'exécuter avec onnxruntime (≈ 15 Mo) au lieu de
+# torch. sentence-transformers 5.5 accepte backend="onnx" ; l'export réclame `optimum`.
+# L'intérêt décisif est que ce sont les mêmes poids, donc les mêmes vecteurs : les 31 985
+# embeddings déjà en base restent valides, aucun ré-encodage. Avec quantification int8, on
+# vise ≈ 300 Mo, soit six fois moins. À valider en comparant les vecteurs produits sur un
+# échantillon avant de basculer — un écart, même faible, invaliderait la base existante.
+#
+# Les autres pistes ont été écartées : un modèle plus petit (MiniLM, 480 Mo) produit des
+# vecteurs à 384 dimensions, incompatibles avec ceux stockés ; une API d'embeddings supprime
+# le poids local mais ajoute une dépendance réseau, un coût par question, et le même
+# ré-encodage complet.
 
 Flask==3.1.2
 flask-cors==6.0.1

@@ -895,14 +895,108 @@ def _coherence_grille(socle):
     }
 
 
+def _fr(texte):
+    """Décimales à la française : « 37.2 % » devient « 37,2 % ».
+
+    Les nombres viennent de calculs Python, qui écrivent le point. Sur une note destinée à un
+    comité ivoirien, un point décimal se remarque immédiatement et fait douter du reste. La
+    conversion ne touche QUE les motifs chiffre-point-chiffre : aucune date, aucune URL et
+    aucun numéro de version n'apparaît dans ces champs.
+    """
+    import re as _r
+    return _r.sub(r"(\d)\.(\d)", r"\1,\2", str(texte or ""))
+
+
+# Premier pas selon la NATURE de la directive, reconnue à ses mots. On ne demande pas un
+# résultat en trente jours — on demande d'avoir commencé, par un geste vérifiable qui ne
+# dépend de personne d'autre que la direction concernée.
+#
+# L'ordre compte : le premier motif qui correspond gagne, du plus spécifique au plus général.
+_PREMIERS_PAS = [
+    # ORDRE DU PLUS SPECIFIQUE AU PLUS GENERAL, et motifs faits de plusieurs mots quand le mot
+    # seul est ambigu. Trois faux amis ont ete corriges ici le 2026-08-07 :
+    #   « Bonne gamme » (un segment de clientele) attrapait la regle de la gamme de CARTES ;
+    #   « moyenne du secteur » attrapait celle de la conquete SECTORIELLE ;
+    #   « tarification des incidents » attrapait celle des ecarts TARIFAIRES.
+    # C'est la meme lecon que le mot « marche », qui rattachait le coefficient d'exploitation
+    # aux cautions de marche du BTP : un mot isole ne porte pas son sens.
+    (("coût du risque", "sinistralité", "créances", "portefeuille dégradé"),
+     "Isoler les dossiers dégradés du trimestre et en analyser l'origine."),
+    (("engagement par signature", "engagements par signature", "caution", "garantie"),
+     "Recenser les engagements par signature en cours et leur couverture."),
+    (("incident", "impayé", "dissuasif"),
+     "Rapprocher le tarif de l'incident de son coût réel de traitement."),
+    (("déclaration", "espèces", "conformité", "seuil"),
+     "Vérifier que le seuil en vigueur est bien celui appliqué par les agences."),
+    (("cohérence", "grille publiée", "grille tarifaire publiée"),
+     "Reprendre les lignes signalées à la source et corriger la base."),
+    (("adresser le segment", "segment grand public", "segment bonne gamme",
+      "segment patrimoniaux", "segments professionnels"),
+     "Extraire du fichier client la population de ce segment et son équipement actuel."),
+    (("gamme de carte", "gamme de cartes", "monétique"),
+     "Mettre à plat la gamme actuelle en face de celle des concurrents, palier par palier."),
+    (("tarifs les plus éloignés", "réexaminer les", "médiane du marché"),
+     "Réunir le comité tarifaire et statuer, service par service, sur les écarts listés."),
+    (("coefficient d'exploitation", "charges générales"),
+     "Isoler les trois postes de charges qui pèsent le plus, et leur évolution sur douze mois."),
+    (("part des commissions", "revenus de commissions"),
+     "Décomposer les commissions par ligne de service et repérer les trois plus faibles."),
+    (("coût des ressources", "intermédiation", "refinancement"),
+     "Établir le coût moyen des ressources collectées sur le dernier trimestre."),
+    (("boucler le plan", "part non couverte", "écart à combler"),
+     "Convoquer un comité de bouclage et affecter chaque tranche de l'écart à un responsable."),
+    (("ouvrir la conquête", "conquête sur le secteur"),
+     "Constituer la liste nominative des prospects du secteur et l'affecter au réseau."),
+    (("armer le réseau", "argument", "gratuité"),
+     "Rédiger l'argumentaire d'une page et le diffuser aux chargés de clientèle."),
+    (("équiper la clientèle", "socle de services", "services de flux"),
+     "Recenser les clients professionnels non équipés du socle et les répartir par agence."),
+    (("acceptation de paiement", "solution d'acceptation", "terminal"),
+     "Choisir la solution d'acceptation et lancer un pilote sur une dizaine de commerçants."),
+    (("porter à distance", "banque à distance", "canal numérique"),
+     "Lister les opérations encore impossibles à distance et les classer par fréquence."),
+    (("automatiser", "occupent le guichet"),
+     "Chronométrer les opérations les plus répétitives en agence pendant une semaine."),
+    (("entrée en relation", "délai d'ouverture"),
+     "Mesurer le délai réel d'ouverture d'un compte, de la demande à la première opération."),
+]
+
+
+def _premier_pas_depuis(directive):
+    """Premier geste à trente jours, déduit de la nature de la directive.
+
+    LE TITRE D'ABORD, l'action seulement ensuite. Chercher dans les deux à la fois donnait des
+    contresens : « piloter le coût des ressources » recevait « réunir le comité tarifaire »
+    parce que son action mentionne la tarification du crédit, et « porter la part des
+    commissions » recevait « mettre à plat la gamme » parce qu'elle cite la monétique parmi
+    les leviers. Le titre dit ce que la directive EST ; l'action ne fait que la détailler, et
+    elle cite au passage des termes qui appartiennent à d'autres sujets.
+    """
+    titre = (directive.get("titre") or "").lower()
+    for motifs, pas in _PREMIERS_PAS:
+        if any(m in titre for m in motifs):
+            return pas
+    action = (directive.get("action") or "").lower()
+    for motifs, pas in _PREMIERS_PAS:
+        if any(m in action for m in motifs):
+            return pas
+    # Repli honnête : on ne fabrique pas un geste qui n'aurait rien à voir avec la directive.
+    return "Désigner le responsable de cette directive et fixer la date du premier point."
+
+
 def _lien_objectif(socle, part=None):
     obj = socle.get("objectif") or {}
     e = obj.get("ecart_a_combler")
     if not e:
         return "Contribue au plan à trois ans de la stratégie globale."
-    base = (f"L'objectif global demande {e} {obj.get('unite','Mds')} FCFA de PNB supplémentaire "
-            f"en {obj.get('horizon_ans', 3)} ans")
-    return base + (f" ; cette directive y contribue par {part}." if part else ".")
+    # RACCOURCI le 2026-08-07. La phrase rappelait l'objectif global en entier sur CHACUNE des
+    # vingt cartes : « L'objectif global demande 27,7 Mds FCFA de PNB supplémentaire en 3 ans ;
+    # cette directive y contribue par… ». Répétée vingt fois, la première moitié cesse d'être
+    # une information et devient du bruit — d'autant que le bandeau en tête de page l'affiche
+    # déjà. On ne garde que ce qui varie d'une carte à l'autre : le LEVIER.
+    if not part:
+        return f"Contribue à l'écart de {e} {obj.get('unite','Mds')} FCFA à combler."
+    return f"Levier vers l'objectif : {part}."
 
 
 # ── RÉPARTITION DES COMPÉTENCES (2026-08-07, correction du directeur) ────────────────
@@ -1369,6 +1463,22 @@ def directives(annee=None, semestre=None, segment="Particuliers"):
                     "recommande": bool(s.get("_recommande")),
                 }
         out.extend(lot)
+
+    # ── FINITION (2026-08-07) ────────────────────────────────────────────────────────
+    # Deux passes appliquées à TOUTES les directives, pour ne pas dépendre de la vigilance
+    # de chaque compositeur :
+    #
+    #   1. Décimales à la française. Les nombres viennent de f-strings Python, qui écrivent
+    #      « 37.2 % ». Sur une note de comité, le point décimal saute aux yeux.
+    #   2. Premier pas à trente jours. Une directive sans premier pas reste une intention :
+    #      « ramener le coefficient au niveau du marché » ne dit pas ce qu'on fait lundi.
+    #      Il se déduit de l'action, en la ramenant à son geste initial.
+    for x in out:
+        for champ in ("titre", "constat", "action", "cible", "indicateur", "contribution"):
+            if x.get(champ):
+                x[champ] = _fr(x[champ])
+        if not x.get("premier_pas"):
+            x["premier_pas"] = _premier_pas_depuis(x)
 
     obj = socle.get("objectif") or {}
     return {

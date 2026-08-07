@@ -487,7 +487,7 @@ def business_case(sec, eco):
             {"libelle": "Commission moyenne par client et par an",
              "valeur": f"{cm:,} FCFA".replace(",", " "),
              "nature": "calculé", "detail": "commissions du compte de résultat / nombre de clients"},
-            {"libelle": "PNB de référence", "valeur": f"{eco.get('pnb_m'):,} M FCFA".replace(",", " ")
+            {"libelle": "PNB de référence", "valeur": f"{eco.get('pnb_m'):,.0f} M FCFA".replace(",", " ")
              if eco.get("pnb_m") else "—", "nature": "calculé"},
         ],
     }
@@ -645,7 +645,9 @@ def produits_sgci(cle, annee, semestre, segment, limite=6):
         elif r.get("montant") and r.get("type_valeur") == "MONTANT_FCFA":
             prix = f"{int(r['montant']):,} F".replace(",", " ")
         elif r.get("montant") and r.get("type_valeur") == "TAUX_%":
-            prix = f"{r['montant']} %"
+            # Decimale a la francaise : « 3.5 % » sur une note de comite ivoirien se remarque
+            # et fait douter du reste. Le nombre vient d'un calcul Python, pas de la brochure.
+            prix = f"{r['montant']} %".replace(".", ",")
         else:
             prix = "tarif non chiffré"
         # Une ligne « tarif non chiffré » ne rend pas la décision plus exécutable : le chargé
