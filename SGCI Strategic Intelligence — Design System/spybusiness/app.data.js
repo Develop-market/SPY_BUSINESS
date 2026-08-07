@@ -124,7 +124,17 @@ let APERCU_FILTERS = {
 /* ── API helpers ─────────────────────────────────────────────────────── */
 async function apiFetch(path){
   try{
-    const r = await fetch(path);
+    // credentials explicite : le cookie de session doit accompagner chaque appel. Le défaut
+    // « same-origin » suffirait ici, mais l'écrire évite qu'un déplacement de l'API sur un
+    // sous-domaine casse silencieusement l'authentification.
+    const r = await fetch(path, { credentials:"same-origin" });
+    // 401 : la session a expiré (12 h) ou le serveur a redémarré sans APP_SECRET_KEY fixe.
+    // Rendre la main à la page de connexion vaut mieux qu'afficher un tableau de bord vide
+    // dont l'utilisateur ne comprendrait pas pourquoi il ne se remplit pas.
+    if(r.status === 401){
+      if(typeof _gateRelock === "function") _gateRelock();
+      return null;
+    }
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     return await r.json();
   } catch(e){

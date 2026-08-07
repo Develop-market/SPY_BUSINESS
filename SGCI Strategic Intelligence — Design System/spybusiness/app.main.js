@@ -70,6 +70,14 @@ const PAGES = {
   rapports: { title:"Rapports",           render: pageRapports },
   cb:       { title:"Benchmark Concurrentiel",render: pageCB      },
   chat:     { title:"Chat Intelligence",  render: pageChat, full:true },
+  admin:    { title:"Administration",     render: pageAdmin    },
+};
+
+// Correspondance onglet -> section de droits (cf. dash_app/securite.py). « rapports » n'a pas
+// de section propre : il n'expose que ce que les autres pages montrent déjà.
+const SECTION_DE_PAGE = {
+  apercu:"apercu", analyse:"analyse", cb:"cb", strategie:"strategie",
+  stratop:"stratop", chat:"chat", admin:"admin",
 };
 
 /* ════════════ VUE D'ENSEMBLE ════════════════════════════════════════ */
@@ -8378,6 +8386,7 @@ const AFTER = {
   cb:        afterCB,
   chat:      afterChat,
   stratop:   afterStratOp,
+  admin:     afterAdmin,
 };
 
 function go(key){
@@ -8546,30 +8555,63 @@ function _gateShowLogin(){
   if(u) setTimeout(()=> u.focus(), 100);
 }
 
-function _gateLoginSubmit(){
+// AUTHENTIFICATION CÔTÉ SERVEUR (2026-08-07).
+//
+// Cette fonction comparait le mot de passe à une chaîne littérale écrite ICI même, du type
+//     const validPass = (pass === "<le mot de passe, en clair>");
+// Autrement dit, le mot de passe était livré à chaque visiteur avec la page, et la porte se
+// franchissait depuis la console en appelant _gateUnlock(). Rien côté serveur ne s'y opposait :
+// les vingt-et-un endpoints répondaient sans identifiant.
+//
+// La vérification appartient désormais au serveur, contre une empreinte scrypt salée stockée
+// en base (cf. dash_app/securite.py). Le navigateur ne connaît plus aucun secret : il envoie
+// ce que l'utilisateur a tapé et reçoit un cookie de session signé, inaccessible au JavaScript.
+async function _gateLoginSubmit(){
   const user = (document.getElementById("gate-user").value||"").trim().toLowerCase();
   const pass = (document.getElementById("gate-pass").value||"").trim();
   const err  = document.getElementById("gate-err");
+  // .login-btn et non « .gate-login button » : ce dernier attrapait le sélecteur de thème,
+  // placé plus haut dans le même conteneur. Le bouton de connexion n'était jamais désactivé,
+  // et c'est l'icône du thème qui affichait « Vérification… ».
+  const btn  = document.querySelector(".login-btn");
+  if(btn){ btn.disabled = true; btn.textContent = "Vérification…"; }
 
-  /* Accepted credentials (case-insensitive user, exact password) */
-  const validUser = (user === "spybusiness");
-  const validPass = (pass === "spybusiness2026" || pass === "sypbusiness2026");
+  let ok = false, motif = "Identifiant ou mot de passe incorrect.";
+  try{
+    const r = await fetch("/api/login", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      credentials:"same-origin",
+      body: JSON.stringify({ identifiant:user, mot_de_passe:pass })
+    });
+    const d = await r.json().catch(()=>({}));
+    ok = !!(r.ok && d.ok);
+    if(!ok && d.error) motif = d.error;   // ex. temporisation après trop de tentatives
+    if(ok) SB_UTILISATEUR = d.utilisateur || null;
+  }catch(e){
+    motif = "Serveur injoignable.";
+  }
+  if(btn){ btn.disabled = false; btn.textContent = "Se connecter →"; }
 
-  if(validUser && validPass){
-    sessionStorage.setItem("sb-logged-in","1");
+  if(ok){
     const gate = document.getElementById("gate");
     const card = gate.querySelector(".gate-login");
     if(card) card.classList.add("gate-fadeout");
     setTimeout(()=> _gateUnlock(), 500);
   } else {
-    if(err) err.classList.add("show");
-    /* Shake animation */
+    if(err){ err.textContent = motif; err.classList.add("show"); }
     const card = document.querySelector(".gate-login");
     if(card){ card.style.animation="none"; card.offsetHeight; card.style.animation="gateIn .4s var(--ease)"; }
   }
 }
 
+// Utilisateur courant, renseigné à la connexion ou au retour d'une session encore valide.
+// Sert notamment à masquer « Ajouter des données » pour un compte en lecture seule : le
+// serveur refuserait de toute façon (403), mais proposer un bouton qui échoue est une
+// mauvaise manière de faire respecter un droit.
+let SB_UTILISATEUR = null;
+
 function _gateUnlock(){
+  _gateVerrouAffiche = false;   // une nouvelle session peut de nouveau déclencher un rappel
   document.body.classList.remove("gated");
   const gate = document.getElementById("gate");
   gate.classList.add("hidden");
@@ -8580,11 +8622,15 @@ function _gateUnlock(){
 function _bootApp(){
   loadAll()
     .then(()=> {
+      _appliquerDroits();
       initChrome();
       document.getElementById("burger").onclick = toggleNav;
       go(localStorage.getItem("sb-page") || "apercu");
     })
     .catch(()=>{
+      // Les droits s'appliquent aussi quand le chargement échoue : un menu complet sur une
+      // application en panne laisserait croire que tout est accessible.
+      _appliquerDroits();
       initChrome();
       document.getElementById("burger").onclick = toggleNav;
       go(localStorage.getItem("sb-page") || "apercu");
@@ -8755,24 +8801,246 @@ window.addEventListener("load", ()=>{
   setTheme(localStorage.getItem("sb-theme") || "dark");
 
   const disclaimerRead = sessionStorage.getItem("sb-disclaimer-read") === "1";
-  const loggedIn       = sessionStorage.getItem("sb-logged-in") === "1";
 
-  if(disclaimerRead && loggedIn){
-    /* Already authenticated — go straight to app */
-    _gateUnlock();
+  // C'EST LE SERVEUR QUI DIT SI LA SESSION EST VALIDE (2026-08-07).
+  // Auparavant, un simple sessionStorage « sb-logged-in = 1 » suffisait à ouvrir
+  // l'application — une valeur que n'importe qui peut écrire depuis la console. Elle ne
+  // prouvait rien : elle enregistrait seulement que le navigateur avait déjà affiché la
+  // page. On interroge donc /api/moi, qui répond d'après le cookie de session signé.
+  fetch("/api/moi", { credentials:"same-origin" })
+    .then(r => r.json())
+    .then(d => {
+      if(d && d.authentifie){
+        SB_UTILISATEUR = d.utilisateur || null;
+        if(disclaimerRead){ _gateUnlock(); return; }
+      }
+      _gateStart(disclaimerRead);
+    })
+    .catch(() => _gateStart(disclaimerRead));
+  return;
+});
+
+// Session expirée en cours d'usage : on remet la porte plutôt que de laisser l'écran se vider
+// sans explication. Appelée par apiFetch() sur un 401.
+let _gateVerrouAffiche = false;
+function _gateRelock(){
+  if(_gateVerrouAffiche) return;        // un seul rappel, même si dix appels échouent d'un coup
+  _gateVerrouAffiche = true;
+  SB_UTILISATEUR = null;
+  document.body.classList.add("gated");
+  const gate = document.getElementById("gate");
+  if(gate) gate.classList.remove("hidden");
+  _gateShowLogin();
+  const err = document.getElementById("gate-err");
+  if(err){ err.textContent = "Session expirée. Reconnectez-vous."; err.classList.add("show"); }
+}
+
+/* ════════════ ADMINISTRATION ═══════════════════════════════════════════════════════
+   Écran demandé le 2026-08-07 : « une interface admin où on pourra voir qui se connecte,
+   créer les accès, voir chacune des actions ; l'admin choisit qui a accès à quoi. »
+
+   Trois blocs, dans l'ordre où l'on s'en sert : les comptes (avec leurs droits, cochés
+   section par section), la création d'un compte, puis le journal d'accès.
+
+   Rien n'est décidé ici : l'écran ne fait qu'appeler /api/admin/*, qui revérifie le rôle.
+   Un écran d'administration n'est pas un contrôle de sécurité — c'est une commodité posée
+   par-dessus un contrôle qui, lui, vit sur le serveur. */
+let _ADMIN_DATA = null;
+
+function pageAdmin(){
+  return `<div class="story">
+      <div class="kicker">Sécurité</div>
+      <h1>Qui accède à quoi, et <span class="hl">qui a fait quoi</span>.</h1>
+      <p>Comptes, droits par section et journal d'accès. Chaque modification est elle-même tracée.</p>
+    </div>
+    <div id="admin-body"><div class="tile c12 tpad"><div style="color:var(--muted);font:500 12.5px var(--sans)">Chargement…</div></div></div>`;
+}
+
+async function afterAdmin(){
+  const box = document.getElementById("admin-body"); if(!box) return;
+  const d = await apiFetch("/api/admin/utilisateurs");
+  if(!d || !d.utilisateurs){
+    box.innerHTML = `<div class="tile c12 tpad"><div style="color:var(--muted);font:500 12.5px var(--sans)">
+      Administration inaccessible : ce compte n'a pas le rôle administrateur.</div></div>`;
     return;
   }
+  _ADMIN_DATA = d;
+  _adminRender();
+  _adminJournal();
+}
 
-  /* Show the gate */
+function _adminRender(){
+  const box = document.getElementById("admin-body"); if(!box || !_ADMIN_DATA) return;
+  const S = _ADMIN_DATA.sections || {};
+  const E = _soEsc;
+
+  const lignes = (_ADMIN_DATA.utilisateurs||[]).map(u=>{
+    const cases = Object.entries(S).map(([cle,nom])=>{
+      const coche = (u.droits||[]).includes(cle);
+      const admin = u.role === "admin";
+      return `<label title="${E(nom)}" style="display:inline-flex;align-items:center;gap:4px;margin:0 9px 5px 0;
+                font:500 11.5px var(--sans);color:${coche?'var(--ink)':'var(--faint)'};cursor:${admin?'not-allowed':'pointer'}">
+        <input type="checkbox" ${coche?"checked":""} ${admin?"disabled":""}
+               onchange="_adminDroit('${E(u.identifiant)}','${cle}',this.checked)"> ${E(nom)}</label>`;
+    }).join("");
+    const jamais = !u.derniere_connexion;
+    return `<div class="tile c12 tpad" style="border-left:3px solid ${u.actif?'var(--accent-2)':'#94a3b8'};margin-bottom:9px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font:800 15px var(--display);color:var(--ink)">${E(u.identifiant)}</span>
+        <select onchange="_adminRole('${E(u.identifiant)}',this.value)"
+                style="font:700 11px var(--sans);padding:3px 7px;border-radius:6px;border:1px solid var(--line);background:var(--bg-raise);color:var(--ink)">
+          ${(_ADMIN_DATA.roles||[]).map(r=>`<option value="${r}" ${u.role===r?"selected":""}>${r}</option>`).join("")}
+        </select>
+        <span style="font:500 11.5px var(--sans);color:var(--faint)">
+          ${jamais?"jamais connecté":"dernière connexion "+new Date(u.derniere_connexion).toLocaleString("fr-FR")}</span>
+        <span style="margin-left:auto;display:flex;gap:6px">
+          <button onclick="_adminActif('${E(u.identifiant)}',${!u.actif})" style="cursor:pointer;font:700 11px var(--sans);
+            border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:4px 10px">
+            ${u.actif?"Désactiver":"Réactiver"}</button>
+          <button onclick="_adminMotDePasse('${E(u.identifiant)}')" style="cursor:pointer;font:700 11px var(--sans);
+            border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:4px 10px">
+            Réinitialiser le mot de passe</button>
+          <button onclick="_adminSupprimer('${E(u.identifiant)}')" style="cursor:pointer;font:700 11px var(--sans);
+            border:1px solid #E5393533;background:transparent;color:#E53935;border-radius:6px;padding:4px 10px">
+            Supprimer</button>
+        </span>
+      </div>
+      <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--line)">
+        <div style="font:700 9.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:5px">
+          Accès autorisés${u.role==="admin"?" — un administrateur voit tout, par définition":""}</div>
+        ${cases}
+      </div>
+    </div>`;
+  }).join("");
+
+  const creation = `<div class="tile c12 tpad" style="border:1px dashed var(--line)">
+      <div style="font:700 10.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--accent-2);margin-bottom:8px">
+        Créer un accès</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input id="adm-id" placeholder="identifiant" style="font:500 12.5px var(--sans);padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg-raise);color:var(--ink)">
+        <input id="adm-mp" type="text" placeholder="mot de passe (${_ADMIN_DATA.longueur_min||8} car. min.)" style="font:500 12.5px var(--sans);padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg-raise);color:var(--ink);min-width:230px">
+        <select id="adm-role" style="font:700 11.5px var(--sans);padding:7px 9px;border-radius:7px;border:1px solid var(--line);background:var(--bg-raise);color:var(--ink)">
+          ${(_ADMIN_DATA.roles||[]).map(r=>`<option value="${r}">${r}</option>`).join("")}</select>
+        <button onclick="_adminCreer()" style="cursor:pointer;font:700 12px var(--sans);border:none;background:var(--accent-2);color:#fff;border-radius:7px;padding:8px 16px">Créer</button>
+      </div>
+      <div id="adm-msg" style="font:500 11.5px var(--sans);margin-top:7px;color:var(--muted)"></div>
+      <div style="font:500 11px/1.5 var(--sans);color:var(--faint);margin-top:5px">
+        Le compte reçoit les accès par défaut de son rôle ; ajustez-les ensuite case par case.</div>
+    </div>`;
+
+  box.innerHTML = `<div class="bento">${lignes}${creation}</div>
+    <div id="admin-journal" style="margin-top:14px"></div>`;
+}
+
+async function _adminRecharger(){
+  const d = await apiFetch("/api/admin/utilisateurs");
+  if(d && d.utilisateurs){ _ADMIN_DATA = d; _adminRender(); _adminJournal(); }
+}
+
+async function _adminEnvoyer(methode, corps){
+  const r = await fetch("/api/admin/utilisateur", {
+    method: methode, headers:{"Content-Type":"application/json"},
+    credentials:"same-origin", body: JSON.stringify(corps)
+  });
+  const d = await r.json().catch(()=>({}));
+  if(!d.ok && d.error){ alert(d.error); return false; }
+  return !!d.ok;
+}
+
+async function _adminDroit(identifiant, section, actif){
+  const u = (_ADMIN_DATA.utilisateurs||[]).find(x=>x.identifiant===identifiant); if(!u) return;
+  const lot = new Set(u.droits||[]);
+  actif ? lot.add(section) : lot.delete(section);
+  if(await _adminEnvoyer("PATCH", {identifiant, droits:[...lot]})) _adminRecharger();
+}
+async function _adminRole(identifiant, role){
+  if(await _adminEnvoyer("PATCH", {identifiant, role})) _adminRecharger();
+}
+async function _adminActif(identifiant, actif){
+  if(await _adminEnvoyer("PATCH", {identifiant, actif})) _adminRecharger();
+}
+async function _adminMotDePasse(identifiant){
+  const mp = prompt(`Nouveau mot de passe pour « ${identifiant} » (${(_ADMIN_DATA&&_ADMIN_DATA.longueur_min)||8} caractères minimum) :`);
+  if(!mp) return;
+  if(await _adminEnvoyer("PATCH", {identifiant, mot_de_passe:mp})) alert("Mot de passe remplacé.");
+}
+async function _adminSupprimer(identifiant){
+  if(!confirm(`Supprimer définitivement le compte « ${identifiant} » ?`)) return;
+  if(await _adminEnvoyer("DELETE", {identifiant})) _adminRecharger();
+}
+async function _adminCreer(){
+  const id = (document.getElementById("adm-id").value||"").trim();
+  const mp = (document.getElementById("adm-mp").value||"").trim();
+  const role = document.getElementById("adm-role").value;
+  const msg = document.getElementById("adm-msg");
+  if(!id || !mp){ if(msg) msg.textContent = "Identifiant et mot de passe sont requis."; return; }
+  const r = await fetch("/api/admin/utilisateur", {
+    method:"POST", headers:{"Content-Type":"application/json"},
+    credentials:"same-origin", body: JSON.stringify({identifiant:id, mot_de_passe:mp, role})
+  });
+  const d = await r.json().catch(()=>({}));
+  if(msg) msg.textContent = d.ok ? `Compte « ${id} » créé.` : (d.error||"Création impossible.");
+  if(d.ok) _adminRecharger();
+}
+
+async function _adminJournal(){
+  const box = document.getElementById("admin-journal"); if(!box) return;
+  const d = await apiFetch("/api/journal_acces");
+  const E = _soEsc;
+  const entrees = (d && d.entrees) || [];
+  box.innerHTML = `<div class="tile c12 tpad">
+    <div style="font:700 10.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:3px">
+      Journal d'accès</div>
+    <div style="font:500 12px/1.6 var(--sans);color:var(--muted);margin-bottom:9px">
+      Connexions, refus, écritures et modifications de comptes — les ${entrees.length} plus récents.</div>
+    <div style="max-height:420px;overflow:auto">
+    ${entrees.length ? entrees.map(e=>`
+      <div style="display:flex;gap:9px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--line);font:500 11.5px var(--sans)">
+        <span style="color:var(--faint);width:132px;flex-shrink:0;font-family:var(--mono)">${new Date(e.horodatage).toLocaleString("fr-FR")}</span>
+        <span style="color:${e.succes?'#12895C':'#E53935'};width:12px;flex-shrink:0">${e.succes?"●":"✕"}</span>
+        <span style="color:var(--ink);font-weight:700;width:96px;flex-shrink:0">${E(e.identifiant||"—")}</span>
+        <span style="color:var(--muted);width:150px;flex-shrink:0">${E(e.action||"")}</span>
+        <span style="color:var(--faint);flex:1;min-width:0">${E(e.ressource||"")} ${E(e.detail||"")}</span>
+        <span style="color:var(--faint);font-family:var(--mono);flex-shrink:0">${E(e.adresse_ip||"")}</span>
+      </div>`).join("")
+      : `<div style="color:var(--faint);font:500 12px var(--sans)">Aucune entrée.</div>`}
+    </div></div>`;
+}
+
+// Masque les onglets auxquels le compte n'a pas droit. Purement cosmétique : c'est le serveur
+// qui refuse. Mais laisser dans le menu une porte qui répond 403 fait passer une règle de
+// sécurité pour une panne.
+function _appliquerDroits(){
+  const u = SB_UTILISATEUR;
+  const admin = u && u.role === "admin";
+  const el = document.getElementById("nav-admin");
+  if(el) el.style.display = admin ? "" : "none";
+  if(!u || admin) return;
+  const droits = u.droits || [];
+  document.querySelectorAll(".nav-item[data-go]").forEach(a=>{
+    const section = SECTION_DE_PAGE[a.dataset.go];
+    if(section && !droits.includes(section)) a.style.display = "none";
+  });
+  ["nav-ajout","nav-refresh"].forEach(id=>{
+    const n = document.getElementById(id);
+    if(n && !droits.includes("ajout")) n.style.display = "none";
+  });
+}
+
+async function _deconnexion(){
+  try{ await fetch("/api/logout", {method:"POST", credentials:"same-origin"}); }catch(e){}
+  location.reload();
+}
+
+function _gateStart(disclaimerRead){
   const gate = document.getElementById("gate");
   if(!disclaimerRead){
     gate.innerHTML = _gateDisclaimer();
   } else {
-    /* Disclaimer read but not logged in yet */
     _gateShowLogin();
   }
-  setTheme(localStorage.getItem("sb-theme") || "dark");   // ré-applique l'icône sur le gate qui vient d'être injecté
-});
+  setTheme(localStorage.getItem("sb-theme") || "dark");   // ré-applique l'icône sur le gate injecté
+}
 
 
 window.addEventListener("resize", ()=>{

@@ -105,6 +105,42 @@ def query(sql, params=None):
         return []
 
 
+def execute(sql, params=None):
+    """Exécute une écriture (INSERT / UPDATE / CREATE) et valide la transaction.
+
+    Ajouté le 2026-08-07 pour le module de sécurité. Contrairement à query(), qui se rabat
+    silencieusement sur [] quand le SQL échoue, execute() PROPAGE l'erreur : une écriture qui
+    échoue sans le dire est bien pire qu'une lecture vide. Créer un compte, journaliser un
+    accès ou enregistrer une connexion doit réussir ou se signaler — jamais échouer en
+    silence. C'est exactement le défaut qui a rendu invisibles cinq chemins morts et une
+    requête invalide dans ce même fichier.
+
+    Renvoie le nombre de lignes affectées.
+    """
+    conn = None
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(sql, params or ())
+        n = cur.rowcount
+        conn.commit()
+        cur.close()
+        return n
+    except Exception:
+        if conn is not None:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        raise
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
 # ---------------------------------------------------------------------------
 # Liste des banques — DYNAMIQUE depuis la base (flexible / évolutif / reproductible).
 # Une banque ajoutée via « Ajouter des données » se propage PARTOUT sans hardcoding.

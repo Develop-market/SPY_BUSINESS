@@ -9,6 +9,7 @@ Lancement :
 """
 
 import sys, os, json, re
+import secrets          # cle de session, mots de passe amorces (module securite)
 import re as _re      # alias module (2026-07-28) : plusieurs helpers l'utilisaient alors qu'il
                       # n'était importé QUE dans le corps de certaines fonctions — toute nouvelle
                       # regex écrite au niveau module levait un NameError au démarrage du serveur.
@@ -54,7 +55,7 @@ sys.path.insert(0, os.path.join(HERE, "dash_app"))
 if os.path.isdir(RAG_DIR):
     sys.path.insert(0, RAG_DIR)
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, session
 
 try:
     from flask_cors import CORS
@@ -63,14 +64,220 @@ except ImportError:
     _cors_ok = False
 
 app = Flask(__name__, static_folder=HERE, static_url_path="")
+
+# ── CORS RESTREINT (2026-08-07) ──────────────────────────────────────────────────────
+# CORS(app) sans argument émet « Access-Control-Allow-Origin: * » : n'importe quel site
+# visité par un utilisateur connecté pouvait interroger cette API depuis son navigateur, avec
+# son cookie de session. On limite aux origines réellement servies ; supports_credentials est
+# nécessaire pour que le cookie de session voyage, et il est INCOMPATIBLE avec le joker « * »
+# — raison de plus pour énumérer les origines.
+_ORIGINES = [o.strip() for o in (os.getenv("APP_ORIGINES") or
+             "http://localhost:5000,http://127.0.0.1:5000").split(",") if o.strip()]
 if _cors_ok:
-    CORS(app)
+    CORS(app, origins=_ORIGINES, supports_credentials=True)
 
 import db
+import securite             # authentification, rôles et journal d'accès (cf. dash_app/securite.py)
 from agents import AGENTS   # façade : porte d'entrée unique de récupération (RAG multi-agents)
 import strategie            # orchestration Stratégie (Niveau 3 du RAG, via les agents)
 
 print(f"[CONFIG] DB={db.DB['dbname']}@{db.DB['host']} | BACK={BACK_DIR}")
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+#  SÉCURITÉ — authentification, rôles, traçabilité
+# ══════════════════════════════════════════════════════════════════════════════════════
+# AJOUTÉ LE 2026-08-07. Avant cela, la page de connexion était vérifiée dans app.main.js,
+# avec le mot de passe écrit en clair dans un fichier servi à tout visiteur, et AUCUN
+# contrôle côté serveur : les vingt-et-un endpoints répondaient à n'importe quelle requête.
+# Vérifié en curl, sans identifiant, sur la totalité de l'API.
+#
+# La clé de session signe le cookie : sans elle, un cookie peut être forgé. Elle est lue dans
+# l'environnement ; à défaut on en tire une au hasard, ce qui invalide les sessions à chaque
+# redémarrage — comportement volontaire, une clé écrite en dur dans le dépôt serait publique.
+app.secret_key = os.getenv("APP_SECRET_KEY") or secrets.token_hex(32)
+if not os.getenv("APP_SECRET_KEY"):
+    print("[securite] APP_SECRET_KEY absente du .env — clé de session temporaire : "
+          "les utilisateurs seront déconnectés à chaque redémarrage.")
+
+# Le cookie de session ne doit pas être lisible par JavaScript (vol par script injecté), ni
+# transmis lors d'une requête déclenchée par un autre site (CSRF).
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=bool(os.getenv("APP_HTTPS")),
+    PERMANENT_SESSION_LIFETIME=_dt.timedelta(hours=12),
+)
+
+securite.initialiser()
+
+# Chemins accessibles SANS être authentifié : la page elle-même, ses ressources statiques et
+# le point d'entrée de connexion. Tout le reste exige une session.
+_LIBRES = {"/", "/api/login", "/api/moi", "/favicon.ico"}
+
+
+@app.before_request
+def _controle_acces():
+    """Porte unique : aucun endpoint /api/* ne répond sans session valide.
+
+    Placer le contrôle ICI plutôt que sur chaque route est délibéré : une route ajoutée
+    demain est protégée par défaut. L'inverse — décorer chaque route — laisse fatalement
+    passer celle qu'on oublie, et c'est toujours celle-là qui est trouvée.
+    """
+    chemin = request.path or "/"
+    if request.method == "OPTIONS" or chemin in _LIBRES:
+        return None
+    # Ressources statiques (js, css, images, polices) : la page de connexion en a besoin.
+    if not chemin.startswith("/api/"):
+        return None
+
+    utilisateur = session.get("utilisateur")
+    if not utilisateur:
+        return jsonify({"error": "authentification requise", "code": "non_authentifie"}), 401
+
+    # DROITS PAR SECTION. Chaque endpoint appartient à une section de l'application ; on
+    # vérifie que l'utilisateur y a accès. C'est plus fin qu'un rôle : deux personnes peuvent
+    # être toutes deux en lecture seule et ne pas voir les mêmes chiffres.
+    section = securite.section_du_chemin(chemin)
+    if not securite.a_le_droit(utilisateur, section):
+        securite.journaliser(utilisateur.get("identifiant"), "acces_refuse", chemin,
+                             request.remote_addr, False, f"section « {section} » non autorisée")
+        return jsonify({"error": f"accès non autorisé à la section « {section} »",
+                        "code": "droit_manquant", "section": section}), 403
+
+    # Les endpoints qui MODIFIENT la base d'analyse exigent en plus le rôle d'édition : ce
+    # sont eux qui décident de ce que l'application affirme. Et chaque écriture est tracée.
+    if section == "ajout":
+        if not securite.peut_ecrire(utilisateur.get("role")):
+            securite.journaliser(utilisateur.get("identifiant"), "acces_refuse", chemin,
+                                 request.remote_addr, False, "rôle insuffisant")
+            return jsonify({"error": "droits insuffisants pour modifier les données",
+                            "code": "role_insuffisant"}), 403
+        securite.journaliser(utilisateur.get("identifiant"), "ecriture", chemin,
+                             request.remote_addr, True, None)
+    return None
+
+
+# ── ADMINISTRATION DES COMPTES ───────────────────────────────────────────────────────
+# Réservée au rôle administrateur. La garde ci-dessus filtre déjà /api/admin/ par la section
+# « admin », mais on revérifie le RÔLE ici : un droit de section coché par erreur ne doit pas
+# suffire à créer des comptes. Deux verrous valent mieux qu'un sur la porte du trousseau.
+
+def _exige_admin():
+    u = session.get("utilisateur") or {}
+    if u.get("role") != securite.ADMIN:
+        return None, (jsonify({"error": "réservé à l'administration"}), 403)
+    return u, None
+
+
+@app.route("/api/admin/utilisateurs")
+def api_admin_utilisateurs():
+    u, refus = _exige_admin()
+    if refus:
+        return refus
+    return jsonify({"utilisateurs": securite.utilisateurs(),
+                    "sections": securite.SECTIONS,
+                    "roles": list(securite.ROLES),
+                    "droits_par_defaut": securite.DROITS_PAR_DEFAUT,
+                    "longueur_min": securite.LONGUEUR_MIN})
+
+
+@app.route("/api/admin/utilisateur", methods=["POST"])
+def api_admin_creer():
+    u, refus = _exige_admin()
+    if refus:
+        return refus
+    c = request.get_json(force=True, silent=True) or {}
+    ok = securite.creer_utilisateur(c.get("identifiant"), c.get("mot_de_passe"),
+                                    c.get("role") or securite.LECTURE, c.get("droits"))
+    if not ok:
+        return jsonify({"ok": False,
+                        "error": f"création impossible : identifiant déjà pris, ou mot de "
+                                 f"passe de moins de {securite.LONGUEUR_MIN} caractères."}), 400
+    securite.journaliser(u.get("identifiant"), "creation_compte",
+                         (c.get("identifiant") or "").strip().lower(),
+                         request.remote_addr, True, f"rôle {c.get('role')}")
+    return jsonify({"ok": True})
+
+
+@app.route("/api/admin/utilisateur", methods=["PATCH"])
+def api_admin_modifier():
+    u, refus = _exige_admin()
+    if refus:
+        return refus
+    c = request.get_json(force=True, silent=True) or {}
+    cible = (c.get("identifiant") or "").strip().lower()
+    # Se retirer à soi-même le rôle d'administrateur, c'est se verrouiller dehors.
+    if cible == u.get("identifiant") and c.get("role") and c["role"] != securite.ADMIN:
+        return jsonify({"ok": False, "error": "vous ne pouvez pas retirer votre propre rôle "
+                                              "d'administrateur."}), 400
+    if c.get("mot_de_passe"):
+        if not securite.changer_mot_de_passe(cible, c["mot_de_passe"]):
+            return jsonify({"ok": False,
+                            "error": f"mot de passe de moins de {securite.LONGUEUR_MIN} "
+                                     f"caractères, ou compte introuvable."}), 400
+        securite.journaliser(u.get("identifiant"), "reinitialisation_mot_de_passe", cible,
+                             request.remote_addr, True)
+    ok = securite.modifier_utilisateur(cible, c.get("role"), c.get("droits"),
+                                       c.get("actif"), par=u.get("identifiant"))
+    return jsonify({"ok": bool(ok or c.get("mot_de_passe"))})
+
+
+@app.route("/api/admin/utilisateur", methods=["DELETE"])
+def api_admin_supprimer():
+    u, refus = _exige_admin()
+    if refus:
+        return refus
+    c = request.get_json(force=True, silent=True) or {}
+    cible = (c.get("identifiant") or "").strip().lower()
+    if cible == u.get("identifiant"):
+        return jsonify({"ok": False, "error": "vous ne pouvez pas supprimer votre propre compte."}), 400
+    ok, motif = securite.supprimer_utilisateur(cible, par=u.get("identifiant"))
+    return jsonify({"ok": ok, "error": motif}) if not ok else jsonify({"ok": True})
+
+
+@app.route("/api/login", methods=["POST"])
+def api_login():
+    """Authentifie contre l'empreinte stockée en base — jamais contre une chaîne du code."""
+    corps = request.get_json(force=True, silent=True) or {}
+    utilisateur, motif = securite.verifier(
+        corps.get("identifiant"), corps.get("mot_de_passe"), request.remote_addr)
+    if not utilisateur:
+        # 401 et message volontairement identique quelle que soit la cause : distinguer
+        # « compte inconnu » de « mot de passe faux » révélerait quels comptes existent.
+        return jsonify({"ok": False, "error": motif}), 401
+    session.permanent = True
+    session["utilisateur"] = utilisateur
+    return jsonify({"ok": True, "utilisateur": utilisateur})
+
+
+@app.route("/api/logout", methods=["POST"])
+def api_logout():
+    u = session.get("utilisateur") or {}
+    securite.journaliser(u.get("identifiant"), "deconnexion", None, request.remote_addr, True)
+    session.clear()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/moi")
+def api_moi():
+    """Qui suis-je ? Sert au front à savoir s'il doit afficher la porte de connexion."""
+    u = session.get("utilisateur")
+    return jsonify({"authentifie": bool(u), "utilisateur": u,
+                    "peut_ecrire": bool(u and securite.peut_ecrire(u.get("role"))),
+                    # Le front masque les onglets non autorisés : le serveur refuserait de
+                    # toute façon, mais proposer une porte qui se ferme au nez est une
+                    # mauvaise manière de faire respecter un droit.
+                    "droits": (u or {}).get("droits") or [],
+                    "sections": securite.SECTIONS})
+
+
+@app.route("/api/journal_acces")
+def api_journal_acces():
+    """Journal d'accès — réservé à l'administration."""
+    u = session.get("utilisateur") or {}
+    if u.get("role") != securite.ADMIN:
+        return jsonify({"error": "réservé à l'administration"}), 403
+    return jsonify({"entrees": securite.journal(200)})
 
 # ── RAG (init une seule fois) ──────────────────────────────────────────
 _chain  = None
