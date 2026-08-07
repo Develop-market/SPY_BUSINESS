@@ -8036,8 +8036,9 @@ function _soDirectives(d, sect, dossiersHtml){
   const per = (d.directives.perimetre)||{};
   const pied = `<div class="tile c12 tpad" style="padding:11px 15px">
       <div style="font:500 11.5px/1.6 var(--sans);color:var(--faint)">
-        ${per.n_services_comparables||0} services réellement comparables sur ${per.n_banques||7} banques ·
-        période de référence ${_soEsc(per.periode_reference||"")} · segment ${_soEsc(per.segment||"")}.
+        ${per.n_services_comparables||0} services réellement comparables sur ${per.n_banques||7} banques,
+        ${per.n_par_segment ? Object.entries(per.n_par_segment).map(([s,n])=>`${n} en ${_soEsc(s)}`).join(" et ") : ""} ·
+        période de référence ${_soEsc(per.periode_reference||"")}.
         Directives calculées à partir des données, sans rédaction par modèle de langage : à données
         inchangées, le texte est identique.</div></div>`;
 

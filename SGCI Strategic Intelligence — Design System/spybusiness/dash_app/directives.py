@@ -179,13 +179,33 @@ def periode_la_plus_recente():
 
 
 @lru_cache(maxsize=8)
-def panier_compare(annee, semestre, segment):
+def panier_compare(annee, semestre, segment=None):
     """Services où SGCI ET au moins deux concurrents affichent un montant comparable.
 
     Sans deux concurrents, la « médiane marché » n'est qu'un autre concurrent déguisé en
     marché. Renvoie des dictionnaires plats, plus faciles à trier que l'arborescence de
     cb_prix_par_libelle.
+
+    SEGMENT FACULTATIF (2026-08-07, question du directeur : « pourquoi Particuliers
+    seulement ? »). Les directives ne voyaient qu'un segment : 55 services Entreprises
+    comparables — 46 % du catalogue comparable — n'entraient dans aucun raisonnement. Or
+    aucune des cinq directions ne travaille sur un seul segment : la Financière suit un PNB
+    consolidé, le Marketing tient une grille qui couvre les deux, les Risques répondent d'un
+    portefeuille entier. Sans argument, le panier réunit donc TOUS les segments présents en
+    base, chaque service gardant le sien pour qu'on sache toujours de quoi on parle.
     """
+    if segment is None:
+        out = []
+        try:
+            segments = [r["segment"] for r in db.query(
+                "SELECT DISTINCT segment FROM cb_tarifs WHERE segment IS NOT NULL "
+                "ORDER BY segment")]
+        except Exception:
+            segments = ["Particuliers", "Entreprises"]
+        for seg in segments:
+            out.extend(panier_compare(annee, semestre, seg))
+        return out
+
     out = []
     try:
         sections = db.cb_prix_par_libelle(annee, semestre, segment) or []
@@ -216,11 +236,26 @@ def panier_compare(annee, semestre, segment):
                 out.append({
                     "libelle": str(sv.get("libelle") or "").strip(),
                     "section": sec.get("titre") or "",
+                    # Le segment voyage avec le service : un tarif cité sans lui laisse croire
+                    # qu'il vaut pour tout le monde, alors que la grille les distingue.
+                    "segment": segment,
                     "sgci": prix, "median": med, "n_conc": len(concurrents),
                     "moins_cher": min(concurrents, key=lambda x: x[1]),
                     "ecart_pct": (100 * (prix - med) / med) if med else None,
                 })
     return out
+
+
+def cite(service):
+    """Nom d'un service suivi de son segment — « X (Entreprises) ».
+
+    Le panier réunit désormais les deux segments. Citer « Frais d'impayés à 34 650 F » sans
+    dire de quelle grille il vient laisserait croire que le tarif vaut pour tout le monde,
+    alors que les grilles Particuliers et Entreprises les distinguent.
+    """
+    lib = str((service or {}).get("libelle") or "").strip()
+    seg = (service or {}).get("segment")
+    return f"{lib} ({seg})" if seg else lib
 
 
 def _plus_chers(panier, n=3, seuil=25):
@@ -238,6 +273,21 @@ def _gratuits_distinctifs(panier, n=3):
     """Gratuits chez SGCI, facturés par la majorité des concurrents."""
     cand = [s for s in panier if s["sgci"] == 0 and s["median"] and s["median"] > 0]
     return sorted(cand, key=lambda s: -s["median"])[:n]
+
+
+def services_par_mots(panier, mots, n=3):
+    """Services dont le LIBELLÉ contient l'un des mots donnés.
+
+    Complément indispensable à services_de_section : les neuf sections canoniques BCEAO ne
+    nomment aucun instrument. Aucune ne contient « carte » — la monétique est répartie dans
+    « Services rattachés au fonctionnement du compte ». Chercher la gamme de cartes par
+    section ne pouvait donc RIEN rendre, et la directive Marketing tombait invariablement en
+    repli en annonçant qu'aucun service de monétique n'était comparable, alors que le
+    catalogue en contient (défaut trouvé le 2026-08-07).
+    """
+    bas = tuple(m.lower() for m in mots)
+    cand = [s for s in panier if any(m in (s.get("libelle") or "").lower() for m in bas)]
+    return sorted(cand, key=lambda s: -abs(s["ecart_pct"] or 0))[:n]
 
 
 def services_de_section(panier, motif, n=3):
@@ -421,7 +471,10 @@ def socle_de_faits(annee, semestre, segment):
             return defaut
 
     return {
-        "panier": panier_compare(annee, semestre, segment),
+        # Panier SUR TOUS LES SEGMENTS (segment=None) : aucune des cinq directions ne travaille
+        # sur un seul. Le paramètre `segment` reste utilisé plus bas pour les dossiers
+        # sectoriels et la projection, qui ont besoin d'une base explicite.
+        "panier": panier_compare(annee, semestre, None),
         "eco": sûr(so.economie_sgci, {}),
         "objectif": sûr(lambda: so.objectif_global(segment), {}),
         "competitivite": sûr(lambda: db.cb_prix_competitivite(annee, semestre, segment), {}),
@@ -574,10 +627,10 @@ def _bloc_tarifs_chers(socle):
             "contribution": _lien_objectif(socle, "la défense des volumes sur les services exposés à la comparaison"),
         }
     t = chers[0]
-    liste = ", ".join(f"{x['libelle']} (+{x['ecart_pct']:.0f} %)" for x in chers)
+    liste = ", ".join(f"{cite(x)} (+{x['ecart_pct']:.0f} %)" for x in chers)
     return {
         "titre": f"Réexaminer les {len(chers)} tarifs les plus éloignés du marché",
-        "constat": (f"Sur {len(p)} services réellement comparables, « {t['libelle']} » est facturé "
+        "constat": (f"Sur {len(p)} services réellement comparables, « {cite(t)} » est facturé "
                     f"{_fmt(t['sgci'])} contre une médiane de {_fmt(t['median'])} chez "
                     f"{t['n_conc']} concurrents, soit +{t['ecart_pct']:.0f} %."),
         "action": (f"Statuer sur : {liste}. Pour chacun — aligner, justifier par un service "
@@ -596,7 +649,11 @@ def _bloc_gamme_cartes(socle):
     carte est une décision d'offre. L'Innovation numérise les parcours, elle ne fixe pas la
     gamme.
     """
-    monetique = services_de_section(socle["panier"], r"carte|mon[ée]tique|TPE|marchand", 4)
+    # Recherche par LIBELLÉ : aucune des neuf sections canoniques ne nomme la carte (cf.
+    # services_par_mots). L'appel précédent passait une expression régulière à un comparateur
+    # de sous-chaîne et ne rendait jamais rien.
+    monetique = services_par_mots(
+        socle["panier"], ("carte", "monétique", "monetique", "tpe", "marchand"), 4)
     if not monetique:
         return {
             "titre": "Positionner la gamme de cartes face au marché",
@@ -614,7 +671,7 @@ def _bloc_gamme_cartes(socle):
         "titre": "Positionner la gamme de cartes face au marché",
         "constat": (f"{_pluriel(len(monetique), 'service')} de monétique "
                     f"{'sont comparables' if len(monetique) > 1 else 'est comparable'}, dont "
-                    f"« {t['libelle']} » à {_fmt(t['sgci'])} contre {_fmt(t['median'])} de médiane "
+                    f"« {cite(t)} » à {_fmt(t['sgci'])} contre {_fmt(t['median'])} de médiane "
                     f"({t['ecart_pct']:+.0f} %)."),
         "action": ("Positionner chaque niveau de carte face à l'offre concurrente équivalente, "
                    "du basique au haut de gamme, et rattacher un service à chaque palier."),
@@ -949,7 +1006,7 @@ def _commerciale(socle):
                          "Nombre de secteurs disposant d'au moins un fait daté."))
 
     if competitifs:
-        liste = ", ".join(f"« {x['libelle']} » ({x['ecart_pct']:.0f} %)" for x in competitifs)
+        liste = ", ".join(f"« {cite(x)} » ({x['ecart_pct']:.0f} %)" for x in competitifs)
         d.append({
             "titre": "Armer le réseau des arguments prix déjà gagnants",
             "constat": (f"{_pluriel(len(competitifs), 'service')} sont facturés sous la médiane du marché : {liste}. "
@@ -1028,7 +1085,7 @@ def _marketing(socle):
         if svc:
             t = svc[0]
             position = ("au-dessus" if (t["ecart_pct"] or 0) > 0 else "en dessous")
-            constat = (f"{_pluriel(len(svc), 'service')} du panier concerne{'nt' if len(svc) > 1 else ''} ce segment. « {t['libelle']} » "
+            constat = (f"{_pluriel(len(svc), 'service')} du panier concerne{'nt' if len(svc) > 1 else ''} ce segment. « {cite(t)} » "
                        f"est à {_fmt(t['sgci'])}, soit {abs(t['ecart_pct']):.0f} % {position} de la "
                        f"médiane de {t['n_conc']} concurrents ({_fmt(t['median'])}).")
             action = (f"Construire le message autour de ce service : {'justifier la valeur associée' if (t['ecart_pct'] or 0) > 0 else 'mettre en avant l’écart de prix'}. "
@@ -1100,7 +1157,7 @@ def _innovation(socle):
             "titre": "Porter à distance toutes les opérations qui n'exigent pas le guichet",
             "constat": (f"{_pluriel(len(distance), 'service')} de banque à distance figure"
                         f"{'nt' if len(distance) > 1 else ''} au catalogue comparable, dont "
-                        f"« {t['libelle']} » — la couverture reste étroite au regard de ce qui "
+                        f"« {cite(t)} » — la couverture reste étroite au regard de ce qui "
                         f"se traite encore en agence."),
             "action": ("Recenser les opérations réalisables à distance, combler les manques par "
                        "ordre de fréquence, et rendre le parcours numérique complet de bout en bout."),
@@ -1183,7 +1240,7 @@ def _risques(socle):
         t = cautions[0]
         d.append({
             "titre": "Encadrer les engagements par signature avant d'en faire un levier",
-            "constat": (f"{_pluriel(len(cautions), 'service')} d'engagement figure{'nt' if len(cautions) > 1 else ''} au panier, dont « {t['libelle']} » "
+            "constat": (f"{_pluriel(len(cautions), 'service')} d'engagement figure{'nt' if len(cautions) > 1 else ''} au panier, dont « {cite(t)} » "
                         f"à {_fmt(t['sgci'])} contre {_fmt(t['median'])} de médiane."),
             "action": "Fixer les limites par contrepartie et par secteur avant toute campagne sur les cautions.",
             "cible": "Un cadre d'engagement écrit, opposable au réseau.",
@@ -1208,7 +1265,7 @@ def _risques(socle):
         t = impayes[0]
         d.append({
             "titre": "Vérifier que la tarification des incidents reste dissuasive sans être punitive",
-            "constat": (f"« {t['libelle']} » est facturé {_fmt(t['sgci'])} contre {_fmt(t['median'])} de "
+            "constat": (f"« {cite(t)} » est facturé {_fmt(t['sgci'])} contre {_fmt(t['median'])} de "
                         f"médiane sur {t['n_conc']} concurrents ({t['ecart_pct']:+.0f} %)."),
             "action": "Arbitrer entre effet dissuasif et risque d'attrition sur la clientèle fragile.",
             "cible": "Un tarif d'incident justifié par le coût réel de traitement.",
@@ -1322,8 +1379,17 @@ def directives(annee=None, semestre=None, segment="Particuliers"):
         "segmentation": [{k: v for k, v in s.items() if k != "mots"} for s in SEGMENTS],
         "perimetre": {
             "periode_reference": f"{annee} {semestre}",
-            "segment": segment,
+            # Le pied de page annonçait « segment Particuliers », ce qui était exact mais
+            # décrivait une limite, pas un choix : 55 services Entreprises comparables
+            # n'entraient dans aucun raisonnement. Le panier couvre désormais les deux, et
+            # on liste ce qui a réellement été mobilisé plutôt qu'un segment unique.
+            "segments": sorted({s.get("segment") for s in socle["panier"] if s.get("segment")}),
+            "segment_dossiers": segment,
             "n_services_comparables": len(socle["panier"]),
+            "n_par_segment": {
+                seg: sum(1 for s in socle["panier"] if s.get("segment") == seg)
+                for seg in sorted({s.get("segment") for s in socle["panier"] if s.get("segment")})
+            },
             "n_banques": socle["n_banques"],
             "note": ("Directives composées à partir de l'ensemble des données chargées ; la période "
                      "de référence est la plus récente disponible en base et se déplace d'elle-même "
