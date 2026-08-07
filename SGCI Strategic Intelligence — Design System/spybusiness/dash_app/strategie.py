@@ -116,8 +116,14 @@ def collect_evidence(segment="Particuliers"):
         cr3 = {}
 
     # ── Agent CB ──
-    q6  = CB.cb_analyse_q6(CB_ANNEE, CB_SEM, segment)          # rang catalogue, gratuité
-    cmp = CB.cb_prix_competitivite(CB_ANNEE, CB_SEM, segment)  # win-rate prix
+    # RANG CATALOGUE / GRATUITÉ / WIN-RATE : COMBINÉS Particuliers+Entreprises (2026-07-22,
+    # demande explicite du directeur : « tous les onglets doivent tenir compte de TOUTES les
+    # données », pas juste un résumé donné au LLM). Ces 3 stats alimentent directement le
+    # Diagnostic 360°, le SWOT et les Révélations — elles doivent refléter TOUT SGCI, pas
+    # un seul segment. cb_analyse_q6_tous_segments / cb_prix_competitivite_tous_segments
+    # recalculent proprement sur l'UNION des deux segments (mêmes garde-fous, même méthode).
+    q6  = CB.cb_analyse_q6_tous_segments(CB_ANNEE, CB_SEM)
+    cmp = CB.cb_prix_competitivite_tous_segments(CB_ANNEE, CB_SEM)
     serie = CB.cb_serie_temporelle(segment)
     try:
         ratt_list = CB.cb_rattrapage_depassement(segment) or []
@@ -139,7 +145,14 @@ def collect_evidence(segment="Particuliers"):
 
     # ── Tilt CORPORATE/PARTICULIERS : profondeur de catalogue par segment, par banque ──
     # (signal d'orientation stratégique : qui couvre surtout les entreprises ?)
-    cat_part = {r["banque"]: (r.get("n_services") or 0) for r in q6}
+    # NOTE : q6 ci-dessus est désormais COMBINÉ (les deux segments) — le tilt a besoin des deux
+    # segments SÉPARÉMENT pour calculer un ratio, donc on refait 2 appels segment-par-segment ici,
+    # indépendamment du q6 combiné utilisé pour le rang catalogue/gratuité global.
+    try:
+        q6p = CB.cb_analyse_q6(CB_ANNEE, CB_SEM, "Particuliers")
+        cat_part = {r["banque"]: (r.get("n_services") or 0) for r in q6p}
+    except Exception:
+        cat_part = {}
     try:
         q6e = CB.cb_analyse_q6(CB_ANNEE, CB_SEM, "Entreprises")
         cat_ent = {r["banque"]: (r.get("n_services") or 0) for r in q6e}
@@ -154,6 +167,13 @@ def collect_evidence(segment="Particuliers"):
     # ── CB×EF : marge de REPRICING — services où SGCI est SOUS la médiane marché ──
     # (réaligner sur la médiane = gain par opération, sans se rendre le plus cher)
     prix = CB.cb_prix_par_libelle(CB_ANNEE, CB_SEM, segment)
+    # Coûts de changement ENTREPRISES (2026-07-22, demande explicite : « on néglige Entreprises
+    # ??? » — la carte Atout prix/Risque prix ne calculait QUE Particuliers, Entreprises n'était
+    # même pas calculé). On récupère aussi le prix Entreprises pour fusionner les deux ci-dessous.
+    try:
+        prix_ent = CB.cb_prix_par_libelle(CB_ANNEE, CB_SEM, "Entreprises")
+    except Exception:
+        prix_ent = []
     under = []        # services FCFA où SGCI est SOUS la médiane (repricing / atout prix)
     over = []         # services FCFA où SGCI est AU-DESSUS de la médiane (risque attrition)
     cheaper = []      # services où SGCI est nettement moins chère (atout commercial)
@@ -201,20 +221,39 @@ def collect_evidence(segment="Particuliers"):
     atouts_cb = {"cheaper": cheaper[:6], "n_cheaper": len(cheaper),
                  "taux": taux_adv[:6], "n_taux": len(taux_adv)}
 
-    # ── Exclusivités (VRIST), gaps à copier, gratuité, innovations concurrentes ──
-    try:
-        excl_rows = CB.cb_analyse_q3(CB_ANNEE, CB_SEM, segment) or []
-    except Exception:
-        excl_rows = []
-    try:
-        gaps_rows = CB.cb_analyse_q5(CB_ANNEE, CB_SEM, segment) or []
-    except Exception:
-        gaps_rows = []
+    # ── Exclusivités (VRIST), gaps à copier — COMBINÉS Particuliers+Entreprises (2026-07-22,
+    # demande explicite du directeur). On concatène les deux segments (listes d'objets, pas des
+    # ratios) : pas de recalcul ambigu ici, juste l'union des deux catalogues de constats. ──────
+    excl_rows, gaps_rows = [], []
+    for _seg in ("Particuliers", "Entreprises"):
+        try:
+            excl_rows += CB.cb_analyse_q3(CB_ANNEE, CB_SEM, _seg) or []
+        except Exception:
+            pass
+        try:
+            gaps_rows += CB.cb_analyse_q5(CB_ANNEE, CB_SEM, _seg) or []
+        except Exception:
+            pass
     # gaps les plus partagés = ce que le PLUS de concurrents offrent et pas SGCI (à copier vite)
     gaps_communs = [g for g in gaps_rows if (g.get("nb_banques") or 0) >= 3]   # ≥3 banques = vrai manque
     gaps_top = sorted(gaps_communs, key=lambda g: -(g.get("nb_banques") or 0))[:8]
     gratuite_par_banque = {r["banque"]: r.get("pct_gratuit") for r in q6 if r.get("pct_gratuit") is not None}
     innov = (_web.innovations() if _web else [])
+
+    # ── Coûts de changement FUSIONNÉS Particuliers+Entreprises (2026-07-22) ──────────────────
+    _sw_part = _switching_costs(prix, "Particuliers")
+    _sw_ent  = _switching_costs(prix_ent, "Entreprises")
+    # PLUS de plafond [:12] (2026-07-22, demande explicite du directeur : « on affiche TOUT, scroll
+    # pour voir le reste ») — tri par montant décroissant conservé, rien n'est tronqué.
+    _sw_gains  = sorted((_sw_part.get("gains")  or []) + (_sw_ent.get("gains")  or []), key=lambda x: -x["eco"])
+    _sw_fuites = sorted((_sw_part.get("fuites") or []) + (_sw_ent.get("fuites") or []), key=lambda x: -x["eco"])
+    switching = {
+        "gains": _sw_gains, "fuites": _sw_fuites,
+        "n_gains": _sw_part.get("n_gains", 0) + _sw_ent.get("n_gains", 0),
+        "n_fuites": _sw_part.get("n_fuites", 0) + _sw_ent.get("n_fuites", 0),
+        "max_gain": max((_sw_part.get("max_gain", 0), _sw_ent.get("max_gain", 0)), default=0),
+        "max_fuite": max((_sw_part.get("max_fuite", 0), _sw_ent.get("max_fuite", 0)), default=0),
+    }
 
     facts = {
         "segment": segment,
@@ -256,7 +295,7 @@ def collect_evidence(segment="Particuliers"):
             "repricing":      repricing,
             "over":           over[:8],
             "n_over":         len(over),
-            "switching":      _switching_costs(prix),   # coûts de changement (économies en venant chez SGCI)
+            "switching":      switching,   # coûts de changement (économies en venant chez SGCI) — Particuliers+Entreprises
             "atouts":         atouts_cb,
             "cat_part":       cat_part,
             "cat_ent":        cat_ent,
@@ -281,12 +320,15 @@ def collect_evidence(segment="Particuliers"):
     return facts
 
 
-def _switching_costs(prix):
+def _switching_costs(prix, segment="Particuliers"):
     """COÛTS DE CHANGEMENT — BIDIRECTIONNEL, sur les services du QUOTIDIEN, annualisé.
       • gains  : SGCI moins chère → ce qu'un client ÉCONOMISE en VENANT chez SGCI (argument d'acquisition).
       • fuites : SGCI plus chère → ce qu'un client ÉCONOMISE en PARTANT vers un concurrent (RISQUE de fuite).
     Noms désambiguïsés par la section CB (« Frais de dossier » → « Frais de dossier — Crédits »).
-    100% data CB (cb_prix_par_libelle) — aucun chiffre inventé. Frais punitifs/barrières de sortie exclus."""
+    100% data CB (cb_prix_par_libelle) — aucun chiffre inventé. Frais punitifs/barrières de sortie exclus.
+    `segment` (2026-07-22, demande explicite du directeur : « pour Entreprises, on néglige ??? ») :
+    chaque enregistrement est tagué avec son segment d'origine, pour permettre d'appeler cette
+    fonction séparément sur Particuliers ET Entreprises puis de fusionner les deux sans ambiguïté."""
     import re as _re
 
     def _fmt(n):
@@ -303,10 +345,18 @@ def _switching_costs(prix):
         r"non[\s-]*redevance|cl[ôo]ture|transfert\s+de\s+compte|lev[ée]e|contentieux|impay|rejet|incident|"
         r"recouvr|mainlev|certificat|duplicata|procuration|destruction|dhl|chronopost|rtgs|"
         r"tenue\s+de\s+compte|frais\s+de\s+tenue|\bdossier\b|mise\s+en\s+place|frais\s+d.engagement|\bétude\b)")
-    # Services VRAIMENT DEMANDÉS au quotidien ET comparables d'une banque à l'autre (périmètre net).
+    # Services VRAIMENT DEMANDÉS ET comparables d'une banque à l'autre (périmètre net).
+    # Élargi le 2026-07-21 (constat du directeur : seulement 2 atouts + 2 risques remontaient alors
+    # que la CB contient ~32 000 lignes tarifaires) — on couvre désormais aussi change/devises,
+    # garanties, monétique marchand, chèques/encaissements et transferts internationaux, en plus
+    # du socle "quotidien" (carte, banque à distance, virement, retrait...). Les frais punitifs et
+    # barrières de sortie restent exclus via EXCLURE ci-dessus (inchangé).
     DEMANDE = _re.compile(
         r"(?i)(carte\b|banque\s+(?:à\s+distance|en\s+ligne|digitale|mobile)|internet|e-?bank|appli|sms|alerte|"
-        r"retrait|virement|pr[ée]l[èe]vement|abonnement|\bpack\b|package|assurance)")
+        r"retrait|virement|pr[ée]l[èe]vement|abonnement|\bpack\b|package|assurance|"
+        r"change\b|devise|garantie|\baval\b|caution|\btpe\b|terminal\s+de\s+paiement|"
+        r"ch[ée]quier|ch[èe]que|encaissement|versement|"
+        r"transfert\s+(?:international|d.argent|rapide)|western\s+union|moneygram)")
     QUOTIDIEN = DEMANDE
     GENERIQUE = _re.compile(r"(?i)^(commission de mise|frais de garde|droit de garde)")
 
@@ -373,10 +423,10 @@ def _switching_costs(prix):
                     eco_an = round((hi - lo) * mult)
                     rec = {"banque": b, "libelle": libc[:80], "categorie": categorie[:42],
                            "sgci": round(sgm), "conc": round(cm), "eco": eco_an,
-                           "suffixe": suff, "quotidien": quotidien}
-                    if cm > sgm and eco_an >= 1500:    # SGCI moins chère → argument d'acquisition (montant qui parle)
+                           "suffixe": suff, "quotidien": quotidien, "segment": segment}
+                    if cm > sgm and eco_an >= 1000:    # SGCI moins chère → argument d'acquisition (montant qui parle)
                         gains.append(rec)
-                    elif sgm > cm and eco_an >= 2000:  # SGCI plus chère → VRAI motif de départ seulement (≥ 2 000 F/an)
+                    elif sgm > cm and eco_an >= 1500:  # SGCI plus chère → VRAI motif de départ seulement (≥ 1 500 F/an)
                         fuites.append(rec)
 
     def _rank(lst):
@@ -387,11 +437,15 @@ def _switching_costs(prix):
         # sens="gain" : on quitte la banque pour SGCI ; sens="fuite" : on quitte SGCI pour la banque
         de, vers = (x["banque"], "SGCI") if sens == "gain" else ("SGCI", x["banque"])
         av, ap = (x["conc"], x["sgci"]) if sens == "gain" else (x["sgci"], x["conc"])
-        return (f"En quittant {de} pour {vers}, un particulier économise {_fmt(x['eco'])} FCFA{x['suffixe']} "
+        client = "une entreprise" if x.get("segment") == "Entreprises" else "un particulier"
+        return (f"En quittant {de} pour {vers}, {client} économise {_fmt(x['eco'])} FCFA{x['suffixe']} "
                 f"sur « {x['libelle']} » ({_fmt(av)} F → {_fmt(ap)} F).")
 
-    g = [{**x, "phrase": _phrase(x, "gain")}  for x in _rank(gains)[:6]]
-    f = [{**x, "phrase": _phrase(x, "fuite")} for x in _rank(fuites)[:6]]
+    # PLUS de plafond [:12] ici (2026-07-22, demande explicite du directeur : « on affiche TOUT,
+    # scroll pour voir le reste ») — le tri par montant décroissant reste identique, mais aucun
+    # élément n'est tronqué à la source ; le plafond éventuel se fait uniquement à l'affichage.
+    g = [{**x, "phrase": _phrase(x, "gain")}  for x in _rank(gains)]
+    f = [{**x, "phrase": _phrase(x, "fuite")} for x in _rank(fuites)]
     return {"gains": g, "fuites": f, "n_gains": len(gains), "n_fuites": len(fuites),
             "max_gain": (g[0]["eco"] if g else 0), "max_fuite": (f[0]["eco"] if f else 0),
             "insights": g, "n": len(gains)}   # 'insights' conservé pour rétro-compat
@@ -480,20 +534,32 @@ def detect_problems(ev):
             "EF", "Menace concurrentielle")
 
     # — Rang catalogue (CB) —
+    # NOTE (2026-07-22, demande explicite du directeur : « on ne distingue pas Particuliers
+    # d'Entreprises, on ne comprend rien ») : rang_catalogue/gratuite/winrate ci-dessous sont des
+    # chiffres COMBINÉS Particuliers+Entreprises (cf. cb_analyse_q6_tous_segments) — chaque preuve
+    # précise maintenant explicitement le détail par segment pour ne plus jamais laisser un
+    # nombre combiné ambigu sans son décompte.
+    cat_part, cat_ent = cb.get("cat_part") or {}, cb.get("cat_ent") or {}
+    _cp, _ce = cat_part.get("SGCI"), cat_ent.get("SGCI")
+    _detail_seg = (f" ({_cp} services Particuliers + {_ce} Entreprises, dont certains noms partagés "
+                   f"entre les deux comptés une seule fois)") if (_cp and _ce) else ""
+
     rc, nc = cb.get("rang_catalogue"), cb.get("n_banques_cat")
     if rc and nc and rc > 3:
         add("Profondeur de catalogue limitée", 1,
-            f"SGCI #{rc}/{nc} sur le nombre de services publiés ({cb.get('n_services_sgci')} services). Couverture de besoins inférieure aux leaders.",
+            f"SGCI #{rc}/{nc} sur le nombre de services publiés, Particuliers et Entreprises combinés "
+            f"({cb.get('n_services_sgci')} services distincts au total{_detail_seg}). Couverture de besoins inférieure aux leaders.",
             "CB", "Offre")
 
     # — Gratuité sous le marché —
     g_sg, g_med = cb.get("gratuite_sgci"), cb.get("gratuite_med")
     if g_sg is not None and g_med is not None and g_sg < g_med - 3:
         add("Taux de gratuité inférieur au marché", 1,
-            f"SGCI rend gratuits {g_sg}% de ses services, contre {g_med}% en médiane chez les concurrents. SGCI offre bien des "
-            f"gratuités AU-DELÀ du minimum imposé par la BCEAO (change, assurance-prêt, épargne…), mais reste dans le BAS du "
-            f"classement : les concurrents en rendent gratuits bien plus pour attirer les clients. → SGCI n'utilise PAS encore la "
-            f"gratuité comme levier d'acquisition, alors qu'elle le pourrait sans toucher aux services à forte valeur.",
+            f"Sur l'ensemble Particuliers+Entreprises, SGCI rend gratuits {g_sg}% de ses services, contre {g_med}% en médiane "
+            f"chez les concurrents. SGCI offre bien des gratuités AU-DELÀ du minimum imposé par la BCEAO (change, assurance-prêt, "
+            f"épargne…), mais reste dans le BAS du classement : les concurrents en rendent gratuits bien plus pour attirer les "
+            f"clients. → SGCI n'utilise PAS encore la gratuité comme levier d'acquisition, alors qu'elle le pourrait sans toucher "
+            f"aux services à forte valeur.",
             "CB·REGL", "Tarification")
 
     # — Compétitivité prix —
@@ -501,9 +567,10 @@ def detect_problems(ev):
     wsg = cb.get("winrate_sgci") or {}
     if rp and ncl and rp > (ncl // 2 + 1):
         add("Compétitivité prix perfectible", 1,
-            f"Le « win-rate prix » mesure, sur le panier de services comparables, la PART où SGCI est aussi chère ou MOINS chère "
-            f"que la médiane du marché (= où elle « gagne » le duel de prix). SGCI est #{rp}/{ncl} : elle n'est la moins chère que "
-            f"sur {wsg.get('winrate')}% de ses services comparables → plusieurs services sont AU-DESSUS du marché. Marge de "
+            f"Le « win-rate prix » mesure, sur le panier de services comparables (Particuliers et Entreprises réunis, "
+            f"{wsg.get('n', '?')} duels de prix au total), la PART où SGCI est aussi chère ou MOINS chère que la médiane du "
+            f"marché (= où elle « gagne » le duel de prix). SGCI est #{rp}/{ncl} : elle n'est la moins chère que sur "
+            f"{wsg.get('winrate')}% de ses services comparables → plusieurs services sont AU-DESSUS du marché. Marge de "
             f"progression pour gagner en compétitivité sur les services que les clients comparent.",
             "CB", "Tarification")
 
@@ -935,6 +1002,32 @@ def build_projection(ev):
         out.append({"nom": "ROE", **ser,
                     "hypothese": "ROE = RN projeté (par scénario) / capitaux propres (supposés stables)."})
 
+    # ── Catalogue de services (SGCI) — 2026-07-24, enrichissement multi-source (demande
+    # explicite : « la projection c'est pas QUE EF, multi-sources multi-indicateurs »).
+    # Seule série CB avec un VRAI historique multi-périodes comparable à l'EF — l'indice prix
+    # et le taux de gratuité CB, une fois le bug de moyenne corrigé (cf. cb_analyse_q6), sont
+    # restés quasi plats sur l'historique réel : les ajouter aurait donné 3 courbes identiques
+    # par scénario, aucune vraie différenciation. Le nombre de services, lui, a une vraie
+    # tendance observée (178→184 en 2 ans) — base de croissance réelle, pas une hypothèse.
+    cb_serie = (ev.get("cb") or {}).get("serie") or []
+    if len(cb_serie) >= 2:
+        n0 = cb_serie[0].get("sgci_n_services")
+        n1 = cb_serie[-1].get("sgci_n_services")
+        nb_annees = (len(cb_serie) - 1) / 2.0   # ~2 périodes (S1/S2) publiées par an
+        if n0 and n1 and n0 > 0 and nb_annees > 0:
+            g_cat = round((((n1 / n0) ** (1.0 / nb_annees)) - 1) * 100, 1)
+            CATALOGUE_PREMIUM = 4   # pts/an si le plan lance les nouveaux services digitaux (CONNECT, MyBusiness — cf. Roadmap An2/An3)
+            ser = {"unite": "services", "actuel": [n1]}
+            for sc in W:
+                ser[sc] = [n1]
+            for _ in range(3):
+                ser["actuel"].append(round(ser["actuel"][-1] * (1 + g_cat / 100)))
+                for sc, w in W.items():
+                    taux = g_cat + CATALOGUE_PREMIUM * w
+                    ser[sc].append(round(ser[sc][-1] * (1 + taux / 100)))
+            out.append({"nom": "Catalogue de services (SGCI)", **ser,
+                        "hypothese": f"Base {_pct(g_cat)}%/an (croissance réelle observée CB 2024→2026). Effet plan : +{CATALOGUE_PREMIUM} pts (nouveaux services digitaux), pondéré par scénario."})
+
     # ── Enrichissement « lisibilité » : sens, fourchette, message-clé ──
     SENS = {"Coût du risque (% PNB)": "bas"}   # BAISSER = mieux
     meta = {"prudent": "Prudent (exécution partielle)",
@@ -954,17 +1047,199 @@ def build_projection(ev):
         p["fourchette_an3"] = f"{fmt(lo3)} – {fmt(hi3)}"
         p["central_an3"] = fmt(ce3)
         p["actuel_an3"] = fmt(a3)
-        # écart central vs sans-rien-faire
+        # écart central vs sans-rien-faire — 2026-07-24 : le branchement supposait tout non-%
+        # forcément en Mds (vrai pour PNB/RN) ; la nouvelle métrique "services" (Catalogue)
+        # affichait à tort "Mds" — bug trouvé en ajoutant cette métrique. Fix : ne convertir en
+        # Mds QUE si l'unité EST "Mds", sinon garder l'unité réelle (ex. "services").
         if u == "%":
             ecart = f"{abs(round(ce3 - a3,1)):.1f}".replace(".", ",") + " pts"
-        else:
+        elif u == "Mds":
             ecart = _fmt_md(round(abs(ce3 - a3) * 1000))
+        else:
+            ecart = fmt(abs(round(ce3 - a3, 1)))
         fleche = "▲" if ce3 > a3 else "▼"
         p["takeaway"] = (
             f"À 3 ans : de <b>{fmt(pr3)}</b> (prudent) à <b>{fmt(op3)}</b> (optimiste), "
             f"cible centrale <b>{fmt(ce3)}</b> — soit <b>{fleche} {ecart}</b> vs sans rien faire ({fmt(a3)})."
         )
+
+    # ── Enrichissement « bilan bas de gamme » (2026-07-21, demande du directeur : générique,
+    # jamais lié à UN levier nommé comme le coût du risque — si demain la cause change, ce calcul
+    # reste valable car il ne regarde QUE le Résultat net, la ligne qui compte pour la décision) ──
+    # (1) Le pire scénario (prudent) bat-il déjà l'immobilisme à AN3 ? Si oui, agir est SANS RISQUE
+    #     de résultat, même en cas d'exécution partielle du plan.
+    # (2) Coût cumulé de l'attentisme sur les 3 ans (pas qu'un instantané à AN3) : la somme des
+    #     écarts annuels « central vs sans rien faire » — rend l'urgence tangible, pas un chiffre isolé.
+    rn = next((p for p in out if p["nom"] == "Résultat net"), None)
+    if rn:
+        pr3, a3 = rn["prudent"][-1], rn["actuel"][-1]
+        u = rn["unite"]
+        gain_pire_cas = round(pr3 - a3, 1) if rn["sens"] == "haut" else round(a3 - pr3, 1)
+        rn["gain_pire_cas"] = f"{gain_pire_cas:.1f}".replace(".", ",") + f" {u}"
+        rn["pire_cas_bat_immobilisme"] = gain_pire_cas > 0
+        cumul = sum((c - a) if rn["sens"] == "haut" else (a - c)
+                    for c, a in zip(rn["central"][1:], rn["actuel"][1:]))
+        rn["cumul_attentisme_3ans"] = _fmt_md(round(cumul * 1000)) if u != "%" else (
+            f"{cumul:.1f}".replace(".", ",") + f" {u}")
+
     return out
+
+
+def build_projection_hypotheses(ev, projection):
+    """CARTES CHIFFRÉES par scénario (2026-07-23bis, demande explicite : « trop de discours
+    inutiles — les cartes chiffrées c'est ce qui marche, ça doit frapper, clair, pas de longs
+    discours, avec une conclusion stratégique »). Remplace l'ancienne version en PROSE par un
+    canevas fixe par scénario — Formulation (1 phrase chiffrée), Justification (1 ligne),
+    Indicateurs (liste de chiffres), Certitude (% + risque) — plus une conclusion stratégique
+    unique en bas. Tous les chiffres viennent de `projection` (déjà calculé par build_projection,
+    mêmes constantes) : zéro recalcul à la main, zéro divergence possible avec les graphiques
+    juste en dessous."""
+    widx = ev.get("web_idx") or {}
+    pib  = (widx.get("croissance_macro") or {}).get("valeur", "PIB +6,7%")
+    npl_secteur = (widx.get("npl_secteur") or {}).get("valeur", "7,7% de créances dégradées")
+
+    def _f(v):
+        return f"{round(v, 1)}".replace(".", ",")
+
+    by_nom = {p["nom"]: p for p in projection}
+    pnb, cr, rn, roe = by_nom.get("PNB"), by_nom.get("Coût du risque (% PNB)"), by_nom.get("Résultat net"), by_nom.get("ROE")
+
+    DESCRIPTION = {
+        "prudent":   "Exécution partielle ou retardée du plan.",
+        "central":   "Le plan est exécuté intégralement, au rythme prévu.",
+        "optimiste": "Le plan est exécuté intégralement ET porté par un contexte macro favorable.",
+    }
+    JUSTIF = {
+        "prudent":   f"Le scoring d'octroi + early-warning J+15/J+30 (Plan-trajectoire, An 1) n'est déployé qu'en partie : le coût du risque recule moins vite, encore loin du secteur ({npl_secteur}).",
+        "central":   "Le scoring d'octroi et l'early-warning J+15/J+30 sont déployés dans les délais : le coût du risque atteint le plancher des meilleures banques du marché (BICICI ~1,9%).",
+        "optimiste": f"Mêmes actes que Central, portés en plus par le {pib} (BCEAO) : la croissance limite mécaniquement les défauts et amplifie l'effet du scoring.",
+    }
+    CERTITUDE = {
+        "prudent":   {"pct": 75, "risque": "Retard ou déploiement partiel du scoring/early-warning."},
+        "central":   {"pct": 50, "risque": "Dérive de calendrier ou charge opérationnelle sous-estimée."},
+        "optimiste": {"pct": 20, "risque": f"Conjoncture macro moins favorable que le {pib} actuel."},
+    }
+    # % d'effet du plan capté par scénario — MÊMES constantes que le W de build_projection
+    # (0.55/1.0/1.35), reprises ici uniquement pour l'étiquette du schéma logique (aucun calcul
+    # de chiffre n'en dépend, donc aucun risque de divergence avec les indicateurs ci-dessus).
+    PCT_EFFET = {"prudent": 55, "central": 100, "optimiste": 135}
+
+    def _cagr(serie):
+        """Taux de croissance annuel moyen sur la série [aujourd'hui, an1, an2, an3]."""
+        if not serie or not serie[0]:
+            return None
+        n = len(serie) - 1
+        return round(((serie[-1] / serie[0]) ** (1.0 / n) - 1) * 100, 1)
+
+    out = []
+    for cle, nom in (("prudent", "Prudent"), ("central", "Central"), ("optimiste", "Optimiste")):
+        # 2026-07-23quater (« tu mets trois chiffres vagues » — demande explicite de suivre le
+        # canevas à la lettre) : les indicateurs ne répètent plus 3 fois le même niveau absolu à
+        # AN3 (PNB/CR/RN pris isolément) — ils mélangent un TAUX de croissance (comme le canevas
+        # « taux de croissance annuel moyen »), un niveau absolu de référence (PNB, comme la
+        # « densité moyenne prévue »), et 2 ratios de rentabilité/risque, exactement le mélange
+        # taux/niveau/proportion du canevas fourni.
+        indicateurs = []
+        if rn:
+            cagr_rn = _cagr(rn[cle])
+            if cagr_rn is not None:
+                indicateurs.append({"label": "Croissance annuelle moyenne du résultat net", "valeur": f"{_f(cagr_rn)}%/an"})
+        if pnb:
+            indicateurs.append({"label": "PNB atteint à 3 ans", "valeur": f"{_f(pnb[cle][-1])} {pnb['unite']}"})
+        if cr:
+            indicateurs.append({"label": "Coût du risque à 3 ans", "valeur": f"{_f(cr[cle][-1])}{cr['unite']}"})
+        if roe:
+            indicateurs.append({"label": "ROE à 3 ans", "valeur": f"{_f(roe[cle][-1])}{roe['unite']}"})
+
+        formulation = None
+        if rn:
+            base = rn["actuel"][0]
+            cible = rn[cle][-1]
+            pct_vs_aujourdhui = round((cible / base - 1) * 100, 1) if base else None
+            delta_vs_sq = round(cible - rn["actuel"][-1], 1)
+            signe_sq = "+" if delta_vs_sq >= 0 else "−"
+            pct_txt = f"soit {'+' if (pct_vs_aujourdhui or 0) >= 0 else ''}{_f(pct_vs_aujourdhui)}% par rapport à aujourd'hui" if pct_vs_aujourdhui is not None else ""
+            formulation = (
+                f"D'ici 3 ans, le résultat net de SGCI atteindra {_f(cible)} {rn['unite']} FCFA, "
+                f"{pct_txt} — {signe_sq}{_f(abs(delta_vs_sq))} {rn['unite']} de plus que si rien n'était fait."
+            )
+
+        # Plan année par année PROPRE à ce scénario, format ACTE → RÉSULTAT ATTENDU → POURQUOI
+        # (2026-07-24, demande explicite : « version A, la plus pro, pas de discours inventé » —
+        # le directeur a rejeté une version enrichie avec des facteurs de risque inventés). Ici
+        # tout est réel : l'ACTE est celui du Plan-trajectoire (même action, aucune invention),
+        # seul le RÉSULTAT change selon le niveau d'exécution du scénario — recalculé à partir
+        # des séries déjà produites par build_projection (jamais un chiffre à la main).
+        annees = []
+        if cr and rn:
+            plancher_atteint = cr[cle][3] <= 12.01
+            ACTES_AN = {
+                1: ("Déployer le moteur de scoring d'octroi + l'application de détection des "
+                    "clients à risque (alertes comportementales) et l'early-warning impayés J+15/J+30."),
+                2: ("Industrialiser le dispositif risque : revue trimestrielle du portefeuille, "
+                    "provisionnement proactif, recouvrement amiable précoce sur les secteurs les plus sinistrés."),
+                3: ("Poursuivre l'offensive croissance (offre diaspora & corporate) tout en consolidant "
+                    "le niveau de risque atteint."),
+            }
+            POURQUOI_AN = {
+                1: f"Le secteur n'affiche que {npl_secteur} (BCEAO) — SGCI reste au-dessus même dans ce scénario.",
+                2: ("Convergence vers le plancher des meilleures banques (~12%, BICICI ~1,9%)."
+                    if plancher_atteint else
+                    "La baisse se poursuit mais n'atteint pas encore le plancher des meilleures banques (~12%)."),
+                3: ("Le plancher de coût du risque des meilleures banques est atteint : le plan a produit son plein effet."
+                    if plancher_atteint else
+                    "Le plancher des meilleures banques (~12%) n'est pas atteint à ce niveau d'exécution — un gain reste sur la table."),
+            }
+            for idx, label_an in ((1, "An 1"), (2, "An 2"), (3, "An 3")):
+                cr_avant = cr[cle][idx - 1]
+                cr_apres = cr[cle][idx]
+                delta = round(cr_avant - cr_apres, 1)
+                rn_gain = round(rn[cle][idx] - rn["actuel"][idx], 1)
+                signe = "+" if rn_gain >= 0 else "−"
+                resultat = (
+                    f"Coût du risque {_f(cr_avant)}% → {_f(cr_apres)}% du PNB "
+                    f"({'−' if delta >= 0 else '+'}{_f(abs(delta))} pt) ≈ {signe}{_f(abs(rn_gain))} {rn['unite']} "
+                    f"de résultat net vs statu quo (cumulé)."
+                )
+                annees.append({
+                    "an": label_an, "acte": ACTES_AN[idx],
+                    "resultat": resultat, "pourquoi": POURQUOI_AN[idx],
+                    "pnb": f"{_f(pnb[cle][idx])} {pnb['unite']}" if pnb else None,
+                })
+
+        out.append({
+            "cle": cle, "nom": nom,
+            "description": DESCRIPTION[cle],
+            "pct_effet": PCT_EFFET[cle],
+            "formulation": formulation,
+            "justification": JUSTIF[cle],
+            "indicateurs": indicateurs,
+            "certitude_pct": CERTITUDE[cle]["pct"],
+            "certitude_risque": CERTITUDE[cle]["risque"],
+            "annees": annees,
+            "serie_rn": rn[cle] if rn else None,
+            "serie_rn_actuel": rn["actuel"] if rn else None,
+        })
+
+    # Conclusion stratégique — réutilise le bilan RN déjà calculé par build_projection
+    # (gain_pire_cas / cumul_attentisme_3ans), jamais recalculé ici.
+    conclusion = None
+    if rn and rn.get("gain_pire_cas") is not None:
+        bat = rn.get("pire_cas_bat_immobilisme")
+        conclusion = (
+            (f"Même le scénario Prudent dépasse le statu quo de <b>{rn['gain_pire_cas']}</b> de résultat net à 3 ans — agir n'est pas un pari. "
+             if bat else
+             "Le scénario Prudent seul ne suffit pas à battre le statu quo — le plan doit être exécuté au moins au niveau Central. ")
+            + f"Attendre coûte <b>{rn.get('cumul_attentisme_3ans', '—')}</b> cumulés sur 3 ans face au scénario Central : "
+              "c'est la trajectoire à piloter."
+        )
+
+    return {
+        "intro": ("Les 3 scénarios appliquent le MÊME plan d'action, à un "
+                  "niveau d'exécution différent — pas 3 prévisions indépendantes."),
+        "scenarios": out,
+        "conclusion_strategique": conclusion,
+    }
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -973,7 +1248,7 @@ def build_projection(ev):
 #  La prospective n'est PAS qu'une courbe : c'est une séquence d'ACTES datés,
 #  chacun avec son résultat quantifié et sa justification sourcée (EF/CB/REGL/WEB).
 # ════════════════════════════════════════════════════════════════════════════
-def build_roadmap(ev):
+def build_roadmap(ev, projection=None):
     ef, cb = ev["ef"], ev["cb"]
     widx = ev.get("web_idx") or {}
     pnb = (ef["pnb"] or {}).get("SGCI")
@@ -988,6 +1263,27 @@ def build_roadmap(ev):
     npl = (widx.get("npl_secteur") or {}).get("valeur", "7,7%")
     banc = (widx.get("bancarisation") or {}).get("valeur", ">30%").replace(" (CI)", "")
 
+    # 2026-07-24 (trouvé par le directeur en comparant les deux blocs affichés sur la même
+    # page) : ce plan affichait « coût du risque 17,0% → 14,0% » (delta −3 pts RÉINVENTÉ ici,
+    # indépendant du modèle) alors que le scénario Central juste en dessous calcule 17,0% →
+    # 15,3% (DECR=1,7 pt/an composé, plancher 12%) — DEUX modèles différents pour décrire le
+    # MÊME scénario (« le plan exécuté comme prévu »). Fix : ce plan lit désormais les valeurs
+    # DÉJÀ calculées par build_projection (scénario central) — zéro delta réinventé, donc plus
+    # aucune divergence possible entre le Plan-trajectoire et les scénarios détaillés plus bas.
+    by_nom  = {p["nom"]: p for p in (projection or [])}
+    cr_proj = by_nom.get("Coût du risque (% PNB)")
+    rn_proj = by_nom.get("Résultat net")
+
+    def _md1(v):
+        return f"{round(v, 1)}".replace(".", ",") + " Mds"
+
+    cr_an1 = cr_proj["central"][1] if cr_proj else None
+    cr_an2 = cr_proj["central"][2] if cr_proj else None
+    cr_an3 = cr_proj["central"][3] if cr_proj else None
+    rn_gain_an1 = round(rn_proj["central"][1] - rn_proj["actuel"][1], 1) if rn_proj else None
+    rn_gain_an2 = round(rn_proj["central"][2] - rn_proj["actuel"][2], 1) if rn_proj else None
+    rn_gain_an3 = round(rn_proj["central"][3] - rn_proj["actuel"][3], 1) if rn_proj else None
+
     def acte(a, r, j, srcs):
         return {"acte": a, "resultat": r, "justification": j, "sources": srcs}
 
@@ -996,10 +1292,13 @@ def build_roadmap(ev):
     # ─ AN 1 : attaquer le verrou n°1 (coût du risque) + récupérer le revenu facile ─
     a1 = []
     if cr and cr >= 15:
+        cr_an1_v   = cr_an1 if cr_an1 is not None else round(cr - 3, 1)
+        delta_an1  = round(cr - cr_an1_v, 1)
+        rn_an1_txt = _md1(rn_gain_an1) if rn_gain_an1 is not None else _fmt_md(round(pt * 3) if pt else None)
         a1.append(acte(
             "Déployer le moteur de scoring d'octroi + l'application de détection des clients à risque (alertes comportementales) et l'early-warning impayés J+15/J+30.",
-            f"Coût du risque {_pct(cr)}% → {_pct(round(cr-3,1))}% du PNB (−3 pts dès la 1ʳᵉ année) ≈ <b>+{_fmt_md(round(pt*3) if pt else None)} de résultat net</b>.",
-            f"Le secteur n'affiche que {npl} (BCEAO) alors que SGCI absorbe {_pct(cr)}% de coût du risque : 3 pts de rattrapage sont prudents. Le meilleur du marché (BICICI) est à 1,9%.",
+            f"Coût du risque {_pct(cr)}% → {_pct(cr_an1_v)}% du PNB (−{_pct(delta_an1)} pt dès la 1ʳᵉ année) ≈ <b>+{rn_an1_txt} de résultat net</b>.",
+            f"Le secteur n'affiche que {npl} (BCEAO) alors que SGCI absorbe {_pct(cr)}% de coût du risque : {_pct(delta_an1)} pts de rattrapage sont prudents (scénario central). Le meilleur du marché (BICICI) est à 1,9%.",
             ["EF", "REGL", "WEB"]))
     if rp.get("services"):
         ex = rp["services"][0]
@@ -1014,9 +1313,12 @@ def build_roadmap(ev):
 
     # ─ AN 2 : consolider le risque + diversifier les revenus (résilience) ─
     a2 = []
+    cr_an2_v  = cr_an2 if cr_an2 is not None else round((cr - 4.5) if cr else 12.5, 1)
+    delta_an2 = round((cr_an1 if cr_an1 is not None else (cr - 3 if cr else 15.5)) - cr_an2_v, 1)
+    rn_an2_txt = _md1(rn_gain_an2) if rn_gain_an2 is not None else _fmt_md(round(pt * 1.5) if pt else None)
     a2.append(acte(
         "Industrialiser le dispositif risque : revue trimestrielle du portefeuille, provisionnement proactif, recouvrement amiable précoce sur les secteurs les plus sinistrés.",
-        f"Coût du risque → {_pct(round((cr-4.5) if cr else 12.5,1))}% (−1,5 pt supplémentaire) ≈ <b>+{_fmt_md(round(pt*1.5) if pt else None)} de RN cumulé</b>.",
+        f"Coût du risque → {_pct(cr_an2_v)}% (−{_pct(delta_an2)} pt supplémentaire) ≈ <b>+{rn_an2_txt} de RN cumulé</b>.",
         "La baisse devient structurelle (process, pas one-shot). Convergence progressive vers le plancher des meilleurs (~12%).",
         ["EF"]))
     a2.append(acte(
@@ -1045,13 +1347,14 @@ def build_roadmap(ev):
                      "theme": "Transformer l'avance en résultat net en relance de la croissance",
                      "actes": a3})
 
-    # Objectif consolidé (chiffré, dérivé)
-    rn_gain = round(pt * 5) if pt else None   # ~5 pts de coût du risque sur 3 ans
+    # Objectif consolidé (chiffré, dérivé) — 2026-07-24 : aligné sur le scénario Central
+    # (rn_gain_an3/cr_an3, déjà calculés ci-dessus) au lieu d'une approximation séparée
+    # (pt*5/an) qui affichait un chiffre et un cadrage ("/an") différents du scénario central.
     objectif = {
         "titre": "Cap à 3 ans",
         "lignes": [
-            f"Coût du risque : {_pct(cr)}% → ~12% du PNB (niveau des meilleurs)" if cr else None,
-            f"Résultat net : effet cumulé ≈ +{_fmt_md(rn_gain)}/an du seul levier risque" if rn_gain else None,
+            f"Coût du risque : {_pct(cr)}% → {_pct(cr_an3) if cr_an3 is not None else '~12'}% du PNB (niveau des meilleurs)" if cr else None,
+            f"Résultat net : effet cumulé ≈ +{_md1(rn_gain_an3)} à 3 ans vs statu quo (scénario central)" if rn_gain_an3 is not None else None,
             f"ROE : {_pct(roe)}% → ~26% (SGCI rejoindrait le peloton de tête)" if roe else None,
             f"Mix commissions : {mix}% → 30% (résilience accrue)" if mix is not None else None,
         ],
@@ -1876,6 +2179,99 @@ def _metrics(ev, problems, swot, plan, revelations=None):
     }
 
 
+# ── ÉVÉNEMENTS DE VEILLE INJECTÉS DANS LE PESTEL (2026-07-30) ────────────────────────
+# Le PESTEL décrivait l'environnement par des INDICATEURS (taux, ratios, taux de pénétration).
+# C'est un état, pas un mouvement. Or la veille collecte aussi des ÉVÉNEMENTS datés — « la
+# Banque mondiale engage 480 milliards FCFA sur cinq projets du PND », « la BCEAO publie de
+# nouvelles instructions de domiciliation » — qui sont précisément ce qu'un PESTEL doit porter :
+# ce qui bouge dans l'environnement externe.
+#
+# Ils restaient cantonnés à l'onglet opérationnel. Chaque événement est ici routé vers l'axe
+# qui lui correspond, et affiché comme un SIGNAL daté, distinct des points structurels.
+_AXE_PAR_DOMAINE = {
+    "infrastructure":     "P",   # programmes et investissements publics
+    "reglementation":     "L",
+    "numerique":          "T",
+    "agro":               "E",
+    "banque_concurrence": "E",
+    "social":             "S",
+    "environnement":      "En",
+}
+
+# ROUTAGE PAR CONTENU (2026-07-30). Classer un événement d'après son DOMAINE DE COLLECTE menait
+# à des contresens : « l'État adopte des réformes juridiques et réglementaires », remonté par la
+# requête « numérique », atterrissait en Technologique alors qu'il relève du Légal. Le domaine
+# dit où l'on a cherché, pas de quoi il s'agit. On lit donc d'abord le texte lui-même, et le
+# domaine ne sert plus que de repli quand aucun terme ne tranche.
+# ORDRE SIGNIFIANT : le premier axe qui matche l'emporte. Le Légal passe en tête parce qu'un
+# texte réglementaire reste réglementaire quel que soit son objet ; le Politique précède le
+# Technologique car un programme d'État relève de la décision publique avant la technologie.
+#
+# AUCUNE frontière de mot (\b) dans ces motifs : lors d'une écriture précédente, un \b s'est
+# transformé en caractère backspace littéral, et le nettoyage a ensuite laissé « IA » nu — qui
+# matchait « PNIA » et envoyait les programmes agricoles en Technologique. Les termes sont donc
+# choisis assez longs pour être non ambigus sans ancrage.
+_MOTS_AXE = [
+    ("L",  r"(?i)r[ée]glementa|instruction|d[ée]cret|arr[êe]t[ée]|juridique|conformit|"
+           r"norme|prudentiel|l[ée]gislat|circulaire|loi "),
+    ("En", r"(?i)climat|durable|renouvelable|solaire|[ée]nergie|carbone|finance verte|"
+           r"environnement|transition [ée]nerg"),
+    ("S",  r"(?i)emploi|jeunesse|jeunes|femmes|inclusion|formation|pauvret|[ée]ducation|sant[ée]"),
+    ("P",  r"(?i)gouvernement|minist|programme national|plan national|politique publique|"
+           r"[ÉE]tat de C[ôo]te"),
+    ("T",  r"(?i)num[ée]rique|digital|fintech|application|plateforme|mobile money|"
+           r"technolog|carte virtuelle|paiement [ée]lectronique|intelligence artificielle"),
+    ("E",  r"(?i)investi|croissance|march[ée]|fili[èe]re|banque|financement|prix|export|PIB"),
+]
+
+
+def _axe_evenement(e):
+    """Axe PESTEL d'un événement, déduit de son CONTENU. Repli sur le domaine de collecte."""
+    import re as _re_ax
+    txt = f"{e.get('acteur','')} {e.get('fait','')}"
+    for axe, motif in _MOTS_AXE:
+        if _re_ax.search(motif, txt):
+            return axe
+    return _AXE_PAR_DOMAINE.get(e.get("domaine"))
+
+
+def _unite_filiere(valeur, unite):
+    """Valeur d'une filière suivie de son unité, milliers séparés. '' si vide."""
+    v = str(valeur or "").strip()
+    if not v or unite.lower() in v.lower():
+        return v
+    if v.isdigit() and len(v) > 3:
+        v = f"{int(v):,}".replace(",", " ")
+    return f"{v} {unite}"
+
+
+def _evenements_pestel():
+    """Événements de veille regroupés par axe PESTEL. {} si la veille n'a rien collecté."""
+    import os as _os, json as _json
+    # web_facts.json a rejoint spybusiness/data/ lors de la mise en ordre de l'arborescence
+    # (2026-07-30). Chemin relatif au module pour rester valable quel que soit le répertoire
+    # depuis lequel le serveur est lancé.
+    chemin = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), _os.pardir,
+                           "data", "web_facts.json")
+    try:
+        data = _json.load(open(chemin, encoding="utf-8"))
+    except Exception:
+        return {}
+    par_axe = {}
+    for e in data.get("evenements", []):
+        axe = _axe_evenement(e)
+        if not axe:
+            continue
+        txt = f"{e.get('acteur','')} {e.get('fait','')}".strip()
+        if e.get("montant"):
+            txt += f" ({e['montant']})"
+        if e.get("date_citee"):
+            txt += f" — {e['date_citee']}"
+        par_axe.setdefault(axe, []).append({"txt": txt, "url": e.get("url", ""),
+                                            "portee": e.get("portee", "")})
+    return par_axe
+
+
 def build_pestel(ev):
     """Analyse PESTEL grounded — chaque facteur est ANCRÉ sur un fait sectoriel/réglementaire
     SOURCÉ (Agent WEB/REGL : BCEAO, APBEF-CI, GSMA…) + données EF/CB internes. Reproductible
@@ -1897,6 +2293,15 @@ def build_pestel(ev):
     mm, mm_s   = f("mobile_money")
     cl, cl_s   = f("clients_sgci")
     sol, sol_s = f("solvabilite_secteur")
+    # FAITS DE FILIÈRE (2026-07-30) — collectés par la veille sectorielle et jusqu'ici
+    # inexploités par le PESTEL, alors que l'économie ivoirienne est d'abord agro-exportatrice :
+    # un PESTEL qui ne dit rien du cacao décrit un autre pays.
+    cac, cac_s = f("cacao_prix")
+    cap, cap_s = f("cacao_campagne")
+    ana, ana_s = f("anacarde")
+    cot, cot_s = f("coton")
+    esp, esp_s = f("seuil_especes")
+    fpme, fpme_s = f("financement_pme")
     COLS = {"P": "#6D28D9", "E": "#1D9E75", "S": "#FF8C00", "T": "#0AA1DD", "En": "#12895C", "L": "#E53935"}
     axes = [
         {"cle": "P", "nom": "Politique", "col": COLS["P"], "resume": "Union monétaire stable, régulateur actif", "points": [
@@ -1906,7 +2311,17 @@ def build_pestel(ev):
         {"cle": "E", "nom": "Économique", "col": COLS["E"], "resume": "Croissance forte, marché n°1 UEMOA, risque crédit", "points": [
             P(f"Macro porteuse : {cm or 'PIB +6,3% · inflation ~2,3%'} — demande de crédit et d'épargne en hausse.", "WEB", cm_s or "BCEAO"),
             P(f"1er marché bancaire UEMOA ({sm or '29 banques'}) — concurrence intense ; SGCI #1 en résultat net (PNB {_fmt_md(pnb) if pnb else 'élevé'}).", "WEB·EF", sm_s or "APBEF-CI"),
-            P(f"Coût du crédit {cc or '6,97%'} (usure plafonnée 14%) MAIS qualité du risque secteur dégradée (NPL {npl or '7,7%'}) → la sélection du risque est décisive.", "WEB", cc_s or "BCEAO")]},
+            P(f"Coût du crédit {cc or '6,97%'} (usure plafonnée 14%) MAIS qualité du risque secteur dégradée (NPL {npl or '7,7%'}) → la sélection du risque est décisive.", "WEB", cc_s or "BCEAO"),
+            # Unités restituées ici : la veille stocke « 2800 », pas « 2 800 FCFA/kg ». Un prix
+            # sans unité dans un PESTEL n'est pas un fait, c'est une devinette laissée au lecteur.
+            P(f"Économie AGRO-EXPORTATRICE : cacao {_unite_filiere(cac, 'FCFA/kg') or 'prix garanti'}"
+              + (f", anacarde {_unite_filiere(ana, 'FCFA/kg')}" if ana else "")
+              + (f", coton {_unite_filiere(cot, 'FCFA/kg')}" if cot else "")
+              + (f" — campagne cacao au {cap}" if cap else "")
+              + ". Ces filières concentrent des flux de trésorerie massifs et saisonniers, largement hors circuit bancaire.",
+              "WEB", cac_s or "Conseil du Café-Cacao"),
+            P(f"Accès au financement des PME limité ({fpme or 'faible'}) — gisement de crédit et de commissions, à condition de maîtriser la sélection du risque.",
+              "WEB", fpme_s or "AFD")]},
         {"cle": "S", "nom": "Social", "col": COLS["S"], "resume": "Bancarisation faible = gisement, mobile très ancré", "points": [
             P(f"Bancarisation {ban or '>30%'} seulement — immense gisement d'acquisition (jeunes, secteur informel, diaspora).", "WEB", ban_s or "BCEAO"),
             P(f"Usage MOBILE massif (mobile money {mm or '82,2%'}) — les clients attendent du 100% mobile.", "WEB", mm_s or "BCEAO/GSMA"),
@@ -1922,10 +2337,23 @@ def build_pestel(ev):
         {"cle": "L", "nom": "Légal", "col": COLS["L"], "resume": "Cadre BCEAO strict (gratuités, usure, prudentiel)", "points": [
             P("Services bancaires GRATUITS obligatoires (BCEAO) — plancher de gratuité imposé ; au-delà = levier commercial.", "REGL", "BCEAO"),
             P("Plafond du taux d'USURE 14% + TRANSPARENCE tarifaire obligatoire — encadrent le pricing.", "REGL", "BCEAO"),
-            P(f"Ratios PRUDENTIELS (solvabilité secteur {sol or '14,5%'}) — la conformité SGCI = argument de SÉCURITÉ des dépôts.", "REGL·EF", sol_s or "BCEAO")]},
+            P(f"Ratios PRUDENTIELS (solvabilité secteur {sol or '14,5%'}) — la conformité SGCI = argument de SÉCURITÉ des dépôts.", "REGL·EF", sol_s or "BCEAO"),
+            P(f"LBC/FT : toute transaction en espèces atteignant {_unite_filiere(esp, 'FCFA') or '15 000 000 FCFA'} impose une déclaration (CENTIF). "
+              "Contrainte structurante pour les filières agricoles, très intensives en espèces — elle conditionne la faisabilité d'une offre de collecte de campagne.",
+              "REGL", esp_s or "BCEAO")]},
     ]
+    # SIGNAUX DATÉS — ajoutés après les points structurels, et marqués comme tels : un fait
+    # daté ne se lit pas comme une caractéristique permanente de l'environnement.
+    evts = _evenements_pestel()
+    for a in axes:
+        for e in evts.get(a["cle"], [])[:3]:
+            a["points"].append(P(f"SIGNAL RÉCENT — {e['txt']}", "WEB", "veille"))
+        if evts.get(a["cle"]):
+            a["resume"] += f" · {len(evts[a['cle']])} signal(aux) récent(s)"
+
     return {"intro": ("Environnement EXTERNE de SGCI selon les 6 facteurs PESTEL. Chaque point est ANCRÉ sur un fait "
-                      "sectoriel ou réglementaire SOURCÉ (BCEAO, APBEF-CI, GSMA…) — pas une opinion."), "axes": axes}
+                      "sectoriel ou réglementaire SOURCÉ (BCEAO, APBEF-CI, GSMA…) — pas une opinion. "
+                      "Les points « SIGNAL RÉCENT » proviennent de la veille datée."), "axes": axes}
 
 
 def build(segment="Particuliers"):
@@ -1938,8 +2366,12 @@ def build(segment="Particuliers"):
     swot = build_swot(ev, problems)
     porter = build_porter(ev)
     plan = build_action_plan(ev, problems)
-    roadmap = build_roadmap(ev)
+    # 2026-07-24 : projection calculée AVANT le roadmap et injectée dedans (voir build_roadmap)
+    # pour que le Plan-trajectoire affiche EXACTEMENT les chiffres du scénario Central, au lieu
+    # d'un delta réinventé séparément — cf. commentaire dans build_roadmap.
     projection = build_projection(ev)
+    roadmap = build_roadmap(ev, projection)
+    projection_hypotheses = build_projection_hypotheses(ev, projection)
     comite = build_comite(ev)
     vrist = build_vrist(ev)
     pestel = build_pestel(ev)
@@ -1965,6 +2397,7 @@ def build(segment="Particuliers"):
         "plan_action": plan,
         "roadmap": roadmap,
         "projection": projection,
+        "projection_hypotheses": projection_hypotheses,
         "evidence": ev,
         "sources": sources,
         "metriques": _metrics(ev, problems, swot, plan, revelations),
@@ -2041,6 +2474,13 @@ def dossier_pour_llm(d):
     ent = sorted([(b, t) for b, t in tilt.items() if b != "SGCI" and t], key=lambda x: -x[1])
     L.append("- Orientation des concurrents (ratio Ent/Part) : " + "; ".join(f"{b} ×{t}" for b, t in ent))
     L.append("- Lecture : SGCI est orientée PARTICULIERS ; SIB/BICICI penchent ENTREPRISES et y sont plus rentables (corporate = risque mieux maîtrisé). Piste : favoriser l'octroi aux entreprises.")
+    # NOTE (2026-07-22, demande explicite du directeur : « tous les onglets doivent tenir compte
+    # de TOUTES les données ») : le rang catalogue, la gratuité, le win-rate prix, les
+    # exclusivités et les manques ci-dessus (section CONDITIONS DE BANQUE) sont désormais
+    # CALCULÉS SUR L'UNION Particuliers+Entreprises — ce ne sont plus des chiffres Particuliers
+    # uniquement. Seul le détail service-par-service (repricing, coûts de changement) reste
+    # présenté par segment, car un tarif Particuliers et un tarif Entreprises ne sont pas la
+    # même ligne de produit et ne peuvent pas être moyennés sans perdre leur sens.
 
     L.append("\n# VRIST (avantage durable, /10 par banque)")
     vb = (d.get("vrist", {}).get("banques") or {})

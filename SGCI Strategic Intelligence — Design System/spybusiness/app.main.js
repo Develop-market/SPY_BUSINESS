@@ -66,6 +66,7 @@ const PAGES = {
   apercu:   { title:"Santé financière",    render: pageApercu   },
   analyse:  { title:"Analyse",            render: pageAnalyse  },
   strategie:{ title:"Stratégie",          render: pageStrategie},
+  stratop:  { title:"Stratégie opérationnelle", render: pageStratOp },
   rapports: { title:"Rapports",           render: pageRapports },
   cb:       { title:"Benchmark Concurrentiel",render: pageCB      },
   chat:     { title:"Chat Intelligence",  render: pageChat, full:true },
@@ -344,11 +345,13 @@ async function _pdfRenderNative(resume, title, date){
   // pour lire le rapport. Pas de nom d'utilisateur (l'app n'a qu'un identifiant partagé, pas de
   // comptes individuels) — mais la date/heure exacte de génération est une trace suffisante.
   const _wmStamp = new Date().toLocaleString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  // 2026-07-28 : aligné sur le filigrane écran, rendu plus discret (gris 235 → 244, corps
+  // 26 → 22). 2026-07-29 : remonté un peu (244 → 238, 22 → 24) suite au même réglage côté écran.
   const _addWatermark = () => {
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(26);
-    pdf.setTextColor(235, 235, 235);
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(24);
+    pdf.setTextColor(238, 238, 238);
     pdf.text("DIRECTION INNOVATION SGCI", pageW / 2, pageH / 2 - 6, {angle: 40, align: "center"});
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(11);
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
     pdf.text(_wmStamp, pageW / 2, pageH / 2 + 10, {angle: 40, align: "center"});
   };
   _addWatermark();
@@ -641,7 +644,7 @@ function pageApercu(){
   const byAN3  = [...vBanks].sort((a,b)=>(RN_SERIES[b].values[RN_SERIES[b].values.length-1]||0)-(RN_SERIES[a].values[RN_SERIES[a].values.length-1]||0));
   const rAN1={},rAN3={};
   byAN1.forEach((b,i)=>{rAN1[b]=i+1;}); byAN3.forEach((b,i)=>{rAN3[b]=i+1;});
-  const movers   = vBanks.filter(b=>b!=="SGCI").map(b=>({b,d:(rAN1[b]||7)-(rAN3[b]||7)})).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
+  const movers   = vBanks.filter(b=>b!=="SGCI").map(b=>({b,d:(rAN1[b]||CB_BANKS.length)-(rAN3[b]||CB_BANKS.length)})).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
   const topMover = movers[0]||{b:"?",d:0};
   const sgciR3   = rAN3["SGCI"]||1;
   const leader3  = byAN3[0] || "SGCI";   // leader effectif à AN3 — doit être défini avant bumpAnalyse
@@ -671,9 +674,16 @@ function pageApercu(){
        : "Classement <b>très stable</b> sur la période.");
 
   // Titres dynamiques
-  const _sgRankRN = k.sgci_rang_rn || 1;
-  const lineTitle = _sgRankRN !== 1
-    ? "Résultat net · SGCI #" + _sgRankRN + "/" + (Object.keys(k.rn_data||{}).length||7) + " · évolution AN1→AN3"
+  // 2026-07-30 : plus de « || 1 ». Un rang inconnu ne doit pas se lire comme un rang 1 :
+  // la branche rang===1 affirme « SGCI · trajectoire la plus soutenue du marché ». Sans
+  // donnée, on retombe sur le titre neutre (cf. _rnDenom ci-dessous).
+  const _sgRankRN = Number(k.sgci_rang_rn) || null;
+  // Effectif réel du panel : plus de « || 7 » figé — si une banque est ajoutée, le
+  // dénominateur suit ; si les données manquent, on n'affiche aucun dénominateur.
+  const _rnDenom  = Object.keys(k.rn_data||{}).length || null;
+  const lineTitle = (_sgRankRN && _sgRankRN !== 1)
+    ? "Résultat net · SGCI #" + _sgRankRN + (_rnDenom ? "/" + _rnDenom : "") + " · évolution AN1→AN3"
+    : !_sgRankRN ? "Résultat net · évolution AN1→AN3"
     : fasterN===0 ? "SGCI · trajectoire de résultat net la plus soutenue du marché"
     : fastest[0]!=="?" ? "SGCI en tête · " + fastest[0] + " accélère plus vite (+" + Math.round(fastest[1]) + "%)"
     : "Résultat net · évolution AN1→AN3";
@@ -1257,9 +1267,9 @@ function pageApercu(){
             <stop offset="0%" stop-color="#FF3B4E"/><stop offset="100%" stop-color="#9E0A18"/>
           </linearGradient></defs>
         </svg>
-        <div class="ctr"><div class="rk">#${k.sgci_rang_rn}<small>/${Object.keys(k.rn_data||{}).length||7}</small></div><div class="lab">${k.sgci_rang_rn===1?"Leader":ord(k.sgci_rang_rn)}</div></div>
+        <div class="ctr"><div class="rk">#${k.sgci_rang_rn}<small>/${Object.keys(k.rn_data||{}).length||CB_BANKS.length}</small></div><div class="lab">${k.sgci_rang_rn===1?"Leader":ord(k.sgci_rang_rn)}</div></div>
       </div>
-      <div class="cap">${ord(k.sgci_rang_rn)} sur ${Object.keys(k.rn_data||{}).length||7} banques · ${anxKey} = ${k.sgci_rn_annee}</div>
+      <div class="cap">${ord(k.sgci_rang_rn)} sur ${Object.keys(k.rn_data||{}).length||CB_BANKS.length} banques · ${anxKey} = ${k.sgci_rn_annee}</div>
     </div>
 
     <div class="tile insight c12" style="animation-delay:.14s">
@@ -1401,7 +1411,7 @@ function pageApercu(){
         <span class="chip">★ SGCI · Concurrents en gris</span>
       </div>
       <div id="ap-pnb" style="height:380px"></div>
-      ${C("SGCI génère <b>" + (sgciPNBv/1000).toFixed(0) + " Mds</b> de PNB — <b>#" + pnbRankS + "/" + (Object.keys(pnbData).length||7) + "</b>. "
+      ${C("SGCI génère <b>" + (sgciPNBv/1000).toFixed(0) + " Mds</b> de PNB — <b>#" + pnbRankS + "/" + (Object.keys(pnbData).length||CB_BANKS.length) + "</b>. "
         + (isSGCIpnb1
             ? "C'est la base de revenus la plus élevée du marché (<b>" + pnbGap + "×</b> le niveau de " + pnb2b + "). Le PNB est la marge brute d'activité — chaque franc ici peut être converti en profit. "
               + (isSGCImargeLast ? Q("Paradoxe actuel : ce PNB dominant ne se traduit pas encore en marge nette supérieure — les fuites (risque crédit) en sont la cause. (→ Section ③④)")
@@ -1684,7 +1694,7 @@ function afterApercu(){
   const k   = KPI_DATA;
   const arc = document.getElementById("ap-arc");
   if(arc && k){
-    const nbB   = Object.keys(k.rn_data||{}).length || 7;
+    const nbB   = Object.keys(k.rn_data||{}).length || CB_BANKS.length;
     const score = 1 - (k.sgci_rang_rn - 1) / Math.max(nbB - 1, 1);
     requestAnimationFrame(()=>{
       arc.style.transition = "stroke-dashoffset 1.6s var(--ease)";
@@ -2001,8 +2011,11 @@ function afterAnalyse(){
   if(ANALYSE_TAB==="tarifs"){
     chartFraisRanked("an-frais");
     window.__redraw = ()=>{ Plotly.purge("an-frais"); chartFraisRanked("an-frais"); };
-    // Charger table CB si pas encore dispo
-    if(!CB_DATA){
+    // Charger la table CB si elle manque OU si elle porte sur une autre période que celle
+    // sélectionnée : un simple `if(!CB_DATA)` la figeait sur le premier chargement.
+    const _f = APERCU_FILTERS;
+    const _cle = `${_f.frais_annee}|${_f.frais_sem}|${_f.frais_seg}`;
+    if(!CB_DATA || CB_DATA_CLE !== _cle){
       loadCB().then(()=>{
         const tbody = document.getElementById("cb-tbody");
         if(tbody) tbody.innerHTML = buildCBTable(CB_BANKS);
@@ -2055,7 +2068,7 @@ function analysePerf(seg){
   const rAN1={}, rAN3={};
   byAN1.forEach((b,i)=>{ rAN1[b]=i+1; });
   byAN3.forEach((b,i)=>{ rAN3[b]=i+1; });
-  const movers     = vBanks.filter(b=>b!=="SGCI").map(b=>({b,d:(rAN1[b]||7)-(rAN3[b]||7)})).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
+  const movers     = vBanks.filter(b=>b!=="SGCI").map(b=>({b,d:(rAN1[b]||CB_BANKS.length)-(rAN3[b]||CB_BANKS.length)})).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
   const topMover   = movers[0] || {b:"?",d:0};
   const sgciRankAN3= rAN3["SGCI"] || 1;
 
@@ -2160,7 +2173,7 @@ function buildSWOT(){
   const ord = n => n===1?"1ᵉʳ":n===2?"2ᵉ":n===3?"3ᵉ":`${n}ᵉ`;
   const fraisSorted = Object.entries(FRAIS).filter(([,v])=>v>0).sort((a,b)=>a[1]-b[1]);
   const fraisRank   = fraisSorted.findIndex(([b])=>b==="SGCI")+1;
-  const nbBanques   = Object.keys(k.rn_data||{}).length || 7;
+  const nbBanques   = Object.keys(k.rn_data||{}).length || CB_BANKS.length;
   const s=[], w=[], o=[], t=[];
 
   // ① Position en résultat net
@@ -2202,7 +2215,7 @@ function buildSWOT(){
   // ⑤ Marge nette
   if(dm.margeRank && dm.margeRank <= 2){
     s.push(`Parmi les meilleures conversions revenus→profit du marché (#${dm.margeRank} sur ${dm.margeNbBanques})`);
-  } else if(dm.margeRank && dm.margeV && dm.margeRank > (dm.margeNbBanques||7)/2){
+  } else if(dm.margeRank && dm.margeV && dm.margeRank > (dm.margeNbBanques||CB_BANKS.length)/2){
     w.push(`Conversion des revenus en profit en dessous de la moitié du marché (${dm.margeV?.toFixed(1)}% de marge nette)`);
   }
 
@@ -2283,13 +2296,50 @@ function buildRECOS(){
 
   return recos;
 }
+// AFFIRMATIONS DE PRIX RETIRÉES DU TEXTE STATIQUE (2026-07-30).
+// Ces descripteurs contenaient des jugements tarifaires écrits en dur, que les données de
+// l'app CONTREDISENT aujourd'hui — vérifié en base sur 2026 S1 :
+//   « SIB : la plus chère sur la tenue de compte » → FAUX. Particuliers : NSIA 5 400 F >
+//      BICICI 5 200 F > SIB 4 900 F (SIB 3e). Entreprises : BICICI 22 000 F contre SIB
+//      1 200 F — SIB y est la MOINS chère, l'inverse exact de ce qui était affiché.
+//   « ECOBANK : tarifs élevés assumés » → contredit par le win-rate prix (ECOBANK 83,3 %,
+//      meilleure compétitivité prix du panel).
+//   « BICICI : tarifs particuliers bas » → contredit (BICICI 50,0 %, dernière du panel).
+// Ne subsiste donc que le positionnement STRUCTUREL (actionnariat, empreinte géographique,
+// cœur de métier), qui ne dépend pas d'un tarif et ne peut pas être démenti par une
+// actualisation. Le positionnement PRIX est ajouté à l'affichage par _positionPrix(), à
+// partir du win-rate réellement mesuré.
 const COMPETS=[
-  ["ECOBANK","Premium pan-africain — investit corporate & digital, tarifs élevés assumés.","Menace","var(--accent)"],
-  ["BICICI","Tarifs particuliers bas — capte le volume, marge serrée.","Pression prix","var(--amber)"],
-  ["BACI · NSIA","Challengers low-cost — agressifs sur le prix d'entrée.","Volume","var(--cyan)"],
-  ["SIB","Positionnement haut de gamme — la plus chère sur la tenue de compte.","Niche","var(--muted)"],
-  ["BNI","Banque publique (Banque Nationale d'Investissement) — financement de l'État et des PME, tarifs d'entrée compétitifs.","Public","var(--cyan)"],
+  ["ECOBANK","Groupe pan-africain — investit le corporate et le digital.","Menace","var(--accent)"],
+  ["BICICI","Filiale de groupe international — recherche de volume sur le retail.","Pression prix","var(--amber)"],
+  ["BACI · NSIA","Challengers en conquête de parts de marché.","Volume","var(--cyan)"],
+  ["SIB","Positionnement haut de gamme, clientèle de niche.","Niche","var(--muted)"],
+  ["BNI","Banque publique (Banque Nationale d'Investissement) — financement de l'État et des PME.","Public","var(--cyan)"],
 ];
+
+// Positionnement prix DÉRIVÉ du win-rate mesuré (part des services où la banque est au plus
+// égale à la médiane du marché). Retourne '' si la mesure n'est pas disponible : on n'affiche
+// alors aucun jugement tarifaire plutôt qu'un jugement faux.
+function _positionPrix(nom){
+  const cl = window._CB_WINRATE || [];
+  if(!cl.length) return '';
+  const noms = String(nom).split('·').map(x=>x.trim().toUpperCase());
+  const vals = cl.filter(c=>noms.includes(String(c.banque).toUpperCase()));
+  if(!vals.length) return '';
+  const wr = Math.round(vals.reduce((s,c)=>s+(+c.winrate||0),0)/vals.length);
+  // Seuils RELATIFS au panel, pas absolus (corrigé le 2026-07-30 : j'avais figé « 50 », ce qui
+  // qualifiait BICICI de « plutôt compétitive » alors qu'elle est DERNIÈRE des sept). On situe
+  // chaque banque par rapport à la médiane du marché observé : le jugement suit donc le marché
+  // au lieu d'un repère arbitraire, et il reste juste si le niveau général des prix se déplace.
+  const tous = cl.map(c=>+c.winrate||0).sort((a,b)=>a-b);
+  const med  = tous.length % 2 ? tous[(tous.length-1)/2]
+                               : (tous[tous.length/2-1]+tous[tous.length/2])/2;
+  const haut = tous[Math.floor(tous.length*0.75)] ?? med;   // 3e quartile du panel
+  const q = wr >= haut ? 'parmi les plus compétitives du marché'
+          : wr >= med  ? 'au-dessus de la médiane du marché'
+          : 'en dessous de la médiane du marché';
+  return ` Win-rate prix ${wr}% — ${q}.`;
+}
 // Liste ÉVOLUTIVE : commentaire curé pour les banques connues + entrée neutre pour toute
 // nouvelle banque suivie (dérivée de CB_BANK_ORDER) afin qu'elle ne soit jamais omise.
 function _competsAll(){
@@ -2391,9 +2441,9 @@ function _paneInit(group, ids, opts){
 }
 
 // ── Barre de navigation sticky (sections claires, façon EF/CB) ──
-function _stratStickyBar(){
+function _stratStickyBar(segment){
   const nav=[["①","L'essentiel","st-essentiel"],["②","Révélations","st-revel"],
-             ["③","Porter","st-conc"],["④","VRIST","st-vrist"],["⑤","SWOT","st-swot"],["⑥","PESTEL","st-pestel"],["⑦","Décisions","st-plan"]]
+             ["③","Porter","st-conc"],["④","VRIST","st-vrist"],["⑤","SWOT","st-swot"],["⑥","PESTEL","st-pestel"],["⑦","Décisions","st-plan"],["⑧","Projection","st-proj"]]
     .map(([n,l,id])=>`<button class="sec-nav-btn" data-sec="${id}" onclick="_paneShow('strat','${id}')">${n} ${l}</button>`).join("");
   return `<div style="position:sticky;top:116px;z-index:20;margin-bottom:14px;padding:6px 0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg-deep) 72%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -2407,7 +2457,7 @@ function _stratStickyBar(){
 // ── Scroll-spy : surligne la section active dans la barre ──
 function _stratScrollSpy(){
   const btns=document.querySelectorAll('#strat-root .sec-nav-btn'); if(!btns.length) return;
-  const ids=["st-essentiel","st-revel","st-conc","st-vrist","st-swot","st-pestel","st-plan"];
+  const ids=["st-essentiel","st-revel","st-conc","st-vrist","st-swot","st-pestel","st-plan","st-proj"];
   const setOn=id=>btns.forEach(b=>b.classList.toggle('on',b.dataset.sec===id));
   setOn("st-essentiel");
   let clicking=false,t;
@@ -2428,13 +2478,18 @@ async function _stratLoad(){
     setTimeout(()=>{
       try{ var _vc=(_VRIST_DATA.ordre||[]).filter(b=>b!=='SGCI'); setVristComp(_vc[0]||"BICICI"); }catch(e){}
       try{ _stratCharts(d); }catch(e){}
-      try{ _paneInit('strat',['st-essentiel','st-revel','st-conc','st-vrist','st-swot','st-pestel','st-plan']); }catch(e){}
+      try{ _stratProjScenarioCharts(d); }catch(e){}
+      try{ _paneInit('strat',['st-essentiel','st-revel','st-conc','st-vrist','st-swot','st-pestel','st-plan','st-proj']); }catch(e){}
     }, 40);
     _stratLLM();
     try{ _loadStratNarr(d.segment||'Particuliers'); }catch(e){}
     try{ _firePestelLLM(); }catch(e){}
     try{ _fireVristLLM(); }catch(e){}
-    window.__redraw = () => { try{ _stratCharts(d); }catch(e){} };
+    try{ _fireStratDiagLLM(d.segment||'Particuliers'); }catch(e){}
+    try{ _fireStratProjLLM(d.segment||'Particuliers'); }catch(e){}
+    try{ _fireStratSwitchLLM(d.segment||'Particuliers'); }catch(e){}
+    try{ _fireStratRoadmapLLM(d.segment||'Particuliers'); }catch(e){}
+    window.__redraw = () => { try{ _stratCharts(d); }catch(e){} try{ _stratProjScenarioCharts(d); }catch(e){} };
   }catch(e){
     root.innerHTML = `<div style="padding:24px;color:#E53935;font:500 12px var(--sans)">Erreur stratégie — ${e.message}</div>`;
   }
@@ -2527,7 +2582,7 @@ function _renderStrategie(d){
       return `<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)">
         <span style="flex-shrink:0;width:64px;font:800 8.5px var(--sans);color:${g[0]};background:${g[0]}18;border:1px solid ${g[0]}55;border-radius:5px;padding:3px 0;text-align:center;height:fit-content">${g[1]}</span>
         <div style="flex:1"><div style="font:700 12.5px var(--sans);color:var(--ink)">${p.titre} ${_srcBadge(p.source)}</div>
-          <div style="font:400 11px/1.5 var(--sans);color:var(--muted);margin-top:2px">${p.preuve}</div></div>
+          <div class="diag-preuve" data-diag-titre="${(p.titre||'').replace(/"/g,'&quot;')}" style="font:400 11px/1.5 var(--sans);color:var(--muted);margin-top:2px">${p.preuve}</div></div>
       </div>`;}).join("")}
   </div>`;
 
@@ -2627,44 +2682,138 @@ function _renderStrategie(d){
     </div>`).join("")}
   </div>`;
 
-  // ── Plan-trajectoire 3 ans (actes → résultat → justification) ──
+  // ── Plan-trajectoire (actes → résultat → justification) — 2026-07-24 : fusionné DANS
+  // l'onglet Central (voir plus bas) au lieu d'une section séparée dupliquant "Central" —
+  // demande explicite : « tu mets le plan Central en haut ET il y a une section en bas pour
+  // les scénarios, c'est bête, ça doit se retrouver DANS Central, pas une section séparée ».
+  // On garde juste les données (`rm`) ici, plus le rendu à part.
   const rm = d.roadmap||{};
-  const _HZCOL = ["#1650b0","#7C3AED","#12895C"];
-  const roadmap = (rm.horizons&&rm.horizons.length)?`<div style="grid-column:span 12;padding:20px 0 6px;border-top:2px solid var(--line);margin-top:6px"><div class="tt" style="font-size:15px">🗺️ Plan-trajectoire 3 ans — chaque acte à poser, son résultat attendu, sa justification</div>
-  <div class="ts">La prospective n'est pas qu'une courbe : voici la séquence concrète d'actions, chiffrée et sourcée</div></div>
-  <div class="bento" style="margin-bottom:10px;gap:12px">
-    ${rm.horizons.map((h,hi)=>{const col=_HZCOL[hi]||"#475569";return `<div class="tile c4 tpad" style="border-top:3px solid ${col}">
-      <div style="display:flex;align-items:baseline;gap:7px;margin-bottom:3px">
-        <span style="font:900 17px var(--display);color:${col}">${h.horizon}</span>
-        <span style="font:600 9.5px var(--sans);color:var(--faint)">${h.sous_titre}</span>
-      </div>
-      <div style="font:700 11px/1.4 var(--sans);color:var(--ink);margin-bottom:9px"><span data-narr3="plan_theme_${hi}">${h.theme}</span></div>
-      ${(h.actes||[]).map(a=>`<div style="margin-bottom:11px;padding-bottom:11px;border-bottom:1px solid var(--line)">
-        <div style="font:600 11px/1.5 var(--sans);color:var(--ink)"><span style="color:${col};font-weight:800">▸</span> ${a.acte}</div>
-        <div style="font:700 10.5px/1.45 var(--sans);color:#0a5e3c;background:#0d7a5012;border-radius:5px;padding:5px 7px;margin:5px 0">📈 Résultat attendu : ${a.resultat}</div>
-        <div style="font:500 9.5px/1.45 var(--sans);color:var(--muted)">⚖ Pourquoi : ${a.justification} ${(a.sources||[]).map(_srcBadge).join("")}</div>
-      </div>`).join("")}
-    </div>`;}).join("")}
-    ${rm.objectif?`<div class="tile c12 tpad" style="background:#0B2D5B;color:#fff">
-      <div style="font:800 10px var(--sans);color:#9DB8DC;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">🎯 ${rm.objectif.titre} — cap consolidé</div>
-      <div style="display:flex;flex-wrap:wrap;gap:10px">${(rm.objectif.lignes||[]).filter(Boolean).map(l=>`<div style="flex:1;min-width:200px;font:600 11.5px/1.5 var(--sans);color:#fff;background:#ffffff14;border-radius:7px;padding:8px 11px">${l}</div>`).join("")}</div>
-    </div>`:''}
-  </div>`:'';
+
+  // ── Dashboard par scénario, filtrable (2026-07-24, version A validée — demande explicite :
+  // « un filtre pour les 3 scénarios, un dashboard pour chacun, la section la plus pro du
+  // dashboard, zéro discours inventé »). Un seul scénario affiché à la fois (cohérent avec la
+  // règle "mode onglets" utilisée partout ailleurs dans l'app — évite les longs défilements),
+  // mais chaque scénario est un dashboard COMPLET : canevas (Formulation/Justification/
+  // Indicateurs/Certitude) + plan An1→An2→An3 au même niveau de détail que le Plan-trajectoire
+  // (acte → résultat attendu → pourquoi, rien d'inventé) + son propre graphique. 100%
+  // déterministe (build_projection_hypotheses) — ne peut jamais diverger des graphiques
+  // comparés plus bas (mêmes chiffres `projection`).
+  const _ph = d.projection_hypotheses;
+  window._PROJ_HYP = _ph;
+  const projHyp = (_ph && _ph.scenarios && _ph.scenarios.length) ? (()=>{
+    const scs = _ph.scenarios;
+    const tabs = `<div style="display:flex;gap:8px;margin:2px 0 14px;flex-wrap:wrap">
+      ${scs.map(s=>{
+        const col = _PROJ_SC_COL[s.cle], on = s.cle==='central';
+        const style = on
+          ? `background:${col};color:#fff;border:1px solid ${col};box-shadow:0 4px 12px ${col}55`
+          : `background:var(--bg-raise);color:var(--muted);border:1px solid var(--line)`;
+        return `<button data-projsc="${s.cle}" onclick="setProjScTab('${s.cle}')" style="cursor:pointer;padding:9px 18px;border-radius:10px;font:800 12.5px var(--sans);transition:all .15s;${style}">${s.nom} <span style="opacity:.75;font-weight:600">— ${s.pct_effet}%</span></button>`;
+      }).join('')}
+    </div>`;
+    const blocs = scs.map(s=>{
+      const col = _PROJ_SC_COL[s.cle];
+      return `<div class="tile c12 tpad" id="proj-sc-${s.cle}" style="border-top:4px solid ${col};display:${s.cle==='central'?'':'none'}">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+          <div style="width:56px;height:56px;border-radius:50%;background:${col};color:#fff;display:flex;align-items:center;justify-content:center;font:900 12px/1.1 var(--sans);text-align:center;box-shadow:0 4px 12px ${col}55;flex-shrink:0">${s.pct_effet}%<br><span style="font-weight:600;font-size:7.5px">effet plan</span></div>
+          <div>
+            <div style="font:900 16px var(--display);color:${col}">Scénario ${s.nom}</div>
+            <div style="font:600 10.5px/1.3 var(--sans);color:var(--faint)">${s.description}</div>
+          </div>
+        </div>
+
+        <div style="font:900 17px/1.32 var(--display);color:var(--ink);margin-bottom:7px">${s.formulation||''}</div>
+        <div style="font:500 11.5px/1.55 var(--sans);color:var(--muted);margin-bottom:13px">${s.justification||''}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:13px">
+          ${(s.indicateurs||[]).map(i=>`<div style="flex:1;min-width:125px;background:var(--bg-raise);border-radius:8px;padding:8px 12px">
+            <div style="font:700 8px var(--sans);color:var(--faint);text-transform:uppercase;letter-spacing:.04em">${i.label}</div>
+            <div style="font:800 14.5px var(--display);color:${col}">${i.valeur}</div>
+          </div>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;padding:11px 0;margin-bottom:16px;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)">
+          <div style="font:900 21px var(--display);color:${col}">${s.certitude_pct}%</div>
+          <div style="font:500 10px/1.4 var(--sans);color:var(--muted)">de certitude — Risque : ${s.certitude_risque}</div>
+        </div>
+
+        <div style="font:800 12px var(--sans);color:var(--ink);margin-bottom:10px">🗺️ Plan ${s.nom} — chaque acte, son résultat à ce niveau d'exécution, sa justification</div>
+        <div class="bento" style="gap:10px;margin-bottom:4px">
+          ${(s.annees||[]).map((a,i)=>{
+            // Actions COMPLÉMENTAIRES du Plan-trajectoire (repricing tarifaire, mix commissions,
+            // offensive croissance...) — 2026-07-24 : fusionnées ICI (dans l'onglet Central
+            // uniquement, plus de section séparée en double au-dessus) car ce sont les actions
+            // du plan de référence tel quel, non recalculées par scénario.
+            const extra = (s.cle==='central' && rm.horizons && rm.horizons[i] && (rm.horizons[i].actes||[])[1]) || null;
+            return `<div class="tile c4 tpad" style="padding:12px;border-top:3px solid ${col}">
+            <div style="display:flex;align-items:baseline;gap:7px;margin-bottom:7px">
+              <span style="font:900 15px var(--display);color:${col}">${a.an}</span>
+            </div>
+            <div style="font:600 11px/1.45 var(--sans);color:var(--ink);margin-bottom:8px"><span style="color:${col};font-weight:800">▸</span> ${a.acte||''}</div>
+            <div style="font:700 10px/1.4 var(--sans);color:#0a5e3c;background:#0d7a5012;border-radius:5px;padding:5px 7px;margin-bottom:6px">📈 ${a.resultat||''}</div>
+            <div style="font:500 9.5px/1.4 var(--sans);color:var(--muted);${extra?'margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed var(--line)':''}">⚖ ${a.pourquoi||''}</div>
+            ${extra?`<div style="font:600 11px/1.45 var(--sans);color:var(--ink);margin-bottom:8px"><span style="color:${col};font-weight:800">▸</span> ${extra.acte}</div>
+            <div style="font:700 10px/1.4 var(--sans);color:#0a5e3c;background:#0d7a5012;border-radius:5px;padding:5px 7px;margin-bottom:6px">📈 ${extra.resultat}</div>
+            <div style="font:500 9.5px/1.4 var(--sans);color:var(--muted)">⚖ ${extra.justification} ${(extra.sources||[]).map(_srcBadge).join('')}</div>`:''}
+          </div>`;}).join('')}
+        </div>
+        ${s.cle==='central' && rm.objectif ? `<div class="tile c12 tpad" style="background:#0B2D5B;color:#fff;margin-top:2px">
+          <div style="font:800 10px var(--sans);color:#9DB8DC;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">🎯 ${rm.objectif.titre} — cap consolidé</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">${(rm.objectif.lignes||[]).filter(Boolean).map(l=>`<div style="flex:1;min-width:200px;font:600 11.5px/1.5 var(--sans);color:#fff;background:#ffffff14;border-radius:7px;padding:8px 11px">${l}</div>`).join('')}</div>
+        </div>` : ''}
+        ${s.cle==='central' ? `<div id="strat-roadmap-llm" class="tile c12" style="display:none;margin-top:10px;padding:12px 15px;border-radius:10px;border:1px solid #6D28D955;background:radial-gradient(120% 140% at 0 0,#6D28D912,transparent 55%),var(--bg-tile)">
+          <div style="font:800 10px var(--sans);color:#6D28D9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">🤖 Lecture stratégique — la logique du plan</div>
+          <div id="strat-roadmap-llm-txt" style="font:500 12px/1.65 var(--sans);color:var(--ink)"></div>
+        </div>` : ''}
+
+        <div id="proj-sc-chart-${s.cle}" style="height:170px;margin-top:8px"></div>
+      </div>`;
+    }).join('');
+
+    return `<div style="margin-bottom:10px">
+      <div class="chead"><div><div class="tt">Logique des 3 scénarios</div>
+      <div class="ts">${_ph.intro}</div></div></div>
+      ${tabs}
+      ${blocs}
+      ${_ph.conclusion_strategique ? `<div class="tile c12 tpad" style="margin-top:12px;background:#0B2D5B;color:#fff">
+        <div style="font:800 10px var(--sans);color:#9DB8DC;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">🎯 Conclusion stratégique</div>
+        <div style="font:600 12.5px/1.6 var(--sans);color:#fff">${_ph.conclusion_strategique}</div>
+      </div>` : ''}
+    </div>`;
+  })() : '';
 
   // ── Projection 3 ans (graphiques lisibles + message-clé) ──
+  // Bilan « bas de gamme » (2026-07-21) : 100% déterministe, calculé serveur (build_projection),
+  // porte UNIQUEMENT sur le Résultat net (la ligne qui compte) — jamais lié à un levier nommé
+  // (coût du risque aujourd'hui, autre chose demain) donc reste valable si la cause change.
+  const _rn = (d.projection||[]).find(p=>p.nom==='Résultat net') || {};
+  const projBilan = (_rn.gain_pire_cas!=null) ? `<div style="display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 14px">
+    ${_rn.pire_cas_bat_immobilisme?`<div class="tile c6 tpad" style="border-left:4px solid #12895C;padding:12px 15px">
+      <div style="font:800 9px var(--sans);color:#12895C;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">✅ Même le pire scénario bat l'immobilisme</div>
+      <div style="font:600 12px/1.5 var(--sans);color:var(--ink)">Même en exécution partielle du plan (scénario prudent), le résultat net dépasse déjà le « sans rien changer » de <b style="color:#12895C">+${_rn.gain_pire_cas}</b> à AN3 — agir n'est pas un pari.</div>
+    </div>`:''}
+    <div class="tile c6 tpad" style="border-left:4px solid #B45309;padding:12px 15px">
+      <div style="font:800 9px var(--sans);color:#B45309;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">⏳ Le prix de l'attentisme, cumulé sur 3 ans</div>
+      <div style="font:600 12px/1.5 var(--sans);color:var(--ink)">Pas qu'un instantané à AN3 : sur les 3 années cumulées, retarder le plan coûte <b style="color:#B45309">${_rn.cumul_attentisme_3ans}</b> de résultat net face au scénario central.</div>
+    </div>
+  </div>` : '';
+  const _PROJ_METRIC_COL = {"PNB":"#1650b0","Coût du risque (% PNB)":"#B45309","Résultat net":"#12895C","ROE":"#6D28D9"};
   const proj = `<div class="tile c12 tpad">
-    <div class="chead"><div><div class="tt">Projection chiffrée à 3 scénarios — ce que le plan change, en images</div>
-    <div class="ts">Ligne grise = <b style="color:#94A3B8">sans rien changer</b> · ligne verte = <b style="color:#12895C">scénario central (plan tenu)</b> · zone verte = <b style="color:#12895C">fourchette prudent → optimiste</b> · modèle déterministe dérivé des chiffres EF</div></div></div>
+    <div class="chead"><div><div class="tt">Graphiques de projection — les 3 scénarios en image</div>
+    <div class="ts">Ligne grise = <b style="color:#94A3B8">sans rien changer</b> · ligne verte = <b style="color:#12895C">scénario central (plan tenu)</b> · zone verte = <b style="color:#12895C">fourchette prudent → optimiste</b> · modèle déterministe dérivé des chiffres réels</div></div></div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px">
       ${[["Prudent","exécution partielle du plan (~55% de l'effet)","#94A3B8"],["Central","plan tenu (100% de l'effet)","#12895C"],["Optimiste","plan + macro porteuse (~135%)","#1650b0"]].map(s=>`<div style="font:600 9.5px var(--sans);color:var(--muted);background:var(--bg-raise);border:1px solid var(--line);border-left:3px solid ${s[2]};border-radius:5px;padding:4px 9px"><b style="color:${s[2]}">${s[0]}</b> — ${s[1]}</div>`).join("")}
     </div>
+    ${projBilan}
     <div class="bento" style="gap:14px">
-      ${(d.projection||[]).map((p,i)=>`<div class="tile c6 tpad" style="padding:12px">
+      ${(d.projection||[]).map((p,i)=>{const mc=_PROJ_METRIC_COL[p.nom]||'#1650b0';return `<div class="tile c6 tpad" style="padding:13px;border-top:3px solid ${mc}">
         <div style="font:800 12.5px var(--sans);color:var(--ink);margin-bottom:1px">${p.nom} <span style="color:var(--faint);font-weight:500;font-size:10px">en ${p.unite}</span></div>
         <div style="font:600 9.5px/1.45 var(--sans);color:var(--muted);margin-bottom:4px">${p.takeaway||''}</div>
-        <div id="strat-proj-${i}" style="height:190px"></div>
+        <div id="strat-proj-${i}" style="height:200px"></div>
         <div style="font:italic 400 9px/1.4 var(--sans);color:var(--faint);margin-top:5px">Hypothèses : ${p.hypothese}</div>
-      </div>`).join("")}
+      </div>`;}).join("")}
+    </div>
+    <div id="strat-proj-llm" style="display:none;margin-top:14px;padding:13px 16px;border-radius:10px;border:1px solid #6D28D955;background:radial-gradient(120% 140% at 0 0,#6D28D912,transparent 55%),var(--bg-tile)">
+      <div style="font:800 10px var(--sans);color:#6D28D9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">🤖 Lecture stratégique — ce que la projection change vraiment</div>
+      <div id="strat-proj-llm-txt" style="font:500 12.5px/1.7 var(--sans);color:var(--ink)"></div>
     </div>
   </div>`;
 
@@ -2678,7 +2827,7 @@ function _renderStrategie(d){
 
   // ── Sources ──
   const sources = `<div class="tile c12 tpad">
-    <div class="chead"><div><div class="tt">Sources — transparence totale</div><div class="ts">Toute affirmation s'appuie sur l'une de ces références (groundedness ${m.groundedness}%)</div></div></div>
+    <div class="chead"><div><div class="tt">Sources — transparence totale</div><div class="ts">Toute affirmation s'appuie sur l'une de ces références</div></div></div>
     ${(d.sources||[]).map(s=>`<div style="display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font:500 11px var(--sans)">
       ${_srcBadge(s.type)} <span style="color:var(--ink)">${s.ref}</span>
       <span style="margin-left:auto;font:600 9px var(--sans);color:var(--faint)">${s.fiabilite}${s.date?(' · '+s.date):''}</span></div>`).join("")}
@@ -2700,7 +2849,7 @@ function _renderStrategie(d){
         <div><div style="font:800 14px var(--display);color:${dir.couleur}">${dir.nom}</div>
         <div style="font:600 10px/1.3 var(--sans);color:var(--muted)">${dir.question}</div></div>
       </div>
-      <div style="font:500 11px/1.55 var(--sans);color:var(--ink);background:var(--bg-raise);border-radius:6px;padding:8px 10px;margin-bottom:9px">${dir.lecture}</div>
+      <div style="font:500 12.5px/1.65 var(--sans);color:var(--ink);background:var(--bg-raise);border-radius:6px;padding:10px 12px;margin-bottom:9px">${dir.lecture}</div>
       ${(dir.decisions||[]).map((x,i)=>`<div style="margin-bottom:9px;padding-bottom:9px;${i<dir.decisions.length-1?'border-bottom:1px solid var(--line)':''}">
         <div style="font:800 11.5px/1.4 var(--sans);color:var(--ink);display:flex;gap:6px"><span style="color:${dir.couleur}">DÉCISION ${i+1}</span><span style="margin-left:auto;font:700 8px var(--sans);color:${_effCol[x.effort]||'#64748B'};background:${(_effCol[x.effort]||'#64748B')}1a;border-radius:4px;padding:1px 6px;height:fit-content">Effort ${x.effort}</span></div>
         <div style="font:700 11.5px/1.45 var(--sans);color:var(--ink);margin:2px 0 4px">${x.titre}</div>
@@ -2744,43 +2893,71 @@ function _renderStrategie(d){
     </div>`;}).join('')}</div>`:'';
 
   // ── Helper : section claire (numéro + titre + « En clair ») ──
-  const sect=(id,num,titre,enclair,inner)=>{
+  // GARDE-FOU (2026-07-22, demande explicite du directeur — le bouton « Approfondir avec l'IA »
+  // envoyait TOUJOURS les mêmes KPIs génériques (PNB/RN/marge...) peu importe la section cliquée,
+  // jamais les VRAIES données déjà calculées de CETTE section (ex. Projection prudent/central/
+  // optimiste) → le LLM, sommé de « détailler » une section sans ses vrais chiffres, en
+  // INVENTAIT (constat concret : chiffres et calculs faux sur un clic Projection). Fix : chaque
+  // section stocke ses propres faits réels dans _STRAT_FACTS[id], et le bouton ne transmet que
+  // l'ID (pas un gros JSON dans l'attribut HTML) — askIA() va chercher les vrais faits au clic.
+  window._STRAT_FACTS = window._STRAT_FACTS || {};
+  const sect=(id,num,titre,enclair,inner,factsObj)=>{
     const _qt=String(titre).replace(/<[^>]+>/g,'').replace(/['"«»]/g,'’').replace(/\s+/g,' ').trim();
+    if (factsObj!==undefined) window._STRAT_FACTS[id] = factsObj;
     return `<section id="${id}" style="scroll-margin-top:172px">
     <div style="display:flex;align-items:center;gap:10px;margin:24px 0 3px">
-      <span style="font:900 19px var(--display);color:var(--accent-2)">${num}</span>
-      <span style="font:800 17px var(--display);color:var(--ink)">${titre}</span>
-      <button class="cta" style="margin-left:auto;font:700 9.5px var(--sans);padding:5px 13px;cursor:pointer;white-space:nowrap" onclick="askIA('Analyse stratégique approfondie pour SGCI — ${_qt} : détaille, croise les données EF, CB et Web, et propose des actions concrètes et chiffrées.')">🔍 Approfondir avec l'IA →</button>
+      <span style="font:900 21px var(--display);color:var(--accent-2)">${num}</span>
+      <span style="font:800 19px var(--display);color:var(--ink)">${titre}</span>
+      <button class="cta" style="margin-left:auto;font:700 9.5px var(--sans);padding:5px 13px;cursor:pointer;white-space:nowrap" onclick="askIA('Analyse stratégique approfondie pour SGCI — ${_qt} : détaille, croise les données EF, CB et Web, et propose des actions concrètes et chiffrées.','${id}')">🔍 Approfondir avec l'IA →</button>
     </div>
-    <div style="font:500 11.5px/1.55 var(--sans);color:var(--muted);background:var(--bg-raise);border-left:3px solid var(--accent-2);border-radius:0 7px 7px 0;padding:8px 12px;margin-bottom:13px">${enclair}</div>
+    <div style="font:500 13px/1.6 var(--sans);color:var(--muted);background:var(--bg-raise);border-left:3px solid var(--accent-2);border-radius:0 7px 7px 0;padding:8px 12px;margin-bottom:13px">${enclair}</div>
     ${inner}
   </section>`;};
 
-  return _stratStickyBar()
+  return _stratStickyBar(d.segment)
     + sect("st-essentiel","①","L'essentiel","<b>En clair :</b> le verdict en une phrase — ce qui va, ce qui ne va pas, quoi faire — puis le diagnostic détaillé des problèmes, du plus grave au moins grave.",
-        `${essentiel}<div class="bento" style="margin-top:10px">${synth}${metr}</div><div class="bento" style="margin-top:10px">${_narrBox('diag')}${diag}</div>`)
+        `${essentiel}<div class="bento" style="margin-top:10px">${synth}${metr}</div><div class="bento" style="margin-top:10px">${_narrBox('diag')}${diag}</div>`,
+        {essentiel: es, problemes: d.problemes})
     + sect("st-revel","②","Révélations","<b>En clair :</b> ce que personne ne voit au premier coup d'œil — découvert en croisant les chiffres des 7 banques. Chaque carte : une phrase simple, le détail caché en dessous, et la cause expliquée (recherche web).",
-        `<div class="bento" style="margin-bottom:10px">${revs}${_switchHTML(d.couts_changement)}</div>`)
+        `<div class="bento" style="margin-bottom:10px">${revs}${_switchHTML(d.couts_changement)}</div>`,
+        {revelations: d.revelations, couts_changement: d.couts_changement})
     + sect("st-conc","③","Porter — les 5 forces","<b>En clair :</b> la pression concurrentielle que subit SGCI, via les <b>5 forces de Porter</b> — plus le décryptage de chaque concurrent. Choisis l'onglet.",
         `<div style="display:flex;gap:7px;margin:0 0 12px;flex-wrap:wrap">
            <button id="ctab-porter" class="sec-nav-btn on" onclick="setConcTab('porter')">Porter — 5 forces</button>
            <button id="ctab-conc" class="sec-nav-btn" onclick="setConcTab('conc')">Concurrents décryptés</button>
          </div>
          <div id="conc-porter"><div class="bento">${_narrBox('porter')}${porter}</div></div>
-         <div id="conc-decrypt" style="display:none">${concurrents}</div>`)
+         <div id="conc-decrypt" style="display:none">${concurrents}</div>`,
+        {porter: d.porter, concurrents: d.concurrents})
     + sect("st-vrist","④","VRIST — avantage durable","<b>En clair :</b> les avantages de SGCI sont-ils <b>durables</b> ? Le cadre VRIST note chaque banque sur 5 axes (Valeur, Rareté, Inimitabilité, Durabilité, Transformation). Sélectionne un concurrent pour comparer.",
-        `<div class="bento">${_narrBox('vrist')}${vrist}</div>`)
+        `<div class="bento">${_narrBox('vrist')}${vrist}</div>`,
+        {vrist: d.vrist})
     + sect("st-swot","⑤","SWOT — la synthèse qui mène aux décisions","<b>En clair :</b> on résume Forces, Faiblesses, Opportunités, Menaces. Cette matrice <b>justifie les décisions</b> de la section suivante : chaque décision répond à une faiblesse à corriger ou une opportunité à saisir.",
-        `<div class="bento">${_narrBox('swot')}</div>${atouts}${swot}`)
+        `<div class="bento">${_narrBox('swot')}</div>${swot}`,
+        {swot: d.swot})
     + sect("st-pestel","⑥","PESTEL — environnement externe","<b>En clair :</b> les 6 forces EXTERNES qui pèsent sur SGCI (Politique, Économique, Social, Technologique, Environnemental, Légal). Chaque point est <b>sourcé</b> (BCEAO, APBEF-CI, GSMA…), pas une opinion.",
-        _pestelHTML(d.pestel))
+        _pestelHTML(d.pestel),
+        {pestel: d.pestel})
     + sect("st-plan","⑦","Décisions & recommandations","<b>En clair :</b> à partir du SWOT, du PESTEL et des données, des recommandations d'actions concrètes sont formulées par direction. <b>Filtre par direction.</b> Chaque chiffre est vérifié.",
+        // RECOMMANDATIONS DÉPLACÉES (2026-07-30, demande directe). Elles vivaient ici, mêlées
+        // au diagnostic : l'onglet répondait à la fois à « où en sommes-nous » et à « que fait
+        // ma direction », deux questions destinées à deux lecteurs différents, ce qui affaiblissait
+        // les deux. Elles sont désormais dans l'onglet Stratégie opérationnelle, où chaque action
+        // porte son segment, son levier, son écart mesuré et sa source. On ne laisse ici qu'un
+        // renvoi : dupliquer les recommandations exposerait à deux versions divergentes.
         `<div class="bento" style="margin-bottom:8px">${_narrBox('plan')}</div>
-         <div id="strat-props-partial-banner" style="display:none;align-items:center;gap:8px;margin-bottom:10px;padding:8px 12px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;font:600 11px var(--sans);color:#92400E"></div>
-         <div id="strat-props-bar" style="margin-bottom:8px"></div>
-         <div id="strat-props"><div style="padding:34px;color:var(--muted);font:500 12px var(--sans);display:flex;gap:10px;align-items:center"><span class="spin"></span> Analyse des données et rédaction des recommandations par direction…</div></div>
-         <div id="strat-comite-fallback" style="display:none"><div style="font:600 10px var(--sans);color:var(--faint);margin:6px 0">Socle sourcé déterministe (secours, IA indisponible) :</div><div class="bento">${comite}</div></div>
-         ${roadmap}`);
+         <div class="panel" style="border-left:3px solid var(--accent-2);margin-top:6px">
+           <div style="font:700 12.5px var(--sans);color:var(--ink);margin-bottom:5px">Les recommandations par direction ont leur propre onglet</div>
+           <div style="font:400 11.5px/1.6 var(--sans);color:var(--muted);margin-bottom:10px">
+             Chaque action y indique le <b>segment</b> visé, le <b>levier</b> précis, l'<b>écart mesuré</b>
+             face au marché et sa <b>source</b> — pour les directions Financière, Commerciale, Marketing et Innovation.</div>
+           <button onclick="go('stratop')" style="cursor:pointer;border:none;border-radius:9px;padding:9px 15px;background:var(--accent-2);color:#fff;font:700 11.5px var(--sans)">
+             Ouvrir la Stratégie opérationnelle →</button>
+         </div>`,
+        {roadmap: d.roadmap})
+    + sect("st-proj","⑧","Projection 3 ans — ce que le plan change, chiffré","<b>En clair :</b> 3 scénarios (prudent/central/optimiste) sur les métriques-clés, modèle déterministe dérivé des chiffres réels — jamais inventé par l'IA.",
+        projHyp + proj,
+        {projection: d.projection, projection_hypotheses: d.projection_hypotheses, roadmap: d.roadmap});
 }
 
 // ── Rendu PESTEL (6 facteurs externes, chaque point sourcé) ──────────────────────
@@ -2848,6 +3025,41 @@ function _vristPorteeHTML(raw){
     'Valeur|Raret[ée]|Inimitable|Durable|Transformati[fv]');
 }
 
+// ── Habillage LLM du Diagnostic 360° (2026-07-16) : la détection reste déterministe
+// (seuils réels, cf. detect_problems() côté serveur), seule la prose de chaque preuve
+// est reformulée/croisée par Claude. Fallback silencieux = le texte déterministe déjà affiché.
+// PAS de flag "déjà fait" global : _renderStrategie() peut réinjecter le HTML déterministe
+// (nouveau innerHTML de #strat-root) sans que cette fonction ne soit rappelée autrement —
+// un flag figé aurait alors bloqué le patch pour de bon (bug trouvé le 2026-07-16). L'appel
+// serveur est déjà caché (quasi instantané au 2e appel) donc pas de coût à re-fetcher ici.
+async function _fireStratDiagLLM(segment){
+  const nodes=document.querySelectorAll('.diag-preuve');
+  if(!nodes.length) return;
+  try{
+    const r=await fetch(`/api/strategie_diag_llm?segment=${encodeURIComponent(segment||'Particuliers')}`);
+    const d=await r.json();
+    const preuves=d.preuves||{};
+    if(!Object.keys(preuves).length) return;
+    nodes.forEach(el=>{
+      const t=el.dataset.diagTitre;
+      if(t && preuves[t]) el.innerHTML=_brSentences(preuves[t]);
+    });
+  }catch(e){}
+}
+
+// ── Lecture stratégique de la Projection 3 scénarios (2026-07-16, « ajouter du WOW ») :
+// le modèle chiffré reste déterministe, Claude croise les métriques déjà calculées par-dessus.
+async function _fireStratProjLLM(segment){
+  const box=document.getElementById('strat-proj-llm'), txt=document.getElementById('strat-proj-llm-txt');
+  if(!box||!txt) return;
+  try{
+    const r=await fetch(`/api/strategie_projection_llm?segment=${encodeURIComponent(segment||'Particuliers')}`);
+    const d=await r.json();
+    const a=(d.analyse||'').trim();
+    if(a){ txt.innerHTML=a; box.style.display=''; }
+  }catch(e){}
+}
+
 // ── Analyse de PORTÉE du PESTEL (LLM contraint, stockée) ─────────────────────
 async function _firePestelLLM(){
   const div=document.getElementById('pestel-portee');
@@ -2900,10 +3112,15 @@ function _switchHTML(sw){
   const line=(it,sens,col)=>{
     const verdict = sens==='gain' ? 'SGCI moins cher' : `${it.banque} moins cher`;
     const ecartLbl = sens==='gain' ? "d'économie/an" : "d'écart/an";
+    // Tag segment (2026-07-22, demande directeur : « pour Entreprises on néglige ??? ») — chaque
+    // ligne vient de Particuliers OU Entreprises, jamais ambigu, maintenant visible ici aussi.
+    const segTag = it.segment==='Entreprises'
+      ? `<span style="font:700 8px var(--sans);color:#1650b0;background:#1650b01a;border-radius:4px;padding:1px 6px;margin-left:6px;text-transform:uppercase;letter-spacing:.05em">Entreprises</span>`
+      : `<span style="font:700 8px var(--sans);color:#64748B;background:#64748B1a;border-radius:4px;padding:1px 6px;margin-left:6px;text-transform:uppercase;letter-spacing:.05em">Particuliers</span>`;
     return `<div style="padding:6px 0;border-bottom:1px solid var(--line)">
       <div style="display:flex;align-items:baseline;gap:8px">
         <span style="font:900 14px var(--display);color:${col};white-space:nowrap;min-width:78px;text-align:right">${fmt(it.eco)} F${it.suffixe||''}</span>
-        <span style="font:700 10.5px/1.4 var(--sans);color:var(--ink)">${it.libelle}<span style="font-weight:500;color:var(--faint)"> · ${ecartLbl}</span></span>
+        <span style="font:700 10.5px/1.4 var(--sans);color:var(--ink)">${it.libelle}<span style="font-weight:500;color:var(--faint)"> · ${ecartLbl}</span>${segTag}</span>
       </div>
       <div style="font:600 10px var(--sans);color:var(--muted);padding-left:86px;margin-top:2px">
         SGCI <b style="color:var(--ink)">${fmt(it.sgci)} F</b> &nbsp;·&nbsp; ${it.banque} <b style="color:var(--ink)">${fmt(it.conc)} F</b>
@@ -2921,13 +3138,15 @@ function _switchHTML(sw){
     </div>
     <div style="font:800 13px/1.35 var(--sans);color:var(--ink);margin-bottom:6px">Venir chez SGCI fait économiser sur des services très demandés</div>
     <div style="font:600 11px/1.6 var(--sans);background:${cG}10;border-radius:7px;padding:8px 10px"><b style="color:${cG}">En clair :</b> sur le quotidien, SGCI est souvent la moins chère — jusqu'à <b>${fmt(sw.max_gain)} F/an</b> d'économie en la rejoignant.</div>
-    <div style="margin-top:8px">${gains.map(it=>line(it,'gain',cG)).join('')}</div>
+    <div style="margin-top:8px;max-height:420px;overflow-y:auto;padding-right:4px">${gains.map(it=>line(it,'gain',cG)).join('')}</div>
+    <div style="font:600 8.5px var(--sans);color:var(--faint);text-align:center;margin-top:4px">${gains.length} atout${gains.length>1?'s':''} au total · fais défiler pour tout voir</div>
     ${caveat}
   </div>`:'';
   // ── Carte RISQUE PRIX (fuite) ──
   const fuiteBody = fuites.length
     ? `<div style="font:600 11px/1.6 var(--sans);background:${cF}10;border-radius:7px;padding:8px 10px"><b style="color:${cF}">En clair :</b> sur les services demandés, SGCI n'est <b>presque jamais</b> beaucoup plus chère (écart max <b>${fmt(sw.max_fuite)} F/an</b>) → risque de fuite par le prix <b>limité</b>. Le seul écart à surveiller :</div>
-       <div style="margin-top:8px">${fuites.map(it=>line(it,'fuite',cF)).join('')}</div>`
+       <div style="margin-top:8px;max-height:420px;overflow-y:auto;padding-right:4px">${fuites.map(it=>line(it,'fuite',cF)).join('')}</div>
+       <div style="font:600 8.5px var(--sans);color:var(--faint);text-align:center;margin-top:4px">${fuites.length} risque${fuites.length>1?'s':''} au total · fais défiler pour tout voir</div>`
     : `<div style="font:600 11px/1.6 var(--sans);background:${cF}10;border-radius:7px;padding:8px 10px"><b style="color:${cF}">En clair :</b> sur les services très demandés et comparables, <b>aucun écart significatif</b> en défaveur de SGCI → le prix n'est <b>pas</b> un motif de départ.</div>`;
   const cardFuite = `<div class="tile c6 tpad" style="border-left:4px solid ${cF};background:radial-gradient(130% 150% at 0 0,${cF}0d,transparent 55%),var(--bg-tile)">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap">
@@ -2938,7 +3157,37 @@ function _switchHTML(sw){
     <div style="font:800 13px/1.35 var(--sans);color:var(--ink);margin-bottom:6px">Ce qui pourrait pousser un client à partir (par le prix)</div>
     ${fuiteBody}
   </div>`;
-  return cardGain + cardFuite;
+  const llmBox = `<div id="strat-switch-llm" class="tile c12" style="display:none;margin-bottom:10px;padding:12px 15px;border-radius:10px;border:1px solid #6D28D955;background:radial-gradient(120% 140% at 0 0,#6D28D912,transparent 55%),var(--bg-tile)">
+    <div style="font:800 10px var(--sans);color:#6D28D9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">🤖 Lecture stratégique</div>
+    <div id="strat-switch-llm-txt" style="font:500 12px/1.65 var(--sans);color:var(--ink)"></div>
+  </div>`;
+  return cardGain + cardFuite + llmBox;
+}
+
+// ── Lecture stratégique des coûts de changement (2026-07-16) : mêmes montants déterministes,
+// Claude ajoute une lecture par-dessus (rapport de force atouts/risques, implication commerciale).
+async function _fireStratSwitchLLM(segment){
+  const box=document.getElementById('strat-switch-llm'), txt=document.getElementById('strat-switch-llm-txt');
+  if(!box||!txt) return;
+  try{
+    const r=await fetch(`/api/strategie_switch_llm?segment=${encodeURIComponent(segment||'Particuliers')}`);
+    const d=await r.json();
+    const a=(d.analyse||'').trim();
+    if(a){ txt.innerHTML=a; box.style.display=''; }
+  }catch(e){}
+}
+
+// ── Lecture stratégique du plan-trajectoire 3 ans (2026-07-16) : actes/chiffrage restent
+// déterministes, Claude explique la logique de séquençage par-dessus.
+async function _fireStratRoadmapLLM(segment){
+  const box=document.getElementById('strat-roadmap-llm'), txt=document.getElementById('strat-roadmap-llm-txt');
+  if(!box||!txt) return;
+  try{
+    const r=await fetch(`/api/strategie_roadmap_llm?segment=${encodeURIComponent(segment||'Particuliers')}`);
+    const d=await r.json();
+    const a=(d.analyse||'').trim();
+    if(a){ txt.innerHTML=a; box.style.display=''; }
+  }catch(e){}
 }
 
 function _mdLite(s){
@@ -3071,6 +3320,67 @@ function setConcTab(t){
   const panels={conc:'conc-decrypt',porter:'conc-porter'};
   Object.entries(panels).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.style.display=(k===t?'':'none');});
   ['conc','porter'].forEach(k=>{const b=document.getElementById('ctab-'+k);if(b)b.classList.toggle('on',k===t);});
+}
+
+// ── Projection 3 ans — dashboard filtrable par scénario (2026-07-24, version A) —
+// canevas repris tel quel : Formulation chiffrée / Justification / Indicateurs chiffrés /
+// Niveau de certitude, + plan An1→An2→An3 propre à chaque scénario. ─────────────────────────
+const _PROJ_SC_COL = {prudent:'#94A3B8', central:'#12895C', optimiste:'#1650b0'};
+// Un seul scénario affiché à la fois (cohérent avec le mode onglets utilisé partout ailleurs
+// dans l'app) — bascule le bloc complet + redimensionne son graphique Plotly (rendu à taille 0
+// pendant qu'il était caché, comme pour les autres graphiques de sections masquées).
+function setProjScTab(cle){
+  ['prudent','central','optimiste'].forEach(c=>{
+    const el = document.getElementById('proj-sc-'+c); if(el) el.style.display = (c===cle ? '' : 'none');
+  });
+  document.querySelectorAll('[data-projsc]').forEach(b=>{
+    const on = b.dataset.projsc===cle, col = _PROJ_SC_COL[b.dataset.projsc];
+    if(on){ b.style.background=col; b.style.color='#fff'; b.style.border=`1px solid ${col}`; b.style.boxShadow=`0 4px 12px ${col}55`; }
+    else{ b.style.background='var(--bg-raise)'; b.style.color='var(--muted)'; b.style.border='1px solid var(--line)'; b.style.boxShadow='none'; }
+  });
+  requestAnimationFrame(()=>{
+    if(!window.Plotly) return;
+    const el = document.getElementById('proj-sc-chart-'+cle);
+    if(el && el.offsetParent!==null){ try{ Plotly.Plots.resize(el); }catch(e){} }
+  });
+}
+// Graphique propre à CHAQUE scénario (1 ligne colorée = ce scénario, pointillé gris = sans
+// rien changer) — remplace l'ancien graphique unique à 3 lignes superposées, jugé peu lisible
+// ("je clique sur Central je vois pareil"). Appelé après insertion du DOM (cf. _stratCharts).
+function _stratProjScenarioCharts(d){
+  if(!window.Plotly) return;
+  const ph = d.projection_hypotheses; if(!ph || !ph.scenarios) return;
+  ph.scenarios.forEach(s=>{
+    const el = document.getElementById('proj-sc-chart-'+s.cle); if(!el) return;
+    const serie = s.serie_rn, actuel = s.serie_rn_actuel;
+    if(!serie || !actuel) return;
+    const col = _PROJ_SC_COL[s.cle];
+    const x = ["Aujourd'hui","An 1","An 2","An 3"];
+    const fmt = v => String(v).replace(".",",")+" Mds";
+    const lab = arr => arr.map((v,k)=> (k===0||k===arr.length-1) ? fmt(v) : "");
+    const all = [...serie, ...actuel];
+    const lo = Math.min(...all), hi = Math.max(...all), pad=(hi-lo)*0.22||1;
+    // Ligne "sans rien changer" en gris ATTÉNUÉ (opacité réduite) plutôt qu'un gris plein —
+    // pour le scénario Prudent, dont la couleur propre EST le gris (#94A3B8), un gris plein
+    // sur les deux lignes les rendait quasi indissociables. L'opacité fait reculer la ligne de
+    // référence visuellement quelle que soit la couleur du scénario.
+    Plotly.newPlot(el,[
+      {x,y:actuel,name:"Sans rien changer",mode:"lines+markers",
+       line:{color:"rgba(148,163,184,.45)",width:2,dash:"dot"},marker:{size:5,color:"rgba(148,163,184,.45)"},
+       hovertemplate:"Sans rien changer<br>%{x} : %{y} Mds<extra></extra>"},
+      {x,y:serie,name:"Scénario "+s.nom,mode:"lines+markers+text",
+       text:lab(serie),textposition:"top center",
+       textfont:{size:9.5,color:col,family:"Inter,sans-serif"},
+       line:{color:col,width:3.5},marker:{size:7,color:col},
+       hovertemplate:"Scénario "+s.nom+"<br>%{x} : %{y} Mds<extra></extra>"}
+    ],{
+      margin:{t:8,b:34,l:38,r:10},showlegend:true,
+      legend:{orientation:"h",y:-0.28,x:0,font:{size:8.5}},
+      font:{family:"Inter,sans-serif"},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
+      xaxis:{tickfont:{size:9},gridcolor:"rgba(150,150,150,.10)",fixedrange:true},
+      yaxis:{tickfont:{size:9},gridcolor:"rgba(150,150,150,.15)",range:[lo-pad,hi+pad],fixedrange:true,zeroline:false},
+    },{responsive:true,displayModeBar:false,staticPlot:_REAL_TOUCH});
+  });
 }
 
 // ── Propositions IA par directeur + filtres ──
@@ -3218,12 +3528,19 @@ function _renderProps(md, verif){
     chips+=`<button data-chip="${d.id}" class="sec-nav-btn${(_PROP_DIR===d.id||(!_PROP_DIR&&d.id===firstDir))?' on':''}" onclick="setPropDir('${d.id}')">${d.label} (${counts[d.id]})</button>`; } });
   if(bar) bar.innerHTML=`<div class="seg" style="margin:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${chips}</div>`;
   box.className="bento"; box.style.display="";
-  box.innerHTML=html+`<div class="tile c12" style="font:500 9px/1.4 var(--sans);color:var(--faint);padding:8px 4px 0;border-top:1px solid var(--line);margin-top:6px">Propositions rédigées par l'agent IA à partir du seul dossier de preuves (aucun gabarit) · chaque chiffre vérifié dans les sources.</div>`;
+  // 2026-07-27 (demande explicite du directeur) : le footer de transparence technique
+  // (taux de chiffres retrouvés, liste "à vérifier"...) a été retiré — ce type d'information
+  // interne au processus de génération ne doit pas apparaître dans l'app.
+  box.innerHTML=html;
   setPropDir((_PROP_DIR && counts[_PROP_DIR]) ? _PROP_DIR : firstDir);
 }
 async function _stratLLM(){
   const box=document.getElementById("strat-props"), fb=document.getElementById("strat-comite-fallback");
   const partial=document.getElementById("strat-props-partial-banner");
+  // Les cibles ont quitté cet onglet (cf. section ⑦). Sans ce garde-fou, la fonction lèverait
+  // une erreur sur un élément absent ET déclencherait un appel LLM pour un contenu que plus
+  // personne n'affiche — du quota consommé pour rien.
+  if(!box || !fb) return;
   try{
     const r=await fetch(`/api/strategie_llm`);
     const d=await r.json();
@@ -3298,236 +3615,28 @@ function _stratCharts(d){
 }
 
 function pageStrategie(){
+  // Le contenu de l'onglet Stratégie est injecté après coup par _renderStrategie(d), une fois
+  // les données chargées ; cette fonction ne rend que le squelette.
+  //
+  // 181 lignes mortes supprimées le 2026-07-30 : elles suivaient ce `return` derrière un
+  // commentaire `eslint-disable-next-line no-unreachable`, donc inaccessibles depuis leur
+  // introduction. Elles contenaient encore des jugements concurrentiels écrits en dur que les
+  // données contredisent aujourd'hui — « SIB la plus chère sur la tenue de compte » est faux
+  // sur les deux segments. Du code mort porteur d'affirmations fausses est un piège pour le
+  // prochain lecteur, qui le croira actif. Sauvegarde avant suppression conservée hors dépôt.
   return _stratSkeleton();
-  // eslint-disable-next-line no-unreachable
-  const swot  = buildSWOT();
-  const recos = buildRECOS();
-  const k     = KPI_DATA || {};
-  const rang  = k.sgci_rang_rn === 1 ? "la plus rentable" : `${k.sgci_rang_rn}e en rentabilité`;
-  const annee = k.sgci_rn_annee || "2025";
-
-  // Résilience
-  const rd        = RESILIENCE_DATA || {};
-  const sgciR     = rd["SGCI"] || {};
-  const solvSGCI  = sgciR.solvabilite;
-  const couv      = sgciR.couverture_depots;
-  const lev       = sgciR.levier_credit;
-  const cpSGCI    = sgciR.capitaux_propres;
-  const taSGCI    = sgciR.total_actif;
-  const solvSorted = Object.entries(rd).filter(([,d])=>d.solvabilite).sort((a,b)=>b[1].solvabilite-a[1].solvabilite);
-  const couvSorted = Object.entries(rd).filter(([,d])=>d.couverture_depots).sort((a,b)=>b[1].couverture_depots-a[1].couverture_depots);
-  const levSorted  = Object.entries(rd).filter(([,d])=>d.levier_credit).sort((a,b)=>a[1].levier_credit-b[1].levier_credit);
-  const rankSolv   = solvSorted.findIndex(([b])=>b==="SGCI")+1;
-  const rankCouv   = couvSorted.findIndex(([b])=>b==="SGCI")+1;
-  const rankLev    = levSorted.findIndex(([b])=>b==="SGCI")+1;
-  const bestCovB   = couvSorted[0]?.[0]||"?", bestCovV = couvSorted[0]?.[1]?.couverture_depots||0;
-  const worstCovB  = couvSorted.at(-1)?.[0]||"?", worstCovV = couvSorted.at(-1)?.[1]?.couverture_depots||0;
-  const bestLevB   = levSorted[0]?.[0]||"?", bestLevV = levSorted[0]?.[1]?.levier_credit||0;
-  const solvComfort = solvSGCI && solvSGCI >= 12;
-  const sgciCredR  = k.credits_data?.["SGCI"] || 0;
-  const lossAmt    = sgciCredR ? Math.round(sgciCredR * 0.10 / 1000) : null;
-  const stress10   = (cpSGCI && taSGCI && sgciCredR)
-    ? Math.max(0,(cpSGCI - sgciCredR*0.10)/taSGCI*100).toFixed(1) : null;
-  const stressBelow = stress10 !== null && parseFloat(stress10) < 8;
-  const npl1Mds    = sgciCredR ? (sgciCredR*0.01/1000).toFixed(1) : null;
-  const capAccumMds = k.rn_data?.["SGCI"]?.montant ? (k.rn_data["SGCI"].montant*0.70/1000).toFixed(0) : null;
-
-  return `
-  <div class="story">
-    <div class="kicker">Ce que SGCI doit faire · ${annee}</div>
-    <h1>Les leviers sont identifiés. <span class="hl">Chacun est chiffré.</span></h1>
-    <p>Les recommandations ci-dessous sont calculées à partir de la position réelle de SGCI sur le marché. Elles s'adaptent automatiquement si les données changent.</p>
-    ${btnPDF("Stratégie SGCI")}
-  </div>
-  <div class="bento">
-
-    <div class="tile c12 tpad" style="animation-delay:.02s">
-      <div class="chead">
-        <div><div class="tt">Recommandations prioritaires · ${annee}</div>
-        <div class="ts">Calculées depuis les données marché · classées par impact · se mettent à jour si les données changent</div></div>
-      </div>
-      <div class="reco">
-        ${recos.map((r,i)=>`<div class="r">
-          <div class="n">${i+1}</div>
-          <div>
-            <div class="h">${r[0]}</div><div class="j">${r[1]}</div>
-            <span class="conf ${r[5]}">${r[5]==='hi'?'Impact élevé':'Impact modéré'}</span>
-          </div>
-          <div class="imp"><div class="big ${r[4]}">${r[2]}</div><div class="lab">${r[3]}</div></div>
-        </div>`).join("")}
-      </div>
-    </div>
-
-    <div style="grid-column:span 12;padding:28px 0 8px;border-top:2px solid var(--line);margin-top:4px">
-      <div style="display:flex;align-items:center;gap:14px">
-        <div style="width:5px;height:40px;background:var(--accent-2);border-radius:3px;flex-shrink:0"></div>
-        <div><div style="font:800 18px/1.2 var(--sans);color:var(--ink)">Résilience & Solidité</div>
-        <div style="font:500 12px var(--sans);color:var(--muted);margin-top:3px">La banque peut-elle absorber un choc ? Ratios de solvabilité et de liquidité · ${annee}</div></div>
-      </div>
-    </div>
-
-    ${solvSGCI ? `
-    <div class="tile c6 tpad" style="animation-delay:.04s">
-      <div class="chead">
-        <div><div class="tt">Solvabilité · Capitaux propres / Total Actif</div>
-        <div class="ts">% · ${annee} · Plus haut = plus solide · Norme BCEAO ≥ 8%</div></div>
-      </div>
-      <div id="st-solv" style="height:280px"></div>
-      ${C("SGCI <b>#"+rankSolv+"/"+solvSorted.length+"</b> — <b>"+solvSGCI+"%</b>"+(solvComfort?" (zone confort > 12%)":" (zone BCEAO)")+".<br>"
-        + solvSorted.map(([b,d])=>"<b>"+b+"</b> "+d.solvabilite+"%"+(d.solvabilite>=12?" ✓":"")).join(" · ")+"<br>"
-        + (stress10
-          ? (stressBelow
-              ? Q("Choc −10% portefeuille ("+lossAmt+" Mds) → solvabilité à <b>"+stress10+"%</b> — franchit le seuil BCEAO de 8%.")
-              : G("Choc −10% portefeuille ("+lossAmt+" Mds) → solvabilité à <b>"+stress10+"%</b> — résiste au-dessus de 8%."))
-          : "")
-      )}
-    </div>
-
-    <div class="tile c6 tpad" style="animation-delay:.06s">
-      <div class="chead">
-        <div><div class="tt">Couverture dépôts · Fonds propres / Dépôts</div>
-        <div class="ts">% · ${annee} · Protection des déposants en cas de choc</div></div>
-      </div>
-      <div id="st-couv" style="height:280px"></div>
-      ${C("SGCI <b>#"+rankCouv+"/"+couvSorted.length+"</b> — <b>"+couv+"%</b>.<br>"
-        + "Meilleure : <b>"+bestCovB+"</b> ("+bestCovV+"%) · Plus faible : <b>"+worstCovB+"</b> ("+worstCovV+"%).<br>"
-        + (couv >= 15
-          ? G("SGCI dispose du ratio le plus élevé — les déposants sont proportionnellement mieux protégés.")
-          : Q("Ratio à renforcer : une fuite de dépôts dégraderait rapidement la couverture sous les standards prudentiels."))
-      )}
-    </div>
-
-    <div class="tile c6 tpad" style="animation-delay:.08s">
-      <div class="chead">
-        <div><div class="tt">Levier crédit · Créances / Fonds propres</div>
-        <div class="ts">× · ${annee} · Sensibilité aux défauts · Plus bas = moins exposé</div></div>
-      </div>
-      <div id="st-lev" style="height:280px"></div>
-      ${C("SGCI <b>#"+rankLev+"/"+levSorted.length+"</b> avec <b>"+(lev||"N/A")+"×</b>.<br>"
-        + (npl1Mds ? "Sensibilité : chaque 1% de NPL = <b>"+npl1Mds+" Mds</b> de pertes à absorber.<br>" : "")
-        + (bestLevB !== "SGCI" ? "Moins exposé : <b>"+bestLevB+"</b> à <b>"+bestLevV+"×</b>." : "")
-      )}
-    </div>
-
-    <div class="tile c6 tpad" style="animation-delay:.10s">
-      <div class="chead"><div class="tt">Capitaux propres · Volume absolu · ${annee}</div><div class="ts">Mds FCFA · Accumulation organique via rétention des résultats</div></div>
-      <div id="st-cp" style="height:280px"></div>
-      ${C("SGCI dispose de <b>"+(cpSGCI?(cpSGCI/1000).toFixed(1):"?")+" Mds FCFA</b> de fonds propres.<br><br>"
-        + (capAccumMds ? "Rétention ~70% des bénéfices → <b>~"+capAccumMds+" Mds</b> ajoutés chaque année sans appel de fonds externe.<br><br>" : "")
-        + G("La banque se renforce organiquement chaque année — avantage structurel de long terme.")
-      )}
-    </div>
-    ` : ""}
-
-    <div style="grid-column:span 12;padding:28px 0 8px;border-top:2px solid var(--line);margin-top:8px">
-      <div style="display:flex;align-items:center;gap:14px">
-        <div style="width:5px;height:40px;background:var(--accent-2);border-radius:3px;flex-shrink:0"></div>
-        <div><div style="font:800 18px/1.2 var(--sans);color:var(--ink)">Matrice SWOT</div>
-        <div style="font:500 12px var(--sans);color:var(--muted);margin-top:3px">Générée automatiquement depuis les données réelles · ${annee}</div></div>
-        <button class="cta ml" onclick="askIA('En tant que DG de SGCI, synthétise forces, faiblesses, résilience et décisions prioritaires')">Demander à l'IA →</button>
-      </div>
-    </div>
-
-    <div class="tile c12 tpad" style="animation-delay:.05s">
-      <div class="swot">
-        <div class="q s"><h4>⬆ Forces</h4><ul>${swot.s.map(x=>`<li>${x}</li>`).join("")}</ul></div>
-        <div class="q w"><h4>⬇ Faiblesses</h4><ul>${swot.w.map(x=>`<li>${x}</li>`).join("")}</ul></div>
-        <div class="q o"><h4>◇ Opportunités</h4><ul>${swot.o.map(x=>`<li>${x}</li>`).join("")}</ul></div>
-        <div class="q t"><h4>⚠ Menaces</h4><ul>${swot.t.map(x=>`<li>${x}</li>`).join("")}</ul></div>
-      </div>
-    </div>
-
-    <div class="tile c12 tpad" style="animation-delay:.18s">
-      <div class="chead"><div class="tt">Simulateur d'impact tarifaire</div><div class="ts">Hausse des frais de tenue · particuliers SGCI</div></div>
-      <div class="sim" style="grid-template-columns:1fr">
-        <div class="ctrl">
-          <div class="field"><label>Variation des frais <b><span id="s-fee">+100</span> F/mois</b></label>
-            <input type="range" id="sim-fee" min="-500" max="1000" step="50" value="100" oninput="simCompute()"></div>
-          <div class="field"><label>Élasticité (attrition / +100 F) <b><span id="s-el">1,4</span> %</b></label>
-            <input type="range" id="sim-el" min="0" max="4" step="0.1" value="1.4" oninput="simCompute()"></div>
-          <div class="field"><label>Comptes particuliers actifs <b><span id="s-cl">850</span> k</b></label>
-            <input type="range" id="sim-cl" min="400" max="1200" step="50" value="850" oninput="simCompute()"></div>
-        </div>
-        <div class="out">
-          <div class="lab">Impact sur le chiffre d'affaires annuel</div>
-          <div class="big pos" id="sim-big">+0</div>
-          <div class="verdict" id="sim-verdict">—</div>
-          <div class="sub" id="sim-sub">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tile c12 tpad" style="animation-delay:.24s">
-      <div class="chead"><div class="tt">Lecture de la stratégie des concurrents</div><div class="ts">Comment chaque banque se positionne — et ce que SGCI peut faire</div></div>
-      <div class="comp">
-        ${_competsAll().map(c=>{
-          const b=bankBy(c[0].split(' ')[0]);
-          return `<div class="row">
-            <div class="lg"><img src="${b?b.lg:''}"></div>
-            <div><div class="nm">${c[0]}</div><div class="st">${c[1]}</div></div>
-            <span class="tag" style="background:color-mix(in srgb,${c[3]} 14%,transparent);color:${c[3]}">${c[2]}</span>
-          </div>`;
-        }).join("")}
-      </div>
-    </div>
-
-    <div class="tile insight c12" style="animation-delay:.3s">
-      <div class="orb">✦</div>
-      <div><div class="e">Synthèse de l'agence</div>
-      <div class="h">Priorité : <b>hausser les frais de tenue de +100 F</b> (gain immédiat ~1 Md) pour financer le <b>lancement du wallet corporate</b> et verrouiller le segment PME avant ECOBANK.</div></div>
-      <button class="cta ml" onclick="go('rapports')">Générer le rapport →</button>
-    </div>
-  </div>`;
 }
 
-function simCompute(){
-  const fee = +document.getElementById("sim-fee").value;
-  const el  = +document.getElementById("sim-el").value;
-  const cl  = +document.getElementById("sim-cl").value * 1000;
-  document.getElementById("s-fee").textContent = (fee>=0?"+":"")+fee;
-  document.getElementById("s-el").textContent  = el.toFixed(1).replace(".",",");
-  document.getElementById("s-cl").textContent  = (cl/1000);
-  const base = FRAIS.SGCI || 2350; // frais réels SGCI
-  const churnRate = fee>0 ? (el/100)*(fee/100) : 0;
-  const lost      = Math.round(cl*churnRate);
-  const remaining = cl - lost;
-  const baseRev   = cl * base * 12;
-  const newRev    = remaining * (base+fee) * 12;
-  const delta     = newRev - baseRev;
-  const fmt = v => (v>=0?"+":"−") + Math.abs(v/1e9).toFixed(2).replace(".",",") + " Md";
-  const big = document.getElementById("sim-big");
-  big.textContent = fmt(delta);
-  big.className   = "big " + (delta>=0?"pos":"neg");
-  document.getElementById("sim-verdict").textContent =
-    delta>=0 ? "Décision favorable : le gain tarifaire l'emporte sur l'attrition."
-             : "Décision risquée : l'attrition annule le gain tarifaire.";
-  document.getElementById("sim-sub").innerHTML =
-    `Comptes perdus : <b>${lost.toLocaleString("fr-FR")}</b> · CA ${(baseRev/1e9).toFixed(1).replace('.',',')} → ${(newRev/1e9).toFixed(1).replace('.',',')} Mds`;
-}
+// simCompute() (24 lignes) supprimé le 2026-07-30 : plus aucun appelant depuis le retrait des
+// simulateurs. Il modélisait l'attrition par une formule inventée (churn = élasticité × hausse)
+// et repliait sur un tarif SGCI écrit en dur. Le repositionnement tarifaire est désormais traité
+// par /api/cb_repricing, à partir des grilles réellement publiées.
 function afterStrategie(){
+  // _stratLoad() appelle /api/strategie puis rend la page entière : tout ce qui suivait ce
+  // `return` — 22 lignes, quatre graphiques de résilience et le simulateur — visait des
+  // conteneurs (#st-solv, #st-couv, #st-lev, #st-cp) que la page ne crée plus depuis le retrait
+  // des simulateurs. Supprimé le 2026-07-30.
   _stratLoad();
-  return;
-  // eslint-disable-next-line no-unreachable
-  simCompute();
-  if(document.getElementById("st-solv")) chartSolvabilite("st-solv", 280);
-  if(document.getElementById("st-couv")) chartCouvertureDepots("st-couv", 280);
-  if(document.getElementById("st-lev"))  chartLevierCredit("st-lev", 280);
-  if(document.getElementById("st-cp"))   chartEFBar("st-cp", (() => {
-    const out = {};
-    Object.entries(RESILIENCE_DATA||{}).forEach(([b,d])=>{ if(d.capitaux_propres) out[b]=d.capitaux_propres; });
-    return out;
-  })(), 280, {dec:0, mds:true});
-  window.__redraw = () => {
-    ["st-solv","st-couv","st-lev","st-cp"].forEach(id=>{try{Plotly.purge(id);}catch(e){}});
-    if(document.getElementById("st-solv")) chartSolvabilite("st-solv", 280);
-    if(document.getElementById("st-couv")) chartCouvertureDepots("st-couv", 280);
-    if(document.getElementById("st-lev"))  chartLevierCredit("st-lev", 280);
-    if(document.getElementById("st-cp"))   chartEFBar("st-cp", (() => {
-      const out = {};
-      Object.entries(RESILIENCE_DATA||{}).forEach(([b,d])=>{ if(d.capitaux_propres) out[b]=d.capitaux_propres; });
-      return out;
-    })(), 280, {dec:0, mds:true});
-  };
 }
 
 /* ════════════ RAPPORTS ══════════════════════════════════════════════ */
@@ -3616,7 +3725,7 @@ function swotReport(){
   <h2>Opportunités</h2><ul>${li(sw.o)}</ul><h2>Menaces</h2><ul>${li(sw.t)}</ul>
   <h2>Lecture concurrentielle</h2>
   <table><tr><th>Banque</th><th>Stratégie</th><th>Pour SGCI</th></tr>
-  ${_competsAll().map(c=>`<tr><td>${c[0]}</td><td>${c[1]}</td><td>${c[2]}</td></tr>`).join("")}</table>`;
+  ${_competsAll().map(c=>`<tr><td>${c[0]}</td><td>${c[1]}${_positionPrix(c[0])}</td><td>${c[2]}</td></tr>`).join("")}</table>`;
 }
 function benchReport(){
   const cols=CB_BANKS;   // DYNAMIQUE (source unique)
@@ -3690,48 +3799,132 @@ function renderMsgs(){
   if(!box) return;
   if(!CHAT.length){
     box.innerHTML=`<div class="empty">
-      <div class="bigmark">${AI_ICON_SVG}</div>
-      <h2>Bonjour. Je suis l'intelligence bancaire ivoirienne.</h2>
+      <div class="hologram-orb lg"></div>
+      <h2 style="margin-top:18px">Bonjour. Je suis l'intelligence bancaire ivoirienne.</h2>
       <p>Posez-moi n'importe quelle question sur les 7 banques de Côte d'Ivoire — tarifs, performance, réglementation.</p>
       <div class="sugg">${SUGG.map(s=>`<button onclick="askIA('${s[1].replace(/'/g,"\\'")}')"><span class="si">${s[0]}</span><span class="st">${s[1]}</span></button>`).join("")}</div>
     </div>`;
     return;
   }
   box.innerHTML = CHAT.map((m,i)=>{
-    const ava   = `<div class="ava">${m.role==="u"?"DG":AI_ICON_SVG}</div>`;
+    const enCours = m.role==="a" && /en cours/i.test(m.content||"");
+    const ava   = m.role==="u" ? `<div class="ava">DG</div>` : `<div class="ava"><div class="hologram-orb sm${enCours?' speaking':''}"></div></div>`;
     const chart = m.chart ? `<div id="cm-${i}" style="height:240px;margin-top:11px"></div>` : "";
-    const body  = m.role==="a" ? mdToHtml(m.content) : m.content;
-    return `<div class="msg ${m.role==="u"?"u":"a"}">${ava}<div><div class="bubble">${body}</div>${chart}</div></div>`;
+    // Le message de l'IA passe par mdToHtml (qui échappe déjà) ; celui de l'utilisateur
+    // partait BRUT dans innerHTML — taper « <img onerror=...> » dans le chat exécutait le
+    // code. Vu en corrigeant le rendu Markdown le 2026-07-28. Portée limitée (on ne peut
+    // s'attaquer que soi-même), mais c'est une ligne à écrire.
+    const body  = m.role==="a" ? mdToHtml(m.content)
+                               : String(m.content||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const heure = m.ts ? new Date(m.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div class="msg ${m.role==="u"?"u":"a"}">${ava}<div><div class="bubble">${body}</div>${chart}${heure?`<div class="msg-time">${heure}</div>`:''}</div></div>`;
   }).join("");
   CHAT.forEach((m,i)=>{ if(m.chart) autoChart(`cm-${i}`, m.chart); });
   box.scrollTop = box.scrollHeight;
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   mdToHtml — rendu Markdown des messages du chat
+   ────────────────────────────────────────────────────────────────────────
+   BUG SIGNALÉ le 2026-07-28 par le directeur (« LES DIESES LA TCHAI ») : les
+   réponses de l'IA s'affichaient avec leurs « ### » en clair — « ### Explication »,
+   « ### Chiffres » — au lieu de titres de section. L'ancienne version ne gérait que
+   DEUX choses : le gras **…** et les tableaux. Tout le reste tombait tel quel dans un
+   <p> : titres ###, listes à puces « - », listes numérotées, italique, séparateurs.
+   Le LLM produit pourtant du Markdown standard (on le lui demande explicitement, cf.
+   server.py « format markdown structuré ») — il était donc rendu à moitié, ce qui
+   donnait des blocs de texte lourds parsemés de dièses.
+
+   Deuxième défaut, invisible mais plus grave : AUCUN échappement HTML. Le contenu part
+   directement dans innerHTML (renderMsgs). Une réponse contenant du texte issu des
+   documents indexés pouvait donc injecter du balisage arbitraire dans la page. On
+   échappe désormais tout, puis on ré-autorise une LISTE BLANCHE de balises inline
+   (<b>, <i>, <br>…) car plusieurs prompts serveur demandent explicitement au LLM
+   d'écrire « <b> pour les chiffres » — les casser aurait dégradé l'affichage.
+   ════════════════════════════════════════════════════════════════════════ */
 function mdToHtml(t){
-  let html = t.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
-  if(html.includes("|")){
-    const lines=html.split("\n"); let out="",intbl=false;
-    lines.forEach(ln=>{
-      if(ln.trim().startsWith("|")){
-        if(ln.includes("---")) return;
-        const cells=ln.split("|").filter(c=>c.trim());
-        if(!intbl){ out+="<table><tr>"+cells.map(c=>`<th>${c.trim()}</th>`).join("")+"</tr>"; intbl=true; }
-        else out+="<tr>"+cells.map(c=>`<td>${c.trim()}</td>`).join("")+"</tr>";
-      } else { if(intbl){out+="</table>";intbl=false;} if(ln.trim()) out+=`<p>${ln}</p>`; }
-    });
-    if(intbl) out+="</table>";
-    return out;
+  if(!t) return "";
+  const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  // Échappement global, puis réhabilitation des seules balises inline sûres.
+  let src = esc(t).replace(/&lt;(\/?)(b|strong|i|em|u|br)\s*\/?&gt;/gi,
+                           (m, slash, tag) => `<${slash}${tag.toLowerCase()}>`);
+
+  // Marques inline : gras, italique, code. L'italique exige un * non collé à un autre *
+  // pour ne pas manger la moitié d'un **gras**.
+  const inl = s => s
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<i>$2</i>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>");
+
+  const lignes = src.split("\n");
+  let out = "", mode = null;          // null | "ul" | "ol" | "table"
+  const fermer = () => {
+    if(mode === "ul")    out += "</ul>";
+    else if(mode === "ol") out += "</ol>";
+    else if(mode === "table") out += "</tbody></table>";
+    mode = null;
+  };
+
+  for(const brute of lignes){
+    const ln = brute.trim();
+    if(!ln){ fermer(); continue; }
+
+    // ── Tableau : | a | b | … (la ligne de séparation |---|---| est ignorée) ──
+    if(ln.startsWith("|")){
+      if(/^\|[\s:|-]+\|?$/.test(ln)) continue;
+      const cells = ln.replace(/^\|/,"").replace(/\|$/,"").split("|").map(c => inl(c.trim()));
+      if(mode !== "table"){
+        fermer();
+        out += "<table><thead><tr>" + cells.map(c => `<th>${c}</th>`).join("") + "</tr></thead><tbody>";
+        mode = "table";
+      } else {
+        out += "<tr>" + cells.map(c => `<td>${c}</td>`).join("") + "</tr>";
+      }
+      continue;
+    }
+    if(mode === "table") fermer();
+
+    // ── Titres : #, ##, ### … (tous rendus en h4 — un message de chat n'a pas
+    //    besoin d'une échelle de titres, il a besoin d'étiquettes de section lisibles) ──
+    const mTitre = ln.match(/^(#{1,6})\s+(.+)$/);
+    if(mTitre){ fermer(); out += `<h4>${inl(mTitre[2].replace(/[:\s]+$/,""))}</h4>`; continue; }
+
+    // ── Séparateur horizontal ──
+    if(/^(-{3,}|_{3,}|\*{3,})$/.test(ln)){ fermer(); out += "<hr>"; continue; }
+
+    // ── Liste numérotée : « 1. » / « 1) » ──
+    const mNum = ln.match(/^(\d{1,2})[.)]\s+(.+)$/);
+    if(mNum){
+      if(mode !== "ol"){ fermer(); out += "<ol>"; mode = "ol"; }
+      out += `<li>${inl(mNum[2])}</li>`;
+      continue;
+    }
+
+    // ── Liste à puces : «- », «* », «• » ──
+    const mPuce = ln.match(/^[-*•·]\s+(.+)$/);
+    if(mPuce){
+      if(mode !== "ul"){ fermer(); out += "<ul>"; mode = "ul"; }
+      out += `<li>${inl(mPuce[1])}</li>`;
+      continue;
+    }
+
+    // ── Paragraphe ordinaire ──
+    fermer();
+    out += `<p>${inl(ln)}</p>`;
   }
-  return html.split("\n").filter(x=>x.trim()).map(p=>`<p>${p}</p>`).join("");
+  fermer();
+  return out;
 }
 
 /* RAG réel — appel API /chat */
 async function askRAG(q){
   try{
+    // conv_id (2026-07-22) : isole la mémoire de conversation côté serveur — sans ça, toutes
+    // les conversations partageaient le même historique global (jamais réinitialisé).
     const res = await fetch("/api/chat", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({question:q}),
+      body: JSON.stringify({question:q, conv_id: CUR_CONV}),
     });
     const data = await res.json();
     return data.reponse || "Erreur de connexion au RAG.";
@@ -3753,12 +3946,18 @@ function getKPIContext(){
   };
 }
 
-async function askApprofondir(q){
+async function askApprofondir(q, sectionFacts){
   try{
     const res = await fetch("/api/approfondir", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ question:q, kpis: getKPIContext() }),
+      // section_facts (2026-07-22) : les VRAIS chiffres déjà calculés de LA section cliquée
+      // (ex. Projection prudent/central/optimiste) — sans ça, le LLM n'avait que les KPIs
+      // génériques et inventait sa propre projection quand on lui demandait de la détailler.
+      // conv_id (2026-07-23) : verse cet échange dans la mémoire serveur du chat, pour
+      // qu'une question de suivi tapée juste après ("Quelles sont les hypothèses ?") ne
+      // soit plus rejetée à tort "hors périmètre" faute de contexte connu côté RAG.
+      body: JSON.stringify({ question:q, kpis: getKPIContext(), section_facts: sectionFacts || null, conv_id: CUR_CONV }),
     });
     const data = await res.json();
     return data.reponse || "Aucune réponse reçue.";
@@ -3767,15 +3966,16 @@ async function askApprofondir(q){
   }
 }
 
-async function askIA(q){
+async function askIA(q, sectionId){
   go("chat");
+  const sectionFacts = sectionId ? (window._STRAT_FACTS||{})[sectionId] : null;
   setTimeout(async ()=>{
     pushChat("u", q);
     _convPersist();
     pushChat("a", "⏳ Analyse en cours avec les données réelles du marché…");
-    // Utilise le nouvel endpoint contextualisé qui inclut les KPIs live
-    const r = await askApprofondir(q);
-    CHAT[CHAT.length-1] = { role:"a", content:r };
+    // Utilise le nouvel endpoint contextualisé qui inclut les KPIs live + les faits de section
+    const r = await askApprofondir(q, sectionFacts);
+    CHAT[CHAT.length-1] = { role:"a", content:r, ts:Date.now() };
     renderMsgs();
     _convPersist();
   }, 120);
@@ -3795,7 +3995,7 @@ async function sendChat(){
   _convPersist();
 }
 
-function pushChat(role, content, chart){ CHAT.push({role,content,chart}); renderMsgs(); }
+function pushChat(role, content, chart){ CHAT.push({role,content,chart,ts:Date.now()}); renderMsgs(); }
 
 /* ════════════════════════════════════════════════════════════════════════
    HISTORIQUE DYNAMIQUE DES CONVERSATIONS — persistant via localStorage.
@@ -3956,8 +4156,27 @@ let _cbToken=0;
 function _cbAlive(tok){return tok===_cbToken;}
 function _resetCBState(){_cbToken++;_CB_EXHAUS_CACHE={};_CB_SUBSECTION_CACHE={};_conclusionFired=false;window._CB_Q3_DATA=null;window._CB_Q5_SUMMARY={};}
 function setCBSeg(s){CB_SEG=s;_resetCBState();go("cb");}
-function setCBYear(y){CB_YEAR=y;_resetCBState();go("cb");}
-function setCBSem(s){CB_SEM=s;_resetCBState();reloadCB();}
+// Semestres réellement disponibles pour une année (2026-07-30). Le sélecteur proposait S1 et S2
+// en dur : « 2026 S2 » n'existe pas en base, et le sélectionner produisait un écran incohérent —
+// agrégats par section renvoyés via l'imputation S2→S1, comparatif détaillé vide. On ne propose
+// plus que ce qui existe ; l'ajout de données fera apparaître le bouton tout seul.
+function _cbSemsDispo(annee){
+  const p = (typeof CB_PERIODES !== "undefined" ? CB_PERIODES : null) || {};
+  const l = p[String(annee)];
+  return (Array.isArray(l) && l.length) ? l : ["S1", "S2"];   // filet avant chargement
+}
+function setCBYear(y){
+  CB_YEAR=y;
+  // Si le semestre courant n'existe pas pour cette année, basculer sur le premier disponible
+  // au lieu de laisser l'écran sur une période sans données.
+  const dispo=_cbSemsDispo(y);
+  if(!dispo.includes(CB_SEM)) CB_SEM=dispo[0];
+  _resetCBState();go("cb");
+}
+function setCBSem(s){
+  if(!_cbSemsDispo(CB_YEAR).includes(s)) return;   // période absente : ne rien faire
+  CB_SEM=s;_resetCBState();reloadCB();
+}
 function setCBConcurrent(b){CB_CONCURRENT=b;go("cb");}
 
 /* ── Structuration des données exhaustives ─────────────────────── */
@@ -5142,6 +5361,18 @@ ${_v3sec('1','#378ADD',"Qu'est-ce qui a globalement changé sur 3 ans ?","Catalo
 // ── Formatage riche des analyses LLM ────────────────────────────────────────
 const _BANKS_RE=new RegExp('\\b(BICICI|SIB|ECOBANK|BNI|NSIA|BACI|SGCI)\\b','g');
 const _llmPfx='';
+// Un montant brut (10 625 000 F) n'est pas toujours un prix ferme — la grille tarifaire porte
+// parfois un plafond/plancher (« <= 10 625 000 Fcfa Forfait ») que la seule colonne `montant`
+// ne montre pas. Repéré le 2026-07-28 (directeur) : le badge affichait "10 625 000 F" à côté
+// d'une analyse qui, elle, disait bien "plafonné à" — incohérent d'un endroit à l'autre de
+// la même carte. On préfixe donc le badge dès que `valeur_propre` porte un tel qualificatif.
+function _prixQualif(item){
+  const brute=(item.valeur_propre||item.valeur_brute||'').toLowerCase();
+  if(!brute)return'';
+  if(/<=|≤|\bmax\b|\bmaximum\b|plafond|jusqu/.test(brute))return'≤ ';
+  if(/>=|≥|\bmin\b|\bminimum\b|a partir|à partir/.test(brute))return'dès ';
+  return'';
+}
 // Formate le prix d'un item enrichi (libelle/contexte/montant/est_gratuit/type_valeur)
 function _prixTag(item){
   if(!item||typeof item==='string')return'';
@@ -5149,9 +5380,9 @@ function _prixTag(item){
   if(!item.montant)return'';
   if((item.type_valeur||'').includes('TAUX')){
     if(+item.montant>100)return`<span style="padding:1px 6px;border-radius:10px;background:#F1F5F9;color:#64748B;font:600 9px var(--sans)">Sur dem.</span>`;
-    return`<span style="padding:1px 6px;border-radius:10px;background:#FEF3C7;color:#92400E;font:700 9px var(--sans)">${item.montant}%</span>`;
+    return`<span style="padding:1px 6px;border-radius:10px;background:#FEF3C7;color:#92400E;font:700 9px var(--sans)">${_prixQualif(item)}${item.montant}%</span>`;
   }
-  return`<span style="padding:1px 6px;border-radius:10px;background:#F1F5F9;color:#475569;font:600 9px var(--sans)">${Number(item.montant).toLocaleString('fr-FR')} ${_curSym(item.unite)}</span>`;
+  return`<span style="padding:1px 6px;border-radius:10px;background:#F1F5F9;color:#475569;font:600 9px var(--sans)">${_prixQualif(item)}${Number(item.montant).toLocaleString('fr-FR')} ${_curSym(item.unite)}</span>`;
 }
 // Retourne le libellé d'un item (objet enrichi ou string legacy)
 function _itemLib(item){return(typeof item==='string'?item:item.libelle)||'';}
@@ -5268,26 +5499,24 @@ function _fmtAnalyse(raw){
     _boldSegs.push(inner);
     return`\x00BOLD${_boldSegs.length-1}\x00`;
   });
-  // Noms de banques → indigo gras (sur texte brut, hors placeholders)
-  t=t.replace(_BANKS_RE,
-    '<span style="font-weight:700;color:#4338CA">$1</span>');
-  // Nombres avec % → orange gras
-  t=t.replace(/([\+\-]?\d+(?:[,\.]\d+)?\s*%)/g,
-    '<span style="font-weight:700;color:#C2410C">$1</span>');
-  // Montants FCFA → orange gras
-  t=t.replace(/\b(\d[\d\s]*)\s*(FCFA|F CFA)\b/gi,
-    '<span style="font-weight:700;color:#C2410C">$1 $2</span>');
-  // Rang #N/N → vert-bleu gras
-  t=t.replace(/(#\d+\/\d+)/g,
-    '<span style="font-weight:700;color:#0F766E">$1</span>');
+  // ── Emphase UNIFORME : une seule couleur/graisse pour TOUT ce qui est mis en avant
+  // (noms de banques, %, FCFA, rangs, gras du LLM) — avant : 4 couleurs différentes selon le
+  // type de token (indigo/orange/vert-bleu/gras neutre), lu comme "parfois violet, parfois
+  // juste gras" (incohérent). Seuls les badges de STATUT (⚠ à vérifier / ✓ validé, plus bas)
+  // gardent une couleur distincte : ils portent un sens (alerte/validation), pas une simple emphase.
+  const _EMPH='font-weight:700;color:#3730A3';
+  t=t.replace(_BANKS_RE, `<span style="${_EMPH}">$1</span>`);
+  t=t.replace(/([\+\-]?\d+(?:[,\.]\d+)?\s*%)/g, `<span style="${_EMPH}">$1</span>`);
+  t=t.replace(/\b(\d[\d\s]*)\s*(FCFA|F CFA)\b/gi, `<span style="${_EMPH}">$1 $2</span>`);
+  t=t.replace(/(#\d+\/\d+)/g, `<span style="${_EMPH}">$1</span>`);
   // ⚠ À VÉRIFIER → rouge signalement faux positif
   t=t.replace(/(\[⚠[^\]]*\])/g,
     '<span style="font-weight:700;color:#DC2626;background:#FEF2F2;padding:1px 5px;border-radius:4px">$1</span>');
   // ✓ VALIDÉ → vert confirmation
   t=t.replace(/(\[(?:VALIDÉ|EXCLUSIF|✓)[^\]]*\])/g,
     '<span style="font-weight:700;color:#15803D;background:#F0FDF4;padding:1px 5px;border-radius:4px">$1</span>');
-  // Restaure les **...** en ambre avec fond jaune (couleur = info clé LLM)
-  t=t.replace(/\x00BOLD(\d+)\x00/g,(_,i)=>`<span style="font-weight:700;color:#92400E;background:#FEF3C7;padding:1px 5px;border-radius:4px">${_boldSegs[parseInt(i)]}</span>`);
+  // Restaure les **...** du LLM dans la MÊME emphase uniforme (pas de surlignement, pas de couleur à part)
+  t=t.replace(/\x00BOLD(\d+)\x00/g,(_,i)=>`<span style="${_EMPH}">${_boldSegs[parseInt(i)]}</span>`);
   // Découpage en paragraphes
   let segs=t.split(/\n+/).map(s=>s.trim()).filter(Boolean);
   if(segs.length<=1){
@@ -5557,67 +5786,96 @@ function _buildQ3AxesHTML(d){
     if((it.type_valeur||'').includes('TAUX')) return 100+px;
     return 200+px;                                                    // autre service tarifé réel
   };
-  const _ranked=allItems.filter(it=>!_isJunkExcl(it)).sort((a,b)=>_distScore(b)-_distScore(a));
+  const _allRanked=allItems.filter(it=>!_isJunkExcl(it)).sort((a,b)=>_distScore(b)-_distScore(a));
   const TOP=15;
+  // 2026-07-17 (demande explicite) : SÉPARER strictement les deux natures, jamais les mélanger
+  // dans une même liste « Top exclusivités » — un produit marqué « pas une exclusivité » n'a rien
+  // à faire dans une liste appelée Exclusivités, même avec un badge. Deux listes distinctes :
+  //   _ranked      = VRAIES exclusivités (aucun concurrent trouvé) → seule liste qui garde ce nom.
+  //   _marqueOnly  = noms de marque seulement → section séparée, jamais numérotée comme un "Top".
+  const _ranked=_allRanked.filter(it=>it.verdict!=='differenciant');
+  const _marqueOnly=_allRanked.filter(it=>it.verdict==='differenciant');
   const top10=_ranked.slice(0,TOP);
   const rest=_ranked.slice(TOP);
   // Le compteur affiché DOIT correspondre exactement à ce qui est listé (top10+rest) — sinon on
   // annonce un total qui inclut des fragments de bruit OCR écartés par _isJunkExcl, jamais montrés.
   const total=_ranked.length;
 
-  // Badge verdict + raison GROUNDED (sourcée web, jamais inventée) — réutilisé Top + « voir les autres »
-  const _vbadge=it=> it.verdict==='differenciant'
-    ? `<span style="font:700 8px var(--sans);background:#FB923C22;color:#C2410C;border-radius:10px;padding:2px 7px;white-space:nowrap;flex-shrink:0">🏷️ marque</span>`
-    : `<span style="font:700 8px var(--sans);background:#16A34A22;color:#15803D;border-radius:10px;padding:2px 7px;white-space:nowrap;flex-shrink:0">✅ sans équivalent</span>`;
   const _why=it=>{ const n=(it.verdict_note||'').trim();
-    return it.verdict==='differenciant'
-      ? (n||"La fonction existe chez des concurrents sous un autre nom ; c'est le produit/nom SGCI qui diffère.")
-      : (n||"Aucun équivalent trouvé chez les 6 concurrents (grille publiée + recherche web) — plausible, non certifié."); };
+    return n||"Aucun équivalent trouvé chez les 6 concurrents (grille publiée + recherche web) — plausible, non certifié."; };
   const _exclRow=(item,i)=>{
     const clr=AXE_C[item.axe_id]||'#6B7280'; const ico=AXE_I[item.axe_id]||'◆';
     const ctx=_itemCtx(item); const prix=_prixTag(item); const lib=_itemLib(item);
-    const diff=item.verdict==='differenciant';
     return`<div style="padding:7px 10px;margin-bottom:4px;background:#fff;border-radius:8px;border:1px solid #F1F5F9">
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font:700 13px var(--sans);color:#CBD5E1;min-width:20px;text-align:right">${i+1}</span>
         <span style="flex:1;font:600 12px var(--sans);color:#1E293B">${item.name||lib}</span>
-        ${_vbadge(item)}${prix}
+        <span style="font:700 8px var(--sans);background:#16A34A22;color:#15803D;border-radius:10px;padding:2px 7px;white-space:nowrap;flex-shrink:0">✅ sans équivalent</span>${prix}
         <span style="font:500 10px var(--sans);padding:2px 8px;background:${clr}18;color:${clr};border-radius:12px;white-space:nowrap">${ico} ${item.axe_label}</span>
       </div>
       <div style="margin-top:3px;padding-left:30px;font:400 10px var(--sans);color:#64748B;line-height:1.5">
-        ${ctx?ctx+' · ':''}<b style="color:${diff?'#C2410C':'#15803D'}">${diff?'🏷️ Pourquoi « marque » :':'✅ Pourquoi sans équivalent :'}</b> ${_why(item)}
+        ${ctx?ctx+' · ':''}<b style="color:#15803D">✅ Pourquoi aucun concurrent équivalent :</b> ${_why(item)}
       </div>
       ${_justifBox(_justifFor(lib))}
+    </div>`;
+  };
+  // Ligne compacte pour la section « noms de marque » (pas une exclusivité) — volontairement SANS
+  // numérotation de classement (1,2,3…) pour ne jamais donner l'impression d'un "Top" à valoriser.
+  const _marqueRow=item=>{
+    const clr=AXE_C[item.axe_id]||'#6B7280'; const ico=AXE_I[item.axe_id]||'◆';
+    const ctx=_itemCtx(item); const prix=_prixTag(item); const lib=_itemLib(item);
+    return`<div style="padding:7px 10px;margin-bottom:4px;background:#fff;border-radius:8px;border:1px solid #F1F5F9">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="flex:1;font:600 12px var(--sans);color:#1E293B">${item.name||lib}</span>
+        <span style="font:700 8px var(--sans);background:#FB923C22;color:#C2410C;border-radius:10px;padding:2px 7px;white-space:nowrap;flex-shrink:0">🏷️ nom de marque</span>${prix}
+        <span style="font:500 10px var(--sans);padding:2px 8px;background:${clr}18;color:${clr};border-radius:12px;white-space:nowrap">${ico} ${item.axe_label}</span>
+      </div>
+      <div style="margin-top:3px;padding-left:2px;font:400 10px var(--sans);color:#64748B;line-height:1.5">
+        ${ctx?ctx+' · ':''}<b style="color:#C2410C">🏷️ Pourquoi ce n'est pas une exclusivité :</b> ${_why(item)}
+      </div>
     </div>`;
   };
 
   const summary=`<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#F3F0FF;border-radius:10px;border:1px solid #C4B5FD;margin-bottom:14px">
     <div style="font:800 40px var(--sans);color:var(--accent-2);line-height:1">${total}</div>
     <div>
-      <div style="font:700 13px var(--sans);color:#1E293B">exclusivités SGCI validées</div>
-      <div style="font:400 10.5px var(--sans);color:var(--faint);margin-top:2px">Absentes de BICICI, SIB, BACI, NSIA, ECOBANK, BNI — comparaison sémantique</div>
+      <div style="font:700 13px var(--sans);color:#1E293B">${total?'exclusivités SGCI validées':'aucune exclusivité de fonction validée'}</div>
+      <div style="font:400 10.5px var(--sans);color:var(--faint);margin-top:2px">Absentes de BICICI, SIB, BACI, NSIA, ECOBANK, BNI — vérifié web</div>
+      <div style="font:400 9.5px var(--sans);color:var(--faint);margin-top:3px;font-style:italic">Ce nombre peut légèrement varier d'une période à l'autre selon la qualité d'extraction des grilles tarifaires concurrentes (pas nécessairement un changement réel de catalogue).</div>
     </div>
   </div>`;
 
-  // ── Top (jusqu'à 15) — chaque ligne porte sa RAISON (grounded) ──
-  const top10html=`<div style="margin-bottom:10px">
-    <div style="font:700 11px var(--sans);color:var(--accent-2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">Top ${Math.min(TOP,_ranked.length)} — Exclusivités les plus distinctives <span style="font-weight:500;text-transform:none;color:var(--faint)">· digital & produits nommés priorisés · bruit OCR exclu</span></div>
+  // ── Top (jusqu'à 15) — UNIQUEMENT les vraies exclusivités, jamais les noms de marque ──
+  const top10html=total?`<div style="margin-bottom:10px">
+    <div style="font:700 11px var(--sans);color:var(--accent-2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">Top ${Math.min(TOP,_ranked.length)} — Exclusivités les plus distinctives</div>
     ${top10.map((it,i)=>_exclRow(it,i)).join('')}
-  </div>`;
+  </div>`:'';
+  // ── Section séparée, distincte visuellement : produits à nom de marque (PAS des exclusivités) ──
+  const marqueHtml=_marqueOnly.length?`<div style="margin:14px 0 10px;padding-top:12px;border-top:1px dashed var(--line)">
+    <div style="font:700 11px var(--sans);color:#C2410C;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Produits à nom de marque — PAS des exclusivités (${_marqueOnly.length})</div>
+    <div style="font:400 10.5px/1.6 var(--sans);color:var(--faint);margin-bottom:8px">Des produits SGCI qui ONT l'air uniques à cause de leur nom (ex. PACK DIASPORA), mais dont la fonction existe déjà chez un concurrent sous un autre nom (BICICI : « Offre Diaspora », Ecobank : « Ecobank Diaspora »). Même service, nom différent — donc pas un vrai avantage : à ne jamais présenter comme une exclusivité.</div>
+    ${_marqueOnly.slice(0,10).map(it=>_marqueRow(it)).join('')}
+  </div>`:'';
 
   // ── Analyse GROUNDED (la route renvoie analyse vide → synthèse depuis les verdicts validés web) ──
   // Dérivés de _ranked (pas des totaux bruts du backend) pour que la somme colle EXACTEMENT
   // au nombre affiché et à la liste visible (le bruit OCR déjà écarté ne doit pas être compté).
-  const _nse=_ranked.filter(it=>it.verdict!=='differenciant').length;
-  const _ndiff=_ranked.filter(it=>it.verdict==='differenciant').length;
-  const _seNames=_ranked.filter(it=>it.verdict!=='differenciant').slice(0,3).map(it=>it.name||_itemLib(it));
-  const iaCommentary=`<div style="margin-bottom:14px;padding:11px 13px;background:#F8F7FF;border-radius:10px;border:1px solid #E0E7FF">
+  const _nse=_ranked.length;
+  const _ndiff=_marqueOnly.length;
+  const _seNames=_ranked.slice(0,3).map(it=>it.name||_itemLib(it));
+  const _llmTxt=(d.analyse_llm||'').trim();
+  const iaCommentary=_llmTxt
+    ? `<div style="margin-bottom:14px;padding:11px 13px;background:#F8F7FF;border-radius:10px;border:1px solid #E0E7FF">
+    <div style="font:700 10px var(--sans);color:var(--accent-2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">🤖 Analyse — pourquoi ces services sont distinctifs</div>
+    <div style="font:400 11px/1.65 var(--sans);color:var(--ink)">${_fmtAnalyse(_llmTxt)}</div>
+  </div>`
+    : `<div style="margin-bottom:14px;padding:11px 13px;background:#F8F7FF;border-radius:10px;border:1px solid #E0E7FF">
     <div style="font:700 10px var(--sans);color:var(--accent-2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">◆ Analyse — pourquoi ces services sont distinctifs <span style="opacity:.6;text-transform:none;letter-spacing:0">(calcul automatique, pas IA)</span></div>
     <div style="font:400 11px/1.65 var(--sans);color:var(--ink)">
-      Sur <b>${total}</b> services distinctifs validés par l'Agent Web :
-      <b style="color:#15803D">${_nse} sans équivalent</b> (aucun concurrent trouvé — grille publiée <b>+ recherche web</b> ; plausible, non certifié)
-      et <b style="color:#C2410C">${_ndiff} différenciants de marque</b> (la <b>fonction</b> existe chez des concurrents sous un autre nom — c'est le <b>produit/nom SGCI</b> qui diffère, ex. PACK DIASPORA).
-      ${_seNames.length?`<br>Les plus parlants sans équivalent : <b>${_seNames.join('</b>, <b>')}</b>.`:''}
+      ${total?`<b style="color:#15803D">${total} vraie${total>1?'s':''} exclusivité${total>1?'s':''}</b> validée${total>1?'s':''} par l'Agent Web (aucun concurrent trouvé, grille publiée <b>+ recherche web</b> ; plausible, non certifié).`
+        :`<b style="color:#C2410C">Aucune vraie exclusivité de fonction</b> trouvée pour SGCI sur ce marché.`}
+      ${_ndiff?` Par ailleurs, <b style="color:#C2410C">${_ndiff} produit${_ndiff>1?'s':''} SGCI</b> porte${_ndiff>1?'nt':''} un nom de marque propre mais existe${_ndiff>1?'nt':''} déjà chez un concurrent sous un autre nom (ex. PACK DIASPORA) — à ne jamais présenter comme un avantage.`:''}
+      ${_seNames.length?`<br>Les plus parlants : <b>${_seNames.join('</b>, <b>')}</b>.`:''}
       <br><span style="color:var(--faint)">La raison précise de chaque service est indiquée sous son nom (verdict + source web).</span>
     </div>
   </div>`;
@@ -5636,7 +5894,7 @@ function _buildQ3AxesHTML(d){
   // SGCI ne peut pas varier selon une autre banque choisie, le filtre n'avait aucun sens (retiré
   // le 2026-07-08, les libellés étaient d'ailleurs restés figés sur « SGCI » quoi qu'on sélectionne).
   // Ordre : compteur · ANALYSE (pourquoi) · Top 15 (avec raison par item) · voir les autres si >15.
-  return summary+iaCommentary+top10html+detailSection;
+  return summary+iaCommentary+top10html+detailSection+marqueHtml;
 }
 
 // ── Q4 : enrichissement LLM async ────────────────────────────────────────────
@@ -5678,7 +5936,14 @@ function _buildQ5AxesHTML(d,banque){
   // PRIORITÉ (les "meilleurs"/plus stratégiques d'abord), bruit OCR exclu :
   //  1) gratuit chez le concurrent (fuite clients = urgent) · 2) digital nommé · 3) produit nommé · 4) prix.
   const _JUNK_GAP=/^(titulaire|pour tout montant|par s[ée]rie|montant (compris|sup|inf)|de \d|co[uû]t|autres? types?|frais$|pour les|y compris)/i;
-  const _isJunkGap=it=>{const l=(_itemLib(it)||'').trim(); return l.length<14 || _JUNK_GAP.test(l) || /^[a-zàâçéèêëîïôùû(]/.test(l) || _ocrSpacingCorrupt(l);};
+  // Garde-fou en plus côté front (défense en profondeur, cf. fix backend 2026-07-17, renforcé
+  // 2026-07-20 pour le bruit d'extraction PDF SIB : numérotation de section, guillemets coupés,
+  // paliers de prix tronqués, bavures de pied de page/colonne d'en-tête).
+  const _JUNK_GAP_LEAK=/→|\*\*|⚠|occurrence|param[eè]tre technique|inf[ée]rieur\s*[àa]|sup[ée]rieur\s*(ou\s*[ée]gal)?\s*[àa]|^\d[\d\s]*(fcfa)?\s*(à|-|—)\s*\d|^\d+[.,:]\s*\d|^[«»"']|\d[\d\s]*\s*(à|-|—)\s*\d+\s*$|\bwww\.|\.ci\b|actualis[ée]e? au|\s(taux|frais|tarif)$|\d\s*\/\s*$|\bmontants?\s+indiqu[ée]s?\b|^client\s+\w+$|:\s*\d[\d.,\s]*\d\s*$|:\s*\d\s*$|&lt;|&gt;/i;
+  // Texte OCR éclaté lettre par lettre (ex. « C au o t m o m ris is ») : si plus d'un tiers des
+  // mots font 1-2 caractères sur au moins 4 mots, ce n'est pas du texte lisible.
+  const _isScrambled=l=>{const t=l.split(/\s+/).filter(Boolean); return t.length>=4 && (t.filter(w=>w.length<=2).length/t.length)>0.35;};
+  const _isJunkGap=it=>{const l=(_itemLib(it)||'').trim(); return l.length<14 || _JUNK_GAP.test(l) || _JUNK_GAP_LEAK.test(l) || _isScrambled(l) || /^[a-zàâçéèêëîïôùû(]/.test(l) || _ocrSpacingCorrupt(l);};
   const _prioScore=it=>{
     const l=(_itemLib(it)||'').toLowerCase(); const m=+(it.montant||0); const px=m>0?Math.log10(m+1):0;
     if(it.est_gratuit) return 500+px;                                                       // gratuit concurrent = priorité absolue
@@ -5688,7 +5953,7 @@ function _buildQ5AxesHTML(d,banque){
     return 200+px;
   };
   const _ranked=allItems.filter(it=>!_isJunkGap(it)).sort((a,b)=>_prioScore(b)-_prioScore(a));
-  const TOP=15;
+  const TOP=10;
   const top10=_ranked.slice(0,TOP);
   const rest=_ranked.slice(TOP);
   // Le compteur affiché DOIT correspondre à ce qui est réellement listé (idem fix Exclusivités).
@@ -5785,7 +6050,7 @@ function _fireQ6LLM(){
   const priceDiv=document.getElementById('cb-q6-price-llm');
   if(priceDiv){
     priceDiv.innerHTML=`<div style="font:500 12px/1.6 var(--sans);color:#1E293B;padding:10px 12px;background:#F8FAFC;border-radius:8px;border:1px solid var(--line)">
-      <b style="color:var(--accent-2,#FF9800)">Positionnement prix actionnable →</b> l'analyse « <b>où augmenter / baisser / ne pas toucher</b> » — avec garde-fous contre les valeurs aberrantes, protection des barrières de sortie et du PNB, et <b>sources web</b> par décision — est dans le tableau ci-dessus, onglet <b>« Récap actions »</b>. Une seule source de vérité, cohérente.
+      <b style="color:var(--accent-2,#FF9800)">Positionnement prix actionnable →</b> l'analyse « <b>où augmenter / baisser / ne pas toucher</b> » — avec garde-fous contre les valeurs aberrantes, protection des barrières de sortie et du PNB, et <b>sources web</b> par décision — est dans le tableau ci-dessus, onglet <b>« Recommandation »</b>. Une seule source de vérité, cohérente.
     </div>`;
   }
 }
@@ -6166,7 +6431,7 @@ ${_v3sec('3','#7F77DD',"Ce que SGCI a seul — Exclusivités concurrentielles","
 <div class="panel">
   <div class="panel-title">Exclusivités SGCI par axe BCEAO ${_v3tag('8 axes BCEAO','tpur')}</div>
   <div style="font:400 11px var(--sans);color:#64748B;line-height:1.65;margin-bottom:14px;padding:10px 12px;background:#F8F7FF;border-radius:8px;border:1px solid #C4B5FD">
-    Chaque axe BCEAO (Packages, Cartes, Épargne, Crédits, Assurances, Digital, Marchés, Autres) est analysé par comparaison sémantique pour identifier les vraies exclusivités — les variantes de nommage entre banques sont éliminées ("Virement FCFA" ≠ exclusivité si les concurrents proposent des virements FCFA sous un autre libellé).
+    Les 8 grandes familles de services bancaires (Packages, Cartes, Épargne, Crédits, Assurances, Digital, Marchés, Autres) sont passées au crible pour ne garder que les VRAIES exclusivités SGCI — un service qui existe déjà chez un concurrent sous un autre nom n'est pas compté.
   </div>
   <div id="cb-q3-axes-content">
     <div style="padding:32px;text-align:center">
@@ -6524,15 +6789,20 @@ function _renderQ6(data){
   const _q6gaps=window._CB_Q5_SUMMARY?Object.entries(window._CB_Q5_SUMMARY).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([b,n])=>`${b}(${n})`):[];
   // Rang SGCI dans le classement catalogue (par n_services)
   const _sgciRangIdx=bySize.findIndex(r=>r.banque==='SGCI');
-  const _sgciRang=_sgciRangIdx>=0?_sgciRangIdx+1:4;
+  // 2026-07-30 : plus de rang 4 par défaut — un rang non calculable reste null, et le
+  // serveur omet alors la phrase de rang au lieu d'en inventer un.
+  const _sgciRang=_sgciRangIdx>=0?_sgciRangIdx+1:null;
   // Banque la moins chère (plus grand catalogue = pas forcément la moins chère, mais proxy)
-  const _cheapestBank=bySize.length>0&&bySize[bySize.length-1].banque!=='SGCI'?bySize[bySize.length-1].banque:'SIB';
+  // 2026-07-30 : ne JAMAIS retomber sur un nom de banque en dur. L'ancien repli 'SIB'
+  // envoyait au LLM « SIB est la moins chère » alors que rien ne l'établissait — un fait
+  // concurrentiel fabriqué par un défaut de données. Vide = le serveur omet la phrase.
+  const _cheapestBank=(bySize.length>0&&bySize[bySize.length-1].banque!=='SGCI')?bySize[bySize.length-1].banque:'';
   window._q6LlmPayload={
     segment:CB_SEG,year:CB_YEAR,sem:CB_SEM,
     banks:bySize.map((r,i)=>({banque:r.banque,n_services:r.n_services||0,pct_gratuit:+(r.pct_gratuit||0),rang:i+1})),
     sgciPctGrat,sgciNSvc,
     sgciRang:_sgciRang,
-    nBanks:bySize.length||7,
+    nBanks:bySize.length||null,   // effectif réel du panel, jamais figé à 7
     cheapestBank:_cheapestBank,
     excl_txt:_q6excl.join(', '),
     gaps_txt:_q6gaps.join(' | ')
@@ -6607,7 +6877,11 @@ const _RP_CACHE={};   // {period_seg: {sections, recap, engine, n_actions}}
 const _RP_META={
   up:['▲','#059669','#D1FAE5','#047857','Augmenter'],
   down:['▼','#DC2626','#FEE2E2','#B91C1C','Baisser'],
-  lock:['◆','#6366F1','#E0E7FF','#3730A3','Ne pas toucher'],
+  // 2026-07-17 : NE_PAS_TOUCHER et MAINTENIR affichaient 2 étiquettes différentes pour une
+  // nuance trop fine pour l'utilisateur (raison stratégique de ne pas toucher vs prix juste
+  // déjà bien placé) — fusionnées à l'affichage sur un seul verdict « Maintenir » (la raison
+  // reste visible dans la justification en dessous). Backend inchangé (garde-fous intacts).
+  lock:['=','#94A3B8','#F1F5F9','#475569','Maintenir'],
   flat:['=','#94A3B8','#F1F5F9','#475569','Maintenir'],
 };
 // Petite flèche collée au prix SGCI (injectée dans la cellule SGCI)
@@ -6640,13 +6914,12 @@ function _rpActionCell(a,unreliable){
     const sign=a.verdict==='AUGMENTER'?'+':'−';
     amt=` ${sign}${a.montant.toLocaleString('fr-FR')} F`+(a.cible?` → ${a.cible.toLocaleString('fr-FR')} F`:'');
   }
-  // Détail par service = CONCIS : verdict + montant (+ justif courte en survol). Le détail
-  // complet et la validation web sourcée sont dans « Récap actions ».
+  // Justification affichée EN ENTIER dans la cellule (2026-07-20 : plus de troncature/survol —
+  // le directeur veut tout lire directement, pas seulement au hover).
   const jFull=(a.justif||'').replace(/"/g,'&quot;');
-  const jShort=(a.justif||'').length>46?(a.justif||'').slice(0,44)+'…':(a.justif||'');
-  return `<td style="padding:5px 8px;vertical-align:top;min-width:150px;max-width:200px">
-    <span title="${jFull}" style="display:inline-block;background:${m[2]};color:${m[3]};font:700 10px var(--sans);padding:2px 7px;border-radius:4px;white-space:nowrap">${m[0]} ${m[4]}${amt}</span>
-    ${jShort?`<div title="${jFull}" style="font:400 9px var(--sans);color:var(--muted);margin-top:2px;line-height:1.3">${jShort}</div>`:''}
+  return `<td style="padding:5px 8px;vertical-align:top;min-width:150px;max-width:220px">
+    <span style="display:inline-block;background:${m[2]};color:${m[3]};font:700 10px var(--sans);padding:2px 7px;border-radius:4px;white-space:nowrap">${m[0]} ${m[4]}${amt}</span>
+    ${a.justif?`<div style="font:400 9px var(--sans);color:var(--muted);margin-top:2px;line-height:1.3">${jFull}</div>`:''}
     ${warn}
   </td>`;
 }
@@ -6661,31 +6934,33 @@ function _rpRecapHTML(recap){
     <div style="flex:1;min-width:110px;background:#FEE2E2;border-radius:8px;padding:10px 12px"><div style="font:800 20px var(--mono);color:#B91C1C">${totB}</div><div style="font:600 10px var(--sans);color:#7F1D1D">baisses conseillées</div></div>
     <div style="flex:1;min-width:110px;background:#EEF2FF;border-radius:8px;padding:10px 12px"><div style="font:800 20px var(--mono);color:#3730A3">+${gain.toLocaleString('fr-FR')} F</div><div style="font:600 10px var(--sans);color:#3730A3">marge cumulée / unité</div></div>
   </div>
-  <div style="max-height:70vh;overflow:auto;border:1px solid var(--line);border-radius:8px"><table style="width:100%;border-collapse:separate;border-spacing:0;font-size:11px">
+  <div style="max-height:70vh;overflow:auto;border:1px solid var(--line);border-radius:8px;position:relative"><table style="width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:11px">
+  <colgroup><col style="width:34%"><col style="width:13%"><col style="width:13%"><col style="width:40%"></colgroup>
   <thead><tr>
-   <th style="position:sticky;top:0;z-index:3;background:var(--bg-tile,#fff);text-align:left;font:700 10px var(--sans);color:var(--muted);padding:7px 10px;border-bottom:2px solid var(--line);min-width:190px;box-shadow:0 2px 0 var(--line)">Service</th>
-   <th style="position:sticky;top:0;z-index:3;background:var(--bg-tile,#fff);text-align:right;font:700 10px var(--sans);color:#FF9800;padding:7px 8px;border-bottom:2px solid var(--line);box-shadow:0 2px 0 var(--line)">SGCI</th>
-   <th style="position:sticky;top:0;z-index:3;background:var(--bg-tile,#fff);text-align:right;font:700 10px var(--sans);color:var(--muted);padding:7px 8px;border-bottom:2px solid var(--line);box-shadow:0 2px 0 var(--line)">Médiane</th>
-   <th style="position:sticky;top:0;z-index:3;background:var(--bg-tile,#fff);text-align:left;font:700 10px var(--sans);color:var(--muted);padding:7px 8px;border-bottom:2px solid var(--line);min-width:200px;box-shadow:0 2px 0 var(--line)">Action &amp; justification</th>
+   <th style="position:sticky;top:0;z-index:3;background:var(--bg-tile,#fff);text-align:left;font:700 10px var(--sans);color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);border-right:1px solid var(--line);box-shadow:0 2px 0 var(--line)">Service</th>
+   <th style="position:sticky;top:0;z-index:3;background:var(--bg-tile,#fff);text-align:right;font:700 10px var(--sans);color:#FF9800;padding:8px 10px;border-bottom:2px solid var(--line);border-right:1px solid var(--line);box-shadow:0 2px 0 var(--line)">SGCI</th>
+   <th style="position:sticky;top:0;z-index:3;background:var(--bg-tile,#fff);text-align:right;font:700 10px var(--sans);color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);border-right:1px solid var(--line);box-shadow:0 2px 0 var(--line)">Médiane</th>
+   <th style="position:sticky;top:0;z-index:3;background:var(--bg-tile,#fff);text-align:left;font:700 10px var(--sans);color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);box-shadow:0 2px 0 var(--line)">Action &amp; justification</th>
   </tr></thead><tbody>`;
   recap.forEach(sec=>{
-    h+=`<tr><td colspan="4" style="padding:9px 10px 3px;font:700 11px var(--sans);color:var(--accent-2);text-transform:uppercase;letter-spacing:.05em">${sec.roman}. ${sec.titre} <span style="font:600 9.5px var(--sans);color:var(--faint);text-transform:none">· ${sec.items.length} action${sec.items.length>1?'s':''}</span></td></tr>`;
-    sec.items.forEach(it=>{
+    h+=`<tr><td colspan="4" style="padding:10px 10px 4px;font:700 11px var(--sans);color:var(--accent-2);text-transform:uppercase;letter-spacing:.05em;background:var(--bg-tile,#fff)">${sec.roman}. ${sec.titre} <span style="font:600 9.5px var(--sans);color:var(--faint);text-transform:none">· ${sec.items.length} action${sec.items.length>1?'s':''}</span></td></tr>`;
+    sec.items.forEach((it,i)=>{
       const lib=it.libelle.replace(/^[^\wÀ-ɏ]+/u,'').replace(/\s*T\d+\s*$/,'').trim();
       const up=it.verdict==='AUGMENTER';
       const sign=up?'+':'−', bg=up?'#D1FAE5':'#FEE2E2', tc=up?'#047857':'#B91C1C', ar=up?'▲':'▼';
-      const badge=`<span style="background:${bg};color:${tc};font:700 10px var(--sans);padding:2px 7px;border-radius:4px;white-space:nowrap">${ar} ${sign}${(it.montant||0).toLocaleString('fr-FR')} F${it.cible?` → ${it.cible.toLocaleString('fr-FR')} F`:''}</span>`;
-      h+=`<tr style="border-bottom:1px solid var(--line)">
-        <td style="padding:5px 10px;font:500 11px var(--sans);color:var(--ink);line-height:1.3">${lib}${it.sous_section?`<div style="font:400 9px var(--sans);color:var(--faint)">${it.sous_section}</div>`:''}</td>
-        <td style="padding:5px 8px;text-align:right;font:700 11px var(--mono);color:var(--ink);white-space:nowrap">${it.sgci_prix?it.sgci_prix.toLocaleString('fr-FR')+' F':'gratuit'}</td>
-        <td style="padding:5px 8px;text-align:right;font:600 11px var(--mono);color:var(--muted);white-space:nowrap">${it.mkt_median?it.mkt_median.toLocaleString('fr-FR')+' F':'—'}</td>
-        <td style="padding:5px 8px;vertical-align:top">${badge}${it.justif?`<div style="font:400 9.5px var(--sans);color:var(--muted);margin-top:3px;line-height:1.35">${it.justif}</div>`:''}${it.web?_rpWebBadge(it.web):''}</td>
+      const badge=`<span style="background:${bg};color:${tc};font:700 10px var(--sans);padding:2px 7px;border-radius:4px;white-space:nowrap;display:inline-block">${ar} ${sign}${(it.montant||0).toLocaleString('fr-FR')} F${it.cible?` → ${it.cible.toLocaleString('fr-FR')} F`:''}</span>`;
+      const rowBg=i%2?'var(--bg-tile,#fff)':'rgba(127,127,127,.035)';
+      h+=`<tr style="border-bottom:1px solid var(--line);background:${rowBg}">
+        <td style="padding:6px 10px;font:500 11px var(--sans);color:var(--ink);line-height:1.3;border-right:1px solid var(--line);overflow-wrap:break-word">${lib}${it.sous_section?`<div style="font:400 9px var(--sans);color:var(--faint)">${it.sous_section}</div>`:''}</td>
+        <td style="padding:6px 10px;text-align:right;font:700 11px var(--mono);color:var(--ink);white-space:nowrap;border-right:1px solid var(--line)">${it.sgci_prix?it.sgci_prix.toLocaleString('fr-FR')+' F':'gratuit'}</td>
+        <td style="padding:6px 10px;text-align:right;font:600 11px var(--mono);color:var(--muted);white-space:nowrap;border-right:1px solid var(--line)">${it.mkt_median?it.mkt_median.toLocaleString('fr-FR')+' F':'—'}</td>
+        <td style="padding:6px 10px;vertical-align:top;overflow-wrap:break-word">${badge}${it.justif?`<div style="font:400 9.5px var(--sans);color:var(--muted);margin-top:3px;line-height:1.35">${it.justif}</div>`:''}${it.web?_rpWebBadge(it.web):''}</td>
       </tr>`;
     });
   });
   return h+`</tbody></table></div>`;
 }
-// Bascule Catalogue complet ⇄ Récap actions (une seule vue à la fois)
+// Bascule Catalogue complet ⇄ Recommandation (une seule vue à la fois)
 window._rpSwitchView=(v)=>{
   const cat=document.getElementById('rp-view-cat'), rec=document.getElementById('rp-view-recap');
   const tc=document.getElementById('rp-tab-cat'), tr=document.getElementById('rp-tab-recap');
@@ -6789,6 +7064,9 @@ async function _fireQ6PrixCompetitivite(){
     const d=await r.json();
     if(!_cbAlive(tk))return;
     const cl=(d&&d.classement)||[];
+    // 2026-07-30 : exposé en global pour que le positionnement prix des concurrents (bloc
+    // COMPETS) soit DÉRIVÉ de cette mesure au lieu d'être écrit en dur (cf. _positionPrix).
+    window._CB_WINRATE = cl;
     if(!cl.length){box.innerHTML=`<div style="font:500 11px var(--sans);color:var(--faint);padding:10px 0">Pas assez de services comparables pour ce filtre.</div>`;return;}
     const maxW=Math.max(...cl.map(c=>c.winrate),1);
     const rows=cl.map((c,i)=>{
@@ -6883,16 +7161,16 @@ async function _fireQ6SubSectionComparison(){
       : '';
     let html=_estimBanner+`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
   <button id="rp-tab-cat" onclick="_rpSwitchView('cat')" style="font:700 11px var(--sans);padding:7px 14px;border-radius:8px;border:1px solid var(--accent-2);background:var(--accent-2);color:#fff;cursor:pointer">Détail par service</button>
-  <button id="rp-tab-recap" onclick="_rpSwitchView('recap')" style="font:700 11px var(--sans);padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg-raise,#f1f5f9);color:var(--muted);cursor:pointer">Récap actions${_nAct?` (${_nAct})`:''}</button>
+  <button id="rp-tab-recap" onclick="_rpSwitchView('recap')" style="font:700 11px var(--sans);padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg-raise,#f1f5f9);color:var(--muted);cursor:pointer">Recommandation${_nAct?` (${_nAct})`:''}</button>
 </div>
 <div id="rp-view-cat">
-<div style="font:500 10px var(--sans);color:var(--faint);margin-bottom:6px">▶ Cliquez une famille pour déplier/replier · 1ʳᵉ famille ouverte · <b>entête figé au défilement</b> · colonne <b style="color:var(--accent-2)">Action</b> = recommandation tarifaire IA</div>
+<div style="font:500 10px var(--sans);color:var(--faint);margin-bottom:6px">▶ Cliquez une famille pour déplier/replier · 1ʳᵉ famille ouverte · <b>entête figé au défilement</b> · colonne <b style="color:var(--accent-2)">Recommandations</b> = recommandation tarifaire IA</div>
 <div style="max-height:70vh;overflow:auto;border:1px solid var(--line);border-radius:8px">
 <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:11px">
 <thead><tr>
   <th style="position:sticky;top:0;z-index:4;background:var(--bg-tile,#fff);font:700 10px var(--sans);color:var(--muted);text-align:left;padding:7px 6px 7px 10px;border-bottom:2px solid var(--line);min-width:180px;box-shadow:0 2px 0 var(--line)">Service</th>
   ${thCells}
-  <th style="position:sticky;top:0;z-index:4;background:var(--bg-tile,#fff);font:700 10px var(--sans);color:var(--accent-2);text-align:left;padding:7px 8px;border-bottom:2px solid var(--line);min-width:165px;box-shadow:0 2px 0 var(--line)">Action</th>
+  <th style="position:sticky;top:0;z-index:4;background:var(--bg-tile,#fff);font:700 10px var(--sans);color:var(--accent-2);text-align:left;padding:7px 8px;border-bottom:2px solid var(--line);min-width:165px;box-shadow:0 2px 0 var(--line)">Recommandations</th>
 </tr></thead>
 <tbody>`;
 
@@ -7062,7 +7340,7 @@ function _cbStickyBar(){
       <span style="font:700 9px var(--sans);color:var(--accent-2);letter-spacing:.1em;text-transform:uppercase">🏦 Conditions de Banques</span>
       <div class="seg" style="margin:0">${seg("Particuliers","Particuliers","◐")}${seg("Entreprises","Entreprises","◆")}</div>
       <div class="seg" style="margin:0">${CB_ANNEES.map(String).map(y=>`<button class="${CB_YEAR===y?'on':''}" onclick="setCBYear('${y}')">${y}</button>`).join("")}</div>
-      <div class="seg" style="margin:0"><button class="${CB_SEM==='S1'?'on':''}" onclick="setCBSem('S1')">S1</button><button class="${CB_SEM==='S2'?'on':''}" onclick="setCBSem('S2')">S2</button></div>
+      <div class="seg" style="margin:0">${_cbSemsDispo(CB_YEAR).map(sm=>`<button class="${CB_SEM===sm?'on':''}" onclick="setCBSem('${sm}')">${sm}</button>`).join("")}</div>
       <div class="seg" style="margin:0">${_cbNav}</div>
       ${btnPDF("Benchmark Concurrentiel")}
     </div>
@@ -7634,6 +7912,351 @@ function afterCB(){
   _loadAndRenderCB();
 }
 
+
+/* ════════════ STRATÉGIE OPÉRATIONNELLE ═══════════════════════════════════
+   VEILLE STRATÉGIQUE AUGMENTÉE — les six questions d'un comité de direction.
+
+   Trois versions ont été rejetées avant celle-ci. Ce qui manquait à la dernière,
+   selon le cadrage du directeur : « la vraie question d'un DG n'est pas *que dois-je
+   faire* mais *quel sera le retour sur investissement* ». D'où, sur chaque carte :
+   l'enjeu, le business case chiffré, les risques, le coût de l'inaction, la fenêtre
+   de tir et une synthèse — en plus des décisions.
+
+   Markup repris de l'onglet Stratégie (tuile `c6` à liseré, « DÉCISION n » avec badge
+   d'effort) pour que les deux onglets se lisent comme un seul produit.
+   ═════════════════════════════════════════════════════════════════════════ */
+const _SO_EFFCOL  = {"Faible":"#12895C","Moyen":"#B45309","Élevé":"#E53935"};
+const _SO_PRIOCOL = {"Très élevée":"#E53935","Élevée":"#B45309","Moyenne":"#0AA1DD","Faible":"#64748B"};
+// Les clés « cacao » et « anacarde » ont fusionné en « agro » le 2026-07-30 (elles produisaient
+// deux fois la même décision de crédit de campagne). Quatre secteurs non agricoles les ont
+// rejointes : la liste ne comptait que des filières agricoles, du numérique et deux transverses,
+// et ne disait rien des commerçants — pourtant le cœur du segment CLIPRO de la grille SGCI.
+const _SO_ICONES  = {agro:"🌱", commerce:"🏪", transport:"🚛", import_export:"🚢", btp:"🏗️",
+                     numerique:"📱", pme:"🏭", conformite:"🛡️"};
+// DIRECTION AFFICHÉE PAR DÉFAUT (2026-08-07) : la première de la liste, soit la Direction
+// Financière. L'onglet s'ouvrait auparavant sur « toutes directions », c'est-à-dire sur rien
+// en particulier — le lecteur devait d'abord choisir avant de voir quoi que ce soit.
+let _SO_DATA = null, _SO_DIR = null;
+
+function pageStratOp(){
+  // EN-TÊTE COMPACT — la classe .hero impose min-height:290px et justify-content:space-between,
+  // conçus pour une page à gros chiffre, pills et sparkline. Ici il n'y a qu'un titre : l'espace
+  // se répartissait dans le vide et donnait un large bandeau à moitié rempli. On écrit donc un
+  // en-tête sobre, à la hauteur de son contenu.
+  return `
+  <div style="padding:20px 0 4px">
+    <div style="font:800 11px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2)">
+      Directives opérationnelles</div>
+    <h1 style="font:900 30px/1.15 var(--display);margin:8px 0 5px;color:var(--ink)">Ce que chaque direction doit faire</h1>
+    <p style="font:400 14.5px/1.6 var(--sans);color:var(--muted);max-width:700px;margin:0">
+      La stratégie globale fixe le but ; cette page dit <b>comment</b> l'atteindre, direction par direction.
+      Quatre directives chacune, chiffrées sur les grilles tarifaires publiées et les états financiers.
+      <span id="so-periode" style="color:var(--faint)"></span></p>
+  </div>
+  <div id="so-body"><div style="font:500 13px var(--sans);color:var(--muted);padding:22px 0;display:flex;gap:10px;align-items:center">
+    <span class="spin"></span> Analyse des signaux de marché…</div></div>`;
+}
+
+async function afterStratOp(){
+  // PORTÉE (2026-08-07). L'en-tête annonçait « Veille stratégique · 2026 S1 · Particuliers »,
+  // ce qui laissait croire que l'analyse ne valait que pour ce découpage — alors qu'elle
+  // mobilise tout l'historique chargé et que la période affichée n'est qu'un repère de
+  // fraîcheur. Le libellé est désormais rempli par le serveur, à partir de ce qu'il a
+  // réellement utilisé, et se lit comme une note de bas de page et non comme un filtre.
+  const per = document.getElementById("so-periode");
+  if(per) per.textContent = "";
+  const box = document.getElementById("so-body");
+  if(!box) return;
+  try{ _SO_DATA = await (await fetch(`/api/strategie_operationnelle?annee=${CB_YEAR}&semestre=${CB_SEM}&segment=${encodeURIComponent(CB_SEG)}`)).json(); }
+  catch(e){ _SO_DATA = null; }
+  _soRender();
+}
+
+function setSoDir(d){ _SO_DIR = d; _soRender(); }
+
+/* ── DIRECTIVES PAR DIRECTION ────────────────────────────────────────────────────────
+   Le cœur de la page depuis le 2026-08-07. Elles viennent de dash_app/directives.py, qui
+   les compose à partir des données sans passer par le modèle de langage : elles sont donc
+   TOUJOURS là, au complet, même quand le budget de jetons est fermé.
+
+   Un onglet par direction, quatre cartes dans chacun. Pas de vue « toutes directions » :
+   un directeur vient chercher ce qui le concerne, pas un inventaire. */
+// `sect` est un helper LOCAL à _soRender ; il est passé en paramètre plutôt que dupliqué,
+// pour que les trois sections de la page gardent exactement la même présentation.
+function _soDirectives(d, sect){
+  const D = (d.directives && d.directives.directives) || [];
+  if(!D.length) return "";
+  // Repli identique au helper de _soRender : la section des directives doit pouvoir se rendre
+  // seule quand les dossiers sectoriels manquent, c'est-à-dire avant que ce helper n'existe.
+  sect = sect || ((num,titre,enclair,inner)=>`<section style="scroll-margin-top:172px">
+    <div style="display:flex;align-items:center;gap:10px;margin:22px 0 3px">
+      <span style="font:900 21px var(--display);color:var(--accent-2)">${num}</span>
+      <span style="font:800 19px var(--display);color:var(--ink)">${titre}</span></div>
+    <div style="font:500 13px/1.6 var(--sans);color:var(--muted);background:var(--bg-raise);border-left:3px solid var(--accent-2);border-radius:0 7px 7px 0;padding:8px 12px;margin-bottom:13px">${enclair}</div>
+    ${inner}</section>`);
+  const dirs = (d.directives.directions) || [...new Set(D.map(x=>x.direction))];
+  if(!_SO_DIR || !dirs.includes(_SO_DIR)) _SO_DIR = dirs[0];   // par défaut : la première
+
+  const onglets = dirs.map(nom=>{
+    const on = _SO_DIR===nom;
+    const n = D.filter(x=>x.direction===nom).length;
+    return `<button onclick="setSoDir('${nom.replace(/'/g,"\\'")}')" style="cursor:pointer;font:700 12px var(--sans);
+      border-radius:9px;padding:9px 15px;margin:0 7px 7px 0;border:1px solid ${on?'var(--accent-2)':'var(--line)'};
+      background:${on?'var(--accent-2)':'transparent'};color:${on?'#fff':'var(--muted)'}">
+      ${nom.replace("Direction ","")} <span style="opacity:.65;font-weight:600">${n}</span></button>`;
+  }).join("");
+
+  const lot = D.filter(x=>x.direction===_SO_DIR);
+  const ligne = (etiq, txt, gras) => txt ? `<div style="margin-top:7px">
+      <div style="font:700 9.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:2px">${etiq}</div>
+      <div style="font:${gras?'600':'500'} 12.5px/1.62 var(--sans);color:var(--${gras?'ink':'muted'})">${_soEsc(txt)}</div></div>` : "";
+
+  const cartes = lot.map(x=>`
+    <div class="tile c6 tpad" style="border-top:3px solid ${x.lacune?'#B45309':'var(--accent-2)'};padding:15px 17px">
+      <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:6px">
+        <span style="font:900 20px var(--mono);color:${x.lacune?'#B45309':'var(--accent-2)'};line-height:1">${x.rang}</span>
+        <div style="font:800 15px/1.32 var(--display);color:var(--ink);flex:1">${_soEsc(x.titre)}</div>
+        <span style="font:700 9.5px var(--sans);color:${_SO_EFFCOL[x.effort]||'#64748B'};background:${(_SO_EFFCOL[x.effort]||'#64748B')}1a;
+          border-radius:5px;padding:2px 7px;white-space:nowrap">${_soEsc(x.effort)} · ${_soEsc(x.horizon)}</span>
+      </div>
+      <div style="font:500 12.5px/1.65 var(--sans);color:var(--ink);background:var(--bg-raise);border-radius:7px;padding:10px 12px">
+        ${_soEsc(x.constat)}</div>
+      ${ligne("Ce qu'il faut faire", x.action, true)}
+      ${ligne("Cible", x.cible)}
+      ${ligne("Indicateur de suivi", x.indicateur)}
+      <div style="margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font:500 11.5px/1.55 var(--sans);color:var(--faint)">
+        ${_soEsc(x.contribution)}</div>
+    </div>`).join("");
+
+  const per = (d.directives.perimetre)||{};
+  const pied = `<div class="tile c12 tpad" style="padding:11px 15px">
+      <div style="font:500 11.5px/1.6 var(--sans);color:var(--faint)">
+        ${per.n_services_comparables||0} services réellement comparables sur ${per.n_banques||7} banques ·
+        période de référence ${_soEsc(per.periode_reference||"")} · segment ${_soEsc(per.segment||"")}.
+        Directives calculées à partir des données, sans rédaction par modèle de langage : à données
+        inchangées, le texte est identique.</div></div>`;
+
+  return sect("①","Directives par direction",
+    "<b>Quatre directives par direction.</b> Chacune part d'un fait mesuré, dit quoi faire, sur quelle cible, et ce qui sera suivi.",
+    `<div style="margin-bottom:11px">${onglets}</div><div class="bento">${cartes}</div>${pied}`);
+}
+
+function _soRender(){
+  const box = document.getElementById("so-body"); if(!box) return;
+  const d = _SO_DATA;
+  if(!d){
+    box.innerHTML = `<div class="tile c12 tpad"><div style="font:500 12.5px var(--sans);color:var(--muted)">
+      Données indisponibles. Vérifier que le serveur répond, puis recharger.</div></div>`;
+    return;
+  }
+  // Les directives ne dépendent pas des dossiers sectoriels : elles s'affichent même quand
+  // la veille n'a rien remonté. C'est tout l'intérêt de les avoir rendues déterministes.
+  if(!d.secteurs || !d.secteurs.length){
+    box.innerHTML = _soDirectives(d) + `<div class="tile c12 tpad" style="margin-top:10px">
+      <div style="font:500 12.5px var(--sans);color:var(--muted)">
+      Aucun dossier sectoriel exploitable pour l'instant : relancer la veille sectorielle pour
+      alimenter les signaux de marché. Les directives ci-dessus restent valides — elles sont
+      calculées sur les grilles tarifaires et les états financiers.</div></div>`;
+    return;
+  }
+  const eco = d.economie || {};
+  const fM = v => v==null ? "—" : (Math.abs(v)>=1e9 ? (v/1e9).toFixed(1).replace(".",",")+" Md"
+                : Math.abs(v)>=1e6 ? Math.round(v/1e6)+" M" : Math.round(v).toLocaleString("fr-FR"));
+
+  // Les dossiers sectoriels sont désormais présentés en entier, sans filtre par direction :
+  // ce filtre a migré vers les onglets de la section ①, qui portent les directives. Le
+  // dédoubler ici obligeait à comprendre que deux commandes différentes agissaient sur deux
+  // contenus différents — les dossiers documentent le marché, ils ne s'adressent pas à une
+  // direction en particulier.
+  const visibles = d.secteurs;
+  const chips = "";
+
+  // ①bis LES 4 DÉCISIONS PRIORITAIRES DE LA DIRECTION SÉLECTIONNÉE (2026-07-30)
+  // Demande du directeur : « les 4 plus pertinentes toujours ». Filtrer une direction laissait
+  // ses décisions éparpillées dans les cartes sectorielles, sans hiérarchie : le directeur
+  // voyait six actions de poids apparemment égal et devait trier lui-même. Le classement est
+  // CALCULÉ, jamais rédigé — trois critères dans cet ordre :
+  //   1. l'opportunité du secteur (note déjà établie et exposée dans l'arbitrage) ;
+  //   2. l'effort à fournir, à opportunité comparable — un effort faible se lance plus vite ;
+  //   3. les commissions attendues, qui départagent le reste.
+  // Le directeur peut donc contester le classement en contestant l'un des trois, plutôt que
+  // d'avoir à croire un ordre décidé ailleurs.
+  const _RANG_EFFORT = {"Faible":0, "Moyen":1, "Élevé":2};
+  // Le panneau « 4 decisions prioritaires » (2026-07-30) a ete retire le 2026-08-07 : les
+  // onglets par direction de la section 1 rendent le meme service, de facon exhaustive et
+  // sans dependre du modele de langage. Garder les deux aurait affiche deux listes de
+  // quatre elements, differentes, pour la meme direction.
+  const priorisees = "";
+
+  const lignes = d.secteurs.map(s=>{
+    const col = _SO_PRIOCOL[s.priorite] || "#64748B";
+    const bc = s.business_case;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)">
+      <span style="font:700 13.5px var(--sans);color:var(--ink);width:230px;flex-shrink:0">${_SO_ICONES[s.cle]||"◆"} ${s.nom}</span>
+      <span style="font:700 15px var(--mono);color:#B45309;width:76px">${s.roi_libelle||""}</span>
+      <span style="font:600 12.5px var(--sans);color:var(--muted);width:70px">${s.delai_libelle||"—"}</span>
+      <span style="font:600 12.5px var(--sans);color:var(--muted);width:80px">${s.difficulte||"—"}</span>
+      <span style="font:600 12.5px var(--mono);color:#12895C;width:118px;text-align:right">${bc?("+"+fM(bc.commissions_min_fcfa)+" à "+fM(bc.commissions_max_fcfa)):"—"}</span>
+      <span style="font:800 11.5px var(--sans);color:${col};width:92px;text-align:right">${s.priorite}</span>
+    </div>`;}).join("");
+
+  // ② Les dossiers — une carte par secteur, six questions.
+  const cartes = visibles.map(s=>{
+    const col = _SO_PRIOCOL[s.priorite] || "#64748B";
+    const bc = s.business_case;
+    const bloc = (titre, txt, coul) => txt ? `<div style="margin-top:8px">
+      <div style="font:700 10px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:${coul||'var(--faint)'};margin-bottom:3px">${titre}</div>
+      <div style="font:500 12px/1.6 var(--sans);color:var(--muted)">${_soEsc(txt)}</div></div>` : "";
+
+    // Les décisions rédigées par le modèle restent affichées EN ENTIER dans le dossier de
+    // marché : elles documentent le secteur. Le filtrage par direction appartient désormais
+    // aux directives de la section ①, qui sont exhaustives et toujours disponibles.
+    const decisions = (s.decisions||[])
+      .map((x,i)=>`
+      <div style="margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid var(--line)">
+        <div style="font:800 12.5px/1.4 var(--sans);color:var(--ink);display:flex;gap:6px;flex-wrap:wrap">
+          <span style="color:${col}">DÉCISION ${i+1}</span>
+          <span style="font:700 9.5px var(--sans);color:var(--muted);background:var(--bg-raise);border-radius:4px;padding:2px 7px">${_soEsc(x.direction||"")}</span>
+          <span style="margin-left:auto;font:700 9.5px var(--sans);color:${_SO_EFFCOL[x.effort]||'#64748B'};background:${(_SO_EFFCOL[x.effort]||'#64748B')}1a;border-radius:4px;padding:1px 6px;height:fit-content">Effort ${x.effort}</span></div>
+        <div style="font:700 13px/1.5 var(--sans);color:var(--ink);margin:4px 0 5px">${_soEsc(x.titre)}</div>
+        <div style="font:500 12px/1.6 var(--sans);color:var(--muted)">${_soEsc(x.detail)}</div>
+        ${x.premier_pas?`<div style="margin-top:5px;padding:5px 8px;background:var(--bg-raise);border-radius:5px;font:600 11.5px/1.5 var(--sans);color:var(--ink)">
+          <span style="color:${col};font-weight:800">▸ Premier pas (30 jours)</span> ${_soEsc(x.premier_pas)}</div>`:""}
+      </div>`).join("") ||
+      `<div style="font:500 10.5px var(--sans);color:var(--faint);padding:6px 0">Aucune décision pour cette direction.</div>`;
+
+    // Business case — le chiffre ET ses hypothèses, faute de quoi il n'est pas arbitrable.
+    const hyp = bc ? (bc.hypotheses||[]).map(h=>`<div style="display:flex;gap:7px;font:400 11px/1.7 var(--sans);color:var(--faint)">
+        <span style="color:${h.nature==='calculé'?'#12895C':'#B45309'};font-weight:700">${h.nature==='calculé'?'calculé':'hypothèse'}</span>
+        <span style="flex:1">${h.libelle}</span><span style="font-weight:600;color:var(--muted)">${h.valeur}</span></div>`).join("") : "";
+    // HYPOTHÈSE AJUSTABLE EN SÉANCE (2026-07-30). Un business case dont on ne peut pas
+    // contester l'hypothèse n'est pas un outil d'arbitrage : le comité subit le chiffre au
+    // lieu de le discuter. Le curseur laisse chacun substituer sa propre estimation de
+    // captation ; les montants se recalculent à l'écran, sans aller-retour serveur, puisque
+    // le calcul est trivial (clients × commission moyenne réelle).
+    const caseBloc = bc ? `<div style="margin-top:9px;padding:9px 11px;background:#0d7a500e;border:1px solid #12895C33;border-radius:7px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <span style="font:700 10px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:#0a5e3c">Impact estimé</span>
+          <span style="margin-left:auto;font:700 10.5px var(--sans);color:var(--muted)">Confiance ${bc.confiance} %</span></div>
+        <div id="so-mt-${s.cle}" style="font:800 15px/1.4 var(--sans);color:#0a5e3c">+${fM(bc.commissions_min_fcfa)} à +${fM(bc.commissions_max_fcfa)} FCFA de commissions/an</div>
+        <div id="so-sub-${s.cle}" style="font:500 11.5px var(--sans);color:var(--muted);margin:2px 0 7px">
+          ${bc.clients_min} à ${bc.clients_max} nouveaux clients · contribution au PNB ${bc.contribution_pnb_pct?("+"+bc.contribution_pnb_pct[0]+" à +"+bc.contribution_pnb_pct[1]+" %"):"—"} · horizon ${s.delai_libelle}</div>
+        ${hyp}</div>` : "";
+
+    // Événements de marché — la matière que le catalogue tarifaire ne peut pas donner :
+    // un accord signé, un programme public lancé, une instruction publiée.
+    const evts = (s.evenements||[]).length
+      ? `<div style="margin-top:8px"><div style="font:700 8.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-bottom:3px">Signaux récents du marché</div>
+         ${s.evenements.map((e,i)=>`<div style="font:500 10.5px/1.5 var(--sans);color:var(--muted);margin-bottom:3px">
+           <span style="color:${e.portee==='menace'?'#E53935':e.portee==='contrainte'?'#B45309':'#12895C'}">●</span>
+           <b>${_soEsc(e.acteur)}</b> ${_soEsc(e.fait)}${e.montant?` <b>${_soEsc(e.montant)}</b>`:""}${e.date_citee?` <span style="color:var(--faint)">· ${_soEsc(e.date_citee)}</span>`:""}
+           <b style="color:var(--accent-2)">[${(s.faits_sources||[]).length+i+1}]</b></div>`).join("")}</div>`
+      : "";
+
+    const conc = (s.concurrence||[]).length
+      ? `<div style="margin-top:8px"><div style="font:700 8.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-bottom:2px">Concurrence déjà en place</div>
+         <div style="font:500 10.5px/1.5 var(--sans);color:var(--muted)">${s.concurrence.map(c=>`<b>${c.banque}</b> (${c.n_services} services)`).join(" · ")}</div></div>` : "";
+
+    const indics = (s.indicateurs||[]).map(x=>
+      `<span style="display:inline-block;font:500 11px var(--sans);color:var(--muted);background:var(--bg-raise);border-radius:5px;padding:3px 8px;margin:0 4px 4px 0">${x}</span>`).join("");
+    // RÉFÉRENCES NUMÉROTÉES — faits de marché puis signaux de veille, dans l'ordre où les [n]
+    // apparaissent dans la carte. Une note de comité doit se remonter à sa source en un clic.
+    const refs = [].concat(
+      (s.faits_sources||[]).map(f=>({lib:`${f.valeur}${f.source?" — "+f.source:""}`, url:f.url})),
+      (s.evenements||[]).map(e=>({lib:`${e.acteur} — ${(e.fait||"").slice(0,64)}`, url:e.url}))
+    ).filter(r=>r.lib);
+    const src = refs.map((r,i)=>
+      `<div style="font:400 11px/1.75 var(--sans);color:var(--faint)"><b style="color:var(--accent-2)">[${i+1}]</b> ${_soEsc(r.lib)}${r.url?` <a href="${r.url}" target="_blank" rel="noopener" style="color:var(--accent-2)">↗</a>`:""}</div>`).join("");
+
+    return `<div class="tile c6 tpad" style="border-top:3px solid ${col}">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
+        <span style="font-size:21px;line-height:1">${_SO_ICONES[s.cle]||"◆"}</span>
+        <div style="flex:1"><div style="font:800 16px var(--display);color:${col}">${s.nom}</div>
+        <div style="font:600 11.5px/1.4 var(--sans);color:var(--muted)">${s.cibles} · ${s.segment}</div></div>
+        <div style="text-align:right"><div style="font:700 13px var(--mono);color:#B45309">${s.roi_libelle||""}</div>
+        <div style="font:600 10.5px var(--sans);color:var(--faint)">${s.delai_libelle} · ${s.difficulte}</div></div>
+      </div>
+      ${s.justification&&s.justification.texte?`<div style="font:500 11px/1.5 var(--sans);color:var(--faint);border-left:2px solid var(--line);padding-left:8px;margin-bottom:7px">${_soEsc(s.justification.texte)}</div>`:""}
+      <div style="font:500 12.5px/1.65 var(--sans);color:var(--ink);background:var(--bg-raise);border-radius:6px;padding:10px 12px;margin-bottom:8px">${_soEsc(s.lecture||"Lecture de marché indisponible.")}</div>
+      ${bloc("Pourquoi c'est important", s.enjeu)}
+      ${caseBloc}
+      <div style="margin-top:10px">${decisions}</div>
+      ${bloc("Risques et conditions de succès", s.risques)}
+      ${bloc("Si la banque ne fait rien", s.si_rien, "#E53935")}
+      ${bloc("Pourquoi maintenant", s.maintenant, "#B45309")}
+      ${conc}
+      ${evts}
+      ${s.synthese?`<div style="margin-top:9px;padding:8px 10px;background:var(--bg-raise);border-left:3px solid var(--accent-2);border-radius:0 6px 6px 0">
+        <div style="font:700 10px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--accent-2);margin-bottom:3px">🤖 Lecture IA</div>
+        <div style="font:500 12px/1.6 var(--sans);color:var(--ink)">${_soEsc(s.synthese)}</div></div>`:""}
+      <div style="margin-top:9px;padding-top:7px;border-top:1px solid var(--line)">
+        <div style="font:700 10px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-bottom:5px">Indicateurs à suivre</div>
+        ${indics}
+        <div style="font:700 8.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:6px 0 3px">Sources</div>
+        ${src}
+      </div>
+    </div>`;
+  }).join("") || `<div class="tile c12 tpad"><div style="font:500 12px var(--sans);color:var(--muted)">Aucun dossier pour cette direction.</div></div>`;
+
+  const sect=(num,titre,enclair,inner)=>`<section style="scroll-margin-top:172px">
+    <div style="display:flex;align-items:center;gap:10px;margin:22px 0 3px">
+      <span style="font:900 21px var(--display);color:var(--accent-2)">${num}</span>
+      <span style="font:800 19px var(--display);color:var(--ink)">${titre}</span></div>
+    <div style="font:500 13px/1.6 var(--sans);color:var(--muted);background:var(--bg-raise);border-left:3px solid var(--accent-2);border-radius:0 7px 7px 0;padding:8px 12px;margin-bottom:13px">${enclair}</div>
+    ${inner}</section>`;
+
+  // SEGMENTATION CLIENTÈLE (2026-07-30) — la grille transmise par la Direction. Elle donne au
+  // lecteur la clé des segments cités dans chaque dossier (CLIPRO, GP, Patrimoniaux…), qui
+  // resteraient sinon des sigles opaques pour qui ne les manipule pas tous les jours.
+  const segments = `<div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font:500 12.5px/1.85 var(--sans);color:var(--muted)">
+      <b style="color:var(--ink)">Segmentation SGCI</b> —
+      <b>GP</b> mass market &lt; 450 k · <b>BG</b> bonne gamme 450 k – 2 M · <b>PATRIMONIAUX</b> ≥ 2 M
+      <span style="color:var(--faint)">(revenu mensuel)</span> ·
+      <b>CLIPRO</b> ≤ 750 M · <b>CLICOM</b> &gt; 750 M <span style="color:var(--faint)">(CA annuel)</span></div>`;
+  const repere = eco.commission_moyenne ? `<div style="font:400 12.5px/1.65 var(--sans);color:var(--muted);margin-top:11px">
+      Impacts calculés sur la commission moyenne réelle de <b>${eco.commission_moyenne.toLocaleString("fr-FR")} FCFA par client et par an</b>
+      (${eco.commissions_m?Math.round(eco.commissions_m).toLocaleString("fr-FR"):"—"} M FCFA de commissions ÷ ${eco.clients?eco.clients.toLocaleString("fr-FR"):"—"} clients).
+      Les commissions pèsent ${eco.part_commissions_pnb} % du PNB de SGCI contre ${eco.meilleur_ratio} % chez ${eco.meilleur_ratio_banque}.</div>` : "";
+
+  // COHÉRENCE AVEC LA STRATÉGIE GLOBALE — placé en tête : c'est le cadre dans lequel toutes les
+  // décisions qui suivent prennent leur sens. Sans lui, l'onglet propose des actions sans dire
+  // à quel objectif elles servent.
+  const og = d.objectif_global;
+  const bandeau = og ? `<div class="tile c12 tpad" style="border-left:4px solid var(--accent-2);margin-bottom:4px">
+      <div style="font:700 10.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--accent-2);margin-bottom:5px">Objectif de la stratégie globale</div>
+      <div style="font:500 13.5px/1.65 var(--sans);color:var(--ink)">
+        Porter le PNB à <b>${og.cible_centrale} ${og.unite} FCFA</b> en ${og.horizon_ans} ans (scénario central),
+        contre <b>${og.trajectoire_naturelle} ${og.unite}</b> en trajectoire naturelle —
+        soit <b style="color:var(--accent-2)">${og.ecart_a_combler} ${og.unite} FCFA à aller chercher</b>.</div>
+      ${og.couverture_pct!=null?`<div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--line);font:500 12.5px/1.6 var(--sans);color:var(--muted)">
+        Les décisions ci-dessous en couvrent <b style="color:var(--ink)">${og.couvert_par_secteurs_mds} ${og.unite}</b>,
+        soit <b style="color:${og.couverture_pct<10?'#E53935':'#12895C'}">${og.couverture_pct} %</b> de l'écart.
+        Le reste doit venir du portefeuille existant — tarification, volumes, coût du risque — et non de la conquête sectorielle.</div>`:""}
+    </div>` : "";
+
+  // ORDRE DE LECTURE (2026-08-07) : l'objectif global, puis CE QUE CHAQUE DIRECTION DOIT
+  // FAIRE, puis seulement ensuite l'arbitrage sectoriel et les dossiers qui l'étayent.
+  // L'inverse obligeait un directeur à traverser une analyse de marché avant d'atteindre
+  // ce qui le concerne.
+  box.innerHTML = bandeau + _soDirectives(d, sect) +
+    sect("②","Arbitrage — où concentrer la conquête",
+      "<b>Rendement · Délai · Difficulté.</b> Le ROI est en étoiles, pas en pourcentage : c'est un ordre de priorité, pas une prévision.",
+      `<div class="tile c12 tpad">
+         <div style="display:flex;gap:10px;padding-bottom:6px;border-bottom:1px solid var(--line);font:700 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)">
+           <span style="width:230px">Secteur</span><span style="width:70px">ROI</span><span style="width:64px">Délai</span>
+           <span style="width:74px">Difficulté</span><span style="width:110px;text-align:right">Commissions/an</span>
+           <span style="width:86px;text-align:right">Priorité</span></div>
+         ${lignes}${repere}${segments}
+       </div>`)
+    + sect("③","Les dossiers de marché",
+      "<b>Un dossier par secteur.</b> Ce qui se passe, ce que ça vaut, sous quel délai — la matière sur laquelle s'appuient les directives.",
+      `${chips}${priorisees}<div class="bento">${cartes}</div>`);
+}
+
+function _soEsc(t){
+  return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
 const AFTER = {
   apercu:    afterApercu,
   analyse:   afterAnalyse,
@@ -7641,6 +8264,7 @@ const AFTER = {
   rapports:  afterRapports,
   cb:        afterCB,
   chat:      afterChat,
+  stratop:   afterStratOp,
 };
 
 function go(key){
@@ -7656,6 +8280,12 @@ function go(key){
   el.innerHTML = p.render();
   if(AFTER[key]) AFTER[key]();
   if(key !== "chat") localStorage.setItem("sb-page", key);
+  // BUG TROUVÉ (2026-07-27, signalé par le directeur, capture à l'appui) : le bouton flottant
+  // (orbe hologramme) reste affiché même sur la page Chat elle-même, où il se superpose au
+  // bouton d'envoi du composer (les deux sont en bas à droite) — inutile en plus d'être gênant
+  // puisqu'il sert justement à OUVRIR le chat. On le masque quand on y est déjà.
+  const fab = document.querySelector(".fab");
+  if(fab) fab.style.display = (key === "chat") ? "none" : "";
 }
 
 /* ─── ticker + horloge ───────────────────────────────────────────── */

@@ -903,7 +903,15 @@ def ef_coeff_series():
 def ef_cnr_series():
     """Ratio CNR / Encours de crédit en points de base (pb) par banque et année.
     CNR = Coût Net du Risque ; Encours = Créances sur la clientèle.
-    Dual-query is_primary=TRUE prioritaire, FALSE fallback.
+
+    BUG CORRIGÉ le 2026-07-22 (repéré par le directeur sur le graphe : « pourquoi BNI va de
+    2021 à 2023 ??? ») : l'ancien fallback is_primary=FALSE ajoutait systématiquement une 4ᵉ
+    année PÉRIMÉE pour presque toutes les banques (chacune a exactement 3 années is_primary=TRUE
+    + 1 année is_primary=FALSE plus ancienne, sauf BACI) — ce graphe montrait donc 4 ans quand
+    TOUS les autres indicateurs EF (résultat net, ROE, coefficient, PNB) respectent strictement
+    la fenêtre des 3 dernières années par banque. Fix : is_primary=TRUE UNIQUEMENT, comme
+    resultat_net_series()/ef_roe_series()/ef_coeff_series() — cohérence garantie entre tous les
+    graphiques de l'onglet Santé Financière.
     """
     sql = """SELECT banque, annee_donnee, AVG(montant) AS val
              FROM ef_indicateurs
@@ -915,20 +923,13 @@ def ef_cnr_series():
     cnr_s = {}
     for r in query(sql, (True, "%co%t%risque%")):
         cnr_s.setdefault(r["banque"], {})[int(r["annee_donnee"])] = float(r["val"])
-    for r in query(sql, (False, "%co%t%risque%")):
-        b, yr = r["banque"], int(r["annee_donnee"])
-        if b not in cnr_s or yr not in cnr_s[b]:
-            cnr_s.setdefault(b, {})[yr] = float(r["val"])
 
     # Encours de crédit (créances sur la clientèle brutes)
     enc_s = {}
     for r in query(sql, (True, "%cr%ances%client%")):
         enc_s.setdefault(r["banque"], {})[int(r["annee_donnee"])] = float(r["val"])
-    for r in query(sql, (False, "%cr%ances%client%")):
-        b, yr = r["banque"], int(r["annee_donnee"])
-        if b not in enc_s or yr not in enc_s[b]:
-            enc_s.setdefault(b, {})[yr] = float(r["val"])
-    # Fallback ECOBANK : "Crédits nets à la clientèle"
+    # Fallback ECOBANK : nom de libellé ALTERNATIF, pas de bascule is_primary (toujours TRUE) —
+    # ECOBANK nomme cet indicateur différemment ("Crédits nets à la clientèle"), légitime.
     for r in query(sql, (True, "%cr%dits%nets%client%")):
         b, yr = r["banque"], int(r["annee_donnee"])
         if b not in enc_s or yr not in enc_s[b]:
@@ -946,6 +947,52 @@ def ef_cnr_series():
 
 
 @lru_cache(maxsize=1)
+def cb_periodes():
+    """Semestres réellement disponibles PAR ANNÉE : {"2024": ["S1","S2"], "2026": ["S1"]}.
+
+    Ajouté le 2026-07-30. Le sélecteur du dashboard proposait S1 et S2 en dur pour toute année
+    (app.main.js), alors que 2026 ne contient que S1 : cliquer sur « 2026 S2 » plaçait l'écran
+    dans un état incohérent — les agrégats par section répondaient (via l'imputation
+    S2→S1 documentée dans cb_exhaustif) tandis que le comparatif détaillé revenait vide.
+    En dérivant les boutons de cette fonction, une période absente n'est plus proposée, et
+    l'ajout de données 2026 S2 fera apparaître le bouton automatiquement.
+    """
+    rows = query("SELECT DISTINCT annee, semestre FROM cb_tarifs "
+                 "WHERE annee IS NOT NULL AND semestre IS NOT NULL "
+                 "ORDER BY annee, semestre")
+    out = {}
+    for r in rows:
+        out.setdefault(str(r["annee"]), []).append(r["semestre"])
+    return out
+
+
+def stats_globales():
+    """Volumétrie de la base — ce sur quoi les analyses s'appuient réellement.
+
+    Sert de point de contrôle : si un chiffre affiché surprend, on commence par vérifier ici que
+    la donnée sous-jacente est bien présente. Écrite le 2026-07-30 — /api/stats l'appelait depuis
+    l'origine alors qu'elle n'avait jamais été définie, et répondait donc 500 (l'endpoint n'étant
+    consommé par aucune page, personne ne l'avait vu).
+    """
+    def n(sql):
+        try:
+            return query(sql)[0]["n"]
+        except Exception:
+            return None
+
+    return {
+        "cb_tarifs": n("SELECT COUNT(*) AS n FROM cb_tarifs"),
+        "ef_indicateurs": n("SELECT COUNT(*) AS n FROM ef_indicateurs"),
+        "regl_documents": n("SELECT COUNT(*) AS n FROM regl_documents"),
+        "banques": [r["banque"] for r in query(
+            "SELECT DISTINCT banque FROM cb_tarifs WHERE banque IS NOT NULL ORDER BY banque")],
+        "periodes_cb": cb_periodes(),
+        "segments": [r["segment"] for r in query(
+            "SELECT DISTINCT segment FROM cb_tarifs WHERE segment IS NOT NULL ORDER BY segment")],
+        "cb_vectorise": n("SELECT COUNT(*) AS n FROM cb_tarifs WHERE embedding IS NOT NULL"),
+    }
+
+
 def cb_annees():
     """Liste des années disponibles dans cb_tarifs."""
     rows = query("SELECT DISTINCT annee FROM cb_tarifs ORDER BY annee")
@@ -1347,18 +1394,46 @@ def ef_series_all_for_agent():
     return result
 
 
+def _libelle_section(r):
+    """Libellé lisible de la section BCEAO d'une ligne tarifaire.
+
+    DEUX défauts se cachaient derrière le COALESCE(canon_section, section, …) que cette fonction
+    remplace :
+
+    1. `canon_section` est un SMALLINT et `section` du TEXT. PostgreSQL refuse de rapprocher les
+       deux types, la requête échouait — et comme query() se rabat silencieusement sur une liste
+       vide, les fonctions appelantes renvoyaient ZÉRO ligne sans jamais le signaler. C'est ce
+       qui vidait la table comparative et, plus grave, tout le contexte CB de l'agent.
+    2. Même corrigé, lire la colonne n'aurait rien donné : `canon_section` est NULL sur la
+       totalité des lignes en base. Elle n'a jamais été alimentée à l'ingestion.
+
+    La section canonique est donc calculée à la volée, comme partout ailleurs dans ce module, par
+    cb_sections.canonical_section() — qui utilise la numérotation du document quand elle est
+    fiable et se rabat sur le contenu du libellé sinon.
+    """
+    try:
+        _, _, titre = cb_sections.canonical_section(
+            r.get("banque"), r.get("section"), r.get("libelle") or r.get("label"),
+            r.get("contexte"))
+        if titre:
+            return titre
+    except Exception:
+        pass
+    return r.get("section") or "Autres"
+
+
 def cb_all_for_period(annee=2026, semestre="S1", segment="Particuliers"):
     """Tous les tarifs CB pour une période — utilisé par le contexte agent."""
     rows = query(
         """
         SELECT banque, libelle,
                valeur_propre AS valeur,
-               COALESCE(canon_section, section, '') AS categorie,
+               section, contexte,
                montant, est_gratuit
         FROM cb_tarifs
         WHERE annee=%s AND semestre=%s AND segment=%s
           AND is_header = FALSE
-        ORDER BY banque, categorie, libelle
+        ORDER BY banque, canon_section, libelle
         """,
         (annee, semestre, segment),
     )
@@ -1367,7 +1442,7 @@ def cb_all_for_period(annee=2026, semestre="S1", segment="Particuliers"):
         result.setdefault(r["banque"], []).append({
             "libelle": r["libelle"],
             "valeur": r["valeur"],
-            "categorie": r.get("categorie", ""),
+            "categorie": _libelle_section(r),
             "montant": r.get("montant"),
             "est_gratuit": r.get("est_gratuit"),
         })
@@ -1380,20 +1455,21 @@ def cb_comparatif(annee=2026, semestre="S1", segment="Particuliers"):
     Déterministe (DB) — alignement best-effort par (section canonique, libellé)."""
     rows = query(
         """
-        SELECT banque, COALESCE(canon_section, section, 'Autres') AS cat,
+        SELECT banque, section, contexte,
                TRIM(libelle) AS label, montant, valeur_propre, est_gratuit
         FROM cb_tarifs
         WHERE annee=%s AND semestre=%s AND LOWER(segment)=LOWER(%s)
           AND is_header = FALSE AND section IS NOT NULL
           AND LENGTH(TRIM(libelle)) BETWEEN 5 AND 90
-        ORDER BY cat, label, banque
+        ORDER BY section, label, banque
         """,
         (annee, semestre, segment),
     )
     table = {}
     for r in rows:
-        key = (r["cat"], (r["label"] or "").lower())
-        ent = table.setdefault(key, {"cat": r["cat"], "label": r["label"]})
+        cat = _libelle_section(r)          # cf. _libelle_section : le COALESCE SQL était invalide
+        key = (cat, (r["label"] or "").lower())
+        ent = table.setdefault(key, {"cat": cat, "label": r["label"]})
         if r["est_gratuit"]:
             num, raw = 0, "Gratuit"
         elif r["montant"] is not None:
@@ -1981,14 +2057,16 @@ def cb_exclusivites_banque(banque="SGCI", annee=2026, semestre="S1", segment="Pa
           AND s.section IS NOT NULL
           AND LENGTH(TRIM(s.libelle)) BETWEEN 8 AND 110
           AND s.type_valeur IN ('MONTANT_FCFA','GRATUIT','TAUX_%%','SUR_DEMANDE','NUMERIQUE')
-          AND s.libelle !~ '\m[A-Za-z]\M\s+\m[A-Za-z]\M\s+\m[A-Za-z]\M'
+          AND s.libelle !~ '\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M'
           AND NOT EXISTS (
               SELECT 1 FROM cb_tarifs o
               WHERE o.banque != %s
                 AND o.annee = %s AND o.semestre = %s
+                AND LOWER(o.segment) = LOWER(%s)
                 AND o.is_header = FALSE
                 AND o.section IS NOT NULL
-                AND o.libelle !~ '\m[A-Za-z]\M\s+\m[A-Za-z]\M\s+\m[A-Za-z]\M'
+                AND LENGTH(TRIM(o.libelle)) BETWEEN 8 AND 110
+                AND o.libelle !~ '\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M'
                 AND (
                     similarity(LOWER(TRIM(o.libelle)), LOWER(TRIM(s.libelle))) > 0.62
                     OR word_similarity(LOWER(TRIM(o.libelle)), LOWER(TRIM(s.libelle))) > 0.7
@@ -2005,7 +2083,7 @@ def cb_exclusivites_banque(banque="SGCI", annee=2026, semestre="S1", segment="Pa
           )
         ORDER BY s.section, s.libelle
         """,
-        (banque, annee, semestre, segment, banque, annee, semestre),
+        (banque, annee, semestre, segment, banque, annee, semestre, segment),
     )
     rows = [dict(r) for r in rows]
     # VALIDATION WEB (Agent Web) : retire le bruit + reclasse (partage/differenciant/non_contredit).
@@ -2049,7 +2127,7 @@ def cb_analyse_q5(annee=2026, semestre="S1", segment="Particuliers"):
           AND o.section IS NOT NULL
           AND LENGTH(TRIM(o.libelle)) BETWEEN 8 AND 110
           AND o.type_valeur IN ('MONTANT_FCFA','GRATUIT','TAUX_%%','SUR_DEMANDE','NUMERIQUE')
-          AND o.libelle !~ '\m[A-Za-z]\M\s+\m[A-Za-z]\M\s+\m[A-Za-z]\M'
+          AND o.libelle !~ '\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M'
           AND NOT EXISTS (
               SELECT 1 FROM cb_tarifs s
               WHERE s.banque = 'SGCI'
@@ -2057,7 +2135,7 @@ def cb_analyse_q5(annee=2026, semestre="S1", segment="Particuliers"):
                 AND s.is_header = FALSE
                 AND s.section IS NOT NULL
                 AND LENGTH(TRIM(s.libelle)) BETWEEN 8 AND 110
-                AND s.libelle !~ '\m[A-Za-z]\M\s+\m[A-Za-z]\M\s+\m[A-Za-z]\M'
+                AND s.libelle !~ '\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M'
                 AND (
                     similarity(LOWER(TRIM(s.libelle)), LOWER(TRIM(o.libelle))) > 0.62
                     OR word_similarity(LOWER(TRIM(s.libelle)), LOWER(TRIM(o.libelle))) > 0.7
@@ -2123,7 +2201,68 @@ def cb_analyse_q6(annee=2026, semestre="S1", segment="Particuliers"):
 
     Filtre OCR appliqué pour éviter que des montants aberrants (lignes sans section)
     faussent les moyennes. Seuil montant : 100 F min (évite les valeurs taux ou entiers bruts).
-    """
+
+    montant_median (2026-07-24, bug trouvé en creusant l'indice prix de la Projection) :
+    montant_moyen (AVG) est une moyenne ARITHMÉTIQUE brute — quelques frais exceptionnels
+    mélangés aux tarifs courants (ex. SGCI "Frais d'introduction en bourse" = 10 625 000 F,
+    "Frais de dossier" = 1 000 000 F) l'écrasent complètement : constaté en le comparant à
+    l'indice prix de cb_serie_temporelle, qui donnait SGCI à 566%/741% du marché — absurde.
+    montant_median (PERCENTILE_CONT) n'est PAS sensible à ces quelques valeurs extrêmes et
+    reste représentatif du tarif "typique" — utilisé par cb_serie_temporelle pour l'indice
+    prix. montant_moyen est CONSERVÉ tel quel (rien d'existant ne doit changer d'affichage)."""
+    rows = query(
+        """
+        SELECT banque,
+               COUNT(DISTINCT libelle) FILTER (
+                   WHERE is_header = FALSE AND section IS NOT NULL
+                   AND LENGTH(TRIM(libelle)) BETWEEN 8 AND 110
+               ) AS n_services,
+               COUNT(*) FILTER (
+                   WHERE est_gratuit = TRUE AND is_header = FALSE
+                   AND section IS NOT NULL
+               ) AS n_gratuit,
+               ROUND(100.0 * COUNT(*) FILTER (
+                   WHERE est_gratuit = TRUE AND is_header = FALSE AND section IS NOT NULL
+               ) / NULLIF(COUNT(*) FILTER (
+                   WHERE is_header = FALSE AND section IS NOT NULL
+               ), 0), 1) AS pct_gratuit,
+               ROUND(AVG(montant) FILTER (
+                   WHERE type_valeur = 'MONTANT_FCFA' AND montant >= 100
+                   AND is_header = FALSE AND section IS NOT NULL
+               )::numeric) AS montant_moyen,
+               ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY montant) FILTER (
+                   WHERE type_valeur = 'MONTANT_FCFA' AND montant >= 100
+                   AND is_header = FALSE AND section IS NOT NULL
+               )::numeric) AS montant_median,
+               ROUND(MIN(montant) FILTER (
+                   WHERE type_valeur = 'MONTANT_FCFA' AND montant >= 100
+                   AND is_header = FALSE AND section IS NOT NULL
+               )::numeric) AS montant_min,
+               ROUND(MAX(montant) FILTER (
+                   WHERE type_valeur = 'MONTANT_FCFA' AND montant >= 100
+                   AND is_header = FALSE AND section IS NOT NULL
+               )::numeric) AS montant_max
+        FROM cb_tarifs
+        WHERE annee = %s AND semestre = %s
+          AND LOWER(segment) = LOWER(%s)
+          AND is_header = FALSE
+          AND type_valeur IN ('MONTANT_FCFA', 'GRATUIT', 'TAUX_%%', 'SUR_DEMANDE', 'NUMERIQUE')
+        GROUP BY banque
+        ORDER BY montant_moyen NULLS LAST
+        """,
+        (annee, semestre, segment),
+    )
+    return [dict(r) for r in rows]
+
+
+def cb_analyse_q6_tous_segments(annee=2026, semestre="S1"):
+    """Variante de cb_analyse_q6 SANS filtre segment (2026-07-22, demande explicite du directeur :
+    « tous les onglets doivent tenir compte de TOUTES les données » — Particuliers ET Entreprises
+    ensemble, pas juste un résumé donné au LLM). Seules deux valeurs de segment existent en base
+    (Particuliers, Entreprises) — on les combine ici pour un rang catalogue / gratuité GLOBAUX.
+    COUNT(DISTINCT libelle) compte un même nom de service UNE fois même s'il existe dans les deux
+    segments (ex. « Frais de tenue de compte ») — c'est le nombre de services DISTINCTS que SGCI
+    propose au global, pas une somme artificielle qui doublonnerait les noms partagés."""
     rows = query(
         """
         SELECT banque,
@@ -2154,13 +2293,12 @@ def cb_analyse_q6(annee=2026, semestre="S1", segment="Particuliers"):
                )::numeric) AS montant_max
         FROM cb_tarifs
         WHERE annee = %s AND semestre = %s
-          AND LOWER(segment) = LOWER(%s)
           AND is_header = FALSE
           AND type_valeur IN ('MONTANT_FCFA', 'GRATUIT', 'TAUX_%%', 'SUR_DEMANDE', 'NUMERIQUE')
         GROUP BY banque
         ORDER BY montant_moyen NULLS LAST
         """,
-        (annee, semestre, segment),
+        (annee, semestre),
     )
     return [dict(r) for r in rows]
 
@@ -2193,9 +2331,12 @@ def cb_serie_temporelle(segment="Particuliers"):
         rang = [s["banque"] for s in par_cat].index("SGCI") + 1
         grats = sorted(float(s["pct_gratuit"]) for s in actifs if s.get("pct_gratuit") is not None)
         med_grat = grats[len(grats) // 2] if grats else 0
-        moys = sorted(float(s["montant_moyen"]) for s in actifs if s.get("montant_moyen"))
+        # montant_median (pas montant_moyen) : la moyenne brute est écrasée par quelques frais
+        # exceptionnels (bourse, dossiers de gros crédits) mélangés aux tarifs courants — cf.
+        # docstring de cb_analyse_q6. La médiane par banque reste représentative du tarif typique.
+        moys = sorted(float(s["montant_median"]) for s in actifs if s.get("montant_median"))
         med_moy = moys[len(moys) // 2] if moys else 0
-        sgci_moy = float(sgci["montant_moyen"]) if sgci.get("montant_moyen") else None
+        sgci_moy = float(sgci["montant_median"]) if sgci.get("montant_median") else None
         out.append({
             "periode": f"{annee} {sem}",
             "annee": annee, "semestre": sem,
@@ -2308,7 +2449,7 @@ def cb_analyse_q6_paired(annee=2026, semestre="S1", segment="Particuliers"):
               AND is_header = FALSE AND section IS NOT NULL
               AND LENGTH(TRIM(libelle)) BETWEEN 8 AND 110
               AND type_valeur IN ('MONTANT_FCFA','GRATUIT','TAUX_%%','SUR_DEMANDE','NUMERIQUE')
-              AND libelle !~ '\m[A-Za-z]\M\s+\m[A-Za-z]\M\s+\m[A-Za-z]\M'
+              AND libelle !~ '\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M'
             ORDER BY LOWER(TRIM(libelle)), montant DESC NULLS LAST
         ),
         pairs AS (
@@ -2319,7 +2460,8 @@ def cb_analyse_q6_paired(annee=2026, semestre="S1", segment="Particuliers"):
                    s.est_gratuit    AS grat_sgci,
                    o.type_valeur    AS tv_conc,
                    s.type_valeur    AS tv_sgci,
-                   o.libelle        AS lib_conc
+                   o.libelle        AS lib_conc,
+                   s.libelle        AS lib_sgci
             FROM cb_tarifs o
             JOIN sgci_svcs s ON (
                 similarity(LOWER(TRIM(o.libelle)), LOWER(TRIM(s.libelle))) > 0.55
@@ -2340,24 +2482,73 @@ def cb_analyse_q6_paired(annee=2026, semestre="S1", segment="Particuliers"):
               AND o.is_header = FALSE AND o.section IS NOT NULL
               AND LENGTH(TRIM(o.libelle)) BETWEEN 8 AND 110
               AND o.type_valeur IN ('MONTANT_FCFA','GRATUIT','TAUX_%%','SUR_DEMANDE','NUMERIQUE')
-              AND o.libelle !~ '\m[A-Za-z]\M\s+\m[A-Za-z]\M\s+\m[A-Za-z]\M'
+              AND o.libelle !~ '\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M\\s+\\m[A-Za-z]\\M'
         )
-        SELECT
-            banque,
-            COUNT(DISTINCT lib_conc)                                                        AS n_communs,
-            ROUND(AVG(mont_conc) FILTER (WHERE tv_conc  = 'MONTANT_FCFA' AND mont_conc  >= 100)) AS moy_conc,
-            ROUND(AVG(mont_sgci) FILTER (WHERE tv_sgci  = 'MONTANT_FCFA' AND mont_sgci  >= 100)) AS moy_sgci,
-            COUNT(*) FILTER (WHERE grat_conc)                                               AS n_grat_conc,
-            COUNT(*) FILTER (WHERE grat_sgci)                                               AS n_grat_sgci
+        SELECT banque, lib_sgci, lib_conc, mont_conc, mont_sgci,
+               grat_conc, grat_sgci, tv_conc, tv_sgci
         FROM pairs
-        GROUP BY banque
-        ORDER BY moy_conc ASC NULLS LAST
         """,
         (annee, semestre, segment, annee, semestre, segment),
     )
-    return [dict(r) for r in rows]
+
+    # ── FILTRE DE COMPARABILITÉ (ajouté le 2026-07-30) ───────────────────────────────────
+    # L'agrégation était faite directement en SQL, donc SANS passer par _comparable() — alors
+    # que cette fonction existait déjà et était appliquée par cb_prix_par_libelle(). Ce
+    # comparatif reposait ainsi sur la seule similarité trigramme, aveugle au sens, et
+    # produisait des paires fausses mesurées sur 2026 S1 Particuliers :
+    #   « Première carte (frais de destruction) » 10 000  ⇔  « Frais de destruction de chéquier » 15 500
+    #   « Levée d'opposition sur CARTE » 5 500            ⇔  « Levée d'opposition sur CHÈQUE » 15 000
+    #   « CONFECTION de carte en urgence »                ⇔  « CONFISCATION de la carte » 25 000
+    #   « Taxe de transfert » 0,6 %                       ⇔  « Transfert de carte à carte » 909 F
+    # Chacune faussait la moyenne de prix du concurrent, donc le classement de compétitivité.
+    # On récupère désormais les paires brutes et on filtre en Python, seul endroit où
+    # _comparable() est accessible.
+    from collections import defaultdict
+    acc = defaultdict(lambda: {"libs": set(), "mc": [], "ms": [], "gc": 0, "gs": 0})
+    n_rejets = 0
+    for r in rows:
+        if not _comparable(r["lib_sgci"], r["lib_conc"]):
+            n_rejets += 1
+            continue
+        # Un TAUX ne se compare pas à un MONTANT : 0,6 % et 909 F ne sont pas commensurables.
+        # GRATUIT reste comparable à MONTANT_FCFA (c'est un prix de zéro, pas une autre unité).
+        _PRIX = {"MONTANT_FCFA", "GRATUIT"}
+        tvc, tvs = (r["tv_conc"] or ""), (r["tv_sgci"] or "")
+        if (tvc in _PRIX) != (tvs in _PRIX):
+            n_rejets += 1
+            continue
+        a = acc[r["banque"]]
+        a["libs"].add(r["lib_conc"])
+        if tvc == "MONTANT_FCFA" and (r["mont_conc"] or 0) >= 100:
+            a["mc"].append(float(r["mont_conc"]))
+        if tvs == "MONTANT_FCFA" and (r["mont_sgci"] or 0) >= 100:
+            a["ms"].append(float(r["mont_sgci"]))
+        if r["grat_conc"]:
+            a["gc"] += 1
+        if r["grat_sgci"]:
+            a["gs"] += 1
+
+    if n_rejets:
+        print(f"[db] q6_paired {annee} {semestre} {segment} : {n_rejets} paire(s) non comparable(s) écartée(s)")
+
+    out = []
+    for banque, a in acc.items():
+        out.append({
+            "banque":      banque,
+            "n_communs":   len(a["libs"]),
+            "moy_conc":    round(sum(a["mc"]) / len(a["mc"])) if a["mc"] else None,
+            "moy_sgci":    round(sum(a["ms"]) / len(a["ms"])) if a["ms"] else None,
+            "n_grat_conc": a["gc"],
+            "n_grat_sgci": a["gs"],
+        })
+    # Même ordre qu'avant : moyenne concurrent croissante, valeurs absentes en fin de liste.
+    out.sort(key=lambda d: (d["moy_conc"] is None, d["moy_conc"] or 0))
+    return out
 
 
+# Chaîne BRUTE : les contre-obliques ne doivent PAS être doublées ici, contrairement aux mêmes
+# motifs écrits en clair dans les requêtes ci-dessus. \m et \M sont les bornes de mot du moteur
+# d'expressions régulières de PostgreSQL, pas de Python.
 _OCR_RE = r"\m[A-Za-z]\M\s+\m[A-Za-z]\M\s+\m[A-Za-z]\M"
 
 
@@ -2378,8 +2569,22 @@ def _word_overlap(a, b):
     wa, wb = _sig_words(a), _sig_words(b)
     if not wa or not wb:
         return 1.0
+
     def _m(x, y):
-        return x == y or (len(x) >= 4 and len(y) >= 4 and x[:4] == y[:4])
+        """Même mot, à la flexion près.
+
+        BUG CORRIGÉ le 2026-07-30 : la règle était « mêmes 4 premiers caractères », ce qui
+        confondait des mots de sens opposé partageant leur début — « CONFection de carte » et
+        « CONFiscation de la carte » obtenaient un recouvrement de 1,00 et étaient donc jugés
+        comparables. Idem « correction »/« confection ». L'intention initiale était de tolérer le
+        singulier/pluriel (chèque/chèques, compte/comptes) : cela s'obtient en exigeant que le
+        mot le plus court soit un PRÉFIXE de l'autre, et non un simple début commun.
+        « chèque » ⊂ « chèques » reste vrai ; « confection » n'est pas un préfixe de
+        « confiscation » — le faux appariement disparaît."""
+        if x == y:
+            return True
+        court, long = (x, y) if len(x) <= len(y) else (y, x)
+        return len(court) >= 4 and long.startswith(court)
     inter = sum(1 for x in wa if any(_m(x, y) for y in wb))
     union = len(wa) + len(wb) - inter
     return inter / union if union else 1.0
@@ -2405,13 +2610,51 @@ def _comparable(a, b):
                       "attestation": r"attestation|certificat",
                       "opposition": r"opposition|mainlev|lev[ée]e\s+d",
                       "prelevement": r"pr[ée]l[èe]vement",
-                      "decouvert": r"d[ée]couvert|d[ée]passement|agios"},
+                      "decouvert": r"d[ée]couvert|d[ée]passement|agios",
+                      # CYCLE DE VIE D'UN MOYEN DE PAIEMENT (ajouté le 2026-07-30). Sur un même
+                      # instrument et un même canal, l'ACTION reste discriminante : fabriquer une
+                      # carte, la confisquer, la corriger ou la détruire sont quatre services
+                      # distincts, facturés différemment. Faux appariements réellement produits :
+                      # « CONFECTION de carte en urgence » ⇔ « CONFISCATION de la carte en
+                      # urgence » (25 000 F) et ⇔ « CORRECTION de la carte en urgence ». Le reste
+                      # du libellé étant identique, aucune autre dimension ne pouvait les séparer.
+                      # « confection » couvre volontairement « re-confection » : refaire une carte
+                      # reste le même service que la fabriquer, on ne rejette que sur conflit clair.
+                      "confection":   r"confection",
+                      "confiscation": r"confiscation|confisqu",
+                      "correction":   r"correction|corrig",
+                      "destruction":  r"destruction|d[ée]truit",
+                      "renouvellement": r"renouvel",
+                      "remplacement": r"remplac"},
         "rail":   {"sica": r"\bsica\b", "star": r"\bstar\b", "rtgs": r"\brtgs\b", "swift": r"\bswift\b"},
         "compte": {"cheque": r"compte\s+ch[èe]ques?\b", "epargne": r"[ée]pargne", "courant": r"courant",
                    "joint": r"\bjoint", "indivis": r"indivis", "terme": r"\bterme\b"},
+        # INSTRUMENT — ajouté le 2026-07-30. Dimension aussi discriminante que le rail de virement,
+        # et elle manquait : rien n'empêchait d'apparier des frais portant sur une CARTE à des frais
+        # portant sur un CHÉQUIER. Faux appariements réellement produits par le comparatif des
+        # services communs : « Première carte (frais de destruction) » ⇔ « Frais de destruction de
+        # chéquier », « Levée d'opposition sur carte » ⇔ « Levée d'opposition sur chèque »,
+        # « Confection de carte en urgence » ⇔ « Confection d'un code en urgence ». Le reste du
+        # libellé étant identique, ni la similarité trigramme ni le recouvrement de mots ne
+        # pouvaient les écarter — seul le nom de l'instrument les distingue.
+        "instrument": {"carte": r"\bcartes?\b|\bcb\b",
+                       "chequier": r"ch[ée]quiers?",
+                       "cheque": r"\bch[èe]ques?\b",
+                       "code": r"\bcodes?\b|\bpin\b",
+                       "rib": r"\brib\b|relev[ée]\s+d.identit"},
         "reseau": {"visa": r"\bvisa\b", "mastercard": r"master\s?card", "gim": r"\bgim\b"},
-        "gamme":  {"classic": r"classi", "gold": r"\bgold\b", "infinite": r"infinite",
-                   "platinum": r"platin", "electron": r"electron", "prepaid": r"pr[ée]pay", "business": r"business"},
+        # GAMMES DE CARTE — enrichi le 2026-07-30 après lecture du comparatif réel.
+        # « horizon » ajouté : c'est une gamme propre à SGCI (Première carte VISA HORIZON,
+        # 15 000 F) qui n'était reconnue par aucun motif. Faute de gamme identifiée d'un côté,
+        # aucun conflit n'était détecté et elle se retrouvait appariée à « Carte VISA GOLD »
+        # de BACI (77 000 F) — deux gammes, deux positionnements, comparaison sans sens.
+        # « premier » est en revanche rattaché à GOLD volontairement : sur ce marché les deux
+        # désignent le même niveau de gamme, et BICICI l'écrit noir sur blanc dans son propre
+        # libellé — « Carte Visa Premier OU Carte Visa Gold ». Les séparer aurait supprimé une
+        # comparaison légitime (SGCI VISA PREMIER 70 000 ⇔ BACI VISA GOLD 77 000).
+        "gamme":  {"classic": r"classi", "gold": r"\bgold\b|\bpremier\b", "infinite": r"infinite",
+                   "platinum": r"platin", "horizon": r"horizon", "electron": r"electron",
+                   "prepaid": r"pr[ée]pay", "business": r"business"},
         "canal":  {"agence": r"agence|guichet|caisse", "ligne": r"en ligne|internet|\bweb\b",
                    "mobile": r"\bmobile\b", "connect": r"connect"},
         "devise": {"fcfa": r"\bf\s?cfa\b|franc", "eur": r"\beuros?\b|\beur\b", "usd": r"\bdollars?\b|\busd\b"},
@@ -2483,7 +2726,19 @@ def cb_prix_par_libelle(annee=2026, semestre="S1", segment="Particuliers"):
         WHERE banque = 'SGCI'
           AND annee = %s AND semestre = %s
           AND LOWER(segment) = LOWER(%s)
-          AND is_header = FALSE AND section IS NOT NULL
+          AND is_header = FALSE
+          -- ANCRAGE STRUCTUREL (2026-07-30) : « section IS NOT NULL » servait de filtre anti-OCR,
+          -- mais il écartait aussi des lignes parfaitement valides dont le numéro de section n'a
+          -- pas été capturé à l'extraction. Conséquence mesurée sur 2026 S1 Particuliers : les DIX
+          -- produits carte de SGCI (Première/Seconde carte VISA CLASSIC, HORIZON, PREMIER,
+          -- PLATINUM, INFINITE) ont section = NULL et disparaissaient donc du comparatif — la
+          -- gamme carte, l'un des postes les plus comparables du marché, était structurellement
+          -- absente. 86 lignes SGCI sur 334, soit un quart du catalogue, etaient ainsi perdues.
+          -- On accepte désormais une ligne dès qu'elle possède UN ancrage : section OU contexte
+          -- (94 lignes sur 100 sans section ont un contexte). L'effet anti-bruit est conserve --
+          -- une ligne sans aucun des deux reste écartée — et canonical_section() sait déjà
+          -- classer par contenu quand la section manque (cf. sa docstring).
+          AND (section IS NOT NULL OR NULLIF(TRIM(COALESCE(contexte,'')),'') IS NOT NULL)
           AND type_valeur IN ('MONTANT_FCFA','GRATUIT','TAUX_%%','SUR_DEMANDE','NUMERIQUE')
           AND libelle !~ %s
           AND LENGTH(TRIM(libelle)) BETWEEN 6 AND 110
@@ -2503,13 +2758,15 @@ def cb_prix_par_libelle(annee=2026, semestre="S1", segment="Particuliers"):
                o.montant       AS prix_conc,
                o.est_gratuit   AS grat_conc,
                o.type_valeur   AS tv_conc,
+               s.type_valeur   AS tv_sgci,
                COALESCE(o.unite,'') AS unite_conc
         FROM cb_tarifs s
         JOIN cb_tarifs o ON (
             o.banque != 'SGCI'
             AND o.annee  = s.annee  AND o.semestre = s.semestre
             AND LOWER(o.segment) = LOWER(s.segment)
-            AND o.is_header = FALSE AND o.section IS NOT NULL
+            AND o.is_header = FALSE   -- cf. note ANCRAGE STRUCTUREL ci-dessus
+            AND (o.section IS NOT NULL OR NULLIF(TRIM(COALESCE(o.contexte,'')),'') IS NOT NULL)
             AND o.type_valeur IN ('MONTANT_FCFA','GRATUIT','TAUX_%%','SUR_DEMANDE','NUMERIQUE')
             AND o.libelle !~ %s
             AND LENGTH(TRIM(o.libelle)) BETWEEN 6 AND 110
@@ -2527,7 +2784,8 @@ def cb_prix_par_libelle(annee=2026, semestre="S1", segment="Particuliers"):
         WHERE s.banque = 'SGCI'
           AND s.annee = %s AND s.semestre = %s
           AND LOWER(s.segment) = LOWER(%s)
-          AND s.is_header = FALSE AND s.section IS NOT NULL
+          AND s.is_header = FALSE   -- cf. note ANCRAGE STRUCTUREL ci-dessus
+          AND (s.section IS NOT NULL OR NULLIF(TRIM(COALESCE(s.contexte,'')),'') IS NOT NULL)
           AND s.type_valeur IN ('MONTANT_FCFA','GRATUIT','TAUX_%%','SUR_DEMANDE','NUMERIQUE')
           AND s.libelle !~ %s
           AND LENGTH(TRIM(s.libelle)) BETWEEN 6 AND 110
@@ -2548,8 +2806,17 @@ def cb_prix_par_libelle(annee=2026, semestre="S1", segment="Particuliers"):
     #    les comparaisons croisées (repricing, win-rate, exclusivités, coûts de changement).
     matches = {}  # lib_sgci → {banque: {libelle, prix, grat, tv}}
     _rejets = 0
+    # Un TAUX ne se compare pas à un MONTANT (2026-07-30). Constaté dans le comparatif réel :
+    # « Distributeurs Automatiques (DAB) par cartes étrangères » SGCI 3 500 F apparié à la ligne
+    # BICICI valant 4,5 — qui est un POURCENTAGE de retrait, pas un tarif fixe. Le tableau
+    # affichait donc « 3 500 » face à « 4,5 » comme si SGCI était 778 fois plus chère.
+    # GRATUIT reste comparable à MONTANT_FCFA : c'est un prix de zéro, pas une autre unité.
+    _UNITE_PRIX = {"MONTANT_FCFA", "GRATUIT"}
     for r in match_rows:
         if not _comparable(r["lib_sgci"], r["lib_conc"]):
+            _rejets += 1
+            continue
+        if ((r["tv_conc"] or "") in _UNITE_PRIX) != ((r["tv_sgci"] or "") in _UNITE_PRIX):
             _rejets += 1
             continue
         matches.setdefault(r["lib_sgci"], {})[r["banque"]] = {
@@ -2734,10 +3001,96 @@ def cb_prix_competitivite(annee=2026, semestre="S1", segment="Particuliers"):
     }
 
 
+@lru_cache(maxsize=8)
+def cb_prix_competitivite_tous_segments(annee=2026, semestre="S1"):
+    """Variante de cb_prix_competitivite COMBINANT Particuliers + Entreprises dans le MÊME panier
+    (2026-07-22, demande explicite du directeur : « tous les onglets doivent tenir compte de TOUTES
+    les données »). Réutilise EXACTEMENT la même logique de duel de prix (médiane par service,
+    victoire si prix ≤ médiane) — seule différence : le panier est l'union des services comparables
+    des deux segments, pas d'un seul. Mêmes garde-fous (≥3 banques présentes, ≥8 services classés)."""
+    stat = {b: {"wins": 0, "n": 0} for b in BANKS}
+    n_panier = 0
+
+    def _prix_banque(cell):
+        if not cell or cell.get("suspect"):
+            return None
+        if cell.get("grat"):
+            return 0.0
+        if cell.get("tv") == "MONTANT_FCFA" and cell.get("montant") and float(cell["montant"]) > 0:
+            return float(cell["montant"])
+        return None
+
+    for seg in ("Particuliers", "Entreprises"):
+        data = cb_prix_par_libelle(annee, semestre, seg)
+        for sec in data:
+            for ss in sec["sous_sections"]:
+                for svc in ss["services"]:
+                    if svc.get("mkt_median") is None:
+                        continue
+                    prix = {}
+                    p_sgci = _prix_banque(svc.get("sgci"))
+                    if p_sgci is not None:
+                        prix["SGCI"] = p_sgci
+                    for b, cell in (svc.get("concurrents") or {}).items():
+                        p = _prix_banque(cell)
+                        if p is not None:
+                            prix[b] = p
+                    if len(prix) < 3:
+                        continue
+                    ref = statistics.median(prix.values())
+                    n_panier += 1
+                    for b, p in prix.items():
+                        stat[b]["n"] += 1
+                        if p <= ref:
+                            stat[b]["wins"] += 1
+
+    classement = []
+    for b in BANKS:
+        n = stat[b]["n"]
+        if n == 0:
+            continue
+        classement.append({
+            "banque":  b,
+            "winrate": round(100 * stat[b]["wins"] / n, 1),
+            "wins":    stat[b]["wins"],
+            "n":       n,
+        })
+    classes = sorted([c for c in classement if c["n"] >= 8],
+                     key=lambda c: (-c["winrate"], -c["n"]))
+    rang_sgci = next((i + 1 for i, c in enumerate(classes) if c["banque"] == "SGCI"), None)
+    sgci = next((c for c in classement if c["banque"] == "SGCI"), None)
+    return {
+        "annee": annee, "semestre": semestre, "segment": "Tous",
+        "n_services_panier": n_panier,
+        "classement": classes,
+        "n_classees": len(classes),
+        "sgci": sgci,
+        "rang_sgci": rang_sgci,
+    }
+
+
 # ════════════════════════════════════════════════════════════════════════════
 #  AGENT RÉGL — récupération SÉMANTIQUE réelle sur regl_documents (pgvector)
 # ════════════════════════════════════════════════════════════════════════════
 _REGL_MODEL = None
+
+# ── NETTOYAGE DES MARQUEURS D'EXTRACTION (2026-07-30) ────────────────────────────────────
+# Les chunks de regl_documents portent les marqueurs techniques du pipeline d'extraction —
+# « [PAGE 4] » et « [METRICS chars=2803 density=5.5929 ocr_pct=0.0 tables=NON ocr_conf=N/A] » —
+# insérés au fil du texte à chaque changement de page. 85 chunks sur 88 en contiennent.
+# Ils étaient servis tels quels : au dashboard (endpoint /api/regl) comme au RAG du chat, qui
+# les recevait donc dans le contexte réglementaire transmis au LLM. Nettoyage à la LECTURE
+# seulement — la base n'est pas modifiée, l'information de page reste disponible si un jour on
+# veut l'exploiter comme métadonnée plutôt que comme texte.
+_RE_MARQUEURS_EXTRACTION = re.compile(r"\[(?:PAGE\s+\d+|METRICS[^\]]{0,200})\]\s*")
+
+
+def nettoyer_texte_regl(t):
+    """Retire les marqueurs [PAGE n] / [METRICS ...] d'un contenu réglementaire."""
+    if not t:
+        return t
+    return _RE_MARQUEURS_EXTRACTION.sub(" ", t).strip()
+
 
 def _regl_embed(text):
     """Encode une requête en vecteur 768d (modèle multilingue, chargé une fois)."""
@@ -2762,7 +3115,7 @@ def regl_semantic(q, k=3):
                ORDER BY embedding <=> %s::vector
                LIMIT %s""",
             (vec, vec, k))
-        out = [{"fichier": r["fichier"], "contenu": (r["contenu"] or "").strip()[:320],
+        out = [{"fichier": r["fichier"], "contenu": nettoyer_texte_regl(r["contenu"])[:320],
                 "score": round(float(r["score"]), 3)} for r in rows if r.get("contenu")]
         if out:
             return out
@@ -2782,5 +3135,5 @@ def regl_keyword(q, k=3):
     rows = query(
         f"""SELECT fichier, contenu FROM regl_documents
             WHERE {conds} ORDER BY chunk_index LIMIT %s""", params)
-    return [{"fichier": r["fichier"], "contenu": (r["contenu"] or "").strip()[:320], "score": None}
+    return [{"fichier": r["fichier"], "contenu": nettoyer_texte_regl(r["contenu"])[:320], "score": None}
             for r in rows if r.get("contenu")]

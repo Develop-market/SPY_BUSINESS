@@ -26,7 +26,7 @@ DB_PARAMS = {
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL   = "gemini-2.0-flash"
 
-GROQ_MODEL   = "llama-3.1-8b-instant"  # 70b quotas épuisés — repasser à llama-3.3-70b-versatile demain
+GROQ_MODEL   = "llama-3.3-70b-versatile"  # remis au modèle prévu le 2026-07-22 (le "demain" annoncé dans ce commentaire n'a jamais été fait — le chat tournait sur le petit 8b depuis)
 
 # Toutes les clés Groq — rotation automatique sur quota épuisé (journalier OU budget par
 # minute plein). Seules 4 clés sur les 12 disponibles dans .env étaient utilisées ici,

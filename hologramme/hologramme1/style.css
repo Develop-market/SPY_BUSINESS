@@ -1,0 +1,130 @@
+/* ==========================================================================
+   COMPOSANT PUR : STYLES CSS DE L'ORBE HOLOGRAPHIQUE
+   ========================================================================== */
+
+/* Centrage minimal de la page pour la démonstration */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #0f172a; /* Arrière-plan sombre sci-fi */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* --- CODE EXACT DE L'HOLOGRAMME --- */
+.hologram-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    background: transparent;
+    position: relative;
+    z-index: 5;
+}
+
+.hologram-orb {
+    width: 80px;  /* Légèrement agrandi pour bien l'admirer seul */
+    height: 80px;
+    border-radius: 50%;
+    /* Couleur cyan holographique */
+    background: radial-gradient(circle, rgba(0, 212, 255, 0.8) 0%, rgba(0, 212, 255, 0.3) 50%, transparent 70%);
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.6), 0 0 50px rgba(0, 212, 255, 0.4), inset 0 0 25px rgba(255, 255, 255, 0.5);
+    animation: floatOrb 4s ease-in-out infinite;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* inner glowing core (cœur brillant) */
+.hologram-orb::after {
+    content: '';
+    position: absolute;
+    top: 25%;
+    left: 25%;
+    right: 25%;
+    bottom: 25%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 1);
+    animation: pulseCore 2s infinite;
+}
+
+/* scanlines / holographic rings (anneau rotatif) */
+.hologram-orb::before {
+    content: '';
+    position: absolute;
+    top: -15%; left: -15%; right: -15%; bottom: -15%;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 212, 255, 0.5);
+    transform: rotateX(70deg) rotateY(0deg);
+    animation: rotateRing 6s linear infinite;
+    pointer-events: none;
+}
+
+.hologram-shadow {
+    width: 50px;
+    height: 12px;
+    background: rgba(0, 212, 255, 0.2);
+    border-radius: 50%;
+    margin-top: 15px;
+    filter: blur(4px);
+    animation: shadowPulse 4s ease-in-out infinite;
+}
+
+/* ÉTAT : L'IA parle (Résonance lumineuse activée via .speaking) */
+.hologram-orb.speaking {
+    animation: floatOrb 4s ease-in-out infinite, pulseSpeaking 0.4s infinite alternate;
+}
+
+.hologram-orb.speaking::before {
+    border: 3px solid rgba(0, 212, 255, 0.8);
+    animation: rotateRing 2s linear infinite;
+}
+
+/* --- ANIMATIONS KEYFRAMES --- */
+@keyframes floatOrb {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+@keyframes pulseCore {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+@keyframes rotateRing {
+    0% { transform: rotateX(70deg) rotateZ(0deg); }
+    100% { transform: rotateX(70deg) rotateZ(360deg); }
+}
+@keyframes shadowPulse {
+    0%, 100% { transform: scale(1); opacity: 0.2; }
+    50% { transform: scale(0.8); opacity: 0.1; }
+}
+@keyframes pulseSpeaking {
+    0% { box-shadow: 0 0 25px rgba(0, 212, 255, 0.6), 0 0 50px rgba(0, 212, 255, 0.4); transform: scale(1) translateY(-5px); }
+    100% { box-shadow: 0 0 50px rgba(0, 212, 255, 0.9), 0 0 90px rgba(0, 212, 255, 0.7); transform: scale(1.15) translateY(-5px); }
+}
+
+/* --- Bouton minimaliste de démo --- */
+.demo-controls {
+    margin-top: 40px;
+}
+.demo-controls button {
+    background: rgba(0, 212, 255, 0.15);
+    border: 1px solid rgba(0, 212, 255, 0.4);
+    color: #00d4ff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.demo-controls button:hover {
+    background: rgba(0, 212, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+    transform: translateY(-2px);
+}

@@ -26,6 +26,18 @@ server_err.txt
 *.orig
 *~
 
+# ── Sauvegardes horodatées (2026-08-07) ──
+# archive/ ne contient que des copies datées d'avant chaque écriture : utiles en local pour
+# revenir en arrière, sans intérêt pour qui lit le code. Elles pesaient déjà plusieurs Mo.
+**/archive/
+web_facts_backup_*.json
+exclusivites_validation_backup_*.json
+
+# ── Vidages d'API de mise au point ──
+# Réponses brutes d'endpoints écrites pendant le débogage. 49 s'étaient accumulées à la racine
+# (2,4 Mo) avant d'être retirées le 2026-08-06 : le motif évite qu'elles reviennent.
+scratch_*.json
+
 # ── Système ──
 desktop.ini
 .DS_Store

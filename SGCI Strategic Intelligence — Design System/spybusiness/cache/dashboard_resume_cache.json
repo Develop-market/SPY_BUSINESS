@@ -341,5 +341,26 @@
   "resume_v8_cb_Particuliers_0d11e30a6738@meta": {
     "generated_at": "2026-07-13T14:07:15",
     "stale": false
+  },
+  "resume_v8_strategie_Particuliers_7440744a0b37": {
+    "titre": "Stratégie SGCI pour le marché des particuliers",
+    "executif": "La situation actuelle de SGCI est caractérisée par une position de leader en termes de résultat net, mais avec une croissance lente et un coût du risque élevé. Le marché est très concurrentiel, avec des banques comme BICICI et ECOBANK qui gagnent des parts de marché. La stratégie à trois ans vise à lever le verrou du risque, à récupérer le revenu laissé sur la table et à transformer l'avance en résultat net en relance de la croissance. Le scénario central projette un résultat net de 132,0 Mds FCFA à trois ans, soit une augmentation de 30,2% par rapport à aujourd'hui.",
+    "points": [
+      "Le coût du risque élevé et en hausse représente 13,9% du PNB en moyenne sur trois ans.",
+      "La croissance lente de SGCI se traduit par une perte de parts de marché, avec une croissance du résultat net de seulement 2,0% par an.",
+      "Le résultat net de SGCI est actuellement de 101,4 Mds FCFA, avec un objectif de 132,0 Mds FCFA à trois ans.",
+      "Le catalogue de services de SGCI compte actuellement 184 services, avec un objectif de 217 services à trois ans.",
+      "Le coût du risque devrait diminuer à 12,0% du PNB à trois ans, selon le scénario central.",
+      "Le PNB devrait augmenter à 340,0 Mds FCFA à trois ans, selon le scénario central.",
+      "La rentabilité des fonds propres (ROE) de SGCI est actuellement inférieure à la moyenne du marché."
+    ],
+    "analyse": "La situation actuelle de SGCI est le résultat d'une combinaison de facteurs, notamment une stratégie de croissance lente et un coût du risque élevé. La concurrence sur le marché des particuliers est très élevée, avec des banques comme BICICI et ECOBANK qui gagnent des parts de marché grâce à leur capacité à innover et à offrir des services à faible coût. La stratégie à trois ans vise à répondre à ces défis en levant le verrou du risque, en récupérant le revenu laissé sur la table et en transformant l'avance en résultat net en relance de la croissance. L'analyse des forces et des faiblesses de SGCI montre que la banque a une position de leader en termes de résultat net, mais qu'elle doit améliorer sa capacité à innover et à offrir des services à faible coût.",
+    "conclusion": "La priorité n°1 pour SGCI est de lever le verrou du risque et de récupérer le revenu laissé sur la table, avec un objectif de réduire le coût du risque à 12,0% du PNB à trois ans. Cela nécessitera une stratégie de diversification des revenus et une amélioration de la capacité de SGCI à innover et à offrir des services à faible coût. La réussite de cette stratégie permettra à SGCI de transformer son avance en résultat net en relance de la croissance, avec un objectif de résultat net de 132,0 Mds FCFA à trois ans.",
+    "section": "Stratégie",
+    "segment": "Particuliers"
+  },
+  "resume_v8_strategie_Particuliers_7440744a0b37@meta": {
+    "generated_at": "2026-07-25T11:20:31",
+    "stale": false
   }
 }

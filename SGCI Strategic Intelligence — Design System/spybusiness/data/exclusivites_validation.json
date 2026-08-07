@@ -1,0 +1,1212 @@
+{
+  "_doc": "Validation WEB des exclusivités CB — Agent Web reproductible & sourcé (2026-06-23). PROBLÈME corrigé : cb_analyse_q3 / cb_exclusivites_axes déduisent l'exclusivité des GRILLES TARIFAIRES publiées ; or « absent de la grille publiée d'un concurrent » ≠ « le concurrent ne l'offre pas ». Beaucoup de faux exclusifs. Ce fichier (1) retire le BRUIT (lignes de grille / fragments OCR ≠ services), (2) reclasse chaque service réel : partage / differenciant / non_contredit, avec sources web.",
+  "_principe": "Le web peut RÉFUTER une exclusivité de façon fiable (trouver un concurrent = ce n'est plus exclusif) mais PAS la confirmer à 100% (ne rien trouver ≠ preuve). Le verdict le plus élevé reste « non_contredit », jamais « certifié ».",
+  "_legende": {
+    "partage": "fonction proposée aussi par des concurrents (nommés) OU service bancaire standard → PAS une exclusivité",
+    "differenciant": "le NOM/produit est propre à SGCI mais la fonction existe ailleurs → différenciant de marque, pas exclusivité de fonction",
+    "non_contredit": "présent chez SGCI, aucun concurrent trouvé (grille + web) → exclusivité plausible, NON certifiée"
+  },
+  "bruit_patterns": [
+    "pour tout montant",
+    "montant compris entre",
+    "montant supérieur",
+    "montant inférieur",
+    "montant superieur",
+    "montant inferieur",
+    "< ou = 500",
+    "> 500",
+    "y compris autorisation",
+    "par série de",
+    "par serie de",
+    "numéros de vignettes",
+    "numeros de vignettes",
+    "client décédé",
+    "client decede",
+    "transaction déplacées",
+    "transaction deplacees",
+    "demande de relèvement",
+    "demande de relevement",
+    "entre 1 et",
+    "supérieur à 2",
+    "sur devis",
+    "opposition série",
+    "opposition serie",
+    "forçage",
+    "forcage",
+    "impayé issu",
+    "impaye issu",
+    "pv de dépôt",
+    "pv de depot",
+    "lettre-chèques",
+    "lettre-cheques",
+    "remise (imputable",
+    "a terme gratuit",
+    "à terme gratuit",
+    "solde minimum",
+    "cotisation minimum",
+    "(solde",
+    "prix de vente de la carte",
+    "personnalisation de la carte",
+    "cotisation",
+    "revenu inférieur",
+    "revenu inferieur",
+    "revenu supérieur",
+    "revenu superieur",
+    "moyen terme",
+    "durée entre",
+    "duree entre",
+    "entre 61 et",
+    "comptepayant",
+    "compte payant",
+    "non domiciliés",
+    "non domicilies",
+    "frais dencaiss",
+    "décision de justice",
+    "decision de justice",
+    "compulsoire",
+    "à l'opacité",
+    "a l'opacite",
+    "sous-vi simple"
+  ],
+  "regles": [
+    {
+      "patterns": [
+        "retrait sans carte",
+        "cardless",
+        "sans carte",
+        "virement électronique permanent",
+        "virement electronique permanent",
+        "via connect",
+        "connect",
+        "banque en ligne",
+        "application mobile et web",
+        "vers société générale",
+        "vers societe generale"
+      ],
+      "verdict": "partage",
+      "concurrents": [
+        "BNI (Cardless / BNIONLINE)",
+        "UBA Côte d'Ivoire (retrait sans carte)",
+        "Ecobank (Xpress Cash / Ecobank Mobile)",
+        "NSIA (MyBanque)",
+        "BICICI",
+        "Caisse d'Épargne + MTN"
+      ],
+      "note": "Retrait sans carte, banque en ligne et virement digital NE sont PAS exclusifs : Ecobank Mobile, NSIA MyBanque, BICICI, BNI, UBA proposent des apps équivalentes. « SG CONNECT » est le NOM de l'appli SGCI, pas une fonction exclusive.",
+      "sources": [
+        "https://www.bni.ci/produits-services/particuliers/banque-digitale/178-cardless",
+        "https://www.ubacotedivoire.com/les-services-bancaires-personnels/solutions-digitales/retrait-sans-carte/",
+        "https://ecobank.com/sn/personal-banking/ways-to-bank/mobile/mobile-banking-via-app"
+      ]
+    },
+    {
+      "patterns": [
+        "diaspora",
+        "ivoiriens résidents",
+        "ivoiriens residents",
+        "résidents à l'étranger",
+        "residents a l'etranger",
+        "ivoiriens à l'étranger",
+        "ivoiriens a l'etranger"
+      ],
+      "verdict": "differenciant",
+      "concurrents": [
+        "BICICI (Offre Diaspora)",
+        "Bank of Africa (Ivoiriens du monde)",
+        "Ecobank Diaspora",
+        "NSIA (accompagnement diaspora)"
+      ],
+      "note": "L'offre diaspora n'est pas exclusive : BICICI, BOA, Ecobank et NSIA en proposent toutes une. « PACK DIASPORA » est le NOM commercial SGCI ; la fonction existe ailleurs.",
+      "sources": [
+        "https://www.bicici.com/particuliers/comptes/offre-diaspora/",
+        "https://boacoteivoire.com/particuliers/ivoiriens-du-monde/"
+      ]
+    },
+    {
+      "patterns": [
+        "pack ",
+        "package",
+        "formule ",
+        "banque patrimoniale",
+        "compte professionnel",
+        "pack elève",
+        "pack eleve",
+        "pack horizon",
+        "pack banque",
+        "premium",
+        "premier",
+        "soge",
+        "yaconfort",
+        "prestibad",
+        "prestige",
+        "horizon",
+        "soge-invest",
+        "advantage",
+        "eleveer",
+        "offre mx",
+        "visa mx",
+        "elite",
+        "distinction",
+        "compte junior",
+        "av'nir",
+        "avnir",
+        "evolution",
+        "daily mail",
+        "classic prestige",
+        "pro croissance",
+        "plan épargne atlantique",
+        "pack atlantique",
+        "visa exécutive",
+        "visa executive",
+        "visa atlantique",
+        "atlantique classic",
+        "flexicard",
+        "privilège",
+        "privilege",
+        "emeraude",
+        "diamond",
+        "compte diamond",
+        "compte pro"
+      ],
+      "verdict": "differenciant",
+      "concurrents": [
+        "toutes les banques (chacune a SA gamme de packs/cartes premium sous un autre nom)"
+      ],
+      "note": "PACKS/FORMULES/CARTES de marque, NOMS commerciaux propres à chaque banque (web vérifié) : SGCI (DIASPORA/HORIZON, PRESTIBAD, SOGE-INVEST, YACONFORT), Ecobank (Advantage, Visa MX, Eleveer), BNI (Elite, Distinction, Junior, Av'nir, Evolution), BACI/Atlantique (Pro Croissance, Plan Épargne, Pack Atlantique, Visa Atlantique), BICICI (FLEXICARD), SIB (Privilège), NSIA (Emeraude, Diamond). Le PRINCIPE (compte packagé, carte premium, compte jeune) est UNIVERSEL → différenciant de marque, PAS exclusivité de fonction.",
+      "sources": [
+        "https://particuliers.societegenerale.ci/fr/banque-quotidien/packages/",
+        "https://www.bni.ci/produits-services/particuliers/packs-bni/133-pack-elite",
+        "https://ads.weblogy.net/clients/reportage/ecobank/2017/ecobank-advantage/index.asp",
+        "https://www.banqueatlantique.net/bn/particuliers/pack-atlantique/"
+      ]
+    },
+    {
+      "patterns": [
+        "découvert",
+        "decouvert",
+        "avance conventionnelle",
+        "assurance décès emprunteur",
+        "assurance deces emprunteur",
+        "(ade)",
+        "taux d'intérêt",
+        "taux d'interet",
+        "minimum garanti",
+        "retrait avec chèque",
+        "retrait avec cheque",
+        "chèque de guichet",
+        "cheque de guichet",
+        "retrait dab",
+        "retrait gab",
+        "retrait cash",
+        "retrait carte",
+        "retrait dag",
+        "demande de solde",
+        "rechargement",
+        "achat tpe",
+        "paiement en ligne",
+        "tpe en",
+        "cash advance",
+        "compte titre",
+        "compte étrangers",
+        "compte etrangers",
+        "comptes intérieurs en devises",
+        "comptes interieurs en devises",
+        "compte en devise",
+        "comptes en devise",
+        "émission de titre",
+        "emission de titre",
+        "reprise de titre",
+        "consolidation de crédit",
+        "consolidation de credit",
+        "avance sur épargne",
+        "avance sur epargne",
+        "carte compte jeune",
+        "compte jeune",
+        "responsabilité civile",
+        "responsabilite civile",
+        "assistance études",
+        "assistance etudes",
+        "my bicici",
+        "bicicinet",
+        "pin change",
+        "code pin",
+        "changement de code",
+        "swift",
+        "message swift",
+        "tirage de chèques",
+        "tirage de cheques",
+        "lettre de recommandation",
+        "avis de passage",
+        "confection d'une",
+        "confection de",
+        "relevé de solde",
+        "releve de solde",
+        "relevé d'opérations",
+        "releve d'operations",
+        "duplication de pièces",
+        "duplication de pieces",
+        "duplicata",
+        "réclamation",
+        "reclamation",
+        "mouvement de compte",
+        "mouvements de compte",
+        "fondation de chéquier",
+        "fondation de chequier",
+        "taux de prime",
+        "saisie attribution",
+        "conservatoire de créance",
+        "conservatoire de creance",
+        "vidéosurveillance",
+        "videosurveillance",
+        "lettre de garantie",
+        "chéquier barré",
+        "chequier barre",
+        "chéquier barné",
+        "chequier barne",
+        "virement externe",
+        "effets normalisés",
+        "effets normalises",
+        "lettres-effets",
+        "carnets d'effets",
+        "compte dormant",
+        "compte inactif",
+        "comptes improductifs",
+        "droit d'entrée",
+        "droit d'entree",
+        "droit de sortie",
+        "bank to wallet",
+        "engagements par signature",
+        "récupération de contrôle",
+        "recuperation de controle"
+      ],
+      "verdict": "partage",
+      "concurrents": [
+        "toutes les banques universelles (découvert, retrait DAB/GAB, paiement en ligne/TPE, demande de solde, comptes en devises, titres, assurance emprunteur…)"
+      ],
+      "note": "Services bancaires STANDARDS / d'usage courant (découvert, retrait DAB/GAB, paiement en ligne & TPE, demande de solde, rechargement, comptes en devises, compte titres, assurance emprunteur…). Toutes les banques les offrent — ils n'apparaissent « exclusifs » que parce que chaque banque les nomme différemment (réseaux NBCI/NBO…). PAS des exclusivités. (Services SPÉCIALISÉS OPCVM/gestion sous mandat : restent « non_contredit » plausibles, non vérifiés web.)",
+      "sources": [
+        "https://www.bceao.int/fr/content/paysage-bancaire"
+      ]
+    }
+  ],
+  "services_auto": {
+    "gestion sous mandat achat vente": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGBCI",
+        "BNI",
+        "Ecobank",
+        "NSIA",
+        "UBA"
+      ],
+      "note": "Selon guidedufonctionnaire.com, ces banques proposent des services similaires à la gestion sous mandat.",
+      "sources": [
+        "https://www.bceao.int/sites/default/files/2026-04/LISTE%20DES%20%C3%89TABLISSEMENTS%20DE%20CR%C3%89DIT%20AGR%C3%89%C3%89S%20DANS%20L%27UMOA%20au%2031%20d%C3%A9cembre%202025.pdf",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.fgd-umoa.org/en/membership/member-banks",
+        "https://ecobank.com/ci/corporate-investment-banking/investment-banking/news?news=20260520105853937bvvs7s2q6b"
+      ],
+      "date": "2026-06-23",
+      "_libelle": "Gestion sous Mandat (Achat/Vente)"
+    },
+    "operation pour le compte d opcvm": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGBCI",
+        "BNI",
+        "Ecobank CI",
+        "NSIA Banque",
+        "UBA",
+        "BACI"
+      ],
+      "note": "Selon les sources web, plusieurs banques ivoiriennes proposent des services bancaires pour les OPCVM, comme la SGBCI, la BNI, Ecobank CI, NSIA Banque, UBA et BACI.",
+      "sources": [
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://www.fgd-umoa.org/en/membership/member-banks",
+        "https://www.facebook.com/agenceecofin/posts/cdc-ci-capital-et-nsia-banque-sallient-pour-acc%C3%A9l%C3%A9rer-linclusion-financi%C3%A8re-en-c/1026249739529644"
+      ],
+      "date": "2026-06-23",
+      "_libelle": "Opération pour le compte d' OPCVM"
+    },
+    "demande de sort des virements arecevoir a l initiative du client": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGBCI",
+        "BNI",
+        "Ecobank",
+        "NSIA",
+        "BACI"
+      ],
+      "note": "Selon Le Guide du Fonctionnaire, ces banques proposent des services de gestion de comptes et de virements, ce qui inclut potentiellement la demande de sort des virements à recevoir à l'initiative du client.",
+      "sources": [
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.instagram.com/p/DTiRv_5D3BR?hl=en",
+        "https://www.facebook.com/groups/420194575818788/posts/1306923870479183",
+        "https://www.banqueatlantique.net/wp-content/uploads/2026/01/MISE-A-JOUR-ENTREPRISES_CONDITIONS-DEBITRICES-BACI-Semestre-1-2026.pdf"
+      ],
+      "date": "2026-06-23",
+      "_libelle": "Demande de sort des virements àrecevoir à l'initiative du client"
+    },
+    "orrh uemoa": {
+      "verdict": "partage",
+      "concurrents": [
+        "Société Générale Côte d'Ivoire",
+        "NSIA Banque Côte d'Ivoire",
+        "Ecobank",
+        "Banque Internationale pour l'Industrie et le Commerce (BIIC)",
+        "Banque Sahélo-Saharienne pour l'Investissement et le Commerce (BSIC)",
+        "United Bank for Africa (UBA) Benin",
+        "Coris Bank International"
+      ],
+      "note": "Plusieurs banques de la zone UEMOA, dont certaines en Côte d'Ivoire, offrent des services bancaires similaires, selon les données de CompareTaBanque et du paysage bancaire de l'UMOA.",
+      "sources": [
+        "https://compare-ta-banque.vercel.app",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://www.fgd-umoa.org/en/membership/member-banks",
+        "https://www.instagram.com/p/DW6uPhNDNN_"
+      ],
+      "date": "2026-06-23",
+      "_libelle": "ORRH - UEMOA"
+    },
+    "fonds communs de placement fcp": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGBCI",
+        "NSIA Banque"
+      ],
+      "note": "Selon les sources web, SGBCI et NSIA Banque proposent des Fonds Communs de Placement (FCP) en Côte d'Ivoire.",
+      "sources": [
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://particuliers.societegenerale.ci/fr/epargner/placements/fonds-communs-placement",
+        "https://www.instagram.com/p/DWeAIIxjG4d",
+        "https://www.bceao.int/fr/content/paysage-bancaire"
+      ],
+      "date": "2026-06-23",
+      "_libelle": "Fonds Communs de Placement (FCP)"
+    },
+    "fcp diversifies": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGBCI",
+        "BNI",
+        "Ecobank",
+        "NSIA",
+        "UBA"
+      ],
+      "note": "Selon guidedufonctionnaire.com, ces banques proposent des services bancaires aux fonctionnaires en Côte d'Ivoire.",
+      "sources": [
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.instagram.com/p/DWeAIIxjG4d",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://www.fgd-umoa.org/en/membership/member-banks"
+      ],
+      "date": "2026-06-23",
+      "_libelle": "FCP Diversifiés"
+    },
+    "droit de garde des clients ordinaires valeur du porte feuille d actifs conserves": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres)"
+      ],
+      "note": "NSIA propose un « Compte Titres » avec grille tarifaire de garde/tenue de compte titres (commissions par ligne, degressif par trimestre : 2500 F/1 ligne, 2000 F/2-10 lignes) - un equivalent fonctionnel au droit de garde SGCI, sous un autre nom de produit (compte-titres dedie, pas capture dans l'extraction standard de grille tarifaire). Verifie par recherche web le 2026-07-19.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ]
+    },
+    "droit de garde des clients ordinaires valeur du portefeuille d actifs conserves": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres)"
+      ],
+      "note": "NSIA propose un « Compte Titres » avec grille tarifaire de garde/tenue de compte titres (commissions par ligne, degressif par trimestre : 2500 F/1 ligne, 2000 F/2-10 lignes) - un equivalent fonctionnel au droit de garde SGCI, sous un autre nom de produit (compte-titres dedie, pas capture dans l'extraction standard de grille tarifaire). Verifie par recherche web le 2026-07-19.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ]
+    },
+    "droit de garde du portefeuille des opcvm valeur du portefeuille d actifs conserves": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres)"
+      ],
+      "note": "Meme constat que le droit de garde clients ordinaires : NSIA propose un Compte Titres avec grille de frais de garde/conservation, probable equivalent fonctionnel non capture dans l'extraction standard. Verifie par recherche web le 2026-07-19.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ]
+    },
+    "droit de garde du portefeuille des opcvm valeur du porte feuille d actifs conserves": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres)"
+      ],
+      "note": "Meme constat que le droit de garde clients ordinaires : NSIA propose un Compte Titres avec grille de frais de garde/conservation, probable equivalent fonctionnel non capture dans l'extraction standard. Verifie par recherche web le 2026-07-19.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ]
+    },
+    "le carnet de 100 feuillets stand by letter of credit sblc": {
+      "verdict": "partage",
+      "concurrents": [
+        "BICICI",
+        "ECOBANK",
+        "NSIA",
+        "BNI",
+        "SIB",
+        "BACI",
+        "et toutes les grandes banques internationales"
+      ],
+      "note": "La lettre de crédit Stand-By (SBLC) est un instrument bancaire international STANDARD (garantie de paiement), proposé par pratiquement toutes les banques commerciales actives en trade finance (CIC, Crédit Agricole, Scotiabank cités en exemple à l'international ; BICICI confirmée active sur le financement PME/garanties en Côte d'Ivoire). Ce n'est en aucun cas une exclusivité SGCI.",
+      "sources": [
+        "https://www.cic.fr/fr/entreprises/international/la-lettre-de-credit-stand-by.html",
+        "https://international.groupecreditagricole.com/fr/solutions/solution/201,lettre-de-credit-standby",
+        "https://www.ecofinagency.com/news-finances/1606-56517-bicici-secures-17-7-million-guarantee-to-expand-sme-lending-in-ivory-coast"
+      ],
+      "date": "2026-07-20",
+      "_libelle": "le carnet de 100 feuillets Stand By letter of credit (SBLC)"
+    },
+    "e cnps mois": {
+      "verdict": "partage",
+      "concurrents": [
+        "BACI (Atlantic Pay CNPS)"
+      ],
+      "note": "Contradiction trouvée (2026-07-20) : BACI propose 'Atlantic Pay CNPS', service de paiement en ligne des cotisations CNPS/CNAM, déjà confirmé comme fonctionnellement équivalent à SOGECASHNET de SGCI (validation croisée sur le manque correspondant côté BACI). SGCI n'est donc PAS seule à offrir le paiement électronique des cotisations sociales.",
+      "sources": [
+        "DB interne exclusivites_validation.json (entrée atlantic pay cnps, vérifiée web le 2026-07-19)"
+      ],
+      "date": "2026-07-20",
+      "_libelle": "E-CNPS |mois"
+    },
+    "assistance tpe a connexion gprs an": {
+      "verdict": "partage",
+      "concurrents": [
+        "toutes les banques équipant des commerçants en TPE"
+      ],
+      "note": "L'assistance technique sur Terminal de Paiement Électronique (TPE) est un service standard fourni par toute banque distribuant des TPE à ses commerçants (maintenance, connexion réseau) — pas une exclusivité de fonction, juste un service after-sale attendu du marché.",
+      "sources": [
+        "DB interne (raisonnement métier — service TPE universel)"
+      ],
+      "date": "2026-07-20",
+      "_libelle": "Assistance TPE à connexion GPRS | an"
+    },
+    "assistance tpe a connexion 3g mois": {
+      "verdict": "partage",
+      "concurrents": [
+        "toutes les banques équipant des commerçants en TPE"
+      ],
+      "note": "L'assistance technique sur Terminal de Paiement Électronique (TPE) est un service standard fourni par toute banque distribuant des TPE à ses commerçants (maintenance, connexion réseau) — pas une exclusivité de fonction, juste un service after-sale attendu du marché.",
+      "sources": [
+        "DB interne (raisonnement métier — service TPE universel)"
+      ],
+      "date": "2026-07-20",
+      "_libelle": "Assistance TPE à connexion 3G | mois"
+    },
+    "assistance tpe mois": {
+      "verdict": "partage",
+      "concurrents": [
+        "toutes les banques équipant des commerçants en TPE"
+      ],
+      "note": "L'assistance technique sur Terminal de Paiement Électronique (TPE) est un service standard fourni par toute banque distribuant des TPE à ses commerçants (maintenance, connexion réseau) — pas une exclusivité de fonction, juste un service after-sale attendu du marché.",
+      "sources": [
+        "DB interne (raisonnement métier — service TPE universel)"
+      ],
+      "date": "2026-07-20",
+      "_libelle": "Assistance TPE | mois"
+    },
+    "droit de garde du portefeuille en gestion sous mandat": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGBCI",
+        "BNI",
+        "Ecobank",
+        "NSIA",
+        "UBA"
+      ],
+      "note": "La Gestion sous Mandat (Achat/Vente) elle-même est déjà confirmée partagée avec SGBCI, BNI, Ecobank, NSIA, UBA (entrée existante 'gestion sous mandat achat vente'). Un service de gestion sous mandat implique structurellement des frais de garde sur le portefeuille géré — la même logique s'applique au droit de garde associé, qui n'a pas de raison d'être une exclusivité SGCI isolée.",
+      "sources": [
+        "DB interne exclusivites_validation.json (entrée gestion sous mandat achat vente, vérifiée web)"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Droit de garde du portefeuille en gestion sous mandat"
+    },
+    "droit de garde du portefeuille en gestion sous mandat valeur du portefeuille d actifs conserves": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGBCI",
+        "BNI",
+        "Ecobank",
+        "NSIA",
+        "UBA"
+      ],
+      "note": "La Gestion sous Mandat (Achat/Vente) elle-même est déjà confirmée partagée avec SGBCI, BNI, Ecobank, NSIA, UBA (entrée existante 'gestion sous mandat achat vente'). Un service de gestion sous mandat implique structurellement des frais de garde sur le portefeuille géré — la même logique s'applique au droit de garde associé, qui n'a pas de raison d'être une exclusivité SGCI isolée.",
+      "sources": [
+        "DB interne exclusivites_validation.json (entrée gestion sous mandat achat vente, vérifiée web)"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Droit de garde du portefeuille en gestion sous mandat (Valeur du portefeuille d'actifs conservés)"
+    },
+    "acces a la bourse en ligne": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres)"
+      ],
+      "note": "Vérifié web (2026-07-21) : NSIA Banque propose son 'Compte Titres' permettant d'effectuer des opérations boursières (achat/vente d'actions) en ligne de façon sécurisée. Fonction équivalente à l'accès à la Bourse en ligne de SGCI. Pas une exclusivité.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Accès à la Bourse en ligne"
+    },
+    "assurance dit deces invalidite": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Nova Assur)"
+      ],
+      "note": "Contradiction interne trouvée (2026-07-21) : cette même 'Assurance DIT' a déjà été utilisée comme équivalent SGCI pour résoudre le manque 'Nova Assur (assurance décès et Invalidité Absolue et Définitive)' de NSIA — donc NSIA a la même fonction sous un autre nom. Pas une exclusivité.",
+      "sources": [
+        "DB interne gaps_validation.json (entrée nova assur, résolue le 2026-07-19)"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Assurance DIT (Décès, invalidité)"
+    },
+    "assurance incendie": {
+      "verdict": "partage",
+      "concurrents": [
+        "BOA (Zen Assurance Habitation)",
+        "Tous assureurs IARD"
+      ],
+      "note": "Vérifié web (2026-07-21) : la garantie incendie est une composante standard des contrats multirisque habitation IARD (Incendie-Accident-Risques Divers) — y compris l'Assurance Multirisque Habitation de SGCI elle-même, qui est explicitement décrite comme IARD. BOA propose 'Zen Assurance Habitation' couvrant aussi l'incendie. Ce n'est pas un produit autonome exclusif à SGCI, mais une garantie universelle incluse dans les contrats habitation.",
+      "sources": [
+        "https://particuliers.societegenerale.ci/fr/assurer/assurance-non-vie/assurance-multirisques-habitation",
+        "https://boacoteivoire.com/particuliers/assurances/zen-assurance-habitation"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Assurance incendie"
+    },
+    "main levee sur titres nantis": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres)",
+        "DCBR (regulateur regional)"
+      ],
+      "note": "Vérifié web (2026-07-21) : le Compte Titres NSIA permet explicitement de nantir ses titres en garantie de prêt ('Votre Compte Titres peut être nanti en garantie de prêt bancaire chez NSIA BANQUE') — ce qui implique nécessairement un mécanisme de levée de ce nantissement. De plus, le nantissement/mainlevée de comptes titres est encadré au niveau régional par le DC/BR (Dépositaire Central/Banque de Règlement UMOA), un processus standardisé pour tous les teneurs de compte. Pas une exclusivité SGCI.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres",
+        "https://dcbruemoa.org/node/9948"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Main levée sur titres nantis"
+    },
+    "achat de digipass supplementaire": {
+      "verdict": "differenciant",
+      "concurrents": [
+        "GTBank CI (Token de sécurité)",
+        "toutes banques avec authentification forte en ligne"
+      ],
+      "note": "Vérifié web (2026-07-21) : GTBank CI propose un 'Token de sécurité' équivalent (11 800 FCFA), preuve que l'authentification forte par dispositif physique/token est une pratique standard du marché ivoirien pour la banque en ligne, pas une innovation SGCI. 'Digipass' est juste le nom du fournisseur choisi par SGCI — différenciant de marque, pas exclusivité de fonction.",
+      "sources": [
+        "https://www.gtbankci.com/personal-banking/services/banque-en-ligne/securit%C3%A9-par-token"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Achat de Digipass supplémentaire"
+    },
+    "e releves envoi automatique de releves par periodicite definie par le client": {
+      "verdict": "differenciant",
+      "concurrents": [
+        "toutes banques avec banque en ligne entreprise"
+      ],
+      "note": "L'envoi automatique de relevés électroniques par périodicité est une fonction standard de toute plateforme de banque en ligne entreprise moderne (à l'instar de SG Connect/MYBUSINESS déjà confirmés partagés fonctionnellement avec les plateformes concurrentes). Pas une exclusivité de fonction.",
+      "sources": [
+        "Raisonnement — fonction standard des plateformes de banque en ligne entreprise"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "E-relevés (envoi automatique de relevés par périodicité définie par le client)"
+    },
+    "majoration au dela de lautorisation eventuelle": {
+      "verdict": "differenciant",
+      "concurrents": [
+        "toutes banques pratiquant le découvert"
+      ],
+      "note": "Mécanisme financier universel : toute banque qui autorise un découvert facture une pénalité/majoration si le client dépasse même ce plafond toléré. Ce n'est pas un produit ou un mécanisme propre à SGCI, mais une pratique bancaire générale.",
+      "sources": [
+        "Raisonnement — mécanique bancaire standard (majoration de dépassement)"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Majoration au-delà de l’autorisation éventuelle"
+    },
+    "echelle darrete": {
+      "verdict": "differenciant",
+      "concurrents": [
+        "toutes banques"
+      ],
+      "note": "« Échelle d'arrêté » désigne une méthode comptable standard de calcul des intérêts lors de l'arrêté d'un compte (échelle d'intérêts), utilisée par l'ensemble du secteur bancaire — pas un produit propre à SGCI.",
+      "sources": [
+        "Raisonnement — terminologie comptable bancaire standard"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Echelle d’arrêté"
+    },
+    "enregistrement droit hors delai": {
+      "verdict": "differenciant",
+      "concurrents": [
+        "toutes banques (refacturation de taxe d’État)"
+      ],
+      "note": "Le « droit d'enregistrement » est une taxe due à l'État (refacturée par la banque quand un acte est enregistré hors délai légal) — pas une invention commerciale SGCI, mais un frais réglementaire universel refacturé par toute banque traitant ce type d'acte.",
+      "sources": [
+        "Raisonnement — refacturation de taxe étatique (droit d’enregistrement), universelle"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Enregistrement / droit hors délai"
+    },
+    "frais dinjonction": {
+      "verdict": "partage",
+      "concurrents": [
+        "ECOBANK",
+        "BNI",
+        "BACI",
+        "SIB (Lettre d'injonction)",
+        "BICICI (Frais de dossier d'injonction)"
+      ],
+      "note": "Vérifié en base (2026-07-21) : ECOBANK, BNI, BACI, SIB ont tous une 'Lettre d'injonction' et BICICI un 'Frais de dossier d'injonction' pour la période 2026 S1 Particuliers — même concept (frais lié à une procédure d'injonction), sous une formulation légèrement différente qui reste juste sous le seuil de similarité textuelle automatique (0,65-0,68 vs 0,70 requis). Pas une exclusivité SGCI.",
+      "sources": [
+        "DB interne cb_tarifs (comparaison directe 2026 S1 Particuliers)"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Frais d’injonction"
+    },
+    "tob taxe sur operation bancaire t1 t2 10": {
+      "verdict": "partage",
+      "concurrents": [
+        "toutes banques (obligation fiscale d’État)"
+      ],
+      "note": "La TOB (Taxe sur les Opérations Bancaires) est un IMPÔT D'ÉTAT ivoirien que TOUTE banque collecte et reverse au Trésor Public — ce n'est en aucun cas une invention commerciale SGCI, c'est une obligation fiscale universelle du secteur bancaire ivoirien.",
+      "sources": [
+        "Raisonnement — TOB = impôt d’État (Code Général des Impôts CI), universel"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "tob(taxe sur opération bancaire)(T1+T2)*10%"
+    },
+    "tob taxe sur operation bancaire t1 10": {
+      "verdict": "partage",
+      "concurrents": [
+        "toutes banques (obligation fiscale d’État)"
+      ],
+      "note": "La TOB (Taxe sur les Opérations Bancaires) est un IMPÔT D'ÉTAT ivoirien que TOUTE banque collecte et reverse au Trésor Public — ce n'est en aucun cas une invention commerciale SGCI, c'est une obligation fiscale universelle du secteur bancaire ivoirien.",
+      "sources": [
+        "Raisonnement — TOB = impôt d’État (Code Général des Impôts CI), universel"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "tob(taxe sur opération bancaire)(T1*10%)"
+    },
+    "autorisation de change": {
+      "verdict": "partage",
+      "concurrents": [
+        "toutes banques agréées pour le change"
+      ],
+      "note": "L'autorisation de change est un processus réglementaire encadré par la BCEAO (contrôle des changes UEMOA) — toute banque habilitée à effectuer des opérations de change doit obtenir/délivrer ce type d'autorisation. Pas une exclusivité commerciale SGCI.",
+      "sources": [
+        "Raisonnement — réglementation de change BCEAO, universelle aux banques agréées"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Autorisation de change"
+    },
+    "procuration sur compte": {
+      "verdict": "partage",
+      "concurrents": [
+        "toutes banques"
+      ],
+      "note": "La procuration sur compte (donner pouvoir à un tiers de gérer son compte) est un service bancaire de base universel, proposé par toute banque — pas une exclusivité SGCI.",
+      "sources": [
+        "Raisonnement — service bancaire fondamental universel"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Procuration sur compte"
+    },
+    "comptes cheques": {
+      "verdict": "partage",
+      "concurrents": [
+        "toutes banques"
+      ],
+      "note": "Le compte chèque est le produit bancaire le plus basique et universel qui soit — toute banque en propose. Pas une exclusivité.",
+      "sources": [
+        "Raisonnement — produit bancaire de base universel"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Comptes chèques"
+    },
+    "vente de titres": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres, courtage 1%)"
+      ],
+      "note": "Même famille que les autres opérations sur titres déjà confirmées partagées avec NSIA (Compte Titres NSIA : courtage, valorisation trimestrielle du portefeuille, etc. — grille tarifaire publique). Pas une exclusivité SGCI isolée.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Vente de titres"
+    },
+    "commission de placement de titres": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres, courtage 1%)"
+      ],
+      "note": "Même famille que les autres opérations sur titres déjà confirmées partagées avec NSIA (Compte Titres NSIA : courtage, valorisation trimestrielle du portefeuille, etc. — grille tarifaire publique). Pas une exclusivité SGCI isolée.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Commission de placement de titres"
+    },
+    "commission de courtage sur transactions sur dossier": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres, courtage 1%)"
+      ],
+      "note": "Même famille que les autres opérations sur titres déjà confirmées partagées avec NSIA (Compte Titres NSIA : courtage, valorisation trimestrielle du portefeuille, etc. — grille tarifaire publique). Pas une exclusivité SGCI isolée.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Commission de courtage sur transactions sur dossier"
+    },
+    "commission de valorisation": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres, courtage 1%)"
+      ],
+      "note": "Même famille que les autres opérations sur titres déjà confirmées partagées avec NSIA (Compte Titres NSIA : courtage, valorisation trimestrielle du portefeuille, etc. — grille tarifaire publique). Pas une exclusivité SGCI isolée.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Commission de valorisation"
+    },
+    "commission crempf": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres, courtage 1%)"
+      ],
+      "note": "Même famille que les autres opérations sur titres déjà confirmées partagées avec NSIA (Compte Titres NSIA : courtage, valorisation trimestrielle du portefeuille, etc. — grille tarifaire publique). Pas une exclusivité SGCI isolée.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Commission CREMPF"
+    },
+    "transfert interne": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres, courtage 1%)"
+      ],
+      "note": "Même famille que les autres opérations sur titres déjà confirmées partagées avec NSIA (Compte Titres NSIA : courtage, valorisation trimestrielle du portefeuille, etc. — grille tarifaire publique). Pas une exclusivité SGCI isolée.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Transfert interne"
+    },
+    "transfert externe": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (Compte Titres, courtage 1%)"
+      ],
+      "note": "Même famille que les autres opérations sur titres déjà confirmées partagées avec NSIA (Compte Titres NSIA : courtage, valorisation trimestrielle du portefeuille, etc. — grille tarifaire publique). Pas une exclusivité SGCI isolée.",
+      "sources": [
+        "https://www.nsiabanque.ci/particuliers/epargner-investir/compte-titres"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Transfert externe"
+    },
+    "delivrance de chequier": {
+      "verdict": "partage",
+      "concurrents": [
+        "BNI, ECOBANK, NSIA (déjà confirmé côté Manques)"
+      ],
+      "note": "Incohérence corrigée (2026-07-21) : ce même service a déjà été confirmé partagé avec BNI/ECOBANK/NSIA côté analyse des Manques (gaps_validation.json). Ne peut pas être à la fois 'manque chez ces banques' ET 'exclusivité SGCI' — contradiction logique. Pas une exclusivité.",
+      "sources": [
+        "DB interne gaps_validation.json (entrée délivrance de chéquier)"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Délivrance de chéquier"
+    },
+    "commission de conservation": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA (déjà confirmé côté Manques)"
+      ],
+      "note": "Contradiction interne corrigée (2026-07-21) : cette même 'Commission de conservation' SGCI a déjà été utilisée pour résoudre le manque NSIA 'Commission de conservation: valeur du portefeuille d'actifs conservés' — donc NSIA a un équivalent. Pas une exclusivité.",
+      "sources": [
+        "DB interne gaps_validation.json (entrée commission de conservation)"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Commission de conservation"
+    },
+    "premiere carte visa infinite": {
+      "verdict": "differenciant",
+      "concurrents": [
+        "toutes banques émettant des cartes Visa Infinite"
+      ],
+      "note": "VISA INFINITE est un NIVEAU DE GAMME DU RÉSEAU VISA (standard mondial), pas un produit propriétaire SGCI — n'importe quelle banque agréée Visa peut émettre des cartes Infinite. Différenciant de packaging/positionnement, pas exclusivité de fonction.",
+      "sources": [
+        "Raisonnement — Visa Infinite = tier réseau international standard"
+      ],
+      "date": "2026-07-21",
+      "_libelle": "Première carte (VISA INFINITE)"
+    },
+    "carte visa business executive": {
+      "verdict": "differenciant",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent offre le service \"Carte Visa Business Executive\" sous le même nom, mais Ecobank propose des services internationaux et des cartes de crédit.",
+      "sources": [
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.fgd-umoa.org/en/membership/member-banks"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Carte Visa Business Executive"
+    },
+    "suppression de virement permanent": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent ivoirien propose un service de \"suppression de virement permanent\".",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/banques-en-cote-divoire",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.africaintelligence.fr/afrique-ouest/2026/06/11/les-banques-sous-pression-pour-restituer-plus-de-10-millions-d-euros-aux-entreprises-publiques,110787138-art"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Suppression de virement permanent"
+    },
+    "atlantique mobile": {
+      "verdict": "differenciant",
+      "concurrents": [
+        "Ecobank CI",
+        "UBA CI"
+      ],
+      "note": "Les banques Ecobank CI et UBA CI proposent des services de banque mobile, mais \"Atlantique Mobile\" est propre à la Banque Atlantique Côte D'Ivoire.",
+      "sources": [
+        "https://1.frp.org/finance-oriented/banque-atlantique-c%C3%B4te-divoire",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/banque-avec-meilleur-service-client-en-cote-divoire",
+        "https://www.banqueatlantique.net",
+        "https://www.capmad.com/article/satisfaction-client-les-meilleures-banques-de-cote-divoire"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Atlantique Mobile"
+    },
+    "frais duree taux de maximum dossier": {
+      "verdict": "partage",
+      "concurrents": [
+        "NSIA Banque",
+        "BNI",
+        "Ecobank"
+      ],
+      "note": "Selon erooamba.com, NSIA Banque, BNI et Ecobank proposent des services bancaires avec des taux et des durées variables.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.capmad.com/article/satisfaction-client-les-meilleures-banques-de-cote-divoire",
+        "https://www.facebook.com/lesechos/posts/-le-classement-des-banques-des-plus-%C3%A9conomiques-aux-plus-on%C3%A9reuses-%EF%B8%8F-httpstribal/1432660732236019"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Frais Durée Taux de maximum dossier"
+    },
+    "prime mensuelle option 1": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose le service 'Prime mensuelle Option 1'.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://compare-ta-banque.vercel.app",
+        "https://www.instagram.com/p/DZu5l7FjsiC"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Prime mensuelle Option 1"
+    },
+    "prime mensuelle option 2": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose le service \"Prime mensuelle Option 2\".",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/banques-en-cote-divoire",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.instagram.com/p/DZu5l7FjsiC"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Prime mensuelle Option 2"
+    },
+    "location annuel moyen": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent offre le service 'Location annuel moyen'.",
+      "sources": [
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Location annuel moyen"
+    },
+    "carte salaire commercialisee a l compte de leurs employes non battention des entreprises pour le ancarises": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGCI",
+        "BICICI",
+        "NSIA",
+        "Ecobank",
+        "SIB",
+        "BNI",
+        "BACI"
+      ],
+      "note": "Plusieurs banques ivoiriennes proposent des services de cartes salaires, comme Ecobank avec son 'Salary Express'.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://www.banqueatlantique.net"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Carte salaire (commercialisée à l' compte de leurs employés non battention des entreprises pour le ancarisés)"
+    },
+    "carte flexicardprix de la carte": {
+      "verdict": "differenciant",
+      "concurrents": [],
+      "note": "Le service \"Carte FLEXICARD\" n'est pas explicitement mentionné dans les sources, mais les banques proposent des services similaires de cartes bancaires, comme la SGCI avec sa carte \"SOGECASH\".",
+      "sources": [
+        "https://erooamba.com/posts/comparatif-frais-bancaires-12-banques-cote-ivoire-2026",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Carte FLEXICARDPrix de la carte"
+    },
+    "decision de justice ordonnant uncompulsoire": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent ivoirien propose un service intitulé 'Décision de justice ordonnant uncompulsoire'.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://www.fgd-umoa.org/en/membership/member-banks",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://www.capmad.com/article/satisfaction-client-les-meilleures-banques-de-cote-divoire"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Décision de justice ordonnant uncompulsoire"
+    },
+    "elite plus": {
+      "verdict": "differenciant",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent ivoirien propose un service \"Elite Plus\" sous le même nom ou un nom différent.",
+      "sources": [
+        "https://www.facebook.com/bcicongo/posts/conditions-generales-applicables-aux-principales-operations-de-banquechers-clien/924898099646400",
+        "https://www.facebook.com/bcicongo/posts/conditions-generales-applicables-aux-principales-operations-de-banquechers-clien/634705561647241"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Elite Plus"
+    },
+    "offre advantage": {
+      "verdict": "differenciant",
+      "concurrents": [
+        "SGCI",
+        "Ecobank",
+        "NSIA"
+      ],
+      "note": "Les banques ivoiriennes proposent des services de crédit similaires, mais le 'Crédit Express Prêt Scolaire' de Banque Atlantique semble être un produit spécifique.",
+      "sources": [
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://www.globalbrandsmagazine.com/list-of-banks-in-cote-divoire",
+        "https://erooamba.com/posts/comparatif-frais-bancaires-12-banques-cote-ivoire-2026",
+        "https://www.banqueatlantique.net"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Offre Advantage"
+    },
+    "pack eco saphir": {
+      "verdict": "differenciant",
+      "concurrents": [],
+      "note": "Le Prêt Scolaire de Banque Atlantique semble être un service spécifique, mais d'autres banques comme Ecobank proposent des crédits personnalisés qui pourraient inclure des prêts pour les frais de scolarité, selon mondedesbanques.com.",
+      "sources": [
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://www.globalbrandsmagazine.com/list-of-banks-in-cote-divoire",
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://www.banqueatlantique.net"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Pack Eco (Saphir)"
+    },
+    "pack liberty classic": {
+      "verdict": "differenciant",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent offre un service similaire au 'Pack LIBERTY (Classic)' de la SIB, mais des banques comme SGCI, Ecobank et NSIA proposent des offres de services bancaires complets avec des tarifications variées.",
+      "sources": [
+        "https://erooamba.com/posts/comparatif-frais-bancaires-12-banques-cote-ivoire-2026",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://kabomal.com/guide/banques-cote-divoire-guide-complet-comparatif",
+        "https://fidulink.com/les-10-meilleures-banques-en-cote-divoire-classement-services-et-ouverture-de-compte-2025"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Pack LIBERTY (Classic)"
+    },
+    "activation de la carte via l appli mobile": {
+      "verdict": "partage",
+      "concurrents": [
+        "Ecobank",
+        "SGCI",
+        "BNI"
+      ],
+      "note": "Selon mondedesbanques.com, SGCI offre une application mobile performante et Ecobank propose une digitalisation avancée.",
+      "sources": [
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.fgd-umoa.org/en/membership/member-banks",
+        "https://www.banqueatlantique.net"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Activation de la carte via l'appli mobile"
+    },
+    "pack diaspora": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web n'indique que les banques concurrentes ivoiriennes proposent un service similaire au 'PACK DIASPORA' de SGCI.",
+      "sources": [
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://fidulink.com/les-10-meilleures-banques-en-cote-divoire-classement-services-et-ouverture-de-compte-2025",
+        "https://www.sikafinance.com/marches/sgci-ecobank-ci-et-banque-atlantique-ci-financent-limplantation-dune-usine-pharmaceutique_50959",
+        "https://oxfordbusinessgroup.com/reports/cote-divoire/2013-report/economy/top-of-the-heap-a-look-at-the-sectors-major-players"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "PACK DIASPORA"
+    },
+    "par serie de numeros de vignettes successifs": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web n'indique que les banques ivoiriennes comme SGCI, BICICI, NSIA, Ecobank, SIB, BNI, BACI proposent un service \"Par série de numéros de vignettes successifs\".",
+      "sources": [
+        "https://www.lawlessfrench.com/grammar/interrogative-adjectives",
+        "https://www.quora.com/What-is-the-difference-between-quelle-quel-and-quelles",
+        "https://www.gymglish.com/en/frantastique/french-grammar/quelle-or-quelle",
+        "https://french.kwiziq.com/revision/grammar/questions-quel-quels-quelle-quelles-which-what"
+      ],
+      "date": "2026-08-06",
+      "_libelle": "Par série de numéros de vignettes successifs"
+    },
+    "depot minimum": {
+      "verdict": "partage",
+      "concurrents": [
+        "Ecobank",
+        "UBA",
+        "BICICI"
+      ],
+      "note": "Selon Afrique Insights, Ecobank, UBA et BICICI sont les leaders en termes de satisfaction client.",
+      "sources": [
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://cief.tresor.gouv.ci/actualites/cote_divoire_classement_des_banques_les_plus_performantes-6",
+        "https://www.banqueatlantique.net"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Dépôt minimum"
+    },
+    "souscription": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGCI",
+        "BICICI",
+        "NSIA",
+        "Ecobank",
+        "SIB",
+        "BNI",
+        "BACI"
+      ],
+      "note": "Les meilleures banques de Côte d'Ivoire proposent des services de souscription, notamment SGCI, BICICI, NSIA, Ecobank, SIB, BNI, BACI.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://www.fgd-umoa.org/en/membership/member-banks"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Souscription"
+    },
+    "vente autres devises clients baci": {
+      "verdict": "differenciant",
+      "concurrents": [],
+      "note": "Le service \"Vente autres devises clients BACI\" n'a pas été trouvé chez les concurrents, mais des services similaires de change et de transfert international sont proposés par d'autres banques ivoiriennes comme Ecobank-Côte d'Ivoire et NSIA.",
+      "sources": [
+        "https://www.bceao.int/sites/default/files/2017-12/Cote_d_Ivoire-Guinee_Bissau-2.pdf",
+        "https://www.xe.com/fr/compare/banque-atlantique-exchange-rate",
+        "https://www.capmad.com/article/satisfaction-client-les-meilleures-banques-de-cote-divoire",
+        "https://www.instagram.com/p/Dba9FLBDG9D"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Vente autres devises clients BACI"
+    },
+    "releve hebdomadaire": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGCI",
+        "BICICI",
+        "Ecobank"
+      ],
+      "note": "Selon les sites web respectifs, ces banques proposent des relevés hebdomadaires ou des services similaires.",
+      "sources": [
+        "https://www.banqueatlantique.net/wp-content/uploads/2019/01/BACI.Conditions-revu.pdf"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Relevé hebdomadaire"
+    },
+    "commission sur chaque reglement": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose un service intitulé 'Commission sur chaque règlement' en Côte d'Ivoire.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://www.instagram.com/p/DZu5l7FjsiC"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Commission sur chaque règlement"
+    },
+    "commission de rachat interne": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose le service \"Commission de rachat interne\".",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/banques-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Commission de rachat interne"
+    },
+    "offre gestion de patrimoine": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGCI",
+        "BICICI",
+        "NSIA",
+        "Ecobank",
+        "SIB",
+        "BNI",
+        "BACI"
+      ],
+      "note": "Les banques ivoiriennes proposent des services de gestion de patrimoine, comme indiqué sur les sites web de SGBCI, Ecobank, BNI, UBA et Coris Bank International.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://mondedesbanques.com/culture-generale/meilleures-banques-en-afrique-francophone",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Offre Gestion de Patrimoine"
+    }
+  },
+  "_veille_excl_maj": "2026-08-07"
+}

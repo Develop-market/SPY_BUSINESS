@@ -105,10 +105,16 @@ html[data-theme="light"] .bg .vig{background:radial-gradient(ellipse at 50% 35%,
 .hdr .search:focus-within{border-color:var(--accent)}
 .hdr .search input{flex:1;background:none;border:0;outline:0;color:var(--ink);font:500 13px var(--sans)}
 .hdr .search .k{font:600 10px var(--mono);background:var(--bg-raise);padding:3px 6px;border-radius:6px}
-/* Barre de recherche des conversations (colonne étroite) : la classe .search de base est
-   pensée pour le header (340px, gros padding) — trop grande ici, on la resserre. */
-.convs .search{padding:8px 12px;gap:8px}
-.convs .search input{font-size:12.5px}
+/* Barre de recherche des conversations (colonne étroite) — BUG TROUVÉ (2026-07-27, signalé
+   par le directeur : "pas belle") : cette règle ne définissait QUE padding/gap, en misant à
+   tort sur une classe .search de base qui n'existe pas (seule .hdr .search a le style complet
+   fond/bordure/arrondi) — résultat, un input brut sans habillage. Reprend maintenant le même
+   habillage que le header, juste resserré pour la colonne étroite. */
+.convs .search{display:flex;align-items:center;width:auto;padding:9px 13px;gap:8px;
+  background:var(--bg-surf);border:1px solid var(--line);border-radius:var(--r-input);
+  color:var(--muted);transition:border .2s}
+.convs .search:focus-within{border-color:var(--accent)}
+.convs .search input{flex:1;background:none;border:0;outline:0;color:var(--ink);font:500 12.5px var(--sans)}
 .theme-tog{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--bg-surf);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;transition:transform .3s}
 .theme-tog:hover{transform:rotate(20deg)}
 .llm{display:inline-flex;align-items:center;gap:8px;font:600 11.5px/1 var(--sans);color:var(--muted);background:var(--bg-surf);border:1px solid var(--line);padding:10px 14px;border-radius:var(--r-pill)}
@@ -238,14 +244,44 @@ html[data-theme="light"] .bg .vig{background:radial-gradient(ellipse at 50% 35%,
 
 /* FAB */
 .fab{position:fixed;right:30px;bottom:30px;z-index:50;width:92px;height:92px;border-radius:50%;
-  background:linear-gradient(135deg,var(--accent-2),var(--accent-deep));color:#fff;font-size:27px;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 18px 44px -10px rgba(229,20,43,.7)}
-.fab-ic{width:56px;height:56px;position:relative;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
+  background:transparent;color:#fff;font-size:27px;display:flex;align-items:center;justify-content:center;
+  box-shadow:none}
 .fab .rg{position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--accent-2);animation:ripple 2.6s ease-out infinite}
 .fab .rg.d2{animation-delay:1.3s}
 .fab .tip{position:absolute;right:100px;white-space:nowrap;font:600 12px var(--sans);background:var(--bg-tile);border:1px solid var(--line);color:var(--ink);padding:8px 12px;border-radius:9px;opacity:0;transform:translateX(8px);pointer-events:none;transition:.2s;box-shadow:var(--shadow)}
 .fab:hover .tip{opacity:1;transform:none}
 @keyframes ripple{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.85);opacity:0}}
+
+/* ── Orbe hologramme rouge — remplace la tête de robot (2026-07-27, demande explicite) ──
+   Adapté de hologramme/hologramme1 (orbe cyan) : même structure (halo radial, cœur pulsant,
+   anneau rotatif 3D), recoloré en rouge SGCI (mêmes rgba(229,20,43,...) que le reste de la
+   marque) pour rester cohérent avec l'identité visuelle existante. Trois tailles via classes
+   modificatrices (.sm = avatar message, par défaut = FAB, .lg = état vide du chat) — les
+   pseudo-éléments sont en %, donc ils suivent automatiquement la taille du conteneur. */
+.hologram-orb{
+  width:56px;height:56px;border-radius:50%;flex-shrink:0;
+  background:radial-gradient(circle,rgba(229,20,43,.88) 0%,rgba(229,20,43,.35) 50%,transparent 72%);
+  box-shadow:0 0 20px rgba(229,20,43,.55),0 0 40px rgba(229,20,43,.35),inset 0 0 18px rgba(255,255,255,.45);
+  position:relative;animation:hologramFloat 4s ease-in-out infinite;
+}
+.hologram-orb::after{
+  content:'';position:absolute;top:25%;left:25%;right:25%;bottom:25%;border-radius:50%;
+  background:rgba(255,255,255,.92);box-shadow:0 0 12px rgba(255,255,255,1);
+  animation:hologramCore 2s infinite;
+}
+.hologram-orb::before{
+  content:'';position:absolute;top:-15%;left:-15%;right:-15%;bottom:-15%;border-radius:50%;
+  border:2px solid rgba(229,20,43,.5);transform:rotateX(70deg);
+  animation:hologramRing 6s linear infinite;pointer-events:none;
+}
+.hologram-orb.sm{width:26px;height:26px}
+.hologram-orb.lg{width:72px;height:72px;margin:0 auto}
+.hologram-orb.speaking{animation:hologramFloat 4s ease-in-out infinite,hologramPulse .4s infinite alternate}
+.hologram-orb.speaking::before{border:3px solid rgba(229,20,43,.85);animation:hologramRing 2s linear infinite}
+@keyframes hologramFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes hologramCore{0%,100%{opacity:.8;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes hologramRing{0%{transform:rotateX(70deg) rotateZ(0deg)}100%{transform:rotateX(70deg) rotateZ(360deg)}}
+@keyframes hologramPulse{0%{box-shadow:0 0 20px rgba(229,20,43,.55),0 0 40px rgba(229,20,43,.35)}100%{box-shadow:0 0 38px rgba(229,20,43,.85),0 0 70px rgba(229,20,43,.6)}}
 
 /* ---------- CHAT page ---------- */
 .chat{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 72px)}
@@ -261,8 +297,9 @@ html[data-theme="light"] .bg .vig{background:radial-gradient(ellipse at 50% 35%,
 .conv-del{opacity:0;background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;line-height:1;padding:3px 5px;border-radius:6px;transition:.12s;flex:0 0 auto}
 .conv:hover .conv-del{opacity:.65}
 .conv-del:hover{opacity:1!important;color:var(--accent);background:var(--bg-surf)}
-.chatmain{display:flex;flex-direction:column;min-width:0}
-.msgs{flex:1;overflow-y:auto;padding:var(--s8) var(--s10);display:flex;flex-direction:column;gap:var(--s6)}
+.chatmain{display:flex;flex-direction:column;min-width:0;min-height:0}
+.msgs{flex:1;overflow-y:auto;min-height:0;padding:var(--s8) var(--s10);display:flex;flex-direction:column;gap:var(--s6)}
+.composer{flex-shrink:0}
 .empty{margin:auto;text-align:center;max-width:560px}
 .empty .bigmark{width:72px;height:72px;border-radius:20px;margin:0 auto var(--s5);background:linear-gradient(135deg,var(--accent-2),var(--accent-deep));display:flex;align-items:center;justify-content:center;font:900 28px var(--display);color:#fff;box-shadow:0 18px 44px -10px rgba(229,20,43,.6)}
 .empty h2{font:800 24px var(--display);letter-spacing:-.02em}
@@ -276,7 +313,7 @@ html[data-theme="light"] .bg .vig{background:radial-gradient(ellipse at 50% 35%,
 .msg.u{flex-direction:row-reverse;margin-left:auto}
 .msg .ava{width:36px;height:36px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font:800 13px var(--display)}
 .msg.u .ava{background:linear-gradient(135deg,var(--accent-2),var(--accent-deep));color:#fff}
-.msg.a .ava{background:var(--bg-raise);border:1px solid var(--line);color:var(--accent-2)}
+.msg.a .ava{background:none;border:none;color:var(--accent-2);padding-top:5px}
 .bubble{padding:15px 17px;font:500 14px/1.62 var(--sans)}
 .msg.u .bubble{background:linear-gradient(135deg,var(--accent-2),var(--accent));color:#fff;border-radius:18px 18px 5px 18px}
 .msg.a .bubble{background:var(--bg-tile);border:1px solid var(--line);border-radius:18px 18px 18px 5px}
@@ -285,6 +322,35 @@ html[data-theme="light"] .bg .vig{background:radial-gradient(ellipse at 50% 35%,
 .bubble th{text-align:left;padding:8px 11px;border-bottom:1px solid var(--line);color:var(--muted);font:700 10px var(--sans);text-transform:uppercase;letter-spacing:.06em}
 .bubble td{padding:8px 11px;border-bottom:1px solid var(--line);font-family:var(--mono)}
 .bubble td:first-child{font-family:var(--sans);font-weight:600}
+/* ── Rendu Markdown des réponses IA (2026-07-28) ───────────────────────────
+   Jusqu'ici seuls <p> et <table> étaient stylés : les titres « ### » du LLM
+   s'affichaient en clair et les listes en paragraphes collés. mdToHtml() produit
+   maintenant h4/ul/ol/hr/code — voici leur habillage. Le titre devient une
+   étiquette de section discrète (barre d'accent + petites capitales) plutôt qu'un
+   gros titre : dans une bulle de chat, il doit structurer sans crier. */
+.bubble h4{font:800 10.5px/1.35 var(--sans);text-transform:uppercase;letter-spacing:.09em;
+  color:var(--accent-2);margin:16px 0 8px;padding-left:9px;border-left:2px solid var(--accent-2)}
+.bubble > h4:first-child{margin-top:2px}
+.bubble ul,.bubble ol{margin:0 0 10px;padding-left:4px;list-style:none}
+.bubble ol{counter-reset:sbli}
+.bubble li{position:relative;padding-left:17px;margin-bottom:5px}
+.bubble li:last-child{margin-bottom:0}
+.bubble ul li::before{content:"";position:absolute;left:3px;top:.62em;width:5px;height:5px;
+  border-radius:50%;background:var(--accent-2);opacity:.75}
+.bubble ol li{counter-increment:sbli;padding-left:22px}
+.bubble ol li::before{content:counter(sbli);position:absolute;left:0;top:.05em;
+  font:800 10px/1.7 var(--sans);color:var(--accent-2);width:15px;height:15px;text-align:center;
+  border-radius:5px;background:color-mix(in srgb,var(--accent-2) 14%,transparent)}
+.bubble hr{border:0;border-top:1px solid var(--line);margin:13px 0}
+.bubble code{font:600 12.5px var(--mono);background:color-mix(in srgb,var(--accent-2) 10%,transparent);
+  padding:1px 5px;border-radius:4px}
+.bubble b{font-weight:750}
+/* Un tableau large ne doit jamais élargir la bulle : il défile dans son propre cadre. */
+.bubble table{display:block;overflow-x:auto;max-width:100%}
+.msg.u .bubble h4{color:#fff;border-left-color:rgba(255,255,255,.6)}
+.msg.u .bubble ul li::before,.msg.u .bubble ol li::before{background:rgba(255,255,255,.75);color:#fff}
+.msg-time{font:500 10px var(--sans);color:var(--faint);margin-top:5px;padding:0 5px}
+.msg.u .msg-time{text-align:right}
 .composer{border-top:1px solid var(--line);padding:var(--s5) var(--s10) var(--s6)}
 .composer .chips{display:flex;gap:8px;margin-bottom:13px;flex-wrap:wrap}
 .composer .row{display:flex;gap:11px;align-items:flex-end;background:var(--bg-tile);border:1px solid var(--line);border-radius:16px;padding:8px 8px 8px 17px;transition:border .2s}

@@ -107,6 +107,60 @@ def valeur_ef(banque: str, indicateur: str, annee: int = None) -> dict:
         cur.close(); cx.close()
 
 
+def serie_ef(banque: str, indicateur: str) -> list:
+    """Série ANNUELLE complète d'un indicateur EF pour une banque : [(annee, valeur), ...].
+
+    Ajouté le 2026-07-27 après un test de la batterie. « Comment a évolué le PNB de SGCI ces
+    dernières années ? » passait par le RAG et répondait : 2021 = 215 101, « 2022 et 2023 non
+    disponibles », 2025 = 276 000. Trois défauts d'un coup : une année (2021) tirée d'une
+    colonne N-1 non primaire, deux années pourtant PRÉSENTES déclarées manquantes, et un
+    chiffre ARRONDI (276 000 au lieu de 276 048) alors que le prompt interdit tout arrondi.
+    Vérité SQL : 2023 = 253 286, 2024 = 263 207, 2025 = 276 048. Une évolution est une
+    agrégation triviale en SQL — la faire deviner au retrieval sémantique n'a aucun intérêt.
+
+    `is_primary` filtre les colonnes N-1 des rapports à 2 colonnes (source classique de
+    confusion d'exercice) ; NOT ILIKE '%avant%' écarte « RESULTAT NET AVANT IMPOTS ».
+    """
+    pat = EF_PATTERNS.get((indicateur or "").strip().lower(), f"%{(indicateur or '').strip()}%")
+    cx = _conn(); cur = cx.cursor()
+    try:
+        cur.execute("""SELECT annee_donnee, MAX(ROUND(montant::double precision::numeric,0))
+                       FROM ef_indicateurs
+                       WHERE banque=%s AND is_primary AND annee_donnee IS NOT NULL
+                         AND libelle ILIKE %s AND libelle NOT ILIKE %s AND montant IS NOT NULL
+                       GROUP BY annee_donnee ORDER BY annee_donnee""",
+                    (banque, pat, "%avant%"))
+        return [(int(a), float(v)) for a, v in cur.fetchall() if v is not None]
+    finally:
+        cur.close(); cx.close()
+
+
+def format_serie_ef(banque: str, label: str, serie: list) -> str:
+    """Tableau markdown Année | Valeur | Var. absolue | Var. %, variations pré-calculées.
+
+    Les variations sont calculées ICI, pas par le LLM : une division faite par un modèle de
+    langue se présente avec le même aplomb qu'un chiffre exact, y compris quand elle est fausse
+    (même raison qui interdit déjà au LLM de calculer le ROE, cf. prompts.py)."""
+    if not serie:
+        return ""
+    lignes = [f"ÉVOLUTION — {label} de {banque} (source SQL exacte, millions FCFA) :",
+              "| Année | Valeur | Var. absolue | Var. % |", "|---|---|---|---|"]
+    for i, (annee, val) in enumerate(serie):
+        if i == 0:
+            va, vp = "—", "—"
+        else:
+            prec = serie[i - 1][1]
+            delta = val - prec
+            va = f"{delta:+,.0f}".replace(",", " ")
+            vp = f"{(delta / prec * 100):+.1f} %" if prec else "—"
+        lignes.append(f"| {annee} | {val:,.0f} |".replace(",", " ") + f" {va} | {vp} |")
+    total = ""
+    if len(serie) >= 2 and serie[0][1]:
+        var_tot = (serie[-1][1] - serie[0][1]) / serie[0][1] * 100
+        total = (f"\nVariation totale {serie[0][0]}→{serie[-1][0]} : {var_tot:+.1f} %")
+    return "\n".join(lignes) + total
+
+
 def comparer_cb(service: str, annee, semestre: str, segment: str) -> dict:
     """Tarif d'un service CB pour CHAQUE banque (annee/semestre/segment donnés).
     Retour : {banque: {'montant': m, 'gratuit': bool}}."""
@@ -156,7 +210,8 @@ def tableau_cb_exhaustif(banques: list, terme_service: str, max_libelles: int = 
             kw_params.extend([f"%{t}%", f"%{t}%"])
         placeholders = ",".join(["%s"] * len(banques))
         cur.execute(f"""
-            SELECT banque, segment, libelle, annee, semestre, valeur_propre, montant, est_gratuit
+            SELECT banque, segment, libelle, annee, semestre, valeur_propre, montant, est_gratuit,
+                   section
             FROM cb_tarifs
             WHERE banque IN ({placeholders}) AND segment IN ('Particuliers','Entreprises')
               AND COALESCE(is_header,false)=false AND ({kw_conds})
@@ -172,11 +227,26 @@ def tableau_cb_exhaustif(banques: list, terme_service: str, max_libelles: int = 
     # Structure : {(banque,segment): {libelle: {(annee,semestre): valeur_affichee}}}
     struct = {}
     periodes = set()
-    for banque, segment, libelle, annee, semestre, valeur_propre, montant, gratuit in rows:
+    for banque, segment, libelle, annee, semestre, valeur_propre, montant, gratuit, section in rows:
+        # CHEMIN DE SECTION (2026-07-27) : même correctif que retriever._chunk_cb, appliqué ici
+        # car ce tableau est un chemin de code DISTINCT (comparaison CB exhaustive) qui souffrait
+        # du même défaut. Sans lui, la comparaison SGCI/ECOBANK affichait une ligne « Frais de
+        # tenue de compte : 2350 » qui laisse croire à un tarif courant, alors que cette ligne
+        # appartient à la rubrique « Successions ». Le libellé seul est ambigu ; le chemin lève
+        # l'ambiguïté pour le LLM comme pour le lecteur du tableau.
+        chemin = retriever._chemin_section_cb(banque, annee, semestre, segment, section)
+        if chemin and chemin.lower() not in (libelle or "").lower():
+            libelle = f"{chemin} > {libelle}"
         periodes.add((annee, semestre))
         cle = (banque, segment)
         struct.setdefault(cle, {}).setdefault(libelle, {})
         val = "Gratuit" if gratuit else (valeur_propre or (f"{montant:,.0f} FCFA".replace(",", " ") if montant else None))
+        # Le pipe est le séparateur de colonnes Markdown : une valeur qui en contient (arrive sur
+        # les lignes mal découpées à l'OCR, ex. BNI Entreprises « Frais de tenue et de gestion »)
+        # décale toutes les colonnes suivantes et rend la ligne — voire le tableau — illisible.
+        # Constaté dans la batterie du 2026-07-27. On neutralise le caractère sans perdre la donnée.
+        if val and "|" in str(val):
+            val = str(val).replace("|", " / ")
         if val:
             struct[cle][libelle][(annee, semestre)] = val
 
@@ -195,7 +265,28 @@ def tableau_cb_exhaustif(banques: list, terme_service: str, max_libelles: int = 
             # renseignés (le plus de périodes remplies), les plus courts/propres en priorité.
             propres = {k: v for k, v in libelles.items() if not _DUP_RE.search(k)}
             source = propres if propres else libelles
-            tries = sorted(source.items(), key=lambda kv: (-len(kv[1]), len(kv[0])))[:max_libelles]
+            # PRIORITÉ AU TERME PRINCIPAL (2026-07-27, trouvé par la batterie de test).
+            # Les synonymes sont volontairement larges — « tenue » embarque « relevé » et
+            # « frais fixe » parce que SGCI/SIB/BICICI nomment ainsi leur tenue de compte. Mais
+            # tous les synonymes pesaient PAREIL au moment de couper à max_libelles : sur une
+            # comparaison BNI/ECOBANK des frais de tenue, le tableau se remplissait de « Demande
+            # de solde au guichet » et « Frais fixe d'impayés » (captés par « relevé » et « frais
+            # fixe ») pendant que les VRAIES lignes — les tranches de revenu BNI, cœur de la
+            # réponse — se faisaient couper. On classe donc d'abord les libellés qui contiennent
+            # le terme demandé lui-même ; les synonymes larges ne servent plus qu'à COMPLÉTER.
+            primaires = [t for t in (termes[:2] if termes else []) if t]
+            def _est_primaire(lib):
+                return any(t in lib.lower() for t in primaires)
+            def _rang(kv):
+                return (0 if _est_primaire(kv[0]) else 1, -len(kv[1]), len(kv[0]))
+            ordonnes = sorted(source.items(), key=_rang)
+            # Les libellés PRIMAIRES ont droit à une marge supplémentaire : ils forment souvent
+            # une famille indissociable (les 4 tranches de revenu BNI, les 13 offres ECOBANK) et
+            # n'en montrer qu'une partie donne une réponse fausse, pas une réponse abrégée.
+            # Les synonymes larges, eux, restent plafonnés — c'est du complément, pas la réponse.
+            prim = [kv for kv in ordonnes if _est_primaire(kv[0])][:max_libelles + 6]
+            sec  = [kv for kv in ordonnes if not _est_primaire(kv[0])]
+            tries = prim + sec[:max(0, max_libelles - len(prim))]
             lignes_md.append(f"\n#### {banque} — {segment}\n")
             lignes_md.append("| Service | " + " | ".join(cols) + " |")
             lignes_md.append("|---" * (len(cols) + 1) + "|")
@@ -266,10 +357,19 @@ def comparer_coefficient_exploitation(mode: str = "AN3", banques: list = None) -
             y = _an_year(cur, b, mode)
             if not y:
                 continue
+            # BUG TROUVÉ le 2026-07-27 (en construisant la fiche marché) : le motif était
+            # "%produit net bancaire%" (singulier, espaces figés) — exactement celui déjà
+            # corrigé dans EF_PATTERNS le 2026-07-13, mais la correction n'avait jamais été
+            # reportée ICI. Conséquence silencieuse : BACI et BNI libellent "PRODUITS NET
+            # BANCAIRE" (pluriel) → aucun PNB trouvé → aucun coefficient d'exploitation
+            # calculé pour ces 2 banques dans TOUT le chat (comparaisons, classements,
+            # fiche de synthèse), alors que le dashboard l'affiche correctement puisque
+            # dash_app/db.py:805 utilise déjà le motif à jokers. Le chat disait donc
+            # "donnée non trouvée" sur une donnée présente et affichée à l'écran.
             cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND libelle ILIKE %s AND montant IS NOT NULL""",
-                        (b, y, "%produit net bancaire%"))
+                        (b, y, EF_PATTERNS["pnb"]))
             pnb_vals = [float(r[0]) for r in cur.fetchall()]
             cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary

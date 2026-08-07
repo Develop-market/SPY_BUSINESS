@@ -17,11 +17,17 @@
 <div id="gate"></div>
 
 <!-- Filigrane discret — traçabilité si une capture d'écran circule hors de l'app.
-     pointer-events:none : ne gêne jamais le clic/la lecture, purement visuel. -->
+     pointer-events:none : ne gêne jamais le clic/la lecture, purement visuel.
+     Mis en pause le 2026-07-20, REMIS le 2026-07-28 « en beaucoup moins visible », puis
+     RE-REMONTÉ le 2026-07-29 (demande directe : « un peu plus visible ») — réglage intermédiaire
+     entre l'original (0,14/16px/460×260) et la version quasi invisible (0,05/12px/680×380) :
+       - opacité du texte  0,05 → 0,09
+       - taille de police  12 px → 14 px
+       - pas de la mosaïque 680×380 → 560×320 (un peu plus de répétitions à l'écran) -->
 <div id="app-watermark" style="position:fixed;inset:0;z-index:40;pointer-events:none;
-  background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22460%22 height=%22260%22><text x=%2230%22 y=%22140%22 font-family=%22Arial,sans-serif%22 font-size=%2216%22 font-weight=%22700%22 fill=%22rgba(140,140,140,0.14)%22 transform=%22rotate(-28 230 130)%22>DIRECTION INNOVATION SGCI</text></svg>');
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22560%22 height=%22320%22><text x=%2240%22 y=%22170%22 font-family=%22Arial,sans-serif%22 font-size=%2214%22 font-weight=%22600%22 fill=%22rgba(140,140,140,0.09)%22 transform=%22rotate(-28 280 160)%22>DIRECTION INNOVATION SGCI</text></svg>');
   background-repeat:repeat">
-  <div id="app-watermark-stamp" style="position:fixed;bottom:8px;right:10px;font:500 9px system-ui;color:rgba(128,128,128,.35);pointer-events:none"></div>
+  <div id="app-watermark-stamp" style="position:fixed;bottom:8px;right:10px;font:500 8.5px system-ui;color:rgba(128,128,128,.20);pointer-events:none"></div>
 </div>
 
 <div class="shell">
@@ -36,6 +42,7 @@
       <a class="nav-item" data-go="apercu" onclick="go('apercu')"><span class="ic">◎</span><span class="nav-lbl">Santé financière</span></a>
       <a class="nav-item" data-go="cb" onclick="go('cb')"><span class="ic">◈</span><span class="nav-lbl">Conditions bancaires</span></a>
       <a class="nav-item" data-go="strategie" onclick="go('strategie')"><span class="ic">◆</span><span class="nav-lbl">Stratégie</span></a>
+      <a class="nav-item" data-go="stratop" onclick="go('stratop')"><span class="ic">▶</span><span class="nav-lbl">Stratégie opérationnelle</span></a>
       <div class="nav-grp">Système</div>
       <a class="nav-item" id="nav-gloss" onclick="toggleGlossContext()"><span class="ic">📖</span><span class="nav-lbl">Glossaire</span></a>
       <a class="nav-item" id="nav-ajout" onclick="openAjout()"><span class="ic">＋</span><span class="nav-lbl">Ajouter des données</span></a>
@@ -76,7 +83,7 @@
 </div>
 
 <!-- floating AI assistant → chat -->
-<button class="fab" onclick="go('chat')"><span class="rg"></span><span class="rg d2"></span><span class="tip">Poser une question à l'IA</span><svg class="fab-ic" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="rh-head-fab" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF"/><stop offset="100%" stop-color="#D7DBE3"/></linearGradient><linearGradient id="rh-eye-fab" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6FEFFF"/><stop offset="100%" stop-color="#1FA6FF"/></linearGradient></defs><line x1="16" y1="3" x2="16" y2="7" stroke="#C3C9D4" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="2.4" r="1.7" fill="#FF4D62"/><rect x="3.3" y="14" width="2.7" height="6.4" rx="1.35" fill="#C3C9D4"/><rect x="26" y="14" width="2.7" height="6.4" rx="1.35" fill="#C3C9D4"/><rect x="6" y="8" width="20" height="17.5" rx="6.2" fill="url(#rh-head-fab)" stroke="#AEB4BF" stroke-width="0.6"/><rect x="8.3" y="10.4" width="15.4" height="9.4" rx="4.2" fill="#EEF1F5"/><circle cx="12.2" cy="16.8" r="2.25" fill="url(#rh-eye-fab)"/><circle cx="19.8" cy="16.8" r="2.25" fill="url(#rh-eye-fab)"/><circle cx="12.95" cy="16.05" r="0.6" fill="#ffffff" opacity=".9"/><circle cx="20.55" cy="16.05" r="0.6" fill="#ffffff" opacity=".9"/><rect x="12.4" y="20.9" width="7.2" height="1.8" rx="0.9" fill="#C7CCD6"/></svg></button>
+<button class="fab" onclick="go('chat')"><span class="rg"></span><span class="rg d2"></span><span class="tip">Poser une question à l'IA</span><div class="hologram-orb"></div></button>
 
 <style>
 .tk-item{display:inline-flex;align-items:center;gap:9px;font:600 12.5px/1 var(--mono);color:var(--ink)}

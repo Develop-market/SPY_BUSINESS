@@ -58,10 +58,11 @@ class Agent:
 
 # ── Agent CB — Conditions de banque (outils structurés = fonctions cb_*/frais_* de db.py) ──
 _CB_TOOLS = {n: getattr(db, n) for n in [
-    "cb_analyse_q1", "cb_analyse_q2", "cb_analyse_q3", "cb_exclusivites_banque", "cb_analyse_q5", "cb_analyse_q6",
+    "cb_periodes", "cb_analyse_q1", "cb_analyse_q2", "cb_analyse_q3", "cb_exclusivites_banque", "cb_analyse_q5", "cb_analyse_q6",
     "cb_analyse_q6_paired", "cb_evolution_details", "cb_all_evolutions_summary",
     "cb_serie_temporelle", "cb_rattrapage_depassement", "cb_innovation_vs_finance",
     "cb_prix_par_libelle", "cb_prix_competitivite", "cb_libelles_tous",
+    "cb_analyse_q6_tous_segments", "cb_prix_competitivite_tous_segments",
     "cb_par_section", "cb_par_sous_section", "cb_imputations", "cb_exhaustif",
     "cb_all_for_period", "cb_annees", "cb_positionnement_bd", "frais_tenue_compte",
 ]}

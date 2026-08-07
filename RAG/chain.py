@@ -37,6 +37,43 @@ retriever = importlib.import_module("retriever")
 prompts   = importlib.import_module("prompts")
 memory    = importlib.import_module("memory")
 structured_tools = importlib.import_module("structured_tools")   # comparaison structurée SQL
+agent_tools      = importlib.import_module("agent_tools")        # outils LangChain (agent de secours)
+fiche_marche     = importlib.import_module("fiche_marche")       # socle de faits permanent (2026-07-27)
+
+
+# ═══════════════════════════════════════════════════════════
+#  NORMALISATION DES QUESTIONS — TOLÉRANCE AUX FAUTES DE FRAPPE
+# ═══════════════════════════════════════════════════════════
+# AJOUTÉ le 2026-07-27 après un test en direct du directeur : « JE VEUX SAVOIR QELLE ST LA
+# MEILLEUR BANQU » a produit une réponse absurde sur les prêts subordonnés de la BICICI.
+# Cause : TOUT le routage du chat compare des chaînes EXACTES (`"banque" in q`,
+# `"meilleure banque" in q`...). Or « BANQU » ne contient pas « banque », « MEILLEUR » (sans e)
+# ne contient pas « meilleure banque », « QELLE » ne contient pas « quelle ». Les 4 détecteurs
+# déterministes ratent, is_comparaison/is_recommandation renvoient False — donc même l'agent de
+# secours n'est jamais tenté — et la question finit dans le RAG générique, qui cherche
+# sémantiquement une phrase pleine de fautes et remonte n'importe quel libellé de bilan.
+#
+# Un dirigeant tape vite, en majuscules, sans accents, avec des fautes. Le chat doit être
+# robuste à ça : c'est la différence entre un outil utilisable et un outil « pas flexible ».
+# Principe retenu : on ne corrige pas l'orthographe (illusoire), on compare sur des RACINES
+# ("banqu" plutôt que "banque") et on normalise accents/casse avant tout test.
+_ACCENTS = str.maketrans("àâäáãçéèêëíìîïñóòôöõúùûüýÿ", "aaaaaceeeeiiiinooooouuuuyy")
+
+
+def _normaliser(question: str) -> str:
+    """Minuscules + accents retirés + espaces normalisés. Base de tous les tests tolérants."""
+    q = (question or "").lower().translate(_ACCENTS)
+    return re.sub(r"\s+", " ", q).strip()
+
+
+def _contient_racine(question: str, racines) -> bool:
+    """Teste des RACINES de mots (ex. "banqu" attrape banque/banques/BANQU/banqu'). Volontairement
+    en sous-chaîne et non en mot entier : c'est précisément la troncature et la faute de frappe
+    qu'on veut rattraper. Les racines doivent donc être choisies assez longues pour ne pas
+    produire de faux positifs (cf. la leçon de _contient_mot : "ratio" matchait
+    "opérationnellement" — ici on utiliserait "ratio de" ou une racine plus spécifique)."""
+    q = _normaliser(question)
+    return any(r in q for r in racines)
 
 _AGENT_LABELS = {
     "conditions_banque": "AGENT CONDITIONS TARIFAIRES",
@@ -115,6 +152,48 @@ def init_chain() -> dict:
 
 
 init_agents = init_chain  # alias de compatibilité
+
+
+# ═══════════════════════════════════════════════════════════
+#  GARDE-FOU ANTI-INVENTION — CHAT LIBRE (audit 2026-07-25)
+# ═══════════════════════════════════════════════════════════
+# Trouvé lors de l'audit du chat : ce garde-fou existait déjà pour les analyses Stratégie/CB
+# (server.py::_chiffres_inventes) mais PAS pour le chat libre (_executer ci-dessous) — c'est
+# pourtant l'endroit le plus ouvert, donc le plus exposé. Reproduit ici en local (pas d'import
+# croisé RAG↔server, RAG doit rester un module autonome) avec la MÊME logique : comparer les
+# grands nombres (≥1000, montants FCFA) de la réponse à ceux réellement présents dans le
+# contexte fourni. LEÇON du 2026-07-22 (retenue) : un blocage DUR sur le prompt EF complexe à 15
+# blocs avait fait échouer TOUTE la génération (trop de faux positifs sur des chiffres dérivés
+# légitimes, ex. "+12%" calculé à partir de 2 valeurs du contexte). Ici : on RETENTE une fois,
+# et si ça persiste, on n'écrase PAS la réponse (elle reste utile) — on se contente d'un log
+# serveur pour garder une trace, plutôt qu'un chat qui se met à répondre vide.
+# Un nombre avec séparateurs de milliers (groupes de 3 chiffres séparés par espace, espace
+# insécable ou POINT), sinon un entier nu. Le point n'est reconnu comme séparateur que devant
+# exactement 3 chiffres — « 38.5 » (décimal) n'est donc pas transformé en 385.
+_RE_NOMBRE = re.compile(r"\d{1,3}(?:[  .]\d{3})+|\d+")
+
+
+def _grands_nombres_chat(text):
+    """FAUX POSITIF CORRIGÉ le 2026-07-27 (vu dans la batterie de test) : l'ancienne regex
+    `[\\d\\s]*\\d` ne connaissait que l'espace comme séparateur de milliers. Les grilles
+    tarifaires écrivent « 200.000 » avec un POINT : le contexte donnait donc {200, 0} tandis
+    que la réponse, qui écrit « 200 000 », donnait {200000} — un « chiffre inventé » signalé
+    à tort sur une valeur pourtant recopiée du contexte. Chaque faux positif déclenchait une
+    régénération complète inutile (latence doublée et quota Groq gaspillé, sur un budget déjà
+    le facteur limitant)."""
+    out = set()
+    for m in _RE_NOMBRE.finditer(text or ""):
+        raw = re.sub(r"[  .]", "", m.group(0))
+        # Exclut les années calendaires (2000-2099) : toujours sûr de les répéter (elles
+        # viennent de la question elle-même), les traiter comme un "chiffre inventé" ne fait
+        # que déclencher des faux positifs — trouvé en testant (2026-07-25).
+        if raw.isdigit() and int(raw) >= 1000 and not (len(raw) == 4 and raw.startswith("20")):
+            out.add(int(raw))
+    return out
+
+
+def _chiffres_inventes_chat(reponse, contexte):
+    return _grands_nombres_chat(reponse) - _grands_nombres_chat(contexte)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -199,12 +278,26 @@ def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
 # ═══════════════════════════════════════════════════════════
 
 def _resoudre_question_suivi(question: str, mem) -> str:
+    """BUG TROUVÉ le 2026-07-22 (testé en direct par le directeur, reproduit) : « Et pour
+    ECOBANK ? » après une question sur les frais de tenue de compte partait sur le ROE/PNB/
+    dépôts d'ECOBANK — sujet complètement différent. Cause : has_banque/has_annee EXCLUAIENT
+    la question du statut « suivi », alors que « et pour BANQUE ? » ou « et en ANNÉE ? » SANS
+    aucun mot d'indicateur précis est justement le cas le PLUS courant de suivi (on change une
+    seule dimension, banque ou année, en gardant le même sujet). Fix : ce qui rend une question
+    auto-suffisante, ce n'est PAS de nommer une banque/année, c'est de nommer un SUJET précis
+    (indicateur EF ou service CB) — sans ça, elle continue forcément la question précédente."""
     q_low = question.strip().lower()
     mots  = q_low.split()
-    has_banque = any(alias in q_low for alias in config.BANQUE_ALIASES)
-    has_annee  = bool(re.search(r"\b202[0-9]\b", question))
+    has_topic = any(k in q_low for k in _EF_KEYS) or bool(retriever._extraire_terme_service(question))
 
-    if len(mots) <= 10 and not has_banque and not has_annee:
+    # 2026-07-25 (audit chat, problème #9) : seuil relevé de 10 à 20 mots. `has_topic` est déjà
+    # le VRAI signal (une question qui nomme son propre sujet est indépendante) — le compte de
+    # mots n'est qu'un garde-fou secondaire pour les questions SANS sujet reconnu. À 10 mots,
+    # un suivi un peu plus détaillé ("Et pour la même période mais côté entreprises cette
+    # fois ?" = 11 mots) perdait le contexte à tort. Une vraie question indépendante de cette
+    # longueur nomme quasi toujours une banque/un indicateur/un service — donc relever le seuil
+    # réduit les faux négatifs (suivis ratés) sans vraiment augmenter les faux positifs.
+    if len(mots) <= 20 and not has_topic:
         last_q = mem.get_last_question()
         if last_q:
             return f"{question} [Contexte de la question précédente : {last_q}]"
@@ -327,7 +420,12 @@ def _fiche_synthese_bancaire(banque: str) -> str:
         rang  = next(i for i, (k, _) in enumerate(items, 1) if k == banque)
         val   = d[banque]["valeur"]
         val_fmt = f"{val:,.1f}".replace(",", " ") if unite == "%" else f"{val:,.0f}".replace(",", " ")
-        lignes.append(f"  - {label} : {val_fmt} {unite} → rang {rang}/{len(items)} parmi les banques comparables")
+        # ANNÉE OBLIGATOIRE (2026-07-27) : sans elle, le LLM en invente une. Constaté en test sur
+        # « La BICICI est-elle solide ? » → « ROE de 30,3 % en 2022 », alors que ce ROE est celui
+        # de 2025 ; le LLM avait attrapé une année au hasard dans le bilan brut qui suit la fiche.
+        an = d[banque].get("annee")
+        lignes.append(f"  - {label} : {val_fmt} {unite}" + (f" (exercice {an})" if an else "")
+                      + f" → rang {rang}/{len(items)} parmi les banques comparables")
     return "\n".join(lignes) if trouve else ""
 
 
@@ -390,6 +488,7 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
 
     # 6. Formatage du contexte sectionné par agent
     context = _formater_contexte_sections(chunks_par_agent, regl_chunks, niveau)
+    _context_len_avant_troncature = len(context)   # cf. note de troncature ajoutée en 8b (audit 2026-07-25)
 
     # 6b. Réduction si contexte trop grand pour Groq free tier (6000 TPM)
     if len(context) > config.MAX_CONTEXT_CHARS:
@@ -515,8 +614,15 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
             # Plafond spécifique et plus strict pour ce cas (jusqu'à 7 banques cumulées +
             # prompt de comparaison plus long) — le filet de sécurité général (6c) utilise
             # MAX_CONTEXT_CHARS, trop généreux ici et qui dépassait encore le TPM Groq.
+            # BUG TROUVÉ le 2026-07-25 (audit chat) : SEP ici valait "═"*55 mais
+            # _formater_contexte_sections() génère ses séparateurs en "═"*50 (cf. ligne ~319/324)
+            # — aucune coupure de 55 caractères consécutifs n'existe jamais dans le texte réel
+            # (une étiquette de section casse toujours la série avant), donc ce split ne
+            # trouvait JAMAIS ses sections : tout le contexte tombait dans UNE seule "section",
+            # rendant cette troncature "équitable par section" strictement équivalente à une
+            # troncature brutale de la fin — exactement le problème qu'elle devait éviter.
             if len(context) > config.MAX_CONTEXT_CHARS_COMPARAISON:
-                SEP = "═" * 55
+                SEP = "═" * 50
                 sections = [s for s in context.split(SEP) if s.strip()]
                 n_sections = max(1, len(sections))
                 chars_par_section = config.MAX_CONTEXT_CHARS_COMPARAISON // n_sections
@@ -524,9 +630,9 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
 
         print(f"  Contexte réduit : {len(context):,} chars")
 
-    # 6c. Filet de sécurité final — truncature équitable par section
+    # 6c. Filet de sécurité final — truncature équitable par section (SEP corrigé, voir plus haut)
     if len(context) > config.MAX_CONTEXT_CHARS:
-        SEP = "═" * 55
+        SEP = "═" * 50
         sections = [s for s in context.split(SEP) if s.strip()]
         n_sections = max(1, len(sections))
         chars_par_section = config.MAX_CONTEXT_CHARS // n_sections
@@ -542,11 +648,13 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
     # coup — sans ça le LLM n'a que le bilan brut de CETTE banque, sans repère face aux 6
     # autres, et conclut à tort "impossible de juger la compétitivité" alors que ces
     # données comparatives (ROE, coefficient d'exploitation) existent déjà dans l'app.
+    fiche_injectee = False
     if niveau >= 2 and "etats_financiers" in types_actifs:
         banques_uniques = retriever.detect_banques(question_retrieval)
         if len(banques_uniques) == 1:
             fiche = _fiche_synthese_bancaire(banques_uniques[0])
             if fiche:
+                fiche_injectee = True
                 # Ce cas (niveau≥2, multi-domaine, système-prompt déjà volumineux) est
                 # DÉJÀ à la limite du budget Groq SANS la fiche (constaté : ~12 rotations
                 # nécessaires). Ajouter la fiche telle quelle faisait passer l'échec de
@@ -557,6 +665,33 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
                 context = fiche + "\n\n" + context
                 print(f"  [FICHE SYNTHÈSE] {banques_uniques[0]} — ROE/coeff. expl./PNB/RN classés injectés "
                       f"(contexte brut réduit de {len(fiche)+2:,} chars pour compenser)")
+
+    # 6e. SOCLE DE FAITS PERMANENT (2026-07-27) — LE correctif de fond du chat.
+    #
+    # Diagnostic du directeur, mot pour mot : « les analyses des dashboards sont superbes MAIS
+    # le chat est nul, pas flexible ». Les deux utilisent pourtant le MÊME modèle et des prompts
+    # de qualité comparable. La différence est ailleurs, et elle est entière :
+    #   - Dashboard : on DONNE les faits calculés, PUIS on pose la question → le LLM rédige.
+    #   - Chat      : on DEVINE quels faits chercher (regex + vectoriel) → une devinette ratée
+    #                 et le LLM rédige parfaitement sur des chunks tirés au hasard du cosinus.
+    # Ici on aligne le chat sur le dashboard : les 7 banques × 5 indicateurs CLASSÉS sont
+    # présents à CHAQUE réponse, quoi qu'ait donné le routage. Même si tous les détecteurs
+    # ratent (faute de frappe, tournure inhabituelle), le LLM a de vraies données exactes en
+    # main plutôt que rien. Le RAG vectoriel redevient un COMPLÉMENT pour le détail fin.
+    #
+    # Coût mesuré : ~1 000 caractères (~300 tokens), soit <8 % du budget d'entrée Groq — de
+    # loin le meilleur rapport valeur/tokens du contexte. On compense malgré tout sur le
+    # contexte brut (même précaution qu'en 6d) pour que l'ajout soit neutre en taille et ne
+    # puisse JAMAIS déclencher un 413 sur un cas qui passait avant.
+    # Sauté si la fiche mono-banque de 6d est déjà là : elle couvre le même besoin de façon
+    # plus ciblée pour une question sur UNE banque, inutile de payer les deux.
+    if not fiche_injectee:
+        socle = fiche_marche.construire()
+        if socle:
+            context = context[:max(200, len(context) - len(socle) - 2)]
+            context = socle + "\n\n" + context
+            print(f"  [SOCLE FAITS] Fiche marché injectée ({len(socle):,} chars, "
+                  f"contexte brut réduit d'autant)")
 
     # 7. Prompt adaptatif
     type_prompt = _choisir_prompt(types_actifs, niveau)
@@ -600,15 +735,32 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
         # même si l'estimation reste imparfaite.
         CHARS_PAR_TOKEN = 3.3
         BUDGET_INPUT    = 6000 - config.LLM_MAX_TOKENS - 300
+        SEP_8B = "═" * 50
         for _ in range(3):
             total_chars = sum(len(m.content) for m in messages)
             est_tokens  = total_chars / CHARS_PAR_TOKEN
             if est_tokens <= BUDGET_INPUT:
                 break
             chars_a_retirer = int((est_tokens - BUDGET_INPUT) * CHARS_PAR_TOKEN) + 200
-            nouveau_contexte = context[:max(100, len(context) - chars_a_retirer)]
+            cible_chars = max(100, len(context) - chars_a_retirer)
+            # BUG TROUVÉ le 2026-07-25 (audit chat, reproduit en direct : "frais de tenue de
+            # compte SGCI 2024" → le chunk keyword exact "Frais de tenue de compte : 2 350"
+            # disparaissait, le LLM répondait "non disponible" alors que la donnée EXISTAIT
+            # dans le contexte avant cette étape) : context[:N] coupe la fin du texte SANS
+            # savoir quelle section s'y trouve — les chunks keyword (les plus fiables, ajoutés
+            # en dernier dans l'union sémantique+keyword de search_auto) étaient justement les
+            # premiers sacrifiés. Fix : même logique "équitable par section" que 6c au lieu
+            # d'une coupe aveugle de la fin — chaque section perd le même NOMBRE de caractères,
+            # aucune n'est rayée entièrement juste parce qu'elle est positionnée en dernier.
+            sections = [s for s in context.split(SEP_8B) if s.strip()]
+            if len(sections) > 1:
+                chars_par_section = max(50, cible_chars // len(sections))
+                nouveau_contexte = "\n".join(SEP_8B + s[:chars_par_section] for s in sections)
+            else:
+                nouveau_contexte = context[:cible_chars]
             print(f"  [GARDE-FOU] Prompt réel ≈{est_tokens:.0f} tok > budget {BUDGET_INPUT} — "
-                  f"contexte {len(context):,} → {len(nouveau_contexte):,} chars")
+                  f"contexte {len(context):,} → {len(nouveau_contexte):,} chars "
+                  f"({len(sections)} section(s), coupe équitable)")
             context  = nouveau_contexte
             messages = prompt_template.format_messages(
                 context  = context,
@@ -617,12 +769,45 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
                 disponibilite_ef = retriever.texte_disponibilite_ef(),
             )
 
+    # 8c. Note de troncature (audit 2026-07-25) : le prompt (SYSTEM_BASE, règle EXHAUSTIVITÉ
+    # STRICTE) exige de présenter TOUTES les entrées d'une section — mais si 6b/6c/8b ont réduit
+    # le contexte pour tenir dans le budget Groq, le LLM ne reçoit alors qu'un SOUS-ENSEMBLE. Sans
+    # signal, il ne peut pas savoir qu'il doit le dire au lieu de prétendre l'exhaustivité. On
+    # ajoute cette note SEULEMENT si la réduction est significative (>15%, pas du bruit d'arrondi).
+    if len(context) < _context_len_avant_troncature * 0.85:
+        context = (context + "\n\n[NOTE SYSTÈME : contexte réduit pour respecter une limite "
+                   "technique — certaines entrées existantes n'apparaissent peut-être pas "
+                   "ci-dessus. Vois la règle EXHAUSTIVITÉ STRICTE.]")
+        messages = prompt_template.format_messages(
+            context  = context,
+            history  = history,
+            question = question,
+            disponibilite_ef = retriever.texte_disponibilite_ef(),
+        )
+        print(f"  [NOTE TRONCATURE] Contexte réduit de {_context_len_avant_troncature:,} → "
+              f"{len(context):,} chars — note ajoutée pour éviter une fausse promesse d'exhaustivité.")
+
     temp_used = (config.LLM_TEMPERATURE_FACTUEL
                  if all(t in {"conditions_banque", "etats_financiers"} for t in types_actifs)
                  else config.LLM_TEMPERATURE_ANALYTIQUE)
     print(f"  Génération ({config.LLM_PROVIDER} T={temp_used}) — {len(context):,} chars contexte...")
 
     reponse = _invoke_with_retry(llm, messages)
+
+    # 8c. Garde-fou anti-invention (audit 2026-07-25) : si la réponse cite un grand nombre
+    # absent du contexte fourni, on retente UNE fois une génération fraîche avant d'accepter
+    # tel quel — pas de blocage dur (cf. leçon du 2026-07-22 sur le prompt EF), juste un log
+    # pour garder trace des cas où ça persiste malgré la reprise.
+    _invente = _chiffres_inventes_chat(reponse, context)
+    if _invente:
+        print(f"  [GARDE-FOU CHAT] Chiffre(s) absent(s) du contexte détecté(s) {_invente} — nouvelle tentative...")
+        reponse_retry = _invoke_with_retry(llm, messages)
+        if not _chiffres_inventes_chat(reponse_retry, context):
+            reponse = reponse_retry
+        else:
+            print(f"  [GARDE-FOU CHAT] Persiste après reprise — réponse conservée telle quelle "
+                  f"(chiffres à vérifier : {_chiffres_inventes_chat(reponse_retry, context)}).")
+            reponse = reponse_retry
 
     # 9. Mémorisation
     mem.add_user(question)
@@ -683,7 +868,7 @@ def _detect_comparatif(question: str):
     return None
 
 
-def _executer_comparatif(chain: dict, question: str, spec: dict) -> str:
+def _executer_comparatif(chain: dict, question: str, spec: dict, question_memoire: str = None) -> str:
     """Exécute la comparaison via l'outil structuré SQL, puis fait phraser le LLM."""
     mem = chain["memory"]
     if spec["kind"] == "roe":
@@ -701,7 +886,7 @@ def _executer_comparatif(chain: dict, question: str, spec: dict) -> str:
 
     if winner is None:
         rep = "Données insuffisantes dans la base pour cette comparaison."
-        mem.add_user(question); mem.add_assistant(rep)
+        mem.add_user(question_memoire or question); mem.add_assistant(rep)
         return rep
 
     # La bonne réponse (gagnant) est déjà calculée déterministiquement par
@@ -717,7 +902,7 @@ def _executer_comparatif(chain: dict, question: str, spec: dict) -> str:
     userm = f"Question : {question}\n\nComparaison :\n{txt}"
     llm = _get_llm(["etats_financiers"])     # température factuelle
     rep = _invoke_with_retry(llm, [("system", sysm), ("human", userm)])
-    mem.add_user(question); mem.add_assistant(rep)
+    mem.add_user(question_memoire or question); mem.add_assistant(rep)
     return rep
 
 
@@ -735,7 +920,23 @@ def _detect_factuel_ef_unique(question: str):
     q = question.lower()
     if any(k in q for k in _COMP_KW):
         return None
-    if len(question.split()) > 14:
+    # Le plafond de mots ne compte QUE la question réellement tapée : l'annotation
+    # « [Contexte de la question précédente : ...] » ajoutée aux suivis (cf.
+    # _resoudre_question_suivi) faisait passer « Et en 2023 ? » de 4 à ~19 mots, au-dessus de la
+    # limite — le détecteur factuel se désactivait donc pile sur les suivis, alors que ce sont
+    # les questions les PLUS simples (1 banque, 1 indicateur, 1 année). Résultat mesuré le
+    # 2026-07-27 : « Et en 2023 ? » après « résultat net de SGCI en 2024 » partait dans le RAG
+    # et renvoyait 83 109 M — la colonne N-1 du rapport, soit l'exercice 2022 — au lieu des
+    # 97 230 M de 2023. Un chiffre faux, présenté avec le même aplomb qu'un chiffre juste.
+    q_utilisateur = re.split(r"\[contexte de la question", question, flags=re.I)[0]
+    if len(q_utilisateur.split()) > 14:
+        return None
+    # Une question d'ÉVOLUTION attend une série (plusieurs années), pas un point. Sans ce
+    # garde-fou, « Comment a évolué le PNB de SGCI ces dernières années ? » cochait toutes les
+    # cases de cette branche (1 banque, 1 indicateur, ≤14 mots, aucun mot de comparaison) et
+    # recevait une réponse d'UNE ligne sur la dernière année — techniquement exacte, et à côté
+    # de la question. Trouvé le 2026-07-27 en sondant des formulations non encore testées.
+    if retriever.is_evolution(question):
         return None
     banques = retriever.detect_banques(question)
     if len(banques) != 1:
@@ -766,7 +967,7 @@ _EF_LABELS = {
 }
 
 
-def _executer_factuel_ef_unique(chain: dict, question: str, spec: dict) -> str:
+def _executer_factuel_ef_unique(chain: dict, question: str, spec: dict, question_memoire: str = None) -> str:
     """Lecture SQL directe (même requête que comparer_ef/comparer_roe) pour UNE banque."""
     mem    = chain["memory"]
     banque = spec["banque"]
@@ -790,7 +991,7 @@ def _executer_factuel_ef_unique(chain: dict, question: str, spec: dict) -> str:
         else:
             valeur_fmt = f"{info['valeur']:,.0f}".replace(",", " ")
             rep = f"Le {label} de {banque} en {info['annee']} est de {valeur_fmt} millions FCFA."
-    mem.add_user(question); mem.add_assistant(rep)
+    mem.add_user(question_memoire or question); mem.add_assistant(rep)
     return rep
 
 
@@ -830,10 +1031,26 @@ def _detect_comparaison_cb_service(question: str):
     une comparaison CB même si elle nomme 2+ banques — laisser _detect_comparatif (EF)
     ou le RAG gérer, jamais renvoyer un tableau CB hors sujet."""
     banques = retriever.detect_banques(question)
-    if len(banques) < 2:
-        return None
     q = question.lower()
     if any(k in q for k in _EF_KEYS):
+        return None
+
+    # QUESTION CROSS-BANQUES SANS BANQUE NOMMÉE (2026-07-27) : « Quelles banques offrent la
+    # carte Visa Gold et à quel prix ? » ne nomme personne — la branche exhaustive ne se
+    # déclenchait donc pas et la question partait en recherche sémantique sur les 7 banques,
+    # dont le contexte (36 000 chars) était ensuite rogné à 3 700 : la réponse ne citait que
+    # BACI, alors que SIX banques proposent une carte Gold. Dire « seule BACI » quand cinq
+    # concurrents en proposent aussi, c'est pire qu'une réponse incomplète sur un outil
+    # d'intelligence CONCURRENTIELLE. Ici, le tableau SQL exhaustif couvre les 7 sans perte.
+    if not banques:
+        terme_cross = retriever._extraire_terme_service(question)
+        if terme_cross and _contient_racine(q, ("quelles banques", "quelle banque", "toutes les banques",
+                                                "chaque banque", "les banques", "quels etablissements",
+                                                "banques offrent", "banques proposent", "comparer les banques")):
+            return {"banques": list(config.BANQUES_OFFICIELLES), "termes": [terme_cross]}
+        return None
+
+    if len(banques) < 2:
         return None
     terme = retriever._extraire_terme_service(question)
     if terme:
@@ -867,7 +1084,7 @@ def _detect_comparaison_ef_banques(question: str):
     return None
 
 
-def _executer_comparaison_ef_banques(chain: dict, question: str, spec: dict):
+def _executer_comparaison_ef_banques(chain: dict, question: str, spec: dict, question_memoire: str = None):
     """Comme _executer_comparatif mais restreint aux banques NOMMÉES (pas les 7), et sans
     exiger de mot superlatif. Prompt minimal comme pour le ROE/EF classique."""
     mem     = chain["memory"]
@@ -893,11 +1110,11 @@ def _executer_comparaison_ef_banques(chain: dict, question: str, spec: dict):
     userm = f"Question : {question}\n\nComparaison :\n{txt}"
     llm   = _get_llm(["etats_financiers"])
     rep   = _invoke_with_retry(llm, [("system", sysm), ("human", userm)])
-    mem.add_user(question); mem.add_assistant(rep)
+    mem.add_user(question_memoire or question); mem.add_assistant(rep)
     return rep
 
 
-def _executer_comparaison_cb_exhaustive(chain: dict, question: str, spec: dict):
+def _executer_comparaison_cb_exhaustive(chain: dict, question: str, spec: dict, question_memoire: str = None):
     """Construit le tableau exhaustif par SQL direct, puis fait rédiger UNIQUEMENT la
     conclusion par un LLM avec un prompt minimal (pas le prompt système géant de l'agent
     Conditions Tarifaires, ~10 500 caractères — c'est lui qui, combiné à un tableau large,
@@ -905,10 +1122,19 @@ def _executer_comparaison_cb_exhaustive(chain: dict, question: str, spec: dict):
     entiers). Retourne None si aucune donnée trouvée (le RAG prend alors le relais)."""
     mem     = chain["memory"]
     termes  = spec["termes"]
+    # PLAFOND ADAPTÉ AU NOMBRE DE BANQUES (2026-07-27). Il était fixe (8), calibré pour le pire
+    # cas (7 banques) et donc inutilement sévère sur une comparaison à 2 banques : les 13 offres
+    # tarifaires d'ECOBANK étaient coupées à 4, ce qui produit une réponse fausse et pas
+    # seulement abrégée. Le tableau étant affiché ENTIER à l'utilisateur (le LLM n'en tire qu'une
+    # conclusion de 3-5 lignes, cf. plus bas), le vrai coût d'une ligne supplémentaire est
+    # l'affichage, pas le budget Groq — d'où un plafond calculé sur le nombre de banques.
+    n_banques = max(1, len(spec["banques"]))
     if len(termes) == 1:
-        tableau = structured_tools.tableau_cb_exhaustif(spec["banques"], termes[0], max_libelles=8)
+        tableau = structured_tools.tableau_cb_exhaustif(
+            spec["banques"], termes[0], max_libelles=max(4, 28 // n_banques))
     else:
-        tableau = structured_tools.tableau_cb_multi_service(spec["banques"], termes, max_libelles=4)
+        tableau = structured_tools.tableau_cb_multi_service(
+            spec["banques"], termes, max_libelles=max(3, 14 // n_banques))
     if not tableau:
         return None
 
@@ -919,13 +1145,225 @@ def _executer_comparaison_cb_exhaustive(chain: dict, question: str, spec: dict):
             "c'est déterminable, précise si le classement change selon le segment (Particuliers "
             "vs Entreprises), la catégorie de service ou la période, et signale les cas '—' "
             "(donnée non trouvée) sans en inventer la valeur.")
-    userm = f"Question : {question}\n\nTableau :\n{tableau}"
+    # L'utilisateur voit le tableau ENTIER ; seule la copie envoyée au LLM est plafonnée. Cette
+    # dissociation (2026-07-27) évite le compromis absurde d'avant : rogner l'AFFICHAGE pour
+    # tenir dans le budget d'un modèle qui n'écrit qu'une conclusion de 3 lignes. Si le tableau
+    # dépasse, la conclusion portera sur un extrait — c'est dit explicitement au LLM pour qu'il
+    # ne présente pas son commentaire comme couvrant l'ensemble.
+    MAX_TABLEAU_LLM = 9000
+    tableau_llm = tableau
+    if len(tableau) > MAX_TABLEAU_LLM:
+        tableau_llm = (tableau[:MAX_TABLEAU_LLM]
+                       + "\n[...] (tableau tronqué ici pour ta lecture uniquement — l'utilisateur "
+                         "voit la version complète ; commente ce que tu vois sans prétendre à "
+                         "l'exhaustivité)")
+        print(f"  [TABLEAU CB] {len(tableau):,} chars affichés, {MAX_TABLEAU_LLM:,} envoyés au LLM")
+    userm = f"Question : {question}\n\nTableau :\n{tableau_llm}"
     llm   = _get_llm(["conditions_banque"])
     conclusion = _invoke_with_retry(llm, [("system", sysm), ("human", userm)])
 
     titre = f"**Comparaison exhaustive — {' / '.join(termes)} ({', '.join(spec['banques'])})**"
     rep = f"{titre}\n{tableau}\n\n**Analyse**\n\n{conclusion}"
-    mem.add_user(question); mem.add_assistant(rep)
+    mem.add_user(question_memoire or question); mem.add_assistant(rep)
+    return rep
+
+
+# ═══════════════════════════════════════════════════════════
+#  AGENT DE SECOURS — LangChain tool-calling (audit chat 2026-07-25)
+# ═══════════════════════════════════════════════════════════
+# N'intervient QUE quand les 4 détecteurs regex/mots-clés (_detect_comparatif,
+# _detect_factuel_ef_unique, _detect_comparaison_ef_banques, _detect_comparaison_cb_service)
+# ET la détection de domaine par mots-clés (detect_types_doc) ont TOUS échoué — c'est-à-dire
+# exactement les cas qui finissaient auparavant en rejet "hors périmètre". Il ne peut donc
+# JAMAIS dégrader un cas qui fonctionnait déjà (routage regex existant intouché) — il rattrape
+# uniquement des cas 100% perdus avant. Si l'agent échoue ou ne trouve aucun outil pertinent,
+# on retombe silencieusement sur le comportement d'avant (rejet normal).
+def _agent_llm_pour_cle(groq_key: str):
+    from langchain_groq import ChatGroq
+    return ChatGroq(model=config.GROQ_MODEL, groq_api_key=groq_key,
+                     temperature=0, max_tokens=600).bind_tools(agent_tools.ALL_TOOLS)
+
+
+def _agent_invoke_avec_rotation(msgs):
+    """BUG TROUVÉ en testant (2026-07-25) : la 1ʳᵉ version de l'agent utilisait une SEULE clé
+    Groq figée (config.GROQ_API_KEY) — sans la rotation sur 12 clés que le reste de l'app
+    utilise déjà (_invoke_with_retry). Résultat observé en direct : la clé par défaut avait déjà
+    atteint son quota journalier (99 198/100 000 tokens) à force de tester ce soir, et l'agent
+    échouait alors SYSTÉMATIQUEMENT (échec silencieux, sans casser le chat — mais rendant
+    l'agent inutile) alors que d'autres clés avaient probablement encore du quota. Fix : même
+    rotation que le reste du chat sur 429/quota."""
+    keys = config.GROQ_API_KEYS or [config.GROQ_API_KEY]
+    last_err = None
+    for key in keys:
+        try:
+            llm = _agent_llm_pour_cle(key)
+            return llm, llm.invoke(msgs)
+        except Exception as e:
+            last_err = e
+            continue
+    raise last_err or RuntimeError("Aucune clé Groq disponible pour l'agent de secours.")
+
+
+def _agent_secours(question: str, mem) -> str | None:
+    """Tente de répondre via un outil déterministe (structured_tools, même source SQL que le
+    reste de l'app) quand aucun détecteur existant n'a reconnu la question. Retourne None si
+    l'agent ne trouve aucun outil pertinent OU en cas d'erreur — jamais d'exception qui remonte
+    à ask(), pour garantir zéro régression sur le chemin existant."""
+    try:
+        from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+        sysm = ("Tu choisis UNIQUEMENT parmi les outils fournis pour répondre à une question "
+                "bancaire ivoirienne (7 banques : SGCI, BICICI, BNI, ECOBANK, NSIA, SIB, BACI). "
+                "Si AUCUN outil ne correspond clairement à la question, NE FAIS AUCUN appel d'outil.")
+        msgs = [SystemMessage(sysm), HumanMessage(question)]
+        llm, resp = _agent_invoke_avec_rotation(msgs)
+        if not getattr(resp, "tool_calls", None):
+            return None   # aucun outil jugé pertinent → laisse ask() gérer le rejet normal
+
+        appel = resp.tool_calls[0]
+        outil = next((t for t in agent_tools.ALL_TOOLS if t.name == appel["name"]), None)
+        if not outil:
+            return None
+        resultat = outil.invoke(appel["args"])
+
+        # Synthèse finale : le LLM rédige UNIQUEMENT à partir du résultat de l'outil (même
+        # discipline anti-invention que le reste de l'app — pas de calcul ni d'ajout personnel).
+        # Même clé que celle qui a réussi l'appel précédent (déjà validée disponible à l'instant).
+        msgs.append(resp)
+        msgs.append(ToolMessage(content=str(resultat), tool_call_id=appel["id"]))
+        msgs.append(HumanMessage("Rédige la réponse finale en français, UNIQUEMENT à partir du "
+                                  "résultat de l'outil ci-dessus — ne recalcule rien, n'ajoute "
+                                  "aucun chiffre absent de ce résultat."))
+        try:
+            final = llm.invoke(msgs)
+        except Exception:
+            _, final = _agent_invoke_avec_rotation(msgs)   # re-rotation si la clé a expiré entre-temps
+        reponse = (final.content or "").strip()
+        if not reponse:
+            return None
+        print(f"  [AGENT SECOURS] Outil '{appel['name']}' utilisé (question non reconnue par les détecteurs existants).")
+        mem.add_user(question); mem.add_assistant(reponse)
+        return reponse
+    except Exception as e:
+        print(f"  [AGENT SECOURS] Échec silencieux ({e}) — retombe sur le comportement normal.")
+        return None
+
+
+# ═══════════════════════════════════════════════════════════
+#  BRANCHE ÉVOLUTION EF — 1 banque + 1 indicateur, série annuelle (2026-07-27)
+# ═══════════════════════════════════════════════════════════
+
+def _detect_evolution_ef(question: str):
+    """« Comment a évolué le PNB de SGCI ? » — 1 banque nommée + 1 indicateur EF + intention
+    d'évolution. Sans cette branche, la question partait au RAG, qui a répondu avec une année
+    tirée d'une colonne N-1, deux années réelles déclarées « non disponibles » et un chiffre
+    arrondi. Une série annuelle est un GROUP BY : rien à deviner."""
+    if not retriever.is_evolution(question):
+        return None
+    banques = retriever.detect_banques(question)
+    if len(banques) != 1:
+        return None
+    q = _normaliser(question)
+    for key in _EF_KEYS:
+        # ROE et coefficient d'exploitation sont des ratios calculés, pas des lignes de bilan :
+        # leur série demanderait de croiser deux indicateurs année par année. Laissés au RAG
+        # pour l'instant plutôt que de renvoyer une série fausse.
+        if key in q and key not in ("roe", "rentabilité", "rentabilite", "return on equity",
+                                    "coefficient d'exploitation", "coefficient d exploitation"):
+            return {"banque": banques[0], "indicateur": key}
+    return None
+
+
+def _executer_evolution_ef(chain: dict, question: str, spec: dict, question_memoire: str = None):
+    """Série SQL exacte + rédaction LLM. None si la base n'a pas assez de points."""
+    mem   = chain["memory"]
+    serie = structured_tools.serie_ef(spec["banque"], spec["indicateur"])
+    if len(serie) < 2:
+        return None      # une évolution demande au moins 2 points → RAG en secours
+    label   = _EF_LABELS.get(spec["indicateur"], spec["indicateur"])
+    tableau = structured_tools.format_serie_ef(spec["banque"], label, serie)
+    print(f"  [ÉVOLUTION EF] {spec['banque']} — {label} : {len(serie)} exercices (SQL exact).")
+    sysm = ("Tu commentes UNIQUEMENT le tableau d'évolution fourni (source SQL exacte, variations "
+            "déjà calculées). Ne recalcule rien, n'arrondis AUCUN chiffre, n'ajoute aucune année "
+            "absente du tableau. Recopie le tableau tel quel, puis ajoute 3 à 5 lignes d'analyse : "
+            "tendance générale, année la plus marquante, rythme de croissance.")
+    llm = _get_llm(["etats_financiers"])
+    rep = _invoke_with_retry(llm, [("system", sysm), ("human", f"Question : {question}\n\n{tableau}")])
+    mem.add_user(question_memoire or question); mem.add_assistant(rep)
+    return rep
+
+
+# ═══════════════════════════════════════════════════════════
+#  BRANCHE « MEILLEURE BANQUE » — SYNTHÈSE MULTICRITÈRE (2026-07-27)
+# ═══════════════════════════════════════════════════════════
+# La question la plus naturelle qu'un dirigeant pose — et justement la SEULE qui n'avait
+# aucune route. _detect_comparatif() exige un indicateur nommé (PNB, ROE, résultat net...) ;
+# « quelle est la meilleure banque ? » n'en nomme aucun, donc retournait None et tombait dans
+# le RAG générique. Or « la meilleure banque » n'est pas une information à retrouver dans un
+# document : c'est une SYNTHÈSE multicritère. Le retrieval sémantique ne peut structurellement
+# pas y répondre — il cherche des chunks dont le texte ressemble à la question, et aucun
+# libellé de bilan ne ressemble à « meilleure banque ». D'où les réponses au hasard.
+# Même diagnostic et même remède que pour « propose une stratégie » le 2026-07-25 : router
+# vers les données DÉJÀ CALCULÉES plutôt que vers le RAG.
+_RACINES_SUPERLATIF = ("meilleur", "meilleure", "mieux", "plus performant", "plus solide",
+                       "plus fiable", "numero 1", "numero un", "n°1", "top banque",
+                       "laquelle choisir", "quelle choisir", "plus interessante",
+                       "recommandes-tu", "recommande-tu", "conseilles-tu", "laquelle est la")
+_RACINES_BANQUE_GEN = ("banqu", "etablissement bancaire", "banks")
+
+
+def _detect_meilleure_banque(question: str) -> bool:
+    """Superlatif + notion de banque, SANS indicateur précis nommé (sinon _detect_comparatif,
+    qui passe avant, a déjà pris la main avec un classement mono-critère plus exact).
+    Tolérant aux fautes via les racines : « MEILLEUR BANQU » matche comme « meilleure banque »."""
+    q = _normaliser(question)
+    if not _contient_racine(q, _RACINES_SUPERLATIF) or not _contient_racine(q, _RACINES_BANQUE_GEN):
+        return False
+    # Un indicateur explicitement nommé => question mono-critère, laisser les branches précises.
+    if any(k in q for k in _EF_KEYS):
+        return False
+    # « meilleure banque pour une PME exportatrice » : question de recommandation CLIENT, qui
+    # dépend des tarifs et du besoin, pas du classement de performance des banques. On la laisse
+    # au chemin RAG/recommandation existant, qui sait croiser tarifs et réglementation.
+    if _contient_racine(q, ("pour une pme", "pour mon entreprise", "pour une startup",
+                            "pour un particulier", "pour une association", "pour importer",
+                            "pour exporter", "pour un pret", "pour un credit")):
+        return False
+    return True
+
+
+def _executer_meilleure_banque(chain: dict, question: str, question_memoire: str = None) -> str | None:
+    """Classement multicritère déterministe (SQL) + rédaction LLM. Retourne None si la base
+    ne permet aucun classement — on retombe alors sur le chemin normal, jamais d'échec dur."""
+    mem = chain["memory"]
+    try:
+        classement = fiche_marche.classement_multicritere()
+    except Exception as e:
+        print(f"  [MEILLEURE BANQUE] Classement indisponible ({e}) — retour au chemin normal.")
+        return None
+    if not classement:
+        return None
+
+    print("  [MEILLEURE BANQUE] Classement multicritère SQL (déterministe) — sans RAG.")
+    sysm = (
+        "Tu es un analyste bancaire. Réponds à la question UNIQUEMENT à partir du classement "
+        "chiffré fourni (source : base SQL exacte, déjà calculé et déjà trié). "
+        "N'invente AUCUN chiffre, ne recalcule aucun classement. "
+        "Structure : (1) la banque en tête et son score, (2) le podium complet, (3) une phrase "
+        "par critère pour expliquer QUI domine sur QUOI, (4) la nuance finale : le meilleur "
+        "choix dépend de l'objectif poursuivi. Réponds en français, clair et direct.\n"
+        # Ajouté le 2026-07-27 après un test en direct : le LLM a écrit « pour l'efficience, SGCI
+        # se distingue » alors que la ligne détaillée classait SIB 1re — il avait écarté SIB de
+        # TOUS les critères parce qu'elle était signalée absente du score global. D'où cette
+        # consigne explicite : le 1er d'une ligne de critère se recopie, il ne se déduit pas.
+        "RÈGLE ABSOLUE pour le point (3) : pour chaque critère, la banque qui domine est celle "
+        "écrite EN PREMIER sur la ligne de ce critère — recopie-la telle quelle, même si elle "
+        "est absente du classement global (une banque écartée du score global reste exacte dans "
+        "les critères où elle est mesurée)."
+    )
+    userm = f"Question : {question}\n\n{classement}"
+    llm = _get_llm(["etats_financiers"])      # température factuelle
+    rep = _invoke_with_retry(llm, [("system", sysm), ("human", userm)])
+    mem.add_user(question_memoire or question); mem.add_assistant(rep)
     return rep
 
 
@@ -933,49 +1371,178 @@ def _executer_comparaison_cb_exhaustive(chain: dict, question: str, spec: dict):
 #  POINT D'ENTRÉE — ROUTEUR MULTI-LABEL
 # ═══════════════════════════════════════════════════════════
 
+_SALUTATIONS = ("bonjour", "bonsoir", "salut", "hello", "hi", "coucou", "bsr", "cc",
+                "bonne journee", "bonne soiree", "merci", "ok merci", "au revoir",
+                # AJOUTÉ le 2026-07-27 : « bjr » se faisait rejeter "hors périmètre" alors que
+                # « bsr » était bien dans la liste — une abréviation oubliée suffisait à donner
+                # au directeur l'impression d'un outil cassé dès le premier message.
+                "bjr", "slt", "cc les amis", "yo", "hey", "salutations", "bjr a tous",
+                "bonjour a tous", "hello a tous", "ca va", "comment ca va", "merci beaucoup",
+                "ok", "d accord", "parfait", "super", "a bientot", "bye", "bonne nuit")
+
+
+def _est_salutation_seule(question: str) -> bool:
+    """BUG TROUVÉ (2026-07-25, signalé par le directeur en testant) : « Bonjour » tout seul
+    déclenchait le rejet "hors périmètre" — aucun mot-clé bancaire, aucune banque nommée, donc
+    la question tombait dans la branche "hors sujet" alors qu'il ne s'agit que d'une salutation.
+    Détection : la question ENTIÈRE (après nettoyage ponctuation) est une salutation courte —
+    ne matche jamais une vraie question bancaire qui contiendrait aussi ces mots en début de
+    phrase (ex. "Bonjour, quel est le PNB de SGCI ?" a bien plus de mots ET un mot-clé EF, donc
+    passe par le chemin normal, pas celui-ci).
+
+    2026-07-27 : liste élargie + comparaison APPROCHÉE. Une liste exacte est condamnée à être
+    incomplète (« bjr » manquait), et chaque manque produit un rejet "hors périmètre" brutal
+    sur un simple bonjour. difflib rattrape les variantes non prévues (« bnjour », « salu »,
+    « bonsoirr ») sans risque de faux positif : on ne teste que des messages de 3 mots maximum,
+    et une vraie question bancaire de 3 mots ne ressemble à aucune salutation (ratio 0.85)."""
+    q = _normaliser(question).rstrip("!?. ").replace("'", " ").strip()
+    if not q or len(q.split()) > 3:
+        return False
+    if q in _SALUTATIONS:
+        return True
+    import difflib
+    return bool(difflib.get_close_matches(q, _SALUTATIONS, n=1, cutoff=0.85))
+
+
 def ask(chain: dict, question: str) -> str:
     """Point d'entrée unique — routing multi-label automatique."""
-    spec = _detect_comparatif(question)
-    if spec:                                  # branche comparative déterministe
-        return _executer_comparatif(chain, question, spec)
+    if _est_salutation_seule(question):
+        # BUG TROUVÉ le 2026-07-27 (reproduit à partir d'une capture du directeur) : cette
+        # branche écrivait la salutation dans la mémoire (mem.add_user/add_assistant), ce qui
+        # en faisait un VRAI tour de conversation. Conséquence en cascade sur la question
+        # SUIVANTE : _resoudre_question_suivi() voyait un historique non vide et transformait
+        # « JE VEUX SAVOIR QELLE ST LA MEILLEUR BANQU » en « ... [Contexte de la question
+        # précédente : bonjour] », ce qui activait est_suivi_scope, forçait les domaines
+        # CB+EF et envoyait cette bouillie en recherche vectorielle — d'où la réponse sur les
+        # prêts subordonnés BICICI. Un « bonjour » n'est pas un sujet : il ne doit RIEN laisser
+        # dans la mémoire, sinon il pollue tout ce qui suit.
+        return ("Bonjour ! Je suis l'assistant SpyBusiness — posez-moi une question sur les "
+                "tarifs, la performance financière ou la réglementation des 7 banques ivoiriennes "
+                "(BACI, BICICI, BNI, ECOBANK, NSIA, SIB, SGCI).")
 
-    spec_unique = _detect_factuel_ef_unique(question)
-    if spec_unique:                           # branche factuelle mono-banque déterministe
-        return _executer_factuel_ef_unique(chain, question, spec_unique)
+    mem = chain["memory"]
 
-    spec_ef_banques = _detect_comparaison_ef_banques(question)
-    if spec_ef_banques:                       # branche comparaison EF par banques nommées
-        rep = _executer_comparaison_ef_banques(chain, question, spec_ef_banques)
+    def _essayer_detecteurs(q_detect: str, q_mem: str = None):
+        """Passe q_detect dans les 4 détecteurs déterministes (+ « meilleure banque »).
+        Retourne la réponse, ou None si aucun ne s'applique / ne trouve de données.
+        q_mem : ce qu'on écrit dans la mémoire (la question ORIGINALE de l'utilisateur, pour
+        qu'un enrichissement de suivi ne s'empile pas d'un tour à l'autre)."""
+        spec = _detect_comparatif(q_detect)
+        if spec:
+            return _executer_comparatif(chain, q_detect, spec, question_memoire=q_mem)
+
+        if _detect_meilleure_banque(q_detect):
+            rep = _executer_meilleure_banque(chain, q_detect, question_memoire=q_mem)
+            if rep:
+                return rep
+
+        spec_evo = _detect_evolution_ef(q_detect)
+        if spec_evo:
+            rep = _executer_evolution_ef(chain, q_detect, spec_evo, question_memoire=q_mem)
+            if rep:
+                return rep
+
+        spec_unique = _detect_factuel_ef_unique(q_detect)
+        if spec_unique:
+            return _executer_factuel_ef_unique(chain, q_detect, spec_unique, question_memoire=q_mem)
+
+        spec_ef_banques = _detect_comparaison_ef_banques(q_detect)
+        if spec_ef_banques:
+            rep = _executer_comparaison_ef_banques(chain, q_detect, spec_ef_banques, question_memoire=q_mem)
+            if rep:
+                return rep
+            # Rien trouvé en base pour ces banques → on laisse la suite décider
+
+        spec_cb_exh = _detect_comparaison_cb_service(q_detect)
+        if spec_cb_exh:
+            rep = _executer_comparaison_cb_exhaustive(chain, q_detect, spec_cb_exh, question_memoire=q_mem)
+            if rep:
+                return rep
+        return None
+
+    rep = _essayer_detecteurs(question)
+    if rep:
+        return rep
+
+    # 2ᵉ PASSE SUR LA QUESTION ENRICHIE (2026-07-27, trouvé par la batterie de test).
+    # INCOHÉRENCE CONSTATÉE : « Frais de tenue de compte ECOBANK 2024 S1 ? » listait les 13
+    # offres tarifaires ; la MÊME demande formulée en suivi (« Et pour ECOBANK ? » après une
+    # question sur BNI) répondait « non disponible dans le contexte fourni ». Rien de plus
+    # décrédibilisant qu'un outil qui affirme ne pas savoir ce qu'il vient d'afficher.
+    # Cause : les détecteurs déterministes tournaient sur la question BRUTE. « Et pour
+    # ECOBANK ? » ne nomme qu'une banque et aucun service → _detect_comparaison_cb_service
+    # (qui exige un service + 2 banques) ne se déclenchait pas. La question partait donc dans
+    # le RAG générique, qui pour 2 banques ne garde que 7 chunks chacune — insuffisant pour
+    # 13 offres, d'où la réponse « non disponible » sur des données bien présentes.
+    # Un suivi mérite exactement le même traitement déterministe qu'une question directe :
+    # on rejoue donc les détecteurs sur le texte ENRICHI du contexte précédent.
+    question_enrichie = _resoudre_question_suivi(question, mem)
+    if question_enrichie != question:
+        rep = _essayer_detecteurs(question_enrichie, q_mem=question)
         if rep:
+            print("  [SUIVI DÉTERMINISTE] Détecteur déclenché sur la question enrichie.")
             return rep
-        # Rien trouvé en base pour ces banques → fallback RAG normal ci-dessous
 
-    spec_cb_exh = _detect_comparaison_cb_service(question)
-    if spec_cb_exh:                           # branche comparaison CB exhaustive déterministe
-        rep = _executer_comparaison_cb_exhaustive(chain, question, spec_cb_exh)
-        if rep:
-            return rep
-        # Rien trouvé en base pour ce terme/ces banques → fallback RAG normal ci-dessous
-
-    mem          = chain["memory"]
+    types_actifs = retriever.detect_types_doc(question)
     types_actifs = retriever.detect_types_doc(question)
 
     # Essai avec contexte de suivi
+    est_suivi_scope = False
     if not types_actifs:
         question_elargie = _resoudre_question_suivi(question, mem)
         if question_elargie != question:
             types_actifs = retriever.detect_types_doc(question_elargie)
+            # BUG TROUVÉ le 2026-07-22 (testé en direct, reproduit) : « Et en 2025 ? » après
+            # « Et pour ECOBANK ? » — un suivi tout aussi légitime — se faisait rejeter comme
+            # « hors périmètre » plus bas, car mem.get_last_question() ne remonte qu'À LA
+            # QUESTION PRÉCÉDENTE (elle-même un suivi sans banque/sujet propre), donc le texte
+            # enrichi ne contenait toujours aucun mot-clé CB/EF détectable. On retient ici qu'on
+            # est dans un VRAI suivi (conversation bancaire déjà engagée) pour ne pas rejeter la
+            # question plus bas juste parce qu'elle ne se suffit pas à elle-même.
+            est_suivi_scope = True
 
     # Fallback : question générale bancaire → tous les domaines
     if not types_actifs:
         q = question.lower()
-        banques_mentionnees = any(a in q for a in config.BANQUE_ALIASES)
-        mots_bancaires = ["banque", "bancaire", "compte", "crédit", "credit",
-                          "pret", "prêt", "investissement", "financement"]
-        if banques_mentionnees or any(m in q for m in mots_bancaires):
+        # 2026-07-27 : comparaison sur la forme NORMALISÉE des deux côtés (casse + accents).
+        # Avant, un directeur tapant « SOCIETE GENERALE » en majuscules sans accent ne matchait
+        # pas l'alias « société générale » — sa banque n'était donc pas reconnue.
+        q_norm = _normaliser(question)
+        banques_mentionnees = any(_normaliser(a) in q_norm for a in config.BANQUE_ALIASES)
+
+        # AVANT tout le reste (2026-07-25, audit chat #5) : si AUCUNE banque précise n'est
+        # nommée et que la question ressemble à une comparaison/analyse cross-banques, tenter
+        # l'agent LangChain d'abord. BUG TROUVÉ en testant : placer cet essai APRÈS le test
+        # `mots_bancaires` (ex. "banque" substring de "banques") faisait que la quasi-totalité
+        # des questions bancaires y étaient interceptées avant d'atteindre l'agent — puisque le
+        # mot "banque(s)" est présent dans presque toute question du domaine. Reproduit : "Classe
+        # les banques ivoiriennes... efficiente opérationnellement" partait dans le RAG générique
+        # multi-banques, qui confondait "efficience" avec "Autres produits d'exploitation
+        # bancaire" (mauvais indicateur, classement faux) — alors que l'agent choisit directement
+        # l'outil coefficient d'exploitation (déterministe, exact). Les questions avec banque(s)
+        # précise(s) nommée(s) NE PASSENT PAS ici (banques_mentionnees déjà géré ailleurs par les
+        # détecteurs déterministes) — cette tentative ne concerne QUE le cas générique "toutes les
+        # banques / classement / analyse" sans nom précis, avant de retomber sur le RAG existant.
+        if not banques_mentionnees and (retriever.is_recommandation_ou_analyse(question)
+                                         or retriever.is_comparaison(question)):
+            rep_agent = _agent_secours(question, chain["memory"])
+            if rep_agent:
+                return rep_agent
+
+        # 2026-07-27 : RACINES au lieu de mots entiers. « BANQU » (tronqué par une frappe
+        # rapide) ne contenait pas « banque » et faisait basculer la question dans le rejet
+        # "hors périmètre" — un caractère manquant suffisait à rendre le chat inutilisable.
+        mots_bancaires = ["banqu", "bancaire", "compte", "credit", "pret",
+                          "investissement", "financement", "tarif", "frais", "taux",
+                          "epargne", "depot", "guichet", "agence", "carte"]
+        if banques_mentionnees or _contient_racine(q_norm, mots_bancaires):
             types_actifs = ["conditions_banque", "etats_financiers"]
         elif retriever.is_recommandation_ou_analyse(question) or retriever.is_comparaison(question):
             types_actifs = ["conditions_banque", "etats_financiers", "reglementation"]
+        elif est_suivi_scope:
+            # Suivi court (« et en 2025 ? », « et pour telle banque ? ») dans une conversation
+            # bancaire déjà engagée — reste bancaire même sans mot-clé propre à CETTE question.
+            types_actifs = ["conditions_banque", "etats_financiers"]
         else:
             # AUCUN signal bancaire détecté (pas de banque nommée, pas de mot-clé
             # bancaire, pas une comparaison/recommandation) → question hors du domaine
@@ -986,10 +1553,29 @@ def ask(chain: dict, question: str) -> str:
             # (Abidjan puis Yamoussoukro pour la même question). Un outil d'intelligence
             # bancaire pro doit dire clairement qu'il sort de son périmètre plutôt que
             # de deviner une réponse non vérifiée.
+
+            # DERNIER RECOURS (2026-07-25, audit chat #5) : avant de rejeter, tente l'agent
+            # LangChain avec de vrais outils SQL déterministes — il rattrape les formulations
+            # que les 4 détecteurs regex + detect_types_doc n'ont pas reconnues (ex. synonyme
+            # non prévu, tournure inhabituelle). Ne peut jamais dégrader un cas qui marchait
+            # déjà : on n'arrive ICI que quand tout le reste a déjà échoué.
+            rep_agent = _agent_secours(question, chain["memory"])
+            if rep_agent:
+                return rep_agent
+
             mem_ = chain["memory"]
-            rep = ("Cette question sort du périmètre de SpyBusiness (intelligence "
-                   "concurrentielle bancaire ivoirienne — tarifs, performance financière, "
-                   "réglementation des 7 banques). Je ne peux pas y répondre de façon fiable.")
+            # 2026-07-25 (audit chat, problème #12) : message différencié selon qu'une
+            # conversation bancaire était déjà engagée ou non — dans le 1er cas, la question a
+            # pu être mal formulée/mal reconnue plutôt que vraiment hors sujet ; le message le
+            # signale et invite à reformuler au lieu d'un refus sec identique dans tous les cas.
+            if mem_.get_last_question():
+                rep = ("Je n'ai pas réussi à rattacher cette question au sujet bancaire en cours "
+                       "(tarifs, finances ou réglementation des 7 banques). Peux-tu reformuler en "
+                       "précisant la banque, l'indicateur ou le service concerné ?")
+            else:
+                rep = ("Cette question sort du périmètre de SpyBusiness (intelligence "
+                       "concurrentielle bancaire ivoirienne — tarifs, performance financière, "
+                       "réglementation des 7 banques). Je ne peux pas y répondre de façon fiable.")
             mem_.add_user(question); mem_.add_assistant(rep)
             return rep
 

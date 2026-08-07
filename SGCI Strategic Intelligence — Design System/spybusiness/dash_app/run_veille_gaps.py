@@ -10,18 +10,31 @@ Pour chaque service d'un CONCURRENT flaggé « absent chez SGCI », l'agent VA S
 REPRODUCTIBLE (relancer ré-interroge le web) · DYNAMIQUE (nouveaux services validés) · IDEMPOTENT
 (ne re-valide pas un service déjà présent dans services_auto, sauf --force).
 
-Clés (.env) : TAVILY_API_KEY (recherche) + GROQ_API_KEY[_2..12] (classification). OPENAI_API_KEY en secours.
+Classification : Claude (via OPENROUTER_API_KEY, même pipeline que Exclusivités/EF/Stratégie —
+2026-07-19, décision explicite : « ce n'est pas à toi de décider, c'est au système »). Groq en
+secours SEULEMENT si Claude est indisponible après retry.
+
+Clés (.env) : TAVILY_API_KEY (recherche) + OPENROUTER_API_KEY (classification Claude) +
+GROQ_API_KEY[_2..12] (secours).
 
 Usage :
   python run_veille_gaps.py --banques BACI --limit 15      # ciblé, borné
   python run_veille_gaps.py                                 # toutes les banques
   python run_veille_gaps.py --dry-run                       # liste seulement
+  python run_veille_gaps.py --force                         # revalide même les entrées déjà présentes
 """
-import os, sys, json, time, datetime
+import os, sys, json, time, datetime, re
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-VALID_PATH = os.path.join(HERE, "gaps_validation.json")
+# Données de référence regroupées dans spybusiness/data/ (2026-07-30) : elles alimentent
+# les analyses et se conservent, contrairement aux caches qui se régénèrent.
+DOSSIER_DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "data")
+VALID_PATH = os.path.join(DOSSIER_DATA, "gaps_validation.json")
 
 
 def _charger_concurrents():
@@ -49,11 +62,23 @@ def _load_env():
 
 
 # ── RECHERCHE WEB (Tavily, sinon OpenAI) ───────────────────────────────────────
-def _search(query, k=5):
+# Trouvé le 2026-07-19 : Tavily déclenche un throttle (timeout/connexion refusée, PAS un 401)
+# après une rafale de requêtes rapprochées — indépendant de la clé utilisée (2 clés différentes
+# ont été touchées le même jour). Un simple retry immédiat ne sert à rien tant que la fenêtre de
+# throttle n'est pas passée → backoff croissant avant de réessayer.
+_TAVILY_COOLDOWN_UNTIL = [0.0]
+
+
+def _search(query, k=5, retries=2):
     tav = os.getenv("TAVILY_API_KEY")
-    if tav:
+    if not tav:
+        return None
+    now = time.time()
+    if now < _TAVILY_COOLDOWN_UNTIL[0]:
+        time.sleep(_TAVILY_COOLDOWN_UNTIL[0] - now)
+    import requests
+    for attempt in range(retries + 1):
         try:
-            import requests
             r = requests.post("https://api.tavily.com/search",
                               json={"api_key": tav, "query": query, "max_results": k,
                                     "search_depth": "basic"}, timeout=25)
@@ -61,29 +86,76 @@ def _search(query, k=5):
                 return [{"title": x.get("title", ""), "url": x.get("url", ""),
                          "content": (x.get("content") or "")[:400]} for x in r.json().get("results", [])]
             print("   [tavily]", r.status_code, r.text[:80])
+            if r.status_code == 429:
+                _TAVILY_COOLDOWN_UNTIL[0] = time.time() + 30 * (attempt + 1)
         except Exception as e:
             print("   [tavily err]", str(e)[:90])
+            _TAVILY_COOLDOWN_UNTIL[0] = time.time() + 30 * (attempt + 1)
+        if attempt < retries:
+            time.sleep(8 * (attempt + 1))
     return None
 
 
 _SGCI_DOMAINS = ("societegenerale.ci", "sgci", "société générale", "societe generale")
 
 
-# ── CLASSIFICATION (Groq) : rôle + SGCI a-t-elle l'équivalent ? ─────────────────
-def _classify(libelle, banque, snips_role, snips_sgci):
-    keys = [k for k in [os.getenv("GROQ_API_KEY", "")] +
-            [os.getenv(f"GROQ_API_KEY_{i}", "") for i in range(2, 13)] if k]
-    if not keys:
+def _claude_call(prompt, max_tokens=320, temperature=0.1):
+    """Appel Claude via OpenRouter, avec retry sur erreur réseau transitoire — même pipeline
+    que `_claude_call` dans server.py (cf. bug ConnectionResetError trouvé le 2026-07-16).
+    Retourne le texte brut, ou "" si indisponible après retry."""
+    import requests as _rq
+    or_key = os.getenv("OPENROUTER_API_KEY", "")
+    if not or_key:
+        return ""
+    for attempt in range(2):
+        try:
+            resp = _rq.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={"Authorization": f"Bearer {or_key}", "Content-Type": "application/json"},
+                json={
+                    "model": os.getenv("EF_CLAUDE_MODEL", "anthropic/claude-sonnet-5"),
+                    "max_tokens": max_tokens, "temperature": temperature,
+                    "reasoning": {"enabled": False},
+                    "messages": [{"role": "user", "content": prompt}],
+                },
+                timeout=60,
+            )
+            d = resp.json()
+            txt = (d.get("choices") or [{}])[0].get("message", {}).get("content") or ""
+            if txt:
+                return txt
+            return ""
+        except Exception as e:
+            if attempt == 0:
+                print(f"   [claude] erreur réseau ({str(e)[:70]}) → retry")
+                time.sleep(1.5)
+                continue
+    return ""
+
+
+def _extract_json(txt):
+    """Claude enveloppe parfois la réponse dans des fences ```json ... ``` — on extrait
+    le premier bloc { ... } valide, peu importe l'habillage autour."""
+    if not txt:
         return None
+    m = re.search(r"\{.*\}", txt, re.S)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(0))
+    except Exception:
+        return None
+
+
+def _classify_prompt(libelle, banque, snips_role, snips_sgci, sgci_hit):
     ctxR = "\n".join(f"- {s.get('title','')} : {s.get('content','')[:220]}" for s in snips_role[:4])
     ctxS = "\n".join(f"- {s.get('title','')} ({s.get('url','')}) : {s.get('content','')[:220]}" for s in snips_sgci[:5])
-    sgci_hit = any(any(d in (s.get('url', '') + s.get('title', '')).lower() for d in _SGCI_DOMAINS) for s in snips_sgci)
-    prompt = (
+    return (
         f"Service bancaire en Côte d'Ivoire proposé par {banque} : « {libelle} ».\n\n"
         f"Extraits web sur CE service :\n{ctxR}\n\n"
         f"Extraits web sur l'offre de la Société Générale Côte d'Ivoire (SGCI) :\n{ctxS}\n\n"
         f"(Indice : une page du domaine SGCI est{' ' if sgci_hit else ' PAS '}présente dans les extraits SGCI.)\n\n"
-        "Réponds en JSON STRICT :\n"
+        "Réponds en JSON STRICT (rien d'autre autour) :\n"
         '{"role":"à quoi sert ce service, 1 phrase simple et concrète",'
         '"sgci_a_equivalent":true|false,'
         '"equivalent_sgci":"nom du produit équivalent chez SGCI, ou \\"\\" si aucun",'
@@ -91,13 +163,32 @@ def _classify(libelle, banque, snips_role, snips_sgci):
         "RÈGLES : sgci_a_equivalent=true SEULEMENT si une preuve web montre que SGCI offre ce service "
         "ou un équivalent FONCTIONNEL (même sous un autre nom). En cas de doute → false. JSON uniquement."
     )
+
+
+# ── CLASSIFICATION : Claude (OpenRouter) en primaire, Groq en secours ──────────
+def _classify(libelle, banque, snips_role, snips_sgci):
+    sgci_hit = any(any(d in (s.get('url', '') + s.get('title', '')).lower() for d in _SGCI_DOMAINS) for s in snips_sgci)
+    prompt = _classify_prompt(libelle, banque, snips_role, snips_sgci, sgci_hit)
+
+    txt = _claude_call(prompt)
+    v = _extract_json(txt)
+    if v and isinstance(v.get("sgci_a_equivalent"), bool):
+        v["_source_llm"] = "claude"
+        return v
+
+    keys = [k for k in [os.getenv("GROQ_API_KEY", "")] +
+            [os.getenv(f"GROQ_API_KEY_{i}", "") for i in range(2, 13)] if k]
+    if not keys:
+        return None
     from groq import Groq
     for k in keys:
         try:
             r = Groq(api_key=k, timeout=30, max_retries=0).chat.completions.create(
                 model="llama-3.3-70b-versatile", messages=[{"role": "user", "content": prompt}],
                 max_tokens=320, temperature=0.1, response_format={"type": "json_object"})
-            return json.loads(r.choices[0].message.content)
+            v = json.loads(r.choices[0].message.content)
+            v["_source_llm"] = "groq (secours)"
+            return v
         except Exception:
             continue
     return None
@@ -120,9 +211,21 @@ def _meaningful(lib):
     return len(words) >= 2
 
 
+def _prio(c):
+    """Même logique de priorité que le Top 10 affiché (app.main.js _prioScore) : un manque
+    gratuit chez le concurrent est le plus urgent à vérifier en premier — utile quand --limit
+    borne le nombre d'appels web/LLM, pour couvrir d'abord ce qui est réellement affiché."""
+    if c.get("est_gratuit"):
+        return 2
+    if (c.get("montant") or 0) > 0:
+        return 1
+    return 0
+
+
 def _candidates(banque):
     """Mêmes candidats NOMMÉS que le dashboard : produits {banque} sans équivalent canonique
-    évident chez SGCI, filtrés du bruit (plages de prix, OCR)."""
+    évident chez SGCI, filtrés du bruit (plages de prix, OCR), triés par priorité d'affichage
+    (gratuit d'abord) pour que --limit couvre en priorité ce que l'utilisateur voit vraiment."""
     import db
     from cb_axes import prefilter_gaps
     all_data = db.cb_libelles_tous(2026, "S1", "Particuliers") or {}
@@ -130,7 +233,7 @@ def _candidates(banque):
     bank = all_data.get(banque, [])
     if not bank:
         return []
-    cands = prefilter_gaps(bank, sgci, cutoff=0.72)
+    cands = sorted(prefilter_gaps(bank, sgci, cutoff=0.72), key=_prio, reverse=True)
     out, seen = [], set()
     for c in cands:
         lib = (c.get("libelle") or "").strip()
@@ -163,6 +266,7 @@ def run(banques, dry_run=False, limit=None, force=False):
         return
 
     done = 0
+    consecutive_fail = 0
     for sig, (bk, lib) in candidates.items():
         if limit and done >= limit:
             break
@@ -170,6 +274,7 @@ def run(banques, dry_run=False, limit=None, force=False):
         snS = _search(f"{lib} Société Générale Côte d'Ivoire SGCI societegenerale.ci", k=5) or []
         v = _classify(lib, bk, snR, snS) if (snR or snS) else None
         if v and isinstance(v.get("sgci_a_equivalent"), bool):
+            consecutive_fail = 0
             srcs = [s["url"] for s in (snR + snS) if s.get("url")][:4]
             auto[sig] = {
                 "banque": bk, "_libelle": lib,
@@ -179,12 +284,25 @@ def run(banques, dry_run=False, limit=None, force=False):
                 "note": v.get("note", ""),
                 "sources": srcs,
                 "date": datetime.date.today().isoformat(),
+                "llm": v.get("_source_llm", "?"),
             }
             done += 1
             tag = "SGCI L'A (pas un manque)" if v["sgci_a_equivalent"] else "VRAI MANQUE"
-            print(f"   ✓ {bk} · {lib[:42]:42} → {tag} | {str(v.get('role',''))[:46]}")
+            print(f"   ✓ {bk} · {lib[:42]:42} → {tag} | [{v.get('_source_llm','?')}] {str(v.get('role',''))[:40]}")
+            if done % 5 == 0:   # checkpoint incrémental — un run long ne perd pas tout sur un crash/kill
+                val["services_auto"] = auto
+                val["_veille_gaps_maj"] = datetime.date.today().isoformat()
+                json.dump(val, open(VALID_PATH, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
         else:
+            consecutive_fail += 1
             print(f"   – {bk} · {lib[:42]:42} → non concluant")
+            # Coupe-circuit : après plusieurs échecs d'affilée (indice de throttle Tavily en
+            # cours), on marque une vraie pause pour laisser la fenêtre de rate-limit passer
+            # au lieu de brûler tout le reste des candidats en échecs instantanés (2026-07-19).
+            if consecutive_fail >= 5:
+                pause = min(120, 20 * (consecutive_fail - 4))
+                print(f"   [pause] {consecutive_fail} échecs d'affilée → pause {pause}s (throttle probable)")
+                time.sleep(pause)
         time.sleep(1.2)
 
     val["services_auto"] = auto

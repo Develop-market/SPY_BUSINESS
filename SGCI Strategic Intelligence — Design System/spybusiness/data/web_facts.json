@@ -1,5 +1,5 @@
 {
-  "maj": "2026-06-24",
+  "maj": "2026-08-07",
   "_avertissement": "Faits externes issus de sources publiques fiables (BCEAO, APBEF-CI, classements UMOA, presse économique), chacun cité et daté. Alimenté par run_veille.py (registre de sources). Aucun chiffre non sourcé — un fait sans source n'entre pas.",
   "secteur": [
     {
@@ -9,8 +9,8 @@
       "detail": "Taux directeur de la BCEAO",
       "lien_analyse": "Coût des ressources encadré et orienté à la baisse : la marge d'intérêt se comprime → prime à la diversification des commissions (cf. levier PNB).",
       "source": "BCEAO 2026",
-      "url": "https://www.bceao.int/sites/default/files/2026-03/RAPPORT-SUR-LA-POLITIQUE-MONETAIRE-DANS-L-UMOA-DE-MARS-2026.pdf",
-      "date": "2026-06-24",
+      "url": "https://www.bceao.int/fr/communique-presse/reunion-ordinaire-du-comite-de-politique-monetaire-de-la-bceao-tenue-le-4-mars",
+      "date": "2026-08-07",
       "fiabilite": "officielle",
       "_maj_auto": true
     },
@@ -30,73 +30,77 @@
       "cle": "solvabilite_secteur",
       "titre": "Solvabilité moyenne du secteur",
       "valeur": "14,7%",
-      "detail": "Ratio de solvabilité des établissements de crédit",
+      "detail": "Ratio de solvabilité moyen",
       "lien_analyse": "Benchmark de solidité : situe la solvabilité de SGCI par rapport au secteur et conforte l'argument « solidité » des atouts.",
       "source": "BCEAO 2024",
       "url": "https://www.bceao.int/fr/publications/rapport-annuel-de-la-commission-bancaire-de-lumoa-2024",
-      "date": "2026-06-24",
+      "date": "2026-08-05",
       "fiabilite": "officielle",
-      "_maj_auto": true
+      "_maj_auto": true,
+      "_a_rafraichir": true
     },
     {
       "cle": "mobile_money",
       "titre": "Mobile money — gisement à capter",
-      "valeur": "82,2% (CI, 2e UEMOA)",
-      "detail": "La Côte d'Ivoire est 2e de l'UEMOA pour l'usage de la monnaie électronique (82,2% des utilisateurs du numérique). UEMOA : 248,7 millions de comptes e-money en 2024, dont 76,9 millions actifs.",
+      "valeur": "48%",
+      "detail": "Usage des paiements numériques",
       "lien_analyse": "À la marge du jeu concurrentiel entre banques : ces millions d'utilisateurs mobile money sont des clients bancarisables. Opportunité (pas seulement menace) : passerelles compte bancaire ↔ wallet, comptes 100% mobiles, capter les flux e-money vers l'épargne et le crédit — ce que les fintechs ne savent pas faire.",
-      "source": "BCEAO / GSMA — relayé par 7info",
-      "url": "https://www.7info.ci/monnaie-electronique-la-cote-divoire-2e-pays-utilisateur-en-2024-dans-luemoa/",
-      "date": "2024",
+      "source": "Africanenda 2025",
+      "url": "https://www.africanenda.org/uploads/files/SIIPS2025-mainreport_FR.pdf",
+      "date": "2026-08-05",
       "fiabilite": "haute",
+      "_maj_auto": true,
       "_a_rafraichir": true
     },
     {
       "cle": "bancarisation",
       "titre": "Taux de bancarisation (gisement de croissance)",
-      "valeur": "51%",
-      "detail": "Inclusion financière",
+      "valeur": "32%",
+      "detail": "taux de bancarisation en janvier 2025",
       "lien_analyse": "Gisement de croissance : ~2 adultes sur 3 restent hors du système bancaire classique → marge d'acquisition pour le levier « relance de la croissance » du leader qui décélère.",
-      "source": "Banque mondiale 2025",
-      "url": "https://sbs-software.com/fr/insights/tendances-marche/secteur-bancaire-cote-divoire",
-      "date": "2026-06-24",
+      "source": "CEPCI 2025",
+      "url": "https://cepici.africa/admin/pdf/strategie/1764668613.pdf",
+      "date": "2026-08-07",
       "fiabilite": "haute",
       "_maj_auto": true
     },
     {
       "cle": "structure_marche",
       "titre": "Structure du marché bancaire ivoirien",
-      "valeur": "29 banques",
-      "detail": "LISTE DES BANQUES",
+      "valeur": "28 banques",
+      "detail": "système bancaire ivoirien",
       "lien_analyse": "Intensité concurrentielle (Porter) : marché dense (29 acteurs) et leader régional → rivalité forte et peu de barrières sur la banque de détail.",
-      "source": "BCEAO 2025",
-      "url": "https://www.bceao.int/sites/default/files/2026-04/LISTE%20DES%20%C3%89TABLISSEMENTS%20DE%20CR%C3%89DIT%20AGR%C3%89%C3%89S%20DANS%20L%27UMOA%20au%2031%20d%C3%A9cembre%202025.pdf",
-      "date": "2026-06-24",
+      "source": "APIF CI 2025",
+      "url": "https://apif.finances.gouv.ci/images/app/publications/375/rapport-sur-linclusion-financiere-2025-baseco.pdf",
+      "date": "2026-08-05",
       "fiabilite": "haute",
-      "_maj_auto": true
+      "_maj_auto": true,
+      "_a_rafraichir": true
     },
     {
       "cle": "cout_credit",
       "titre": "Coût du crédit & plafond d'usure",
-      "valeur": "14%",
-      "detail": "Taux d'usure pour les banques",
+      "valeur": "6,93%",
+      "detail": "Taux débiteur moyen",
       "lien_analyse": "Contextualise nos taux CB : le meilleur taux débiteur SGCI (~6%) est SOUS la moyenne ivoirienne (6,97%) et très loin du plafond d'usure (14%) → confirme par une source externe l'atout « taux compétitifs ».",
-      "source": "BCEAO 2025",
-      "url": "https://www.bceao.int/sites/default/files/2026-01/Decision-No19-du-29-12-2025_CMUMOA_fixant_le_taux_de_l-usure.pdf",
-      "date": "2026-06-24",
+      "source": "BCEAO 2026",
+      "url": "https://www.facebook.com/100063787113536/posts/en-janvier-2026-le-taux-d%C3%A9biteur-moyen-dans-luemoa-a-augment%C3%A9-%C3%A0-693-13-pdb-selon/1490298389773051",
+      "date": "2026-08-07",
       "fiabilite": "haute",
       "_maj_auto": true
     },
     {
       "cle": "croissance_macro",
       "titre": "Environnement macroéconomique",
-      "valeur": "PIB +6,7%",
-      "detail": "Croissance économique estimée",
+      "valeur": "PIB +6,3% · inflation 1%",
+      "detail": "Croissance tirée par les services",
       "lien_analyse": "Toile de fond porteuse : la demande de crédit est soutenue par une croissance forte et une inflation maîtrisée → fenêtre favorable pour développer des revenus sains (commissions, corporate).",
-      "source": "BCEAO 2025",
-      "url": "https://www.bceao.int/sites/default/files/2026-03/RAPPORT-SUR-LA-POLITIQUE-MONETAIRE-DANS-L-UMOA-DE-MARS-2026.pdf",
-      "date": "2026-06-24",
+      "source": "FMI 2025",
+      "url": "https://www.imf.org/fr/news/articles/2025/09/30/pr25321-civ-sla-on-the-5th-review-of-the-eff-ecf-and-4th-review-of-the-rsf-arrangements",
+      "date": "2026-08-05",
       "fiabilite": "officielle",
-      "_maj_auto": true
+      "_maj_auto": true,
+      "_a_rafraichir": true
     },
     {
       "cle": "clients_sgci",
@@ -108,6 +112,66 @@
       "url": "https://www.brvm.org/sites/default/files/20250207_-_rapport_dactivites_annuel_-_exercice_2024_-_societe_generale_ci.pdf",
       "date": "2024",
       "fiabilite": "haute"
+    },
+    {
+      "cle": "cacao_campagne",
+      "valeur": "1er septembre",
+      "detail": "Date d'ouverture de la campagne cacao",
+      "source": "Conseil du café-cacao 2026",
+      "url": "https://news.abidjan.net/articles/746898/filiere-cacao-le-gouvernement-modifie-le-calendrier-des-campagnes-de-vente",
+      "date": "2026-08-05",
+      "_maj_auto": true,
+      "_a_rafraichir": true
+    },
+    {
+      "cle": "seuil_especes",
+      "valeur": "15 000 000",
+      "detail": "Seuil pour la déclaration des transactions en espèces",
+      "source": "BCEAO 2017",
+      "url": "https://www.bceao.int/sites/default/files/2017-12/instruction_no010-09-2017_fixant_un_montant_seuil_pour_la_declaration_des_transactions_en_especes_a_la_centif_f.pdf",
+      "date": "2026-08-05",
+      "_maj_auto": true,
+      "_a_rafraichir": true
+    },
+    {
+      "cle": "financement_pme",
+      "valeur": "23%",
+      "detail": "Seuls 23% des TPME sont bancarisés",
+      "source": "AFD 2022",
+      "url": "https://www.afd.fr/fr/actualites/communique-de-presse/choose-africa-2-un-premier-financement-en-cote-divoire-pour-renforcer-lacces-au-credit-de-plusieurs-milliers-de-tpme-en-particulier-de-lentrepreneuriat-feminin",
+      "date": "2026-08-05",
+      "_maj_auto": true,
+      "_a_rafraichir": true
+    },
+    {
+      "cle": "cacao_prix",
+      "valeur": "2800",
+      "detail": "Prix garanti du cacao",
+      "source": "Conseil du Café-Cacao 2026",
+      "url": "https://rti.info/le-prix-du-cacao-fixe-a-2800-fcfa-reste-inchange-jusquau-31-mars-2026",
+      "date": "2026-08-05",
+      "_maj_auto": true,
+      "_a_rafraichir": true
+    },
+    {
+      "cle": "anacarde",
+      "valeur": "400",
+      "detail": "Prix bord champ",
+      "source": "Ministère de l'Agriculture 2026",
+      "url": "https://news.abidjan.net/articles/747086/commercialisation-de-lanacarde-le-gouvernement-fixe-les-prix-planchers-pour-la-campagne-2026",
+      "date": "2026-08-05",
+      "_maj_auto": true,
+      "_a_rafraichir": true
+    },
+    {
+      "cle": "coton",
+      "valeur": "310 FCFA/kg",
+      "detail": "Prix d'achat du coton graine",
+      "source": "AIP 2025",
+      "url": "https://www.aip.ci/cote-divoire-aip-les-producteurs-remercient-letat-pour-le-maintien-des-prix-dachat-du-coton-graine",
+      "date": "2026-08-05",
+      "_maj_auto": true,
+      "_a_rafraichir": true
     }
   ],
   "banques": {
@@ -321,5 +385,208 @@
       "date": "2024"
     }
   ],
-  "_veille_maj_auto": "2026-06-24"
+  "_veille_maj_auto": "2026-08-07",
+  "evenements": [
+    {
+      "acteur": "Gouvernement de Cote d'Ivoire",
+      "fait": "lance le Programme National d’Investissement Agricole de deuxième génération (PNIA II)",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://www.agriculture.gouv.ci/projets",
+      "domaine": "agro",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Pacte de la Côte d’Ivoire",
+      "fait": "investit dans les chaînes de valeur agricoles cibles",
+      "montant": "357 milliards de FCFA",
+      "date_citee": "2023-2025 et 2026",
+      "portee": "opportunité",
+      "url": "https://www.afdb.org/sites/default/files/documents/publications/cote_divoire_compact_pour_lalimentation_et_lagriculture.pdf",
+      "domaine": "agro",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Une fintech",
+      "fait": "lance sa carte virtuelle pour démocratiser les paiements digitaux",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://rti.info/une-fintech-lance-sa-carte-virtuelle-pour-democratiser-les-paiements-digitaux-en-cote-divoire",
+      "domaine": "numerique",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Gouvernement",
+      "fait": "adopte des réformes juridiques et réglementaires",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://thedocs.worldbank.org/en/doc/61714f214ed04bcd6e9623ad0e215897-0400012021/related/Rapport-Etude-Economie-Numerique-Final-FR-2021-08-23.pdf",
+      "domaine": "numerique",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Banque Africaine de Développement",
+      "fait": "signe 5 accords de financement avec la Côte d'Ivoire",
+      "montant": "271,97 milliards de FCFA",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://finances.gouv.ci/actualites/65-contenu-dynamique/actualite/602-agriculture-energie-et-transport-la-bad-et-la-cote-d-ivoire-signent-5-accords-de-financement-d-environ-271-97-milliards-de-fcfa",
+      "domaine": "infrastructure",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Banque Mondiale",
+      "fait": "engage plus de 480 milliards FCFA pour financer cinq projets",
+      "montant": "480 milliards FCFA",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://finances.gouv.ci/actualites/65-contenu-dynamique/actualite/1198-financement-de-cinq-projets-du-pnd-2026-2030-la-banque-mondiale-engage-plus-de-480-milliards-fcfa-en-faveur-de-la-cote-d-ivoire",
+      "domaine": "infrastructure",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Banque populaire",
+      "fait": "inaugure sa nouvelle agence à Labé",
+      "montant": "",
+      "date_citee": "13 mars 2026",
+      "portee": "opportunité",
+      "url": "https://news.abidjan.net/dossier/1909-banques-assurances-et-etablissements-financiers",
+      "domaine": "banque_concurrence",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "BCEAO",
+      "fait": "édite des instructions relatives à la domiciliation des opérations d'investissements directs",
+      "montant": "",
+      "date_citee": "01 Août 2025",
+      "portee": "contrainte",
+      "url": "https://www.bceao.int/fr/reglementations/reglementation-bancaire",
+      "domaine": "reglementation",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Banque Africaine de Développement",
+      "fait": "Investit dans les infrastructures de formation et d'incubation",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://www.afdb.org/sites/default/files/documents/projects-and-operations/cote_divoire_-_projet_damelioration_des_competences_de_lentrepreneuriat_et_de_lemplois_jeunes-pace-fr1.pdf",
+      "domaine": "social",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "État de Côte d'Ivoire",
+      "fait": "Lance la Stratégie Nationale de financement climatique",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://financedurable.gouv.ci",
+      "domaine": "environnement",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Agence Française de Développement",
+      "fait": "Apporte un financement concessionnel pour les projets d'énergies renouvelables",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://documents1.worldbank.org/curated/en/805581532700646610/pdf/128912-WP-FRENCH-IVC-Unlocking-private-investment-PUBLIC.pdf",
+      "domaine": "environnement",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Banques régionales de développement",
+      "fait": "Canalisent le financement concessionnel pour les projets axés sur le climat",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://documents1.worldbank.org/curated/en/099060724071093076/pdf/P500463173288f0dd1a5b917b7bba7b3f9c.pdf",
+      "domaine": "environnement",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "État de Côte d'Ivoire",
+      "fait": "Crée la Plateforme Nationale de la Finance Durable",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://financedurable.gouv.ci",
+      "domaine": "environnement",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Gouvernement de Cote d’Ivoire",
+      "fait": "lance le Programme National d’Investissement Agricole de deuxième génération (PNIA II)",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://www.agriculture.gouv.ci/projets",
+      "domaine": "agro",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Gouvernement de Côte d'Ivoire",
+      "fait": "lance le processus de formulation du Programme National d'Investissement Agricole de 3e génération (PNIA 3)",
+      "montant": "",
+      "date_citee": "18 JUIN 2026",
+      "portee": "opportunité",
+      "url": "https://www.agriculture.gouv.ci/videos/9",
+      "domaine": "agro",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Molo Molo Pay",
+      "fait": "franchit le cap d’un million d’utilisateurs en 13 mois",
+      "montant": "",
+      "date_citee": "13 mois",
+      "portee": "opportunité",
+      "url": "https://www.sikafinance.com/marches/cote-divoire-molo-molo-pay-franchit-le-cap-dun-million-dutilisateurs-en-13-mois-et-democratise-le-paiement-progressif_63223",
+      "domaine": "numerique",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "État de Côte d'Ivoire",
+      "fait": "adopte des réformes juridiques et réglementaires",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://thedocs.worldbank.org/en/doc/61714f214ed04bcd6e9623ad0e215897-0400012021/related/Rapport-Etude-Economie-Numerique-Final-FR-2021-08-23.pdf",
+      "domaine": "numerique",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Banque mondiale",
+      "fait": "engage plus de 480 milliards FCFA pour financer cinq projets du PND 2026-2030",
+      "montant": "480 milliards FCFA",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://finances.gouv.ci/actualites/65-contenu-dynamique/actualite/1198-financement-de-cinq-projets-du-pnd-2026-2030-la-banque-mondiale-engage-plus-de-480-milliards-fcfa-en-faveur-de-la-cote-d-ivoire",
+      "domaine": "infrastructure",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "Ecobank Côte d'Ivoire et Corus International",
+      "fait": "signent un accord de collaboration pour renforcer le soutien aux coopératives agricoles",
+      "montant": "",
+      "date_citee": "",
+      "portee": "opportunité",
+      "url": "https://corusinternational.org/story-hub/ecobank-cote-divoire-and-corus-international-sign-collaboration-agreement-strengthen",
+      "domaine": "banque_concurrence",
+      "releve_le": "2026-08-06"
+    },
+    {
+      "acteur": "BCEAO",
+      "fait": "Publie des instructions pour la domiciliation des opérations d'investissements directs et de portefeuille",
+      "montant": "",
+      "date_citee": "01 Août 2025",
+      "portee": "contrainte",
+      "url": "https://www.bceao.int/fr/reglementations/reglementation-bancaire",
+      "domaine": "reglementation",
+      "releve_le": "2026-08-06"
+    }
+  ],
+  "_evenements_maj": "2026-08-06"
 }

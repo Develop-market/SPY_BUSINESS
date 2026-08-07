@@ -5,40 +5,40 @@
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "Gratuité unanime marché, compte chèque = porte d'entrée bancarisation (51%), aucun avantage à monter",
+      "src": "claude"
     },
     "I||comptes épargnes": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "Épargne gratuite chez BNI/SIB, arme d'acquisition pour capter l'épargne des ménages, tarifer tuerait le flux",
+      "src": "claude"
     },
     "I||dépôt à terme": {
       "verdict": "AUGMENTER",
       "fleche": "up",
-      "montant": 500,
-      "cible": 500,
-      "justif": "Concurrent BACI à 1000F",
-      "src": "groq"
+      "montant": 1000,
+      "cible": 1000,
+      "justif": "BACI facture 1000F, médiane=1000F, SGCI peut s'aligner sans perdre en compétitivité, gain PNB sans risque",
+      "src": "claude"
     },
     "I||compte joint": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "Gratuit chez BNI/ECOBANK/NSIA, levier d'acquisition familles/couples, facturer casserait le 'pourquoi SGCI'",
+      "src": "claude"
     },
     "I||plan épargne logement": {
-      "verdict": "AUGMENTER",
-      "fleche": "up",
-      "montant": 25000,
-      "cible": 25000,
-      "justif": "Concurrent BACI à 50000F",
-      "src": "groq"
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuité totale marché (5/5 concurrents), produit d'épargne projet = fidélisation long terme, ne pas taxer",
+      "src": "claude"
     },
     "II||levée d’opposition sur carte": {
       "verdict": "NE_PAS_TOUCHER",
@@ -113,164 +113,172 @@
       "src": "regle_metier"
     },
     "II||par la banque : usage abusif (particulier)": {
-      "verdict": "NE_PAS_TOUCHER",
-      "fleche": "lock",
-      "montant": null,
-      "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 7500,
+      "cible": 7500,
+      "justif": "Gratuit=arme acquisition mais usage abusif=comportement à décourager; hausse modérée, BICICI seul payant 10500F",
+      "src": "claude"
     },
     "II||par le client : perte , vol ou fraude sur la carte": {
-      "verdict": "BAISSER",
-      "fleche": "down",
-      "montant": 1000,
-      "cible": 10000,
-      "justif": "Concurrents à 10000F",
-      "src": "groq"
-    },
-    "II||première carte (frais de destruction de chéquier)": {
       "verdict": "MAINTENIR",
       "fleche": "flat",
       "montant": null,
       "cible": null,
-      "justif": "Prix compétitif",
-      "src": "groq"
+      "justif": "Déjà proche médiane 10000F, BACI/NSIA alignés; Ecobank gratuit reste anecdotique, ne pas casser marge",
+      "src": "claude"
+    },
+    "II||première carte (frais de destruction de chéquier)": {
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 2500,
+      "cible": 12500,
+      "justif": "SGCI moins cher que BICICI/NSIA (15000-15500F), marge de hausse modérée sans perdre compétitivité",
+      "src": "claude"
     },
     "II||frais pour annulation de chèque de banque": {
       "verdict": "BAISSER",
       "fleche": "down",
-      "montant": 6000,
-      "cible": 10500,
-      "justif": "Médiane marché à 10500F",
-      "src": "groq"
+      "montant": 4000,
+      "cible": 12500,
+      "justif": "SGCI le plus cher (16500F vs médiane 10500F), service d'annulation sensible au prix, aligner pour éviter attrition",
+      "src": "claude"
     },
     "II||chèques barrés non endossables": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Gratuit, pas de changement",
-      "src": "groq"
+      "justif": "Gratuit partout, standard marché, aucune valeur à monétiser, arme d'acquisition basique",
+      "src": "claude"
     },
     "II||chèques de banque uemoa": {
-      "verdict": "MAINTENIR",
-      "fleche": "flat",
-      "montant": null,
-      "cible": null,
-      "justif": "Prix compétitif",
-      "src": "groq"
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 1500,
+      "cible": 18000,
+      "justif": "BACI plus cher (20000F), SGCI a marge de hausse modérée sans devenir le plus cher du marché",
+      "src": "claude"
     },
     "II||chèques de banque sur place": {
       "verdict": "MAINTENIR",
       "fleche": "flat",
       "montant": null,
       "cible": null,
-      "justif": "Prix compétitif",
-      "src": "groq"
+      "justif": "Déjà au-dessus médiane (16500F vs 15000F), aligné avec BACI/BICICI, hausse risquerait attrition",
+      "src": "claude"
     },
     "II||compte chèque": {
-      "verdict": "MAINTENIR",
-      "fleche": "flat",
-      "montant": null,
-      "cible": null,
-      "justif": "Prix compétitif",
-      "src": "groq"
-    },
-    "II||création de dossier": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Intention type_dependant",
-      "src": "groq"
+      "justif": "Seul payant (concurrents gratuits) mais frais mineur; barrière symbolique, monter tuerait argument prix vs gratuité conc",
+      "src": "claude"
+    },
+    "II||création de dossier": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "[⚠ type_dependant] Frais variable selon type de compte, comparaison non fiable, ne pas toucher au global",
+      "src": "claude"
     },
     "II||modification de virement permanent": {
-      "verdict": "BAISSER",
-      "fleche": "down",
-      "montant": 1750,
-      "cible": 3250,
-      "justif": "Médiane marché à 3250F",
-      "src": "groq"
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Positionnement déjà cohérent — pas de mouvement pertinent.",
+      "src": "claude"
     },
     "II||encaissement de virements nationaux, communau- taires et internationaux": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Gratuit, pas de changement",
-      "src": "groq"
+      "justif": "Gratuit partout, encaissement=flux entrant à ne jamais taxer, arme d'acquisition/fidélisation",
+      "src": "claude"
     },
     "II||exécution de l’opération": {
-      "verdict": "NE_PAS_TOUCHER",
-      "fleche": "lock",
-      "montant": null,
-      "cible": null,
-      "justif": "Gratuit, pas de changement",
-      "src": "groq"
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 2000,
+      "cible": 2000,
+      "justif": "BICICI facture 3500F, SGCI peut monétiser modérément un service encore gratuit sans perdre l'avantage",
+      "src": "claude"
     },
     "II||virement interne reçu ou émis (de compte à compte dans la même banque)": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Gratuit, pas de changement",
-      "src": "groq"
+      "justif": "Virement interne gratuit partout, cœur de l'expérience digitale, arme d'acquisition à préserver absolument",
+      "src": "claude"
+    },
+    "II||prélèvements": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit chez tous les comparés, prélèvements = service basique attendu, ne pas monétiser",
+      "src": "claude"
     },
     "II||virement entre agences en faveur d’un tiers": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Gratuit, pas de changement",
-      "src": "groq"
+      "justif": "Gratuit chez BNI/NSIA, virement entre agences=fluidité réseau agence, arme d'acquisition/fidélité",
+      "src": "claude"
     },
     "II||relevé d’identité bancaire (rib)": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Gratuit, pas de changement",
-      "src": "groq"
+      "justif": "RIB gratuit universellement, service basique administratif, aucune valeur ajoutée à monétiser",
+      "src": "claude"
     },
     "II||frais pour procuration": {
-      "verdict": "BAISSER",
-      "fleche": "down",
-      "montant": 2000,
-      "cible": 3000,
-      "justif": "Médiane marché à 3000F",
-      "src": "groq"
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "SGCI déjà au-dessus médiane (5000F vs 3000F), aligné BICICI, hausse risquerait de dépasser trop le marché",
+      "src": "claude"
     },
     "II||consultation/édition de solde dans la banque du client": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Gratuit, pas de changement",
-      "src": "groq"
+      "justif": "Gratuit partout, consultation solde=service de base digital, arme d'acquisition sur l'expérience",
+      "src": "claude"
     },
     "II||frais de timbre pour versement d’espèces en compte": {
       "verdict": "MAINTENIR",
       "fleche": "flat",
       "montant": null,
       "cible": null,
-      "justif": "Prix compétitif",
-      "src": "groq"
+      "justif": "Frais de timbre réglementaire, aligné médiane (100F=BICICI,ECOBANK,SIB). Pas de levier PNB ici.",
+      "src": "claude"
     },
     "II||dans la zone uemoa": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition, gratuit comme BACI et BNI",
-      "src": "groq"
+      "justif": "Gratuité UEMOA=arme d'acquisition alignée BACI/BNI. Facturer tuerait le 'pourquoi SGCI' sur zone clé.",
+      "src": "claude"
     },
     "II||frais de tenue de compte sur les livrets d’épargne": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Type dépendant, comparaison non fiable",
-      "src": "groq"
+      "justif": "Type_dependant: gratuit chez 5/6 concurrents. Facturer isolerait SGCI vs marché, sauf NSIA hors norme.",
+      "src": "claude"
     },
     "III||demande d’opposition": {
       "verdict": "NE_PAS_TOUCHER",
@@ -299,42 +307,42 @@
     "III||emission chèque de banque en fcfa": {
       "verdict": "BAISSER",
       "fleche": "down",
-      "montant": 4500,
-      "cible": 12000,
-      "justif": "Concurrentiel, ECOBANK=5500F",
-      "src": "groq"
+      "montant": 3500,
+      "cible": 13000,
+      "justif": "SGCI le plus cher (16500 vs médiane 12000, Ecobank 5500) : service comparé, client sensible, regagner volume protège PNB",
+      "src": "claude"
     },
     "III||modification d’intitulé de compte": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition, gratuit",
-      "src": "groq"
+      "justif": "Gratuité alignée à tous les concurrents : barrière de sortie/norme marché, facturer casserait la relation client",
+      "src": "claude"
     },
     "IV||banque par téléphone": {
-      "verdict": "NE_PAS_TOUCHER",
-      "fleche": "lock",
-      "montant": null,
+      "verdict": "BAISSER",
+      "fleche": "down",
+      "montant": 1500,
       "cible": null,
-      "justif": "Arme d'acquisition, BACI et NSIA gratuits",
-      "src": "groq"
+      "justif": "BACI/NSIA gratuits: SGCI cher sur service d'acquisition digital, perd des clients sensibles au prix",
+      "src": "claude"
     },
     "IV||avis de débit et de crédit par voie électronique": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Cœur du PNB, gratuit comme les concurrents",
-      "src": "groq"
+      "justif": "Gratuit partout, cœur PNB crédit: pas de baisse à faire, hausse tuerait relation client",
+      "src": "claude"
     },
     "IV||virement électronique vers un autre établissement bancaire (via connect)": {
-      "verdict": "NE_PAS_TOUCHER",
-      "fleche": "lock",
-      "montant": null,
-      "cible": null,
-      "justif": "Arme d'acquisition, NSIA gratuit, SGCI déjà compétitif",
-      "src": "groq"
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 800,
+      "cible": 1800,
+      "justif": "SGCI 1000F très sous médiane 4400F: arme d'acquisition digitale, hausse modérée sans perdre l'avantage",
+      "src": "claude"
     },
     "V||frais de déclaration d’opposition à la banque centrale": {
       "verdict": "NE_PAS_TOUCHER",
@@ -365,48 +373,48 @@
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Frais réglementaire, marge de manœuvre limitée",
-      "src": "groq"
+      "justif": "Frais réglementaire, marge limitée; BACI/ECOBANK gratuits: rester bas protège flux vs concurrence gratuite",
+      "src": "claude"
     },
     "VI||achat de billets de banque en euros": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Frais réglementaire, gratuit comme BICICI et NSIA",
-      "src": "groq"
+      "justif": "Frais réglementaire, gratuit chez tous (BICICI, NSIA); aligné marché, aucune marge de hausse",
+      "src": "claude"
     },
     "VII||frais de dossier": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition, BACI gratuit",
-      "src": "groq"
+      "justif": "Type-dependant, non comparable; 6000F vs BACI gratuit = arme d'acquisition, ne pas aligner sur NSIA 20000F",
+      "src": "claude"
     },
     "VII||frais swift": {
       "verdict": "AUGMENTER",
       "fleche": "up",
-      "montant": 2300,
-      "cible": 10000,
-      "justif": "Concurrents autour de 10000F",
-      "src": "groq"
+      "montant": 1300,
+      "cible": 9000,
+      "justif": "Réglementé, marge limitée; SGCI déjà sous médiane (10000F), hausse modérée sans perdre l'avantage vs BACI/SIB",
+      "src": "claude"
     },
     "VII||frais dossier": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition, prix déjà gratuit",
-      "src": "groq"
+      "justif": "Gratuit=arme d'acquisition forte vs BICICI 26000F/NSIA 33000F; type-dépendant, ne pas monter",
+      "src": "claude"
     },
     "VII||port lettre": {
       "verdict": "MAINTENIR",
       "fleche": "flat",
       "montant": null,
       "cible": null,
-      "justif": "Cœur du PNB, élasticité faible",
-      "src": "groq"
+      "justif": "Cœur PNB crédit, faible élasticité; 1100F déjà proche médiane/SIB, pas de baisse générale",
+      "src": "claude"
     },
     "VIII||frais relatif saisie-arrêt/avis à tiers détenteur ou oppo- sition administrative": {
       "verdict": "NE_PAS_TOUCHER",
@@ -417,59 +425,131 @@
       "src": "regle_metier"
     },
     "VIII||frais de tenue de compte": {
-      "verdict": "AUGMENTER",
-      "fleche": "up",
-      "montant": 1900,
-      "cible": 4250,
-      "justif": "Sous la médiane marché (5200 F) — marge de hausse sans perte de rang.",
-      "src": "estimation"
-    },
-    "VIII||frais annuels de location": {
-      "verdict": "MAINTENIR",
-      "fleche": "flat",
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Prix déjà bien positionné.",
-      "src": "estimation"
+      "justif": "Type_dependant + déjà sous médiane (5200F) : arme d'acquisition vs BICICI, ne pas aligner",
+      "src": "claude"
+    },
+    "VIII||frais annuels de location": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "66000F=barrière de sortie, service captif; BACI/BNI gratuits mais non substituable facilement",
+      "src": "claude"
     },
     "VIII||frais d’ouverture de dossier de succession": {
       "verdict": "MAINTENIR",
       "fleche": "flat",
       "montant": null,
       "cible": null,
-      "justif": "Prix variable selon le type de compte/crédit — comparaison directe non fiable.",
-      "src": "estimation"
+      "justif": "Positionnement déjà cohérent — pas de mouvement pertinent.",
+      "src": "claude"
     },
     "VIII||reproduction de clé": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Gratuité — levier d'acquisition à préserver.",
-      "src": "estimation"
+      "justif": "Gratuit=arme d'acquisition forte vs SIB(250000F)/NSIA(50000F), ne pas monter, différenciant",
+      "src": "claude"
     },
     "VIII||plus d’un (01) an": {
       "verdict": "AUGMENTER",
       "fleche": "up",
-      "montant": 3250,
-      "cible": 14250,
-      "justif": "Sous la médiane marché (25000 F) — marge de hausse sans perte de rang.",
-      "src": "estimation"
+      "montant": 5000,
+      "cible": 16000,
+      "justif": "SGCI nettement sous médiane (11000 vs 25000), marge de hausse modérée sans perdre compétitivité vs BNI(15000)",
+      "src": "claude"
     },
     "VIII||supplément par photocopie": {
       "verdict": "AUGMENTER",
       "fleche": "up",
-      "montant": 200,
-      "cible": 500,
-      "justif": "Sous la médiane marché (750 F) — marge de hausse sans perte de rang.",
-      "src": "estimation"
+      "montant": 100,
+      "cible": 400,
+      "justif": "275F très sous médiane(750F) et sous BACI/NSIA, petite hausse capte PNB sans risque d'attrition",
+      "src": "claude"
     },
-    "II||prélèvements": {
+    "VI||frais de dossier première mise en place": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition à bas prix, tous les concurrents sont à 0F",
+      "justif": "Frais réglementaire encadré (change/international); barrière de sortie déjà en place, marge de manœuvre nulle malgré éca",
+      "src": "claude"
+    },
+    "II||première carte (visa platinum)": {
+      "verdict": "BAISSER",
+      "fleche": "down",
+      "montant": 65000,
+      "cible": 110000,
+      "justif": "Concurrentiel, BACI=110000F",
+      "src": "groq"
+    },
+    "II||seconde carte (visa platinum)": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition",
+      "src": "groq"
+    },
+    "II||première carte (visa premier)": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Bien positionné",
+      "src": "groq"
+    },
+    "II||seconde carte (visa premier)": {
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 10000,
+      "cible": 60000,
+      "justif": "Moins cher que BACI=77000F",
+      "src": "groq"
+    },
+    "II||distributeurs automatiques (dab) de la banque du client": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Gratuit, barrière de sortie",
+      "src": "groq"
+    },
+    "II||distributeurs automatiques (dab) autres banques locales (gim)": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Concurrentiel, ECOBANK=500F",
+      "src": "groq"
+    },
+    "VII||frais de main levée d’hypothèque": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "VIII||mise en place de l'autorisation de prélèvement • création de dossier": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, gratuit comme les concurrents",
+      "src": "groq"
+    },
+    "VIII||distributeurs automatiques (dab) dans la zone uemoa (gim)": {
+      "verdict": "BAISSER",
+      "fleche": "down",
+      "montant": 50,
+      "cible": 450,
+      "justif": "Concurrents (BICICI, SIB) moins chers, ajustement modéré",
       "src": "groq"
     }
   },
@@ -483,12 +563,12 @@
       "src": "regle_metier"
     },
     "I||dépôt à terme": {
-      "verdict": "NE_PAS_TOUCHER",
-      "fleche": "lock",
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition, tous gratuits",
-      "src": "groq"
+      "justif": "Alignement total marché (BNI, NSIA=0F). Gratuité standard, pas un levier différenciant à monétiser ni à casser.",
+      "src": "claude"
     },
     "II||frais de rejet impayé suite à l’absence ou l’insuffisance de provisions (avertissement)": {
       "verdict": "NE_PAS_TOUCHER",
@@ -546,189 +626,205 @@
       "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
       "src": "regle_metier"
     },
+    "II||par le client : perte ou vol": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Déjà au-dessus médiane (10000), écart faible vs NSIA/SIB; hausse ferait pire outlier sans gain PNB.",
+      "src": "claude"
+    },
     "II||dans la zone uemoa": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
-    },
-    "II||par le client : perte ou vol": {
-      "verdict": "BAISSER",
-      "fleche": "down",
-      "montant": 1000,
-      "cible": 10000,
-      "justif": "Aligner sur médiane",
-      "src": "groq"
+      "justif": "Gratuit=arme d'acquisition alignée BICICI/BNI; facturer casse le pourquoi SGCI sur mobilité UEMOA.",
+      "src": "claude"
     },
     "II||par la banque : usage abusif": {
-      "verdict": "NE_PAS_TOUCHER",
-      "fleche": "lock",
-      "montant": null,
-      "cible": null,
-      "justif": "Barrière de sortie",
-      "src": "groq"
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 8000,
+      "cible": 8000,
+      "justif": "BICICI facture 10500F; SGCI peut monétiser cas d'usage abusif sans perdre compétitivité, sous médiane.",
+      "src": "claude"
     },
     "II||première carte (frais de destruction de chéquier)": {
-      "verdict": "MAINTENIR",
-      "fleche": "flat",
-      "montant": null,
-      "cible": null,
-      "justif": "Concurrentiel",
-      "src": "groq"
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 1500,
+      "cible": 11500,
+      "justif": "SGCI=SIB=10000, BICICI=15500; hausse modérée possible sans devenir le plus cher, gain PNB.",
+      "src": "claude"
     },
     "II||chèques barrés non endossables": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "Gratuit partout, standard marché; facturer serait un désavantage concurrentiel direct.",
+      "src": "claude"
     },
     "II||encaissement de chèques dans i’uemoa": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "Encaissement chèque UEMOA gratuit chez tous; service d'acquisition/fidélité, ne pas toucher.",
+      "src": "claude"
     },
     "II||chèques de banque sur place": {
       "verdict": "MAINTENIR",
       "fleche": "flat",
       "montant": null,
       "cible": null,
-      "justif": "Positionnement déjà cohérent — pas de mouvement pertinent.",
-      "src": "groq"
+      "justif": "Déjà le plus cher (16500 vs 15000 BICICI); nouvelle hausse risque attrition sans gain de service prévu.",
+      "src": "claude"
     },
     "II||encaissement de chèques hors uemoa": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "Gratuit unanime sur encaissement hors UEMOA; barrière de sortie/service d'acquisition à préserver.",
+      "src": "claude"
     },
     "II||frais pour annulation de chèque de banque": {
-      "verdict": "BAISSER",
-      "fleche": "down",
-      "montant": 5500,
-      "cible": 11000,
-      "justif": "Aligner sur médiane",
-      "src": "groq"
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "SGCI déjà le plus cher (16500 vs médiane 12000); pas de hausse, client captif déjà maximisé mais pas de baisse (frais di",
+      "src": "claude"
     },
     "II||chèques de banque uemoa": {
       "verdict": "MAINTENIR",
       "fleche": "flat",
       "montant": null,
       "cible": null,
-      "justif": "Concurrentiel",
-      "src": "groq"
+      "justif": "Positionné entre NSIA(15000) et SIB(20000), déjà proche médiane 17500; pas d'action nécessaire.",
+      "src": "claude"
     },
     "II||exécution de l’opération": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "Gratuit = arme d'acquisition vs BICICI(500F)/NSIA(2000F); facturer nuirait à l'avantage concurrentiel.",
+      "src": "claude"
     },
     "II||virement entre agences en faveur d’un tiers": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "Virement inter-agences gratuit partout, standard attendu; facturer casserait l'expérience compte.",
+      "src": "claude"
     },
     "II||création du dossier": {
-      "verdict": "MAINTENIR",
-      "fleche": "flat",
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Type dépendant",
-      "src": "groq"
+      "justif": "[⚠ type_dependant] Prix variable selon compte/crédit, comparaison non fiable, ne pas toucher.",
+      "src": "claude"
     },
     "II||encaissement de virements nationaux, communautaires et internationaux": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "Encaissement virements gratuit chez tous; levier d'acquisition digital à préserver.",
+      "src": "claude"
+    },
+    "II||virement interne reçu ou émis (de compte à compte dans la même banque)": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Virement interne gratuit universel; frein d'usage bancaire de base, ne pas monétiser.",
+      "src": "claude"
+    },
+    "II||mensuel": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Relevé mensuel gratuit partout; service de base attendu, aucune valeur ajoutée à facturer.",
+      "src": "claude"
     },
     "II||relevé d’identité bancaire (rib)": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "RIB gratuit chez tous les concurrents; frein à la mobilité si payant, contre-productif pour bancarisation (51%).",
+      "src": "claude"
     },
     "II||consultation de solde dans l’uemoa": {
       "verdict": "BAISSER",
       "fleche": "down",
       "montant": 500,
       "cible": null,
-      "justif": "Aligner sur BICICI",
-      "src": "groq"
+      "justif": "SGCI seul payant (500F) vs BICICI/BNI/NSIA gratuits; service digital d'acquisition, gratuité regagne volume mobile money",
+      "src": "claude"
     },
     "II||consultation de solde hors zone uemoa": {
-      "verdict": "BAISSER",
-      "fleche": "down",
-      "montant": 500,
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
       "cible": null,
-      "justif": "Aligner sur BNI",
-      "src": "groq"
+      "justif": "Déjà à la médiane, BNI/NSIA gratuits mais service accessoire hors zone; pas d'enjeu PNB à bouger.",
+      "src": "claude"
     },
     "II||consultation/édition de solde dans la banque du client": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "Gratuit=arme d'acquisition/standard marché (BICICI,NSIA,SIB gratuits); payer tuerait le 'pourquoi SGCI'.",
+      "src": "claude"
     },
     "II||distributeurs automatiques (dab) de la banque du client": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
+      "justif": "DAB propre gratuit=service de base attendu, arme d'acquisition; aligné BICICI/NSIA, ne pas monétiser.",
+      "src": "claude"
     },
     "II||frais pour procuration": {
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 500,
+      "cible": 6000,
+      "justif": "Sous BICICI(10500F), au-dessus SIB/NSIA; marge de hausse modérée sans perdre compétitivité, service ponctuel peu élastiq",
+      "src": "claude"
+    },
+    "II||consultation de solde dans les autres banques locales": {
       "verdict": "MAINTENIR",
       "fleche": "flat",
       "montant": null,
       "cible": null,
-      "justif": "Prix déjà bien positionné",
-      "src": "groq"
-    },
-    "II||consultation de solde dans les autres banques locales": {
-      "verdict": "BAISSER",
-      "fleche": "down",
-      "montant": 500,
-      "cible": null,
-      "justif": "Concurrents gratuits (BNI, NSIA)",
-      "src": "groq"
+      "justif": "À la médiane; BNI/NSIA gratuits mais faible volume, pas de risque d'attrition majeur, préserve le PNB.",
+      "src": "claude"
     },
     "II||distributeurs automatiques (dab) autres banques locales (gim)": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Barrière de sortie",
-      "src": "groq"
+      "justif": "Aligné SIB(500F), NSIA gratuit seul outlier; service GIM à usage régulier, toucher risque attrition sur mobilité client.",
+      "src": "claude"
     },
     "II||frais de timbre pour versement d’espèces en compte": {
-      "verdict": "MAINTENIR",
-      "fleche": "flat",
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Prix déjà bien positionné",
-      "src": "groq"
+      "justif": "[⚠ frais réglementaire/timbre] aligné BICICI/SIB=100F, taxe fiscale non négociable, ne pas toucher.",
+      "src": "claude"
     },
     "III||demande d’opposition": {
       "verdict": "NE_PAS_TOUCHER",
@@ -754,29 +850,21 @@
       "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
       "src": "regle_metier"
     },
-    "III||emission chèque de banque en fcfa": {
-      "verdict": "NE_PAS_TOUCHER",
-      "fleche": "lock",
-      "montant": null,
-      "cible": null,
-      "justif": "Arme d'acquisition, bas prix",
-      "src": "groq"
-    },
     "III||modification d’intitulé de compte": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Gratuit, compétitif",
-      "src": "groq"
+      "justif": "Gratuité alignée BICICI/NSIA/SIB, standard marché ; facturer casserait la relation sans gain PNB notable",
+      "src": "claude"
     },
     "IV||avis de débit et de crédit par voie électronique": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition, gratuit comme les concurrents",
-      "src": "groq"
+      "justif": "Alignement total marché (BICICI/NSIA/SIB gratuit) — standard digital, taxer tuerait l'adoption sans gain PNB.",
+      "src": "claude"
     },
     "V||frais d’impayés": {
       "verdict": "NE_PAS_TOUCHER",
@@ -786,77 +874,53 @@
       "justif": "Frais de sanction (incident/impayé) : dissuasif par nature — le baisser encouragerait le comportement pénalisé.",
       "src": "regle_metier"
     },
-    "VIII||frais dossier": {
-      "verdict": "NE_PAS_TOUCHER",
-      "fleche": "lock",
-      "montant": null,
-      "cible": null,
-      "justif": "Arme d'acquisition",
-      "src": "groq"
-    },
     "VIII||frais de télex ou swift": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Réglementaire, marge limitée",
-      "src": "groq"
+      "justif": "Frais réglementaire (change/swift), marge limitée; SIB=10000F déjà aligné, ne pas baisser le PNB",
+      "src": "claude"
     },
     "VIII||frais de dossier": {
-      "verdict": "NE_PAS_TOUCHER",
-      "fleche": "lock",
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
       "montant": null,
       "cible": null,
-      "justif": "Type dépendant, comparaison non fiable",
-      "src": "groq"
+      "justif": "Positionnement déjà cohérent — pas de mouvement pertinent.",
+      "src": "claude"
     },
     "VIII||port lettre": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Barrière de sortie, prix élevé",
-      "src": "groq"
-    },
-    "VIII||frais de modification": {
-      "verdict": "BAISSER",
-      "fleche": "down",
-      "montant": 3000,
-      "cible": 9000,
-      "justif": "Trop cher, NSIA à 33000F",
-      "src": "groq"
+      "justif": "Arme d'acquisition à 1000F comme SIB vs NSIA=10000F; monter tuerait le 'pourquoi SGCI'",
+      "src": "claude"
     },
     "IX||frais fixe": {
-      "verdict": "MAINTENIR",
-      "fleche": "flat",
-      "montant": null,
-      "cible": null,
-      "justif": "Prix déjà bien positionné, médiane marché égale",
-      "src": "groq"
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 5000,
+      "cible": 25000,
+      "justif": "Aligné à BNI mais sous NSIA 50000F, hausse modérée sans casser l'égalité prix avec BNI, PNB+",
+      "src": "claude"
     },
     "IX||reproduction de clé": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition à bas prix, gratuit",
-      "src": "groq"
+      "justif": "Gratuit=arme d'acquisition face à NSIA 220000F/SIB 250000F, monter tuerait le pourquoi SGCI",
+      "src": "claude"
     },
-    "II||virement interne reçu ou émis (de compte à compte dans la même banque)": {
+    "VIII||frais dossier": {
       "verdict": "NE_PAS_TOUCHER",
       "fleche": "lock",
       "montant": null,
       "cible": null,
-      "justif": "Arme d'acquisition, gratuit comme BICICI et SIB",
-      "src": "groq"
-    },
-    "II||mensuel": {
-      "verdict": "NE_PAS_TOUCHER",
-      "fleche": "lock",
-      "montant": null,
-      "cible": null,
-      "justif": "Arme d'acquisition, gratuit comme BICICI, BNI, NSIA et SIB",
-      "src": "groq"
+      "justif": "Arme d'acquisition: gratuit vs BICICI 26000F; frais dossier type-dépendant, comparaison non fiable, ne pas monter",
+      "src": "claude"
     }
   },
   "2024_S1_Particuliers": {
@@ -1749,6 +1813,30 @@
       "cible": null,
       "justif": "Concurrentiel par rapport à BNI et NSIA",
       "src": "groq"
+    },
+    "I||clôture de compte": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie : tarif élevé volontaire pour retenir le client / dissuader le départ — surtout pas baisser.",
+      "src": "regle_metier"
+    },
+    "II||dans la zone uemoa": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition",
+      "src": "groq"
+    },
+    "VII||frais de dossier": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, BACI à 5000F",
+      "src": "groq"
     }
   },
   "2025_S2_Particuliers": {
@@ -2199,6 +2287,22 @@
       "cible": 500,
       "justif": "Médiane marché=1000F, ECOBANK=1100F",
       "src": "groq"
+    },
+    "VII||frais de dossier": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, bas prix",
+      "src": "groq"
+    },
+    "VII||frais dossier": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, gratuit comme NSIA",
+      "src": "groq"
     }
   },
   "2024_S1_Entreprises": {
@@ -2521,6 +2625,22 @@
       "cible": 25000,
       "justif": "Nettement le plus cher du marché — risque de fuite.",
       "src": "estimation"
+    },
+    "IV||frais fixe": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "SGCI déjà 2x la médiane (BACI/NSIA ~10000F, 9100F) - barrière de sortie, ne pas monter davantage, préserve PNB",
+      "src": "claude"
+    },
+    "VIII||chèque de banque en autres devises": {
+      "verdict": "AUGMENTER",
+      "fleche": "up",
+      "montant": 6000,
+      "cible": 16000,
+      "justif": "SGCI 3x moins cher que NSIA(55000). Marge de hausse modérée sans perdre l'avantage vs SIB(12000).",
+      "src": "claude"
     }
   },
   "2025_S1_Entreprises": {

@@ -21,11 +21,14 @@ Usage :
   python run_veille_exclusivites.py --dry-run            # liste seulement (n'écrit pas)
   python run_veille_exclusivites.py --limit 10           # borne le nombre de validations
 """
-import os, sys, json, time, datetime
+import os, sys, json, time, datetime, shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-VALID_PATH = os.path.join(HERE, "exclusivites_validation.json")
+# Données de référence regroupées dans spybusiness/data/ (2026-07-30) : elles alimentent
+# les analyses et se conservent, contrairement aux caches qui se régénèrent.
+DOSSIER_DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "data")
+VALID_PATH = os.path.join(DOSSIER_DATA, "exclusivites_validation.json")
 
 
 def _charger_banks():
@@ -161,7 +164,28 @@ def run(banques, dry_run=False, limit=None, force=False):
 
     val["services_auto"] = auto
     val["_veille_excl_maj"] = datetime.date.today().isoformat()
-    json.dump(val, open(VALID_PATH, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+
+    # SAUVEGARDE HORODATÉE AVANT ÉCRITURE (2026-08-07, demande du directeur).
+    # exclusivites_validation.json est une donnée qui ne se retrouve nulle part ailleurs : elle
+    # résulte d'interrogations web à un instant donné, que rejouer ne redonnera pas à l'identique.
+    # run_veille.py sauvegarde web_facts.json avant de le réécrire ; ce script écrasait le sien
+    # sans filet. Une classification erronée n'était donc pas rattrapable.
+    # Même écriture atomique que le cache Stratégie : tmp puis rename, jamais de fichier tronqué.
+    try:
+        if os.path.exists(VALID_PATH):
+            dossier = os.path.join(os.path.dirname(VALID_PATH), os.pardir, "archive")
+            os.makedirs(dossier, exist_ok=True)
+            bak = os.path.join(
+                dossier, f"exclusivites_validation_backup_{datetime.datetime.now():%Y%m%d_%H%M%S}.json")
+            shutil.copy2(VALID_PATH, bak)
+            print(f"[veille-excl] sauvegarde → archive/{os.path.basename(bak)}")
+    except Exception as e:
+        print("[veille-excl] sauvegarde impossible :", str(e)[:120])
+
+    _tmp = VALID_PATH + ".tmp"
+    with open(_tmp, "w", encoding="utf-8") as f:
+        json.dump(val, f, ensure_ascii=False, indent=2)
+    os.replace(_tmp, VALID_PATH)
     print(f"[veille-excl] {done} service(s) validé(s) et écrit(s) dans exclusivites_validation.json.")
 
 

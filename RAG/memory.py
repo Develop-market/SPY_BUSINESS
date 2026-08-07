@@ -84,14 +84,20 @@ class ConversationMemory:
         if not self.history:
             return "Aucun historique — début de conversation."
 
+        # 2026-07-25 (audit chat, problème #10) : la DERNIÈRE réponse assistant reste ENTIÈRE —
+        # c'est celle qu'une relance immédiate ("et pour X ?", "explique ce chiffre") référence
+        # le plus souvent ; la tronquer à 500 caractères pouvait couper exactement l'info utile.
+        # Seules les réponses plus ANCIENNES restent tronquées pour ne pas surcharger le contexte.
+        dernier_index_assistant = max(
+            (i for i, m in enumerate(self.history) if m["role"] == "assistant"), default=-1
+        )
+
         lignes = []
-        for msg in self.history:
+        for i, msg in enumerate(self.history):
             role    = "Utilisateur" if msg["role"] == "user" else "Assistant"
             contenu = msg["content"]
 
-            # Tronquer les réponses longues dans l'historique
-            # pour ne pas surcharger le contexte
-            if msg["role"] == "assistant" and len(contenu) > 500:
+            if msg["role"] == "assistant" and i != dernier_index_assistant and len(contenu) > 500:
                 contenu = contenu[:500] + "... [réponse tronquée]"
 
             lignes.append(f"{role} : {contenu}")

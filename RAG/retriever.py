@@ -81,18 +81,130 @@ def init_retriever() -> PGVectorStore:
 #  HELPERS — CONVERSION LIGNE SQL → CHUNK DICT
 # ═══════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════
+#  CHEMIN HIÉRARCHIQUE DES SECTIONS CB (2026-07-27)
+# ═══════════════════════════════════════════════════════════
+# BUG MAJEUR TROUVÉ le 2026-07-27 (le directeur : « 2 350 FCFA, justement c'est problématique
+# car ça dépend du type de compte ») — bien pire que « vague », c'était FAUX DE SENS :
+#
+#   Question : « frais de tenue de compte SGCI particuliers 2024 S1 ? » → réponse « 2 350 FCFA ».
+#   Réalité en base : cette ligne porte la section 4.5.3, et la section 4.5 s'intitule
+#   « SUCCESSIONS ». Ce sont donc les frais de tenue d'un compte de SUCCESSION (compte d'une
+#   personne décédée), pas le tarif courant d'un particulier.
+#
+# Cause : la grille tarifaire est hiérarchique (« 4 » > « 4.5 Successions » > « 4.5.3 Frais de
+# tenue de compte »), mais chaque ligne était envoyée au LLM SEULE, sans ses parents. La colonne
+# `contexte` ne comble le trou que quand elle est renseignée — elle est NULL sur 5 679 lignes
+# (18 % de la base), et précisément NULL sur celle-ci. Le LLM recevait « Frais de tenue de
+# compte : 2350 » sans aucun moyen de savoir de quel compte il s'agit : il ne pouvait QUE
+# répondre à côté, quelles que soient les consignes du prompt (qui exige pourtant déjà
+# « jamais de montant sans préciser le type », cf. prompts.py — une consigne inapplicable si
+# l'information n'est pas dans le contexte).
+#
+# Correctif : reconstruire le chemin des ancêtres à partir de la numérotation et le préfixer au
+# texte du chunk → « Successions > Frais de tenue de compte : 2350 ». Le LLM voit enfin de quoi
+# il parle, et l'utilisateur aussi.
+_SECTIONS_CB = None
+
+
+def _charger_sections_cb() -> dict:
+    """Charge une fois par process {(banque,annee,semestre,segment,section): titre}.
+
+    Coût : une requête, ~32 000 lignes, quelques Mo — négligeable face à un rechargement par
+    question. Les titres ne changent qu'à l'ingestion de nouvelles données (cf. invalider())."""
+    global _SECTIONS_CB
+    if _SECTIONS_CB is not None:
+        return _SECTIONS_CB
+    d = {}
+    try:
+        vs = init_retriever()
+        with vs.get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""SELECT banque, annee, semestre, segment, section, libelle, is_header
+                               FROM cb_tarifs
+                               WHERE section IS NOT NULL AND libelle IS NOT NULL AND libelle <> ''""")
+                for banque, annee, semestre, segment, section, libelle, is_header in cur.fetchall():
+                    cle = (banque, annee, semestre, segment, section)
+                    # Une même section peut porter plusieurs lignes (un titre + des valeurs).
+                    # On privilégie l'en-tête déclaré ; à défaut le libellé le plus COURT, qui
+                    # est presque toujours l'intitulé de rubrique plutôt qu'une ligne de détail.
+                    ancien = d.get(cle)
+                    if ancien is None or (is_header and not ancien[1]) or \
+                       (bool(is_header) == bool(ancien[1]) and len(libelle) < len(ancien[0])):
+                        d[cle] = (libelle, bool(is_header))
+        _SECTIONS_CB = {k: v[0] for k, v in d.items()}
+    except Exception as e:
+        print(f"  [SECTIONS CB] Chargement impossible ({e}) — chemins de section désactivés.")
+        _SECTIONS_CB = {}
+    return _SECTIONS_CB
+
+
+def invalider_sections_cb():
+    """Force le rechargement des titres de section (après un ajout de données)."""
+    global _SECTIONS_CB
+    _SECTIONS_CB = None
+
+
+# Titres d'ancêtre trop génériques pour apporter la moindre information : les afficher
+# n'ajoute que du bruit dans un contexte au budget serré. Comparaison sur forme normalisée.
+_ANCETRES_INUTILES = {"", "-", "n/a", "divers", "autres", "autres services", "services",
+                      "tarifs", "tarif", "conditions", "libelle", "libellé", "designation",
+                      "désignation", "rubrique", "operations", "opérations"}
+
+
+def _chemin_section_cb(banque, annee, semestre, segment, section) -> str:
+    """Chemin des sections ANCÊTRES ('4.5.3' → titre de '4' puis de '4.5').
+
+    N'inclut PAS le titre de la section de la ligne elle-même : c'est déjà son libellé, le
+    répéter doublerait la taille du chunk sans rien apporter."""
+    if not section or "." not in str(section):
+        return ""
+    parts = str(section).split(".")
+    titres = []
+    table = _charger_sections_cb()
+    for i in range(1, len(parts)):
+        titre = table.get((banque, annee, semestre, segment, ".".join(parts[:i])))
+        if titre and titre.strip().lower() not in _ANCETRES_INUTILES:
+            t = titre.strip()
+            # Un ancêtre qui répète déjà ce qu'un ancêtre plus proche dit n'apporte rien.
+            if not any(t.lower() in d.lower() or d.lower() in t.lower() for d in titres):
+                titres.append(t)
+    return " > ".join(titres)
+
+
 def _chunk_cb(row) -> dict:
-    """Convertit une ligne cb_tarifs en chunk RAG."""
+    """Convertit une ligne cb_tarifs en chunk RAG.
+
+    Ordre des colonnes (2026-07-27, `section` ajoutée en 5ᵉ position dans les 4 requêtes qui
+    alimentent cette fonction) :
+      0=banque 1=annee 2=semestre 3=segment 4=section 5=contexte 6=libelle 7=valeur_brute [8=score]
+    """
     banque   = row[0]
     annee    = row[1]
     semestre = row[2]
     segment  = row[3] or ""
-    contexte = row[4] or ""
-    libelle  = row[5] or ""
-    valeur   = row[6] or ""
-    score    = float(row[7]) if len(row) > 7 and row[7] is not None else 1.0
+    section  = row[4]
+    contexte = row[5] or ""
+    libelle  = row[6] or ""
+    valeur   = row[7] or ""
+    score    = float(row[8]) if len(row) > 8 and row[8] is not None else 1.0
 
-    texte = f"{contexte} > {libelle} : {valeur}".strip(" >:")
+    # chemin > contexte > libellé : valeur, en écartant les répétitions. `contexte` reprend
+    # souvent le titre d'un ancêtre ("Gestions des comptes > ... > Gestions des comptes >
+    # Frais de tenue de compte") : redondant à lire, et payé deux fois en tokens sur un
+    # budget déjà serré. Déduplication par inclusion (insensible à la casse) plutôt que par
+    # égalité stricte, car les variantes sont fréquentes ("Gestion des comptes" au singulier).
+    chemin = _chemin_section_cb(banque, annee, semestre, segment, section)
+    morceaux = []
+    for p in [*(chemin.split(" > ") if chemin else []), contexte, libelle]:
+        p = (p or "").strip()
+        if not p:
+            continue
+        p_low = p.lower()
+        if any(p_low in d.lower() or d.lower() in p_low for d in morceaux):
+            continue
+        morceaux.append(p)
+    texte = f"{' > '.join(morceaux)} : {valeur}".strip(" >:")
 
     return {
         "texte"   : texte,
@@ -147,10 +259,18 @@ def _chunk_ef(row) -> dict:
     }
 
 
+# Marqueurs techniques du pipeline d'extraction présents dans 85 des 88 chunks réglementaires
+# (« [PAGE 4] », « [METRICS chars=2803 density=5.59 ocr_pct=0.0 tables=NON ocr_conf=N/A] »).
+# Ils partaient jusqu'ici DANS le contexte transmis au LLM : du bruit pur, qui consomme du
+# budget de tokens sur une fenêtre déjà serrée et brouille la lecture des articles de loi.
+# Nettoyage à la lecture, la base reste intacte. (2026-07-30)
+_RE_MARQUEURS_EXTRACTION = re.compile(r"\[(?:PAGE\s+\d+|METRICS[^\]]{0,200})\]\s*")
+
+
 def _chunk_regl(row) -> dict:
     """Convertit une ligne regl_documents en chunk RAG."""
     fichier = row[0] or ""
-    contenu = row[1] or ""
+    contenu = _RE_MARQUEURS_EXTRACTION.sub(" ", row[1] or "").strip()
     score   = float(row[2]) if len(row) > 2 and row[2] is not None else 1.0
 
     return {
@@ -275,7 +395,7 @@ def search(vectorstore: PGVectorStore, question: str, k: int = None, filters: di
                     # conditions_banque (défaut)
                     where, params = _sql_where_cb(banque=banque, annee=annee, semestre=semestre, cible=cible)
                     sql = f"""
-                        SELECT banque, annee, semestre, segment, contexte, libelle, valeur_brute,
+                        SELECT banque, annee, semestre, segment, section, contexte, libelle, valeur_brute,
                                1 - (embedding <=> %s::vector) AS score
                         FROM cb_tarifs
                         {where}
@@ -305,7 +425,7 @@ def _get_exhaustif_cb(vectorstore: PGVectorStore, banque=None, annee=None, semes
     """
     where, params = _sql_where_cb(banque=banque, annee=annee, semestre=semestre, cible=cible)
     sql = f"""
-        SELECT banque, annee, semestre, segment, contexte, libelle, valeur_brute
+        SELECT banque, annee, semestre, segment, section, contexte, libelle, valeur_brute
         FROM cb_tarifs
         {where}
         ORDER BY banque, annee, semestre, segment, section
@@ -332,7 +452,7 @@ def _get_exhaustif_cb(vectorstore: PGVectorStore, banque=None, annee=None, semes
                         where_fb, params_fb = _sql_where_cb(banque=banque, annee=annee_fb,
                                                              semestre=sem_fb, cible=cible)
                         cur.execute(f"""
-                            SELECT banque, annee, semestre, segment, contexte, libelle, valeur_brute
+                            SELECT banque, annee, semestre, segment, section, contexte, libelle, valeur_brute
                             FROM cb_tarifs {where_fb}
                             ORDER BY banque, annee, semestre, segment, section
                         """, params_fb)
@@ -362,14 +482,35 @@ def _get_exhaustif_cb(vectorstore: PGVectorStore, banque=None, annee=None, semes
 
 # Synonymes bancaires ivoiriens — savoir domaine compact (libelle ↔ contexte)
 # "convenance de comptes" = "tenue de compte" chez SIB/BICICI
+# 2026-07-25 (audit chat, problème #6) : élargi de 7 à 20 catégories en réutilisant le
+# vocabulaire déjà VALIDÉ empiriquement dans dash_app/cb_sections.py (lu sur les vraies
+# brochures des 7 banques pour classer les tarifs par section BCEAO) — pas de synonymes
+# inventés, uniquement des termes déjà confirmés présents dans les données réelles.
 _SYNONYMES_SERVICE = {
-    "tenue"      : ["tenue", "convenance", "relevé", "frais fixe"],  # SGCI entr. = "relevés/mois"
-    "virement"   : ["virement", "transfert"],
-    "retrait"    : ["retrait", "espece"],
-    "carte"      : ["carte"],
-    "chequier"   : ["chequier", "chèquier", "cheque"],
+    "tenue"        : ["tenue", "convenance", "relevé", "relevé de compte", "frais fixe"],  # SGCI entr. = "relevés/mois"
+    "virement"     : ["virement", "transfert"],
+    "retrait"      : ["retrait", "espece", "dab", "gab"],
+    "carte"        : ["carte", "visa", "mastercard", "classic", "gold", "platinum", "premier", "infinite"],
+    "chequier"     : ["chequier", "chèquier", "cheque"],
     "domiciliation": ["domiciliation"],
-    "decouvert"  : ["decouvert", "découvert", "agios"],
+    "decouvert"    : ["decouvert", "découvert", "agios", "avance sur"],
+    "credit"       : ["credit", "prêt", "pret", "credit-bail", "credit bail", "taux d'interet",
+                       "teg", "assurance emprunteur", "caution", "aval", "escompte", "amortissement"],
+    "dossier"      : ["frais de dossier", "dossier"],
+    "change"       : ["change", "devise", "devises", "cours de change", "cheque de voyage", "billets de banque"],
+    "etranger"     : ["etranger", "étranger", "swift", "uemoa", "transfert emis", "transfert recu"],
+    "incident"     : ["incident de paiement", "rejet de cheque", "rejet cheque", "opposition",
+                       "sans provision", "injonction", "impaye", "impayé", "compte debiteur"],
+    "banque_distance": ["banque a distance", "banque en ligne", "internet", "sms", "alerte sms",
+                         "mobile banking", "messalia", "infobank"],
+    "titres"       : ["titres", "bourse", "opcvm", "valeurs mobilieres", "brvm", "bon de caisse",
+                       "epargne salariale"],
+    "succession"   : ["succession", "coffre-fort", "coffre fort"],
+    "ouverture"    : ["ouverture de compte", "ouverture"],
+    "cloture"      : ["cloture de compte", "clôture de compte", "cloture", "clôture"],
+    "attestation"  : ["attestation", "confirmation bancaire", "releve d'identite", "rib"],
+    "prelevement"  : ["prelevement", "prélèvement"],
+    "commission"   : ["commission d'intervention", "commission de mouvement"],
 }
 
 
@@ -378,12 +519,25 @@ def _extraire_terme_service(question: str) -> str:
     Extrait le terme de service principal de la question (NLP minimal).
     'frais de tenue de compte' → 'tenue'
     'frais de virement' → 'virement'
+
+    2026-07-25 : élargi la 2e regex (liste fixe) à toutes les catégories connues de
+    _SYNONYMES_SERVICE (avant : seulement 6 mots) — une question comme "quel est le
+    coût du découvert" passait déjà, mais "les frais d'incident de paiement" ou "le
+    coût du change" ne matchaient RIEN avant cet élargissement.
     """
     import re
     q = question.lower()
+    mots_directs = "|".join(sorted({
+        m for syns in _SYNONYMES_SERVICE.values() for m in syns if " " not in m
+    }, key=len, reverse=True))
+    # 2026-07-25 : le vocabulaire fermé (mots_directs) passe EN PREMIER, pas en dernier — la
+    # regex générique "frais/tarif/coût + de/du/des + (mot suivant)" capture parfois un mot de
+    # liaison sans rapport (ex. "tarif DU SERVICE SMS banking" → capturait "service" au lieu de
+    # "sms", bug trouvé lors de l'audit). Le vocabulaire fermé, lui, ne peut pas se tromper de
+    # mot puisqu'il ne connaît QUE de vrais termes de service.
     patterns = [
+        rf"\b({mots_directs})\b",
         r"(?:frais|tarif|co[uû]t|commission|montant)\s+(?:de|du|des|d[''])\s+(\w+)",
-        r"\b(virement|retrait|carte|chequier|chèquier|domiciliation|découvert|agios?)\b",
     ]
     for pat in patterns:
         m = re.search(pat, q)
@@ -432,7 +586,7 @@ def search_cb_keyword(vectorstore: PGVectorStore, termes: list,
 
     all_conds = " AND ".join(where_parts) if where_parts else "TRUE"
     sql = f"""
-        SELECT banque, annee, semestre, segment, contexte, libelle, valeur_brute
+        SELECT banque, annee, semestre, segment, section, contexte, libelle, valeur_brute
         FROM cb_tarifs
         WHERE ({all_conds}) AND ({kw_conds})
         ORDER BY banque, annee, semestre, segment, section
@@ -502,18 +656,48 @@ def get_semestres_disponibles(vectorstore: PGVectorStore, annee: int, type_doc: 
 #  DÉTECTION DU CONTEXTE DANS LA QUESTION
 # ═══════════════════════════════════════════════════════════
 
+_TABLE_ACCENTS = str.maketrans("àâäáãçéèêëíìîïñóòôöõúùûüýÿ", "aaaaaceeeeiiiinooooouuuuyy")
+
+
+def _sans_accents(t: str) -> str:
+    return (t or "").translate(_TABLE_ACCENTS)
+
+
 def detect_banque(question: str):
     banques = detect_banques(question)
     return banques[0] if banques else None
 
 
 def detect_banques(question: str) -> list:
-    q = question.lower()
+    # Accents retirés des DEUX côtés : « SOCIETE GENERALE » tapé sans accent ne matchait pas
+    # l'alias « société générale » (2026-07-27).
+    q = _sans_accents(question.lower())
     found, seen = [], set()
     for alias, code in BANQUE_ALIASES.items():
-        if alias in q and code not in seen:
+        if _sans_accents(alias) in q and code not in seen:
             found.append(code)
             seen.add(code)
+    if found:
+        return found
+
+    # RATTRAPAGE PAR PRÉFIXE (2026-07-27) — uniquement si AUCUN alias exact n'a matché, donc
+    # sans aucun risque pour les cas qui fonctionnaient déjà. Motif : « frais de cloture de
+    # compte bici » ne détectait aucune banque (« bici » n'est pas un alias, « bicici » oui) et
+    # partait en recherche sans filtre, pour finir sur « Non disponible dans le document » —
+    # alors que BICICI a 28 lignes de clôture en base. Un dirigeant abrège en tapant vite ;
+    # l'outil doit suivre.
+    # Garde-fou anti-faux-positif : on n'accepte un préfixe que s'il désigne UNE SEULE banque.
+    # « banque » préfixe à la fois « banque atlantique » (BACI) et « banque nationale » (BNI) —
+    # ambigu, donc ignoré, alors que « eco » ne désigne qu'ECOBANK et « bici » que BICICI.
+    for mot in set(re.findall(r"[a-z]{4,}", q)):
+        codes = {code for alias, code in BANQUE_ALIASES.items()
+                 if _sans_accents(alias).startswith(mot)}
+        if len(codes) == 1:
+            code = codes.pop()
+            if code not in seen:
+                found.append(code)
+                seen.add(code)
+                print(f"  [BANQUE PAR PRÉFIXE] « {mot} » → {code}")
     return found
 
 
@@ -546,14 +730,33 @@ def is_evolution(question: str) -> bool:
     return any(m in q for m in mots)
 
 
+_RE_CACHE_MOTS = {}
+
+
+def _contient_mot(q: str, mots) -> bool:
+    """Vérifie qu'un mot-clé apparaît comme un VRAI mot (frontière \\b), pas comme simple
+    sous-chaîne. BUG TROUVÉ le 2026-07-25 (en testant l'agent de secours) : "efficiente
+    opéRATIOnnellement" déclenchait à tort le domaine États Financiers via le mot-clé "ratio"
+    — simple sous-chaîne, sans rapport avec le sens. `m in q` matchait "ratio" dans
+    "opérationnellement" comme dans "ratio de solvabilité". Remplacé par une frontière de mot
+    (fonctionne aussi pour les expressions à espaces comme "total bilan" : \\b s'applique au
+    premier et dernier caractère de toute la sous-chaîne)."""
+    key = tuple(mots)
+    compiled = _RE_CACHE_MOTS.get(key)
+    if compiled is None:
+        compiled = re.compile(r"\b(?:" + "|".join(re.escape(m) for m in mots) + r")\b")
+        _RE_CACHE_MOTS[key] = compiled
+    return compiled.search(q) is not None
+
+
 def detect_types_doc(question: str) -> list:
     q = question.lower()
     types = []
-    if any(m in q for m in config.MOTS_REGLEMENTATION):
+    if _contient_mot(q, config.MOTS_REGLEMENTATION):
         types.append("reglementation")
-    if any(m in q for m in config.MOTS_EF):
+    if _contient_mot(q, config.MOTS_EF):
         types.append("etats_financiers")
-    if any(m in q for m in config.MOTS_CONDITIONS):
+    if _contient_mot(q, config.MOTS_CONDITIONS):
         types.append("conditions_banque")
     return types
 
@@ -811,7 +1014,7 @@ def search_auto(vectorstore, question: str, force_type_doc: str = None,
         tous, vus = [], set()
         for td in force_type_docs:
             for c in search_auto(vectorstore, question, force_type_doc=td):
-                key = c.get("texte", "")[:80]
+                key = c.get("texte", "")   # texte ENTIER — cf. note ligne ~1175
                 if key not in vus:
                     vus.add(key)
                     tous.append(c)
@@ -984,16 +1187,45 @@ def search_auto(vectorstore, question: str, force_type_doc: str = None,
                                 fallback_trouve = True
                                 break
 
-            # Union dédupliquée (sémantique en priorité)
+            # Union dédupliquée — KEYWORD EN PREMIER (2026-07-25, bug trouvé en testant : « frais
+            # de tenue de compte SGCI 2024 » ne remontait jamais le vrai chiffre "Frais de tenue
+            # de compte : 2 350", pourtant bien trouvé par search_cb_keyword). Cause : l'union
+            # mettait le sémantique EN PREMIER, et chain.py._executer() tronque le contexte par
+            # SECTION (banque×période) dans l'ORDRE D'APPARITION — les chunks keyword, positionnés
+            # en dernier dans leur section, étaient donc les premiers sacrifiés, alors que ce sont
+            # justement les correspondances EXACTES (le filet de sécurité censé pallier les trous
+            # du sémantique). Le dédoublonnage garde la 1ʳᵉ occurrence : mettre keyword_chunks en
+            # tête leur donne la priorité de survie sans perdre le sémantique (toujours inclus
+            # ensuite, dédupliqué).
+            # PLAFOND DU SÉMANTIQUE QUAND LE KEYWORD A RÉPONDU (2026-07-27, trouvé par la
+            # batterie de test). Symptôme : « frais de tenue de compte BNI particuliers 2024 S1 »
+            # ne citait qu'UNE des 4 tranches de revenu — réponse fausse, pas seulement partielle.
+            # Cause : l'union produisait ~70 chunks (34 keyword exacts + 80 sémantiques dédupés)
+            # pour une question qui en demande une dizaine. Le contexte atteignait 8 400 chars,
+            # dépassait le budget Groq, et la troncature « équitable par section » rabotait chaque
+            # section à ~930 chars — emportant les tranches 3 et 4 au passage. Le sémantique large
+            # est un FILET (rattraper un libellé formulé autrement), pas la réponse : quand des
+            # correspondances EXACTES existent, il n'a pas à occuper la moitié du budget et à
+            # faire tomber la réponse elle-même. Plafonné, le contexte tient sans troncature.
+            plafond_sem = 20 if keyword_chunks else len(semantic_chunks)
             seen, chunks = set(), []
-            for c in semantic_chunks + keyword_chunks:
-                key = c["texte"][:100]
+            for c in keyword_chunks + semantic_chunks[:plafond_sem]:
+                # CLÉ = TEXTE ENTIER (2026-07-27). Elle valait `texte[:100]`, approximation
+                # devenue destructrice depuis que le chemin de section préfixe les chunks :
+                # les 4 tranches de revenu BNI commencent toutes par les mêmes 100 caractères
+                # (« GESTION DE COMPTE > Conditions débitrices et frais > Frais de tenue de
+                # compte (tarif mensuel) > Reven|u... ») — le dédoublonnage n'en gardait donc
+                # qu'UNE et supprimait silencieusement les 3 autres. Symptôme côté utilisateur :
+                # « les frais sont de 1 000 FCFA », faux, au lieu des 4 tranches. Deux lignes ne
+                # sont identiques que si leur texte l'est ENTIÈREMENT.
+                key = c["texte"]
                 if key not in seen:
                     seen.add(key)
                     chunks.append(c)
 
             if chunks:
-                label = f"sémantique k=80" + (f" + keyword '{terme_service}'" if terme_service else "")
+                label = (f"sémantique k={plafond_sem}"
+                         + (f" + keyword '{terme_service}'" if terme_service else ""))
                 print(f"  Total : {len(chunks)} chunks ({label})")
                 return chunks
 

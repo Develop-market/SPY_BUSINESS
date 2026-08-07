@@ -104,6 +104,11 @@ let ROE_SERIES       = {};  // Série ROE par banque {bank:{year:val}}
 let COEFF_SERIES     = {};  // Série coeff exploitation {bank:{year:val}}
 let CNR_SERIES       = {};  // Ratio CNR/Encours en points de base {bank:{year:val}}
 let CB_ANNEES   = [2024, 2025, 2026]; // années CB disponibles — chargées depuis /api/cb_annees
+// Semestres réellement disponibles PAR ANNÉE — chargés depuis /api/cb_periodes (2026-07-30).
+// Le sélecteur proposait S1 et S2 en dur pour toute année ; or 2026 n'a que S1, et cliquer
+// « 2026 S2 » plaçait l'écran dans un état incohérent. Valeur initiale = simple filet le
+// temps du chargement, remplacée par la vérité de la base.
+let CB_PERIODES = {};
 let RADAR_BANK  = "SGCI";            // banque affichée dans le Portrait compétitif
 
 // Filtres Vue d'ensemble — deux groupes INDÉPENDANTS
@@ -136,13 +141,14 @@ async function loadAll(){
   const f = APERCU_FILTERS;
   const kpiUrl = `/api/kpis?frais_annee=${f.frais_annee}&frais_sem=${f.frais_sem}&frais_seg=${f.frais_seg}&rn_anx=${f.rn_anx}`;
 
-  const [frais, rn, series, kpis, annees, resil, efSeries,
+  const [frais, rn, series, kpis, annees, periodes, resil, efSeries,
          cbPar24, cbPar25, cbPar26, cbEnt24, cbEnt25, cbEnt26, cbBanks, logos] = await Promise.all([
     apiFetch("/api/frais"),
     apiFetch("/api/rn"),
     apiFetch("/api/rn_series"),
     apiFetch(kpiUrl),
     apiFetch("/api/cb_annees"),
+    apiFetch("/api/cb_periodes"),
     apiFetch(`/api/resilience?anx=${f.rn_anx}`),
     apiFetch("/api/ef_series"),
     apiFetch("/api/cb_bd?annee=2024&semestre=S1&segment=Particuliers"),
@@ -184,6 +190,7 @@ async function loadAll(){
     RE_DATA          = kpis.re_data          || {};
   }
   if(annees && Array.isArray(annees) && annees.length) CB_ANNEES = annees;
+  if(periodes && typeof periodes === 'object' && Object.keys(periodes).length) CB_PERIODES = periodes;
   if(resil) RESILIENCE_DATA = resil;
   if(efSeries){ PNB_SERIES = efSeries.pnb || {}; ROE_SERIES = efSeries.roe || {}; COEFF_SERIES = efSeries.coeff || {}; CNR_SERIES = efSeries.cnr || {}; }
 
@@ -276,9 +283,47 @@ async function reloadKpis(){
   }
 }
 
-async function loadCB(annee=2026, semestre="S1", segment="Particuliers"){
+// Clé de la période actuellement chargée dans CB_DATA. Sans elle, l'appelant se contentait de
+// `if(!CB_DATA)` : la table était chargée une seule fois, puis figée sur la période initiale même
+// après un changement de filtre. On mémorise donc CE QUI est chargé, pas seulement QUE ça l'est.
+let CB_DATA_CLE = "";
+
+async function loadCB(annee, semestre, segment){
+  // Par défaut, la période choisie par l'utilisateur — et non 2026/S1/Particuliers en dur.
+  const f = APERCU_FILTERS;
+  annee    = annee    ?? f.frais_annee;
+  semestre = semestre ?? f.frais_sem;
+  segment  = segment  ?? f.frais_seg;
   CB_DATA = await apiFetch(`/api/cb?annee=${annee}&semestre=${semestre}&segment=${segment}`);
+  CB_DATA_CLE = `${annee}|${semestre}|${segment}`;
   return CB_DATA;
+}
+
+/* ── Garde de navigation sur les tracés ────────────────────────────────
+   Une vingtaine de fonctions dessinent un graphique par `Plotly.newPlot(id, …)`, après un appel
+   réseau de plusieurs secondes. Si l'utilisateur change d'onglet entre-temps, go() a remplacé le
+   contenu de #view : l'élément visé n'existe plus et Plotly lève « No DOM element with id 'x'
+   exists on the page ». L'exception remontait jusqu'à l'appelant et interrompait le rendu de la
+   page suivante — un simple changement d'onglet un peu rapide suffisait à laisser un écran
+   incomplet.
+
+   Plutôt que de répéter la même vérification dans chaque fonction (et de l'oublier dans la
+   prochaine), on la pose UNE fois, ici. Dessiner dans un conteneur disparu n'a aucun sens : la
+   demande est simplement abandonnée. Quand l'élément est là, le comportement est inchangé.
+
+   Même raisonnement pour purge/relayout/react, appelés par les redessins au changement de thème
+   ou de taille de fenêtre, qui visent eux aussi des conteneurs pouvant avoir disparu. */
+if (window.Plotly) {
+  ["newPlot", "purge", "relayout", "react"].forEach(nom => {
+    if (typeof Plotly[nom] !== "function") return;
+    const _origine = Plotly[nom].bind(Plotly);
+    Plotly[nom] = function(cible, ...reste){
+      if (typeof cible === "string" && !document.getElementById(cible)) {
+        return Promise.resolve(null);  // page quittée pendant le chargement : ce n'est pas une panne
+      }
+      return _origine(cible, ...reste);
+    };
+  });
 }
 
 /* ── Theme helpers ─────────────────────────────────────────────────── */
@@ -533,11 +578,21 @@ async function chartRadar(id) {
     const agd = json.data;
     __radarAgentCache[ckey] = agd; // mettre en cache
 
+    // COURSE DE NAVIGATION (2026-07-30). L'élément est vérifié à l'entrée, mais l'appel réseau
+    // qui précède dure plusieurs secondes : l'utilisateur a le temps de changer d'onglet, et
+    // `go()` remplace alors tout le contenu de #view. Plexiste alors plus, Plotly lève
+    // « No DOM element with id 'ap-radar' exists on the page », et le bloc catch écrivait un
+    // message d'erreur trompeur — « Analyse IA indisponible » — pour une page déjà quittée.
+    // On revérifie donc la présence de l'élément APRÈS l'attente.
+    if (!document.getElementById(id)) return;
+
     el.innerHTML = ""; // effacer le spinner
     _drawRadarFromData(id, bank, agd.dimensions);
     if (typeof updateRadarInsight === "function") updateRadarInsight(agd);
 
   } catch(e) {
+    // Page quittée pendant le chargement : ce n'est pas une panne, on sort en silence.
+    if (!document.getElementById(id)) return;
     console.error("[chartRadar agent]", e);
     el.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:230px;color:var(--muted);font:500 12px var(--sans);text-align:center;padding:20px">
       ⚠ Analyse IA indisponible<br><span style="font-size:10px;color:var(--faint)">${e.message||"vérifiez les clés API"}</span>

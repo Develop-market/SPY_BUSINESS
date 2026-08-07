@@ -22,7 +22,10 @@ Usage :
 import os, sys, re, json, time, datetime, requests
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-WEB_PATH = os.path.join(HERE, "cb_repricing_web.json")
+# Données de référence regroupées dans spybusiness/data/ (2026-07-30) : elles alimentent
+# les analyses et se conservent, contrairement aux caches qui se régénèrent.
+DOSSIER_DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "data")
+WEB_PATH = os.path.join(DOSSIER_DATA, "cb_repricing_web.json")
 BASE = os.getenv("SB_BASE_URL", "http://localhost:5000")
 COMBOS = [(a, s, seg) for seg in ("Particuliers", "Entreprises")
           for a in (2024, 2025, 2026) for s in ("S1", "S2")]

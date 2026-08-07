@@ -2,19 +2,11 @@
   "_meta": {
     "objet": "Justifications PRÉCALCULÉES (recherche analyste + sources publiques) du caractère exclusif / inimitable / transformatif des services SGCI. Affichées en cache — jamais d'appel LLM en direct.",
     "avertissement": "L'EXCLUSIVITÉ est vérifiée sur les données (aucun équivalent chez les 6 concurrents). L'INIMITABILITÉ est un JUGEMENT argumenté (barrière réglementaire, marque, réseau, techno, partenariat) — presque jamais absolue : un concurrent peut souvent répliquer un service avec du temps et des moyens. Les niveaux ci-dessous sont des estimations prudentes, à valider.",
-    "maj": "2026-06-19",
-    "echelle_inimitabilite": "Faible = copiable rapidement · Moyen = réplicable avec effort/partenariat · Élevé = forte barrière (réglementaire, réseau, marque installée)"
+    "maj": "2026-07-20",
+    "echelle_inimitabilite": "Faible = copiable rapidement · Moyen = réplicable avec effort/partenariat · Élevé = forte barrière (réglementaire, réseau, marque installée)",
+    "correction_2026-07-20": "Entrée 'Pack Diaspora' retirée — la vérification web réelle a confirmé que BICICI ('Offre Diaspora') et Ecobank ('Ecobank Diaspora') ont un équivalent nommé, contredisant la mention 'sans équivalent' de cette entrée précalculée. Cohérent maintenant avec l'onglet Exclusivités qui classe Pack Diaspora en 'differenciant' (marque), pas exclusivité de fonction."
   },
   "produits": [
-    {
-      "match": ["diaspora"],
-      "titre": "Pack Diaspora",
-      "exclusif": "Offre groupée (compte + services) à tarif fixe dédiée aux Ivoiriens de l'étranger — packaging propre à SGCI, sans équivalent nommé chez les concurrents du panier.",
-      "inimitabilite": "Moyen",
-      "pourquoi_inimitable": "S'appuie sur le réseau international du groupe Société Générale (relais dans les pays d'accueil) — un concurrent local peut créer un pack diaspora mais difficilement la même couverture internationale.",
-      "transformatif": "Capte l'épargne et les transferts de la diaspora (flux récurrents à forte valeur) via une porte d'entrée unique.",
-      "source": "https://particuliers.societegenerale.ci/fr/banque-quotidien/packages/pack-diaspora/"
-    },
     {
       "match": ["connect", "sans carte", "retrait sans"],
       "titre": "CONNECT — retrait sans carte & banque à distance",

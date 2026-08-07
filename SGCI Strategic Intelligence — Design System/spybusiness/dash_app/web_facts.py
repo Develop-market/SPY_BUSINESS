@@ -15,7 +15,10 @@ Règles :
 import os, json
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_CACHE = os.path.join(_HERE, "web_facts.json")
+# Données de référence regroupées dans spybusiness/data/ (2026-07-30) : elles alimentent
+# les analyses et se conservent, contrairement aux caches qui se régénèrent.
+DOSSIER_DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "data")
+_CACHE = os.path.join(DOSSIER_DATA, "web_facts.json")
 
 # ── Registre de sources fiables (autorités) — utilisé par run_veille.py ──────
 SOURCE_REGISTRY = {
@@ -58,7 +61,13 @@ def _load():
 # ════════════════════════════════════════════════════════════════════════════
 _EXCL_VAL = None
 _EXCL_VAL_MTIME = None
-_EXCL_VAL_PATH = os.path.join(_HERE, "exclusivites_validation.json")
+# CHEMIN CORRIGÉ le 2026-08-07. Il pointait encore sur dash_app/, alors que le fichier a été
+# déplacé dans data/ lors du rangement du dépôt — comme web_facts.json juste au-dessus, qui lui
+# avait bien été mis à jour. _load_excl_validation() attrape l'absence du fichier et se rabat sur
+# une validation vide : aucune erreur, aucun message, mais TOUTE la validation web des
+# exclusivités était ignorée. Les 17 services validés dans la nuit du 6 au 7 août n'auraient
+# jamais été lus, et les faux exclusifs (« retrait sans carte ») seraient réapparus.
+_EXCL_VAL_PATH = os.path.join(DOSSIER_DATA, "exclusivites_validation.json")
 
 
 def _load_excl_validation():
