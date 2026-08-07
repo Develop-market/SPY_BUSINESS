@@ -1206,6 +1206,377 @@
       ],
       "date": "2026-08-07",
       "_libelle": "Offre Gestion de Patrimoine"
+    },
+    "penalite de deblocage anticipe": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose un service de \"Pénalité de déblocage anticipé\" sous un autre nom.",
+      "sources": [
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.africaintelligence.fr/afrique-ouest/2026/06/11/les-banques-sous-pression-pour-restituer-plus-de-10-millions-d-euros-aux-entreprises-publiques,110787138-art",
+        "https://www.capmad.com/article/satisfaction-client-les-meilleures-banques-de-cote-divoire",
+        "https://www.bceao.int/sites/default/files/2020-03/CONDITIONS%20DE%20BANQUE%20DECEMBRE%202019.pdf"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Pénalité de déblocage anticipé"
+    },
+    "depot initial": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGCI",
+        "BICICI",
+        "NSIA",
+        "Ecobank",
+        "SIB",
+        "BNI",
+        "BACI"
+      ],
+      "note": "Les banques ivoiriennes proposent des services de dépôt initial, comme indiqué sur les sites web d'information financière tels que EroambaHub et Guidedufonctionnaire.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://www.fgd-umoa.org/en/membership/member-banks"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Dépôt initial"
+    },
+    "de 0 a 1000 eur": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose un service \"de 0 à 1000 EUR\".",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://mondedesbanques.com/culture-generale/meilleures-banques-en-afrique-francophone",
+        "https://compare-ta-banque.vercel.app",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "de 0 à 1000 EUR"
+    },
+    "au dela de 5 000 eur": {
+      "verdict": "non_contredit",
+      "concurrents": [
+        "SGCI",
+        "BICICI",
+        "NSIA",
+        "Ecobank",
+        "SIB",
+        "BNI",
+        "BACI"
+      ],
+      "note": "Aucune preuve web qu'un concurrent offre un service \"au-delà de 5 000 EUR\" sous un autre nom.",
+      "sources": [
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://fidulink.com/les-10-meilleures-banques-en-cote-divoire-classement-services-et-ouverture-de-compte-2025",
+        "https://economiesafricainesmagazine.com/tous-les-articles/le-seuil-des-20-000-milliards-de-fcfa-franchi-en-cote-divoire",
+        "https://www.sikafinance.com/marches/sgci-ecobank-ci-et-banque-atlantique-ci-financent-limplantation-dune-usine-pharmaceutique_50959"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "au-delà de 5 000 EUR"
+    },
+    "de 0 a 1 000 eur": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose un service \"de 0 à 1 000 EUR\" sous un autre nom.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://mondedesbanques.com/culture-generale/meilleures-banques-en-afrique-francophone",
+        "https://compare-ta-banque.vercel.app",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "de 0 à 1 000 EUR"
+    },
+    "au dela 25 000 eur": {
+      "verdict": "non_contredit",
+      "concurrents": [
+        "SGCI",
+        "BICICI",
+        "NSIA",
+        "Ecobank",
+        "SIB",
+        "BNI",
+        "BACI"
+      ],
+      "note": "Aucune preuve web que les banques concurrentes ivoiriennes proposent un service \"au-delà 25 000 EUR\".",
+      "sources": [
+        "https://fidulink.com/les-10-meilleures-banques-en-cote-divoire-classement-services-et-ouverture-de-compte-2025",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://economiesafricainesmagazine.com/tous-les-articles/le-seuil-des-20-000-milliards-de-fcfa-franchi-en-cote-divoire",
+        "https://www.sikafinance.com/marches/sgci-ecobank-ci-et-banque-atlantique-ci-financent-limplantation-dune-usine-pharmaceutique_50959"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "au-delà 25 000 EUR"
+    },
+    "frais de cloture": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose un \"Frais de clôture\" sous un autre nom.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.fgd-umoa.org/en/membership/member-banks",
+        "https://www.africaintelligence.fr/afrique-ouest/2026/06/11/les-banques-sous-pression-pour-restituer-plus-de-10-millions-d-euros-aux-entreprises-publiques,110787138-art"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Frais de clôture"
+    },
+    "au dela de 100 000 f cfa": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose un service \"Au-delà de 100 000 F CFA\" sous un autre nom.",
+      "sources": [
+        "https://blog.iambeezy.app/fr/meilleure-banque-epargne-cote-ivoire-comparatif-2026",
+        "https://erooamba.com/posts/comparatif-frais-bancaires-12-banques-cote-ivoire-2026",
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://www.openbankingtracker.com/providers/country/ci"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Au-delà de 100 000 F CFA"
+    },
+    "frais de rejet pour autres motifs": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose le service \"Frais de rejet pour autres motifs\".",
+      "sources": [
+        "https://compare-ta-banque.vercel.app",
+        "https://www.bceao.int/sites/default/files/2026-04/LISTE%20DES%20%C3%89TABLISSEMENTS%20DE%20CR%C3%89DIT%20AGR%C3%89%C3%89S%20DANS%20L%27UMOA%20au%2031%20d%C3%A9cembre%202025.pdf",
+        "https://cb-umoa.org/sites/default/files/Liste%20C%C3%B4te%20d%27Ivoire%202025.pdf",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/banque-avec-meilleur-service-client-en-cote-divoire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Frais de rejet pour autres motifs"
+    },
+    "carte tam": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent offre le service \"Carte TAM\".",
+      "sources": [
+        "https://blog.iambeezy.app/fr/meilleure-banque-epargne-cote-ivoire-comparatif-2026",
+        "https://erooamba.com/posts/comparatif-frais-bancaires-12-banques-cote-ivoire-2026",
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/banques-en-cote-divoire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Carte TAM"
+    },
+    "carte kora": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose le service \"Carte KORA\" ou un service similaire.",
+      "sources": [
+        "https://fidulink.com/les-10-meilleures-banques-en-cote-divoire-classement-services-et-ouverture-de-compte-2025",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://www.sikafinance.com/marches/sgci-ecobank-ci-et-banque-atlantique-ci-financent-limplantation-dune-usine-pharmaceutique_50959",
+        "https://sikafinance.com/forums/273208_sgci-ecobank-ci-et-banque-atlantique-ci-financent-limplantation-dun"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Carte KORA"
+    },
+    "interfiliales groupe banque atlantique uemoa": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGCI",
+        "BICICI",
+        "NSIA",
+        "Ecobank",
+        "SIB",
+        "BNI",
+        "BACI"
+      ],
+      "note": "Les banques ivoiriennes proposent des services bancaires similaires, notamment les services de banque universelle et d'investissement.",
+      "sources": [
+        "https://www.globalbrandsmagazine.com/list-of-banks-in-cote-divoire",
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://www.openbankingtracker.com/providers/country/ci",
+        "https://www.bceao.int/fr/content/paysage-bancaire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Interfiliales groupe Banque Atlantique (UEMOA)"
+    },
+    "carte visa balafon": {
+      "verdict": "differenciant",
+      "concurrents": [],
+      "note": "La \"Carte VISA BALAFON\" semble être une offre spécifique de la Banque Atlantique, sans preuve de concurrence directe sous le même nom ou un nom différent.",
+      "sources": [
+        "https://erooamba.com/posts/comparatif-frais-bancaires-12-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://www.fgd-umoa.org/en/membership/member-banks"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Carte VISA BALAFON"
+    },
+    "carte visa gold": {
+      "verdict": "partage",
+      "concurrents": [
+        "SIB",
+        "SGCI",
+        "NSIA Banque"
+      ],
+      "note": "Selon le comparatif Frais Bancaires 12 Banques en Côte d'Ivoire 2026, plusieurs banques proposent une carte Visa Gold.",
+      "sources": [
+        "https://erooamba.com/posts/comparatif-frais-bancaires-12-banques-cote-ivoire-2026",
+        "https://www.instagram.com/p/DTNiLSIDjC3",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Carte VISA GOLD"
+    },
+    "reseau banque atlantique hors baci": {
+      "verdict": "partage",
+      "concurrents": [
+        "Société Générale CI",
+        "NSIA Banque",
+        "Ecobank",
+        "BICICI",
+        "BNI"
+      ],
+      "note": "Selon les données de 2024, ces banques proposent des services bancaires similaires à la Banque Atlantique en Côte d'Ivoire.",
+      "sources": [
+        "https://fidulink.com/les-10-meilleures-banques-en-cote-divoire-classement-services-et-ouverture-de-compte-2025",
+        "https://www.instagram.com/p/DTiRv_5D3BR?hl=en",
+        "https://www.facebook.com/Colombe.YAO.K/posts/en-c%C3%B4te-divoire-le-top-10-des-banques-a-concentr%C3%A9-plus-de-17-700-milliards-fcfa-/10233378440425495",
+        "https://cb-umoa.org/sites/default/files/Liste%20C%C3%B4te%20d%27Ivoire%202025.pdf"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Réseau Banque Atlantique (Hors BACI)"
+    },
+    "virement emis en interne baci": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose le service \"Virement émis en interne (BACI)\" sous un autre nom.",
+      "sources": [
+        "https://fidulink.com/les-10-meilleures-banques-en-cote-divoire-classement-services-et-ouverture-de-compte-2025",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire",
+        "https://www.bceao.int/sites/default/files/2026-04/LISTE%20DES%20%C3%89TABLISSEMENTS%20DE%20CR%C3%89DIT%20AGR%C3%89%C3%89S%20DANS%20L%27UMOA%20au%2031%20d%C3%A9cembre%202025.pdf",
+        "https://cb-umoa.org/sites/default/files/Liste%20C%C3%B4te%20d%27Ivoire%202025.pdf"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Virement émis en interne (BACI)"
+    },
+    "frais de suppression": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent propose le service \"Frais de suppression\".",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://compare-ta-banque.vercel.app",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Frais de suppression"
+    },
+    "delivrance de change de et billet carnet a d effets ordre": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent ivoirien propose le service de \"Délivrance de change de et billet carnet à d'effets ordre\".",
+      "sources": [
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/banques-en-cote-divoire",
+        "https://erooamba.com/posts/comparatif-frais-bancaires-12-banques-cote-ivoire-2026",
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Délivrance de change de et billet carnet à d'effets ordre)"
+    },
+    "encaissement en zone euro": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent ivoirien propose le service \"Encaissement en zone Euro\".",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://mondedesbanques.com/culture-generale/meilleures-banques-en-afrique-francophone",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Encaissement en zone Euro"
+    },
+    "virement de masse emis vers": {
+      "verdict": "partage",
+      "concurrents": [
+        "SGCI",
+        "BICICI",
+        "NSIA",
+        "Ecobank",
+        "SIB",
+        "BNI",
+        "BACI",
+        "UBA"
+      ],
+      "note": "Les banques ivoiriennes proposent des services de virement de masse, notamment Ecobank et UBA pour les transferts intra-africains.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://www.bceao.int/fr/content/paysage-bancaire",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/10-des-meilleures-banques-en-cote-divoire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Virement de masse émis vers"
+    },
+    "1 2 ve n te eu r o": {
+      "verdict": "differenciant",
+      "concurrents": [
+        "SGCI",
+        "BICICI",
+        "NSIA",
+        "Ecobank",
+        "SIB",
+        "BNI",
+        "BACI"
+      ],
+      "note": "Les banques ivoiriennes proposent des services similaires, mais \"1. 2 Ve n te Eu r o\" n'est pas explicitement mentionné, selon les sources comme https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire",
+        "https://compare-ta-banque.vercel.app",
+        "https://mondedesbanques.com/cote-divoire/banques-cote-divoire/banque-avec-meilleur-service-client-en-cote-divoire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": ". 1 . 2 Ve n te Eu r o"
+    },
+    "operations diverses de secretariatrenseignements commerciaux": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web n'indique que les banques ivoiriennes comme SGCI, BICICI, NSIA, Ecobank, SIB, BNI, BACI proposent un service d'\"Operations diverses de secrétariat - Renseignements commerciaux\".",
+      "sources": [
+        "https://www.youtube.com/watch?v=zsFwVTpaVrU&vl=en",
+        "https://www.gymglish.com/en/frantastique/french-grammar/quelle-or-quelle",
+        "https://www.tiktok.com/@learnfrenchwithmaud/video/7296561119165009185?lang=en",
+        "https://french.kwiziq.com/revision/grammar/questions-quel-quels-quelle-quelles-which-what"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Operations diverses de secrétariatRenseignements commerciaux"
+    },
+    "plus de 15 000 001 fcfa": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web qu'un concurrent offre un service \"Plus de 15 000 001 FCFA\" sous un autre nom.",
+      "sources": [
+        "https://erooamba.com/posts/meilleures-banques-cote-ivoire-2026",
+        "https://mondedesbanques.com/culture-generale/meilleures-banques-en-afrique-francophone",
+        "https://compare-ta-banque.vercel.app",
+        "https://guidedufonctionnaire.com/banques-pour-fonctionnaire-en-cote-divoire"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Plus de 15 000 001 FCFA"
+    },
+    "virement inter pays reseau banque x 1 000 000 fcfa": {
+      "verdict": "non_contredit",
+      "concurrents": [],
+      "note": "Aucune preuve web n'indique que les banques ivoiriennes comme SGCI, BICICI, NSIA, Ecobank, SIB, BNI, BACI proposent un service de virement inter-pays réseau banque x < 1 000 000 FCFA.",
+      "sources": [
+        "https://www.quora.com/What-is-the-difference-between-quelle-quel-and-quelles",
+        "https://french.kwiziq.com/revision/grammar/questions-quel-quels-quelle-quelles-which-what",
+        "https://www.lawlessfrench.com/grammar/interrogative-adjectives",
+        "https://www.reddit.com/r/French/comments/xpflco/when_to_use_quel_or_quelle_in_a_sentence"
+      ],
+      "date": "2026-08-07",
+      "_libelle": "Virement inter-pays réseau banque x < 1 000 000 FCFA"
     }
   },
   "_veille_excl_maj": "2026-08-07"

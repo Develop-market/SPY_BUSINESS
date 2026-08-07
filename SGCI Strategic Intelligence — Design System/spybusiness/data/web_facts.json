@@ -6,10 +6,10 @@
       "cle": "politique_monetaire",
       "titre": "Politique monétaire BCEAO",
       "valeur": "3,00%",
-      "detail": "Taux directeur de la BCEAO",
+      "detail": "Taux minimum de soumission",
       "lien_analyse": "Coût des ressources encadré et orienté à la baisse : la marge d'intérêt se comprime → prime à la diversification des commissions (cf. levier PNB).",
       "source": "BCEAO 2026",
-      "url": "https://www.bceao.int/fr/communique-presse/reunion-ordinaire-du-comite-de-politique-monetaire-de-la-bceao-tenue-le-4-mars",
+      "url": "https://www.financialafrik.com/2026/03/04/uemoa-la-bceao-reduit-ses-taux-directeurs-de-25-points-de-base-dans-un-contexte-economique-favorable",
       "date": "2026-08-07",
       "fiabilite": "officielle",
       "_maj_auto": true
@@ -32,12 +32,11 @@
       "valeur": "14,7%",
       "detail": "Ratio de solvabilité moyen",
       "lien_analyse": "Benchmark de solidité : situe la solvabilité de SGCI par rapport au secteur et conforte l'argument « solidité » des atouts.",
-      "source": "BCEAO 2024",
+      "source": "Commission Bancaire de l'UMOA 2024",
       "url": "https://www.bceao.int/fr/publications/rapport-annuel-de-la-commission-bancaire-de-lumoa-2024",
-      "date": "2026-08-05",
+      "date": "2026-08-07",
       "fiabilite": "officielle",
-      "_maj_auto": true,
-      "_a_rafraichir": true
+      "_maj_auto": true
     },
     {
       "cle": "mobile_money",
@@ -70,12 +69,11 @@
       "valeur": "28 banques",
       "detail": "système bancaire ivoirien",
       "lien_analyse": "Intensité concurrentielle (Porter) : marché dense (29 acteurs) et leader régional → rivalité forte et peu de barrières sur la banque de détail.",
-      "source": "APIF CI 2025",
+      "source": "BASECO 2025",
       "url": "https://apif.finances.gouv.ci/images/app/publications/375/rapport-sur-linclusion-financiere-2025-baseco.pdf",
-      "date": "2026-08-05",
+      "date": "2026-08-07",
       "fiabilite": "haute",
-      "_maj_auto": true,
-      "_a_rafraichir": true
+      "_maj_auto": true
     },
     {
       "cle": "cout_credit",
@@ -92,15 +90,14 @@
     {
       "cle": "croissance_macro",
       "titre": "Environnement macroéconomique",
-      "valeur": "PIB +6,3% · inflation 1%",
-      "detail": "Croissance tirée par les services",
+      "valeur": "PIB +6,7% · inflation 1,5%",
+      "detail": "Croissance économique en 2026",
       "lien_analyse": "Toile de fond porteuse : la demande de crédit est soutenue par une croissance forte et une inflation maîtrisée → fenêtre favorable pour développer des revenus sains (commissions, corporate).",
-      "source": "FMI 2025",
-      "url": "https://www.imf.org/fr/news/articles/2025/09/30/pr25321-civ-sla-on-the-5th-review-of-the-eff-ecf-and-4th-review-of-the-rsf-arrangements",
-      "date": "2026-08-05",
+      "source": "FMI 2026",
+      "url": "https://www.economie-ivoirienne.ci/actualites/cote-divoire-cap-sur-une-croissance-de-67-en-2026-dans-un-cadre-macroeconomique",
+      "date": "2026-08-07",
       "fiabilite": "officielle",
-      "_maj_auto": true,
-      "_a_rafraichir": true
+      "_maj_auto": true
     },
     {
       "cle": "clients_sgci",
@@ -116,12 +113,11 @@
     {
       "cle": "cacao_campagne",
       "valeur": "1er septembre",
-      "detail": "Date d'ouverture de la campagne cacao",
-      "source": "Conseil du café-cacao 2026",
-      "url": "https://news.abidjan.net/articles/746898/filiere-cacao-le-gouvernement-modifie-le-calendrier-des-campagnes-de-vente",
-      "date": "2026-08-05",
-      "_maj_auto": true,
-      "_a_rafraichir": true
+      "detail": "Début de la campagne cacao",
+      "source": "AIP 2026",
+      "url": "https://www.aip.ci/cote-divoire-aip-crise-du-cacao-le-gouvernement-modifie-le-calendrier-des-campagnes-de-commercialisation",
+      "date": "2026-08-07",
+      "_maj_auto": true
     },
     {
       "cle": "seuil_especes",
@@ -145,33 +141,66 @@
     },
     {
       "cle": "cacao_prix",
-      "valeur": "2800",
-      "detail": "Prix garanti du cacao",
-      "source": "Conseil du Café-Cacao 2026",
-      "url": "https://rti.info/le-prix-du-cacao-fixe-a-2800-fcfa-reste-inchange-jusquau-31-mars-2026",
-      "date": "2026-08-05",
-      "_maj_auto": true,
-      "_a_rafraichir": true
+      "valeur": "1200",
+      "detail": "Prix garanti bord champ",
+      "source": "AIP 2026",
+      "url": "https://www.aip.ci/cote-divoire-aip-cacao-la-campagne-intermediaire-2025-2026-ouverte-avec-un-prix-garanti-fixe-a-1-200-fcfa-kg",
+      "date": "2026-08-07",
+      "_maj_auto": true
     },
     {
       "cle": "anacarde",
-      "valeur": "400",
-      "detail": "Prix bord champ",
+      "valeur": "400 FCFA/kg",
+      "detail": "Prix bord champ pour 2026",
       "source": "Ministère de l'Agriculture 2026",
-      "url": "https://news.abidjan.net/articles/747086/commercialisation-de-lanacarde-le-gouvernement-fixe-les-prix-planchers-pour-la-campagne-2026",
-      "date": "2026-08-05",
-      "_maj_auto": true,
-      "_a_rafraichir": true
+      "url": "https://www.sikafinance.com/marches/cote-divoire-le-prix-de-la-noix-de-cajou-fixe-a-400-fcfakg-pour-la-campagne-2026_59622",
+      "date": "2026-08-07",
+      "_maj_auto": true
     },
     {
       "cle": "coton",
-      "valeur": "310 FCFA/kg",
-      "detail": "Prix d'achat du coton graine",
+      "valeur": "310",
+      "detail": "Prix du kilogramme de coton",
       "source": "AIP 2025",
-      "url": "https://www.aip.ci/cote-divoire-aip-les-producteurs-remercient-letat-pour-le-maintien-des-prix-dachat-du-coton-graine",
-      "date": "2026-08-05",
-      "_maj_auto": true,
-      "_a_rafraichir": true
+      "url": "https://www.aip.ci/cote-divoire-aip-le-prix-du-coton-1er-choix-fixe-a-310-fcfa-kg-et-celui-du-2e-choix-a-285-fcfa-kg-pour-la-campagne-2025-2026",
+      "date": "2026-08-07",
+      "_maj_auto": true
+    },
+    {
+      "cle": "commerce_informel",
+      "valeur": "38%",
+      "detail": "secteur informel en 2020",
+      "source": "Banque mondiale 2020",
+      "url": "https://documents1.worldbank.org/curated/en/099829307212522053/pdf/IDU-bad12044-114b-4e3f-b396-4c3fc65e2400.pdf",
+      "date": "2026-08-07",
+      "_maj_auto": true
+    },
+    {
+      "cle": "commerce_exterieur",
+      "valeur": "2 962,7",
+      "detail": "Exportations à fin mars 2023",
+      "source": "Sikafinance 2023",
+      "url": "https://www.sikafinance.com/marches/cote-divoire-un-excedent-commercial-de-383-milliards-fcfa-a-fin-mars-2023_47138",
+      "date": "2026-08-07",
+      "_maj_auto": true
+    },
+    {
+      "cle": "btp_logement",
+      "valeur": "500 000",
+      "detail": "Déficit structurel de logements",
+      "source": "Abidjan.net News 2024",
+      "url": "https://news.abidjan.net/articles/629152/constructions-de-logements-sociaux-entre-scepticisme-et-espoir",
+      "date": "2026-08-07",
+      "_maj_auto": true
+    },
+    {
+      "cle": "btp_investissement",
+      "valeur": "29 000",
+      "detail": "Investissement dans infrastructures",
+      "source": "AfDB 2016",
+      "url": "https://www.afdb.org/sites/default/files/documents/publications/civ_ltf_country_report_fr.pdf",
+      "date": "2026-08-07",
+      "_maj_auto": true
     }
   ],
   "banques": {

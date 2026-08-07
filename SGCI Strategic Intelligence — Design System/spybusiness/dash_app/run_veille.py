@@ -305,6 +305,13 @@ def run(dry_run=False):
             annee = ym.group(1) if ym else ""
             det = (res.get("detail") or "").strip()
             fact["valeur"] = str(val).strip()
+            # TITRE LISIBLE (2026-08-07). Les indicateurs seedés à la main en portaient un ;
+            # ceux créés par une collecte n'en avaient aucun, et l'affichage retombait sur la
+            # clé technique — « btp investissement » au lieu de « Investissement public en
+            # infrastructures ». Le libellé déclaré juste au-dessus est la bonne source : on
+            # le pose à la création, sans écraser un titre déjà rédigé.
+            if not fact.get("titre"):
+                fact["titre"] = libelle.split("(")[0].strip().rstrip(",")
             if det and 10 < len(det) <= 180:
                 fact["detail"] = det
             fact["source"] = (src + (" " + annee if annee else "")).strip()

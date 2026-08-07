@@ -7950,7 +7950,9 @@ function pageStratOp(){
     <h1 style="font:900 30px/1.15 var(--display);margin:8px 0 5px;color:var(--ink)">Ce que chaque direction doit faire</h1>
     <p style="font:400 14.5px/1.6 var(--sans);color:var(--muted);max-width:700px;margin:0">
       La stratégie globale fixe le but ; cette page dit <b>comment</b> l'atteindre, direction par direction.
-      Quatre directives chacune, chiffrées sur les grilles tarifaires publiées et les états financiers.
+      Quatre directives chacune, chiffrées sur les grilles tarifaires publiées et les états financiers,
+      et rattachées à un <b>signal de marché</b> — indicateur sectoriel, politique ou réglementaire, ou
+      événement relevé par la veille.
       <span id="so-periode" style="color:var(--faint)"></span></p>
   </div>
   <div id="so-body"><div style="font:500 13px var(--sans);color:var(--muted);padding:22px 0;display:flex;gap:10px;align-items:center">
@@ -7983,7 +7985,7 @@ function setSoDir(d){ _SO_DIR = d; _soRender(); }
    un directeur vient chercher ce qui le concerne, pas un inventaire. */
 // `sect` est un helper LOCAL à _soRender ; il est passé en paramètre plutôt que dupliqué,
 // pour que les trois sections de la page gardent exactement la même présentation.
-function _soDirectives(d, sect){
+function _soDirectives(d, sect, dossiersHtml){
   const D = (d.directives && d.directives.directives) || [];
   if(!D.length) return "";
   // Repli identique au helper de _soRender : la section des directives doit pouvoir se rendre
@@ -8021,11 +8023,14 @@ function _soDirectives(d, sect){
       </div>
       <div style="font:500 12.5px/1.65 var(--sans);color:var(--ink);background:var(--bg-raise);border-radius:7px;padding:10px 12px">
         ${_soEsc(x.constat)}</div>
+      ${_soSignal(x.signal)}
+      ${_soTerrain(x.terrain)}
       ${ligne("Ce qu'il faut faire", x.action, true)}
       ${ligne("Cible", x.cible)}
       ${ligne("Indicateur de suivi", x.indicateur)}
       <div style="margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font:500 11.5px/1.55 var(--sans);color:var(--faint)">
         ${_soEsc(x.contribution)}</div>
+      ${_soChatBtn(x)}
     </div>`).join("");
 
   const per = (d.directives.perimetre)||{};
@@ -8036,8 +8041,18 @@ function _soDirectives(d, sect){
         Directives calculées à partir des données, sans rédaction par modèle de langage : à données
         inchangées, le texte est identique.</div></div>`;
 
-  return sect("①","Directives par direction",
-    "<b>Quatre directives par direction.</b> Chacune part d'un fait mesuré, dit quoi faire, sur quelle cible, et ce qui sera suivi.",
+  // FUSION DES DEUX SECTIONS (2026-08-07, demande du directeur : « c'est un peu désorganisé,
+  // on peut tout combiner de manière à avoir une section pour orienter chaque direction »).
+  // Les directives et les dossiers de marché vivaient dans deux sections séparées, chacune
+  // avec sa propre barre de filtres : un directeur devait choisir sa direction deux fois, à
+  // deux endroits de la page, et faire lui-même le rapprochement entre ce qu'on lui demande
+  // et la matière qui le justifie. Une seule barre commande désormais les deux.
+  // Le bloc « dossiers de marché » a disparu (2026-08-07) : son contenu est maintenant DANS
+  // chaque directive, via _soTerrain(). Le paramètre dossiersHtml est conservé pour ne pas
+  // casser l'appelant, mais n'est plus rendu — deux blocs côte à côte obligeaient le lecteur
+  // à faire lui-même le lien entre la décision et ce qui la justifie.
+  return sect("①","Ce que chaque direction doit faire",
+    "<b>Quatre directives par direction.</b> Chacune part d'un fait mesuré, dit sur quel terrain elle s'exerce et ce qu'il peut rapporter, puis quoi faire, sur quelle cible, et ce qui sera suivi.",
     `<div style="margin-bottom:11px">${onglets}</div><div class="bento">${cartes}</div>${pied}`);
 }
 
@@ -8068,7 +8083,16 @@ function _soRender(){
   // dédoubler ici obligeait à comprendre que deux commandes différentes agissaient sur deux
   // contenus différents — les dossiers documentent le marché, ils ne s'adressent pas à une
   // direction en particulier.
-  const visibles = d.secteurs;
+  // DOSSIERS RATTACHÉS À LA DIRECTION SÉLECTIONNÉE (2026-08-07). Les sept dossiers
+  // s'affichaient sous chaque direction, ce qui vidait le filtre de son sens : le directeur
+  // du Marketing voyait les mêmes dossiers que celui des Risques.
+  //
+  // Le rattachement s'appuie sur `directions_imposees`, décidé côté serveur à partir de la
+  // NATURE du secteur — et non sur les décisions rédigées par le modèle, qui varient d'une
+  // génération à l'autre et disparaissent quand le quota tombe. Un filtre ne peut pas
+  // dépendre d'un texte qui peut ne pas exister.
+  const visibles = d.secteurs.filter(s =>
+    (s.directions_imposees || []).includes(_SO_DIR) || s.direction === _SO_DIR);
   const chips = "";
 
   // ①bis LES 4 DÉCISIONS PRIORITAIRES DE LA DIRECTION SÉLECTIONNÉE (2026-07-30)
@@ -8238,7 +8262,7 @@ function _soRender(){
   // FAIRE, puis seulement ensuite l'arbitrage sectoriel et les dossiers qui l'étayent.
   // L'inverse obligeait un directeur à traverser une analyse de marché avant d'atteindre
   // ce qui le concerne.
-  box.innerHTML = bandeau + _soDirectives(d, sect) +
+  box.innerHTML = bandeau + _soDirectives(d, sect, cartes) +
     sect("②","Arbitrage — où concentrer la conquête",
       "<b>Rendement · Délai · Difficulté.</b> Le ROI est en étoiles, pas en pourcentage : c'est un ordre de priorité, pas une prévision.",
       `<div class="tile c12 tpad">
@@ -8248,9 +8272,97 @@ function _soRender(){
            <span style="width:86px;text-align:right">Priorité</span></div>
          ${lignes}${repere}${segments}
        </div>`)
-    + sect("③","Les dossiers de marché",
-      "<b>Un dossier par secteur.</b> Ce qui se passe, ce que ça vaut, sous quel délai — la matière sur laquelle s'appuient les directives.",
-      `${chips}${priorisees}<div class="bento">${cartes}</div>`);
+    // La section « Les dossiers de marché » a été absorbée dans la section ① : ses cartes
+    // s'affichent désormais sous les directives de la direction sélectionnée, commandées par
+    // la même barre d'onglets. Le panneau des décisions prioritaires reste ici, car il porte
+    // sur l'ensemble des secteurs et non sur une direction.
+    + (priorisees ? sect("③","Décisions sectorielles prioritaires",
+      "<b>Les quatre décisions les plus pertinentes</b> pour la direction sélectionnée, tirées des dossiers de marché.",
+      priorisees) : "");
+}
+
+// SIGNAL DE MARCHÉ D'UNE DIRECTIVE (2026-08-07) — ce qui, à l'extérieur de la banque, rend
+// la décision pertinente maintenant : un indicateur sectoriel ou politique, ou un événement
+// daté relevé par la veille. Sans lui, la carte n'exposait que des mesures internes (tarifs,
+// états financiers) et ressemblait à un audit plutôt qu'à une directive.
+// Le lien renvoie à la source : une affirmation qu'on ne peut pas remonter ne vaut rien en
+// comité. Rendu vide si aucun signal — jamais un encadré « non disponible » qui prend la
+// place sans rien apporter.
+function _soSignal(s){
+  if(!s || !s.texte) return "";
+  const evt = s.nature === "événement";
+  const col = evt ? "#B45309" : "var(--accent-2)";
+  const src = s.source ? _soEsc(s.source) : "";
+  const lien = s.url
+    ? `<a href="${_soEsc(s.url)}" target="_blank" rel="noopener" style="color:${col};text-decoration:none;border-bottom:1px dotted ${col}">${src||"source"}</a>`
+    : src;
+  return `<div style="margin-top:8px;padding:8px 11px;border-left:3px solid ${col};background:var(--bg-raise);border-radius:0 6px 6px 0">
+    <div style="font:700 9.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:${col};margin-bottom:3px">
+      Signal de marché · ${_soEsc(s.nature||"")}</div>
+    <div style="font:500 12px/1.55 var(--sans);color:var(--muted)">${_soEsc(s.texte)}${lien?` <span style="color:var(--faint)">— ${lien}</span>`:""}</div>
+  </div>`;
+}
+
+// TERRAIN D'APPLICATION (2026-08-07) — le secteur sur lequel la directive s'exerce, avec ce
+// qu'il peut rapporter et qui y est déjà installé. Il occupait auparavant une section à part,
+// sous les directives : le lecteur devait rapprocher lui-même « augmenter les commissions »
+// et « la campagne cacao ouvre le 1er septembre ». Les deux ne se lisent que ensemble.
+function _soTerrain(t){
+  // Directive transversale : elle ne vise aucun secteur en particulier (coefficient
+  // d'exploitation, cohérence de la grille publiée). Lui coller un secteur produirait le
+  // faux lien qu'on cherche justement à éviter — on le dit, en une ligne.
+  if(!t || !t.nom){
+    return `<div style="margin-top:8px;font:500 11.5px/1.5 var(--sans);color:var(--faint)">
+      <b style="color:var(--muted)">Portée</b> — transversale : s'applique à l'ensemble du
+      portefeuille, sans secteur cible.</div>`;
+  }
+  const M = v => v==null ? null : (Math.abs(v)>=1e9 ? (v/1e9).toFixed(1).replace(".",",")+" Md"
+              : Math.abs(v)>=1e6 ? Math.round(v/1e6)+" M" : Math.round(v).toLocaleString("fr-FR"));
+  const gain = (t.commissions_min!=null && t.commissions_max!=null)
+    ? `<b style="color:#0a5e3c">+${M(t.commissions_min)} à +${M(t.commissions_max)} FCFA/an</b>` : "";
+  const clients = (t.clients_min!=null)
+    ? `${t.clients_min} à ${t.clients_max} clients visés` : "";
+  const conc = (t.concurrents||[]).length
+    ? `déjà occupé par ${_soEsc(t.concurrents.join(", "))}` : "aucun concurrent identifié";
+  const bribes = [clients, gain ? null : "", conc].filter(Boolean);
+  return `<div style="margin-top:8px;padding:8px 11px;background:#0d7a500e;border:1px solid #12895C33;border-radius:6px">
+    <div style="font:700 9.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:#0a5e3c;margin-bottom:3px">
+      ${t.recommande ? "Terrain à privilégier" : "Terrain d'application"}</div>
+    ${t.recommande ? `<div style="font:500 11px/1.45 var(--sans);color:var(--faint);margin-bottom:3px">
+      La directive vaut pour tout le portefeuille ; c'est ici qu'il y a le plus à prendre.</div>` : ""}
+    <div style="font:600 12.5px/1.5 var(--sans);color:var(--ink)">
+      ${_SO_ICONES[t.cle]||"◆"} ${_soEsc(t.nom)}${t.segment?` <span style="font-weight:500;color:var(--muted)">· ${_soEsc(t.segment)}</span>`:""}</div>
+    ${gain?`<div style="font:500 12px/1.5 var(--sans);color:var(--muted);margin-top:2px">${gain}${clients?` · ${clients}`:""}${t.delai?` · ${_soEsc(t.delai)}`:""}</div>`:""}
+    <div style="font:500 11.5px/1.5 var(--sans);color:var(--faint);margin-top:2px">${_soEsc(t.cibles||"")} — ${conc}.</div>
+  </div>`;
+}
+
+// APPROFONDIR AU CHAT (2026-08-07, demande du directeur : « il faut mettre des boutons,
+// demander au chat pour avoir beaucoup plus d'informations »). La carte tient en trente
+// secondes de lecture ; tout le détail — comment s'y prendre, sur quels clients, avec quels
+// précédents — vit dans le chat, qui a accès à l'ensemble de la base. Le bouton compose la
+// question à partir de la directive elle-même, pour que le chat parte du bon contexte.
+function _soChatBtn(x){
+  const q = `Direction ${String(x.direction||"").replace("Direction ","")} — directive « ${x.titre} ». `
+    + (x.terrain && x.terrain.nom ? `Terrain : ${x.terrain.nom}. ` : "")
+    + `Détaille comment l'exécuter : les étapes concrètes, les clients à viser en priorité, `
+    + `les tarifs et services SGCI concernés, ce que font les concurrents, et les risques.`;
+  return `<button onclick="_soDemanderChat(${JSON.stringify(q).replace(/"/g,"&quot;")})"
+     style="margin-top:9px;cursor:pointer;font:700 11px var(--sans);color:var(--accent-2);
+            background:transparent;border:1px solid var(--accent-2);border-radius:7px;padding:6px 12px">
+     Approfondir avec l'assistant →</button>`;
+}
+
+function _soDemanderChat(question){
+  go("chat");
+  // Le rendu de la page chat est synchrone, mais le champ n'existe qu'après : on laisse un
+  // tour de boucle avant de le remplir, sinon getElementById renvoie null.
+  setTimeout(() => {
+    const ci = document.getElementById("ci");
+    if(!ci) return;
+    ci.value = question;
+    if(typeof sendChat === "function") sendChat();
+  }, 60);
 }
 
 function _soEsc(t){
