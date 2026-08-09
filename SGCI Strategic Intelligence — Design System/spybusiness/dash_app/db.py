@@ -2817,7 +2817,15 @@ def cb_prix_par_libelle(annee=2026, semestre="S1", segment="Particuliers"):
           AND libelle !~ %s
           AND LENGTH(TRIM(libelle)) BETWEEN 6 AND 110
           AND """ + _not_segment_sql("libelle") + """
-        ORDER BY section, libelle
+        -- TRI COMPLET, PAS SEULEMENT (section, libelle) — 2026-08-09. Le DISTINCT porte sur
+        -- SEPT colonnes : un même service peut donc survivre plusieurs fois, à des montants
+        -- différents (« Frais de dossier » en est le cas type). Trier sur deux colonnes
+        -- seulement laissait l'ordre de ces jumeaux à la discrétion de PostgreSQL, et le
+        -- premier arrivé l'emportait plus loin dans la chaîne. Résultat mesuré en migrant vers
+        -- l'hébergeur : 116 services comparables ici, 117 sur une copie au contenu identique.
+        -- On trie donc sur tout ce qui distingue les lignes, NULLS FIRST explicite pour que
+        -- les montants absents se rangent toujours du même côté.
+        ORDER BY section, libelle, contexte, montant NULLS FIRST, est_gratuit, unite
         """,
         (annee, semestre, segment, _OCR_RE),
     )
@@ -2864,12 +2872,27 @@ def cb_prix_par_libelle(annee=2026, semestre="S1", segment="Particuliers"):
           AND s.libelle !~ %s
           AND LENGTH(TRIM(s.libelle)) BETWEEN 6 AND 110
           AND """ + _not_segment_sql("s.libelle") + """
+        -- DÉPARTAGE DÉTERMINISTE (2026-08-09). Le tri s'arrêtait au score de similarité : quand
+        -- deux lignes concurrentes obtenaient EXACTEMENT le même score — ce qui arrive dès que
+        -- deux libellés se ressemblent autant — laquelle survivait au DISTINCT ON dépendait de
+        -- l'ordre PHYSIQUE des lignes dans la table, que PostgreSQL ne garantit pas.
+        --
+        -- Trouvé en migrant vers l'hébergeur : sur une copie au contenu rigoureusement
+        -- identique, le panier comparable rendait 117 services au lieu de 118, et trois
+        -- services changeaient. Rien n'était « cassé » — les deux résultats étaient également
+        -- défendables — mais des chiffres qui bougent sans que la donnée bouge ne sont pas
+        -- des chiffres qu'on présente à un comité. Un VACUUM aurait suffi à les déplacer.
+        --
+        -- On ajoute donc deux critères stables : le libellé du concurrent, puis son
+        -- identifiant. À score égal, c'est toujours la même ligne qui gagne, sur n'importe
+        -- quelle base et après n'importe quelle réorganisation.
         ORDER BY s.libelle, o.banque,
                  GREATEST(
                      similarity(LOWER(TRIM(o.libelle)), LOWER(TRIM(s.libelle))),
                      word_similarity(LOWER(TRIM(s.libelle)), LOWER(TRIM(o.libelle))),
                      word_similarity(LOWER(TRIM(o.libelle)), LOWER(TRIM(s.libelle)))
-                 ) DESC
+                 ) DESC,
+                 o.libelle, o.id
         """,
         (_OCR_RE, annee, semestre, segment, _OCR_RE),
     )

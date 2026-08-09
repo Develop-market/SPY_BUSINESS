@@ -25,6 +25,7 @@ USAGE
 La destination est lue dans DATABASE_URL_CIBLE (ou --cible). La source est le .env local.
 """
 import argparse
+import io
 import os
 import sys
 import time
@@ -32,6 +33,12 @@ from urllib.parse import unquote, urlparse
 
 import psycopg2
 import psycopg2.extras
+
+# La console Windows est en cp1252 : elle refuse les flèches et les tirets longs. Sans cette
+# ligne, le script se tue sur ses PROPRES messages d'aide — y compris celui qui explique où
+# trouver la chaîne de connexion, c'est-à-dire exactement quand on en a le plus besoin.
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 "SGCI Strategic Intelligence — Design System",
@@ -92,10 +99,25 @@ def creer_structure(src, dst):
     recopié à la main diverge dès la première migration oubliée, et la divergence ne se voit
     qu'au moment où une requête échoue en production.
     """
-    with dst.cursor() as c:
-        c.execute("CREATE EXTENSION IF NOT EXISTS vector")
-        dst.commit()
-        print("  extension pgvector : prête")
+    # LES EXTENSIONS SONT LUES SUR LA SOURCE, PAS ÉCRITES EN DUR (corrigé le 2026-08-09).
+    # La première version ne créait que « vector », et la répétition sur une base d'essai a
+    # montré ce qui manquait : « pg_trgm ». Sans lui, similarity() n'existe pas — et comme
+    # db.query() avale l'erreur et rend une liste vide, les rapprochements de libellés
+    # seraient revenus VIDES sans qu'aucun message ne le signale. Le tableau de bord aurait
+    # affiché des comparaisons incomplètes, en production, sans erreur visible.
+    with src.cursor() as cs:
+        cs.execute("SELECT extname FROM pg_extension WHERE extname <> 'plpgsql' ORDER BY 1")
+        extensions = [r[0] for r in cs.fetchall()]
+    for e in extensions:
+        try:
+            with dst.cursor() as c:
+                c.execute(f"CREATE EXTENSION IF NOT EXISTS {e}")
+            dst.commit()
+            print(f"  extension {e:12} prête")
+        except Exception as err:
+            dst.rollback()
+            print(f"  extension {e:12} ÉCHEC — {str(err)[:90]}")
+            print(f"     (à créer à la main sur l'hébergeur : CREATE EXTENSION {e};)")
 
     for t in TABLES + ["utilisateurs", "journal_acces"]:
         with src.cursor() as cs:
@@ -201,6 +223,13 @@ def _ecrire(dst, table, cols, lot):
 
 
 def verifier(src, dst):
+    """Compare les décomptes ET les extensions.
+
+    Compter les lignes ne suffit pas : la répétition sur une base d'essai a rendu « identique »
+    sur les quatre tables alors que pg_trgm manquait, donc que similarity() n'existait pas et
+    que des rapprochements revenaient vides. Une vérification qui dit « tout va bien » sur une
+    base inutilisable est pire que pas de vérification du tout — elle donne confiance à tort.
+    """
     print(f"\n  {'table':18} {'source':>10} {'destination':>13}   état")
     ok = True
     for t in TABLES:
@@ -210,6 +239,34 @@ def verifier(src, dst):
         if a != b:
             ok = False
         print(f"  {t:18} {str(a):>10} {str(b):>13}   {etat}")
+
+    def exts(cx):
+        with cx.cursor() as c:
+            c.execute("SELECT extname FROM pg_extension WHERE extname <> 'plpgsql'")
+            return {r[0] for r in c.fetchall()}
+
+    manquantes = exts(src) - exts(dst)
+    print(f"\n  extensions source      : {', '.join(sorted(exts(src))) or 'aucune'}")
+    print(f"  extensions destination : {', '.join(sorted(exts(dst))) or 'aucune'}")
+    if manquantes:
+        ok = False
+        print(f"  MANQUANTES : {', '.join(sorted(manquantes))}")
+        print("     À créer sur l'hébergeur, sans quoi certaines requêtes rendront des")
+        print("     résultats vides SANS message d'erreur.")
+
+    # Une extension présente peut rester inutilisable si elle n'est pas dans le search_path.
+    # On l'éprouve donc pour de vrai, sur les deux fonctions dont l'application dépend.
+    for sql, quoi in (("SELECT similarity('abc','abd')", "similarity() [pg_trgm]"),
+                      ("SELECT '[1,0]'::vector <=> '[0,1]'::vector", "opérateur <=> [pgvector]")):
+        try:
+            with dst.cursor() as c:
+                c.execute(sql)
+                c.fetchone()
+            print(f"  {quoi:26} utilisable")
+        except Exception as e:
+            dst.rollback()
+            ok = False
+            print(f"  {quoi:26} INUTILISABLE — {str(e)[:70]}")
     return ok
 
 
