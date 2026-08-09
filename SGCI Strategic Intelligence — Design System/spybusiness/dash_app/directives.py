@@ -243,7 +243,20 @@ def panier_compare(annee, semestre, segment=None):
                     "moins_cher": min(concurrents, key=lambda x: x[1]),
                     "ecart_pct": (100 * (prix - med) / med) if med else None,
                 })
-    return out
+    # Doublons stricts écartés (2026-08-09). « Frais de dossier (Entreprises) » remontait trois
+    # fois de la section « Opérations avec l'étranger » : deux lignes rigoureusement identiques
+    # — même tarif SGCI, même médiane — plus une troisième à un tarif différent. Les deux
+    # premières gonflaient le décompte de services comparables et la Direction Commerciale
+    # citait le même service deux fois dans une liste de trois. On ne garde qu'un exemplaire
+    # de chaque quadruplet identique ; la ligne au tarif distinct, elle, est conservée, car
+    # rien ne permet d'affirmer que c'est la même prestation.
+    vus, uniques = set(), []
+    for s in out:
+        cle = (s["libelle"], s["segment"], s["sgci"], s["median"])
+        if cle not in vus:
+            vus.add(cle)
+            uniques.append(s)
+    return uniques
 
 
 def cite(service):
@@ -265,14 +278,46 @@ def _plus_chers(panier, n=3, seuil=25):
 
 
 def _plus_competitifs(panier, n=3, seuil=-25):
-    cand = [s for s in panier if s["ecart_pct"] is not None and s["ecart_pct"] <= seuil]
+    """Services FACTURÉS nettement sous la médiane du marché.
+
+    LES GRATUITÉS SONT EXCLUES (correction du 2026-08-09). Un service gratuit ressort
+    mécaniquement à −100 %, si bien qu'il occupait les trois premières places : la Direction
+    Commerciale recevait comme « arguments prix déjà gagnants » trois lignes à −100 %,
+    c'est-à-dire trois gratuités — que la directive SUIVANTE traite déjà. La carte disait donc
+    deux fois la même chose, et « facturé 100 % sous la médiane » est une manière obscure de
+    dire « gratuit ». Un argument de prix suppose un prix : on exige un tarif strictement
+    positif, ce qui fait remonter les vrais écarts commerciaux (attestation bancaire à
+    10 000 F contre 43 000 F de médiane, virement CONNECT à 1 000 F contre 3 300 F).
+    """
+    cand = [s for s in panier if s["ecart_pct"] is not None
+            and s["ecart_pct"] <= seuil and (s.get("sgci") or 0) > 0]
     return sorted(cand, key=lambda s: s["ecart_pct"])[:n]
 
 
 def _gratuits_distinctifs(panier, n=3):
-    """Gratuits chez SGCI, facturés par la majorité des concurrents."""
-    cand = [s for s in panier if s["sgci"] == 0 and s["median"] and s["median"] > 0]
-    return sorted(cand, key=lambda s: -s["median"])[:n]
+    """Gratuits chez SGCI et facturés par au moins la moitié des concurrents.
+
+    TRI CORRIGÉ le 2026-08-09. Le classement se faisait par médiane décroissante : il
+    remontait donc le service le plus CHER, qui est aussi le plus rare. En tête arrivait
+    « reproduction de clé » — une clé de COFFRE, facturée 250 000 F par la SIB mais relevée
+    chez deux concurrents seulement — et la carte invitait le réseau à en faire un argument
+    d'entrée en relation. Personne n'ouvre un compte pour une clé de coffre.
+    Ce qui fait un argument, ce n'est pas le montant : c'est que le service soit COURANT et
+    facturé par le plus grand nombre. On classe donc par nombre de concurrents qui le
+    facturent, la médiane ne départageant qu'à égalité, et on exige la moitié du marché.
+    On déduplique aussi par libellé : le même service figurant dans les deux grilles, la liste
+    d'automatisation affichait « Reproduction de clé, Reproduction de clé, Frais dossier ».
+    """
+    seuil = max(2, (len(db.BANKS) - 1) // 2)
+    vus, cand = set(), []
+    for s in sorted(panier, key=lambda s: (-(s.get("n_conc") or 0), -(s["median"] or 0))):
+        if s["sgci"] != 0 or not s["median"] or s["median"] <= 0:
+            continue
+        if (s.get("n_conc") or 0) < seuil or s["libelle"] in vus:
+            continue
+        vus.add(s["libelle"])
+        cand.append(s)
+    return cand[:n]
 
 
 def services_par_mots(panier, mots, n=3):
@@ -615,30 +660,57 @@ def _bloc_tarifs_chers(socle):
     """
     p = socle["panier"]
     chers = _plus_chers(p, 3)
+    # Le rang de compétitivité prix est LE problème que cette carte traite. Sans lui, « trois
+    # tarifs s'écartent de la médiane » est une observation ; avec lui, c'est la cause d'un
+    # classement. On compte aussi les duels perdus : chacun est un service sur lequel le client
+    # a une raison chiffrée de préférer un concurrent.
+    comp = socle.get("competitivite") or {}
+    sg = comp.get("sgci") or {}
+    rang, n_cl = comp.get("rang_sgci"), comp.get("n_classees")
+    wr, wins, duels = sg.get("winrate"), sg.get("wins"), sg.get("n")
+    tete = (comp.get("classement") or [{}])[0]
+    perdus = (duels - wins) if (duels and wins is not None) else None
+    wr_tete = tete.get("winrate")
+    ref = f"{_fr(f'{wr_tete:.1f}')} % pour {tete.get('banque')}" if wr_tete else ""
+    enjeu = _enjeu(rang=rang, sur=n_cl,
+                   valeur=(f"{_fr(f'{wr:.1f}')} % de duels prix gagnés" if wr is not None else ""),
+                   reference=ref)
+    situation = (f"SGCI se classe {rang}ᵉ sur {n_cl} en compétitivité prix : elle perd {perdus} "
+                 f"des {duels} duels où le client peut comparer. "
+                 if (rang and perdus) else "")
+
     if not chers:
         return {
             "titre": "Tenir le niveau des tarifs sous surveillance",
-            "constat": (f"Sur {len(p)} services réellement comparables, aucun ne dépasse nettement "
-                        f"la médiane du marché."),
+            "enjeu": enjeu,
+            "constat": (situation + f"Sur {len(p)} services réellement comparables, aucun ne "
+                        f"dépasse nettement la médiane du marché."),
             "action": "Maintenir la revue à chaque parution de grille concurrente.",
             "cible": "Aucun tarif ne s'éloigne de la médiane sans décision explicite.",
             "indicateur": "Nombre de tarifs au-dessus de la médiane, et écart moyen.",
             "effort": "Faible", "horizon": "6 mois",
-            "contribution": _lien_objectif(socle, "la défense des volumes sur les services exposés à la comparaison"),
+            "contribution": _contribution(
+                socle, nature="defense",
+                texte="un positionnement prix que rien ne dégrade aujourd'hui"),
         }
     t = chers[0]
     liste = ", ".join(f"{cite(x)} (+{x['ecart_pct']:.0f} %)" for x in chers)
     return {
         "titre": f"Réexaminer les {len(chers)} tarifs les plus éloignés du marché",
-        "constat": (f"Sur {len(p)} services réellement comparables, « {cite(t)} » est facturé "
-                    f"{_fmt(t['sgci'])} contre une médiane de {_fmt(t['median'])} chez "
+        "enjeu": enjeu,
+        "constat": (situation + f"Sur {len(p)} services réellement comparables, « {cite(t)} » est "
+                    f"facturé {_fmt(t['sgci'])} contre une médiane de {_fmt(t['median'])} chez "
                     f"{t['n_conc']} concurrents, soit +{t['ecart_pct']:.0f} %."),
         "action": (f"Statuer sur : {liste}. Pour chacun — aligner, justifier par un service "
                    f"associé, ou maintenir en assumant l'écart par écrit."),
-        "cible": "Aucun tarif à plus du double de la médiane sans justification écrite.",
-        "indicateur": "Nombre de tarifs au-dessus de la médiane, et écart moyen.",
+        "cible": (f"Aucun tarif à plus du double de la médiane sans justification écrite, et un "
+                  f"rang de compétitivité prix ramené dans la première moitié du marché."),
+        "indicateur": "Nombre de tarifs au-dessus de la médiane, et rang de compétitivité prix.",
         "effort": "Faible", "horizon": "3 mois",
-        "contribution": _lien_objectif(socle, "la défense des volumes sur les services les plus exposés à la comparaison"),
+        "contribution": _contribution(
+            socle, nature="defense",
+            texte=(f"les volumes des services les plus exposés à la comparaison ; ces écarts "
+                   f"n'apportent aucun revenu supplémentaire tant qu'ils font perdre le duel")),
     }
 
 
@@ -664,21 +736,38 @@ def _bloc_gamme_cartes(socle):
             "cible": "Une gamme lisible, chaque niveau justifié par un service associé.",
             "indicateur": "Nombre de cartes actives par niveau de gamme.",
             "effort": "Moyen", "horizon": "12 mois",
-            "contribution": _lien_objectif(socle, "les commissions de monétique"),
+            "contribution": _contribution(socle, texte="les commissions de monétique"),
         }
     t = monetique[0]
+    # La monétique est nommément l'un des trois relais cités par la directive des commissions.
+    # Le rappeler ici n'est pas une redite : c'est ce qui rattache une décision d'offre au seul
+    # écart du dossier qui pèse l'ordre de grandeur de l'objectif.
+    eco = socle.get("eco") or {}
+    pts = None
+    if eco.get("meilleur_ratio") and eco.get("part_commissions_pnb"):
+        pts = round(eco["meilleur_ratio"] - eco["part_commissions_pnb"], 1)
     return {
         "titre": "Positionner la gamme de cartes face au marché",
+        "enjeu": _enjeu(valeur=f"{len(monetique)} niveaux de carte comparables au marché",
+                        reference=(f"écart le plus marqué {t['ecart_pct']:+.0f} % sur "
+                                   f"« {t['libelle']} »"),
+                        nature="retard" if (t["ecart_pct"] or 0) > 0 else "avance"),
         "constat": (f"{_pluriel(len(monetique), 'service')} de monétique "
                     f"{'sont comparables' if len(monetique) > 1 else 'est comparable'}, dont "
                     f"« {cite(t)} » à {_fmt(t['sgci'])} contre {_fmt(t['median'])} de médiane "
-                    f"({t['ecart_pct']:+.0f} %)."),
+                    f"({t['ecart_pct']:+.0f} %)."
+                    + (f" La monétique est l'un des trois relais désignés pour combler les "
+                       f"{_fr(f'{pts:.1f}')} points de commissions qui séparent SGCI de "
+                       f"{eco.get('meilleur_ratio_banque')}." if pts else "")),
         "action": ("Positionner chaque niveau de carte face à l'offre concurrente équivalente, "
                    "du basique au haut de gamme, et rattacher un service à chaque palier."),
         "cible": "Une gamme lisible, chaque niveau justifié par un service associé.",
-        "indicateur": "Nombre de cartes actives par niveau de gamme.",
+        "indicateur": "Nombre de cartes actives par niveau de gamme, et commissions de monétique.",
         "effort": "Moyen", "horizon": "12 mois",
-        "contribution": _lien_objectif(socle, "les commissions de monétique"),
+        "contribution": _contribution(
+            socle, nature="condition",
+            texte=("elle rend exécutable le relais monétique de la directive sur les commissions ; "
+                   "une gamme qu'on ne sait pas positionner ne se vend pas")),
     }
 
 
@@ -708,11 +797,18 @@ def _bloc_automatisation(socle):
                   "canaux automatisés en commençant par les plus répétitives.")
     return {
         "titre": "Automatiser les opérations qui occupent le guichet sans rien rapporter",
+        "enjeu": _enjeu(valeur=(f"{len(gratuits)} services gratuits mais coûteux à traiter"
+                                if gratuits else ""),
+                        reference="leur coût de guichet est intégralement supporté par la banque",
+                        nature="retard"),
         "constat": constat, "action": action,
         "cible": "Chaque opération répétitive disponible sans passage en agence.",
         "indicateur": "Part des opérations traitées sans intervention humaine.",
         "effort": "Élevé", "horizon": "18 mois",
-        "contribution": _lien_objectif(socle, "la baisse du coût de traitement, qui améliore le coefficient d'exploitation"),
+        "contribution": _contribution(
+            socle, nature="defense",
+            texte=("le coefficient d'exploitation, meilleur du marché : c'est lui que la montée "
+                   "en volume dégradera d'abord si le traitement reste manuel")),
     }
 
 
@@ -754,7 +850,10 @@ def _bloc_coefficient(socle):
             "cible": "Un coefficient tenu sous le seuil de 70 % retenu par la BCEAO.",
             "indicateur": "Charges générales ÷ PNB, par trimestre.",
             "effort": "Moyen", "horizon": "12 mois",
-            "contribution": _lien_objectif(socle, "la maîtrise des charges, qui libère du résultat sans vendre un franc de plus"),
+            "contribution": _contribution(
+                socle, nature="condition",
+                texte=("la maîtrise des charges libère du résultat sans vendre un franc de plus, "
+                       "mais elle ne se pilote pas tant que le repère du marché manque")),
         }
 
     sgci = float(sgci)
@@ -765,6 +864,11 @@ def _bloc_coefficient(socle):
     ecart = round(sgci - val_meilleur, 1)
     devant = rang == 1
 
+    # Un point de coefficient vaut un point de PNB en charges : c'est ce qui rend la carte
+    # comparable aux autres, où tout est exprimé en milliards.
+    pnb_mds = (socle.get("eco") or {}).get("pnb_m") or 0
+    point = pnb_mds / 1000 / 100          # millions -> milliards, puis 1 %
+
     if devant:
         constat = (f"SGCI affiche le meilleur coefficient d'exploitation du marché : {sgci:.1f} % "
                    f"en {an_sgci}, devant {meilleur} à {val_meilleur:.1f} % ({an_meilleur}), "
@@ -772,6 +876,13 @@ def _bloc_coefficient(socle):
         action = ("Tenir l'avance : chaque point gagné sur le coefficient tombe directement au "
                   "résultat, sans dépendre de la conquête commerciale.")
         cible = "Rester sous le meilleur coefficient du marché à chaque arrêté."
+        enjeu = _enjeu(rang=1, sur=n, valeur=f"coefficient d'exploitation {_fr(f'{sgci:.1f}')} %",
+                       reference=f"{_fr(f'{abs(ecart):.1f}')} point(s) devant {meilleur}",
+                       nature="avance")
+        contribution = _contribution(
+            socle, nature="defense",
+            texte=(f"une structure de charges déjà la meilleure des {n} banques ; chaque point "
+                   f"de coefficient représente {_fr(f'{point:.1f}')} Mds FCFA de charges"))
     else:
         constat = (f"Le coefficient d'exploitation de SGCI s'établit à {sgci:.1f} % en {an_sgci}, "
                    f"au {rang}ᵉ rang sur {n} banques ; {meilleur} tient {val_meilleur:.1f} % "
@@ -779,14 +890,19 @@ def _bloc_coefficient(socle):
         action = ("Identifier les postes de charges qui expliquent l'écart et fixer une "
                   "trajectoire de retour au niveau du mieux placé.")
         cible = f"Refermer les {ecart:.1f} points d'écart avec {meilleur}."
+        enjeu = _enjeu(rang=rang, sur=n, valeur=f"coefficient d'exploitation {_fr(f'{sgci:.1f}')} %",
+                       reference=f"{_fr(f'{ecart:.1f}')} points derrière {meilleur}")
+        contribution = _contribution(socle, mds=ecart * point)
 
     return {
         "titre": "Ramener le coefficient d'exploitation au niveau du mieux placé"
                  if not devant else "Défendre le meilleur coefficient d'exploitation du marché",
+        "enjeu": enjeu,
         "constat": constat, "action": action, "cible": cible,
         "indicateur": "Charges générales ÷ PNB, comparé au meilleur du marché à chaque arrêté.",
         "effort": "Élevé", "horizon": "24 mois",
-        "contribution": _lien_objectif(socle, "la maîtrise des charges, qui libère du résultat sans vendre un franc de plus"),
+        "contribution": contribution,
+        "contribution_mds": None if devant else ecart * point,
     }
 
 
@@ -819,13 +935,40 @@ def _bloc_cout_ressources(socle):
         constat = "Les repères de taux du marché monétaire ne sont pas disponibles à ce jour."
         action = "Piloter le coût moyen des ressources collectées à partir des états internes."
 
+    # Ce que pèse réellement la marge d'intérêt : tout ce que le PNB n'est pas commission.
+    # Le chiffre est le plus lourd du dossier, et c'est précisément ce que la carte doit dire —
+    # sans lui, « piloter le coût des ressources » reste un vœu de comité.
+    eco = socle.get("eco") or {}
+    pnb, com = (eco.get("pnb_m") or 0) / 1000, (eco.get("commissions_m") or 0) / 1000
+    marge = pnb - com
+    if marge > 0:
+        part = 100 * marge / pnb if pnb else 0
+        # L'HYPOTHÈSE EST DITE (2026-08-09). Le montant venait d'un « 1 % de la marge » que rien
+        # dans le texte n'annonçait : le lecteur voyait un chiffre sans savoir d'où il sortait,
+        # ce qui est exactement le reproche fait aux anciennes cartes. Un pour cent de marge
+        # gagné sur le coût des ressources est une hypothèse modeste et vérifiable — on l'écrit.
+        mds_ressources = marge * 0.01
+        contribution = _contribution(socle, mds=mds_ressources, nature="revenu") + (
+            f" Hypothèse : 1 % gagné sur une marge d'intérêt de {_fr(f'{marge:.1f}')} Mds, "
+            f"soit {_fr(f'{part:.0f}')} % du PNB. C'est la plus lourde masse du dossier — devant "
+            f"toute la conquête sectorielle documentée.")
+        enjeu = _enjeu(valeur=f"marge d'intérêt {_fr(f'{marge:.1f}')} Mds FCFA",
+                       reference=f"{_fr(f'{part:.0f}')} % du PNB, contre "
+                                 f"{_fr(f'{100 - part:.0f}')} % pour les commissions",
+                       nature="masse")
+    else:
+        contribution = _contribution(socle, texte="la marge d'intérêt, la plus lourde composante du PNB")
+        enjeu, mds_ressources = None, None
+
     return {
         "titre": "Piloter le coût des ressources et la marge d'intermédiation",
+        "enjeu": enjeu,
         "constat": constat, "action": action,
         "cible": "Un coût moyen des ressources connu et arbitré à chaque comité de trésorerie.",
         "indicateur": "Coût moyen des ressources, et marge d'intermédiation nette.",
         "effort": "Moyen", "horizon": "12 mois",
-        "contribution": _lien_objectif(socle, "la marge d'intérêt, qui pèse le plus lourd dans le PNB"),
+        "contribution": contribution,
+        "contribution_mds": mds_ressources if marge > 0 else None,
     }
 
 
@@ -883,15 +1026,21 @@ def _coherence_grille(socle):
 
     return {
         "titre": "Garantir la cohérence de la grille tarifaire publiée",
+        "enjeu": _enjeu(valeur=(f"{_pluriel(n, 'ligne')} publiées en anomalie sur {total}" if total else ""),
+                        reference=("instruction BCEAO n°2011-01 : obligation de publier et "
+                                   "d'afficher les conditions"),
+                        nature="alerte" if n else "avance"),
         "constat": constat,
         "action": action,
         "cible": "Zéro ligne publiée dont la valeur est démentie par la brochure.",
         "indicateur": "Nombre de lignes en anomalie, mesuré à chaque ingestion.",
         "effort": "Faible" if n < 50 else "Moyen",
         "horizon": "3 mois",
-        "contribution": ("L'instruction BCEAO n°2011-01 impose de publier et d'afficher les "
-                         "conditions de banque : une valeur publiée fausse est une exposition "
-                         "réglementaire, et elle fausse aussi les arbitrages tarifaires."),
+        "contribution": _contribution(
+            socle, nature="condition",
+            texte=("une valeur publiée fausse est une exposition réglementaire au titre de "
+                   "l'instruction BCEAO n°2011-01, et elle fausse aussi les arbitrages "
+                   "tarifaires décidés sur cette base")),
     }
 
 
@@ -984,19 +1133,71 @@ def _premier_pas_depuis(directive):
     return "Désigner le responsable de cette directive et fixer la date du premier point."
 
 
-def _lien_objectif(socle, part=None):
+def _mds(fcfa):
+    """Un montant en francs, rendu en milliards — l'unité dans laquelle l'objectif est fixé."""
+    return _fr(f"{(fcfa or 0) / 1e9:,.1f}".replace(",", " ")) + " Mds FCFA"
+
+
+def _contribution(socle, mds=None, nature="revenu", texte=""):
+    """Ce que la directive apporte à l'objectif — CHIFFRÉ, et rapporté à l'écart à combler.
+
+    RÉÉCRIT le 2026-08-09, sur la critique du directeur : « je ne vois en rien le lien avec la
+    stratégie et les problèmes de la SGCI ». La version précédente rendait une étiquette —
+    « levier vers l'objectif : la mobilisation du segment GP », « la maîtrise des charges » —
+    qui nommait une catégorie sans jamais dire combien. Vingt cartes portaient ainsi vingt
+    formules interchangeables, dont aucune ne permettait de savoir si le plan tenait.
+
+    Trois formes, et trois seulement, car toutes les directives ne rapportent pas de l'argent
+    et prétendre le contraire serait pire que se taire :
+
+      revenu     un montant annuel, converti en part de l'écart de 27,7 Mds. C'est le seul cas
+                 où l'on additionne : la somme des cartes « revenu » doit approcher l'objectif,
+                 et si elle ne l'approche pas, le plan le dit lui-même.
+      condition  la directive ne produit rien mais sans elle une autre ne tient pas. On nomme
+                 laquelle, sinon « condition » n'est qu'un mot poli pour « hors sujet ».
+      defense    elle protège un acquis déjà au bilan. On chiffre l'acquis, pas un gain.
+    """
     obj = socle.get("objectif") or {}
-    e = obj.get("ecart_a_combler")
-    if not e:
-        return "Contribue au plan à trois ans de la stratégie globale."
-    # RACCOURCI le 2026-08-07. La phrase rappelait l'objectif global en entier sur CHACUNE des
-    # vingt cartes : « L'objectif global demande 27,7 Mds FCFA de PNB supplémentaire en 3 ans ;
-    # cette directive y contribue par… ». Répétée vingt fois, la première moitié cesse d'être
-    # une information et devient du bruit — d'autant que le bandeau en tête de page l'affiche
-    # déjà. On ne garde que ce qui varie d'une carte à l'autre : le LEVIER.
-    if not part:
-        return f"Contribue à l'écart de {e} {obj.get('unite','Mds')} FCFA à combler."
-    return f"Levier vers l'objectif : {part}."
+    ecart = obj.get("ecart_a_combler")
+    if nature == "condition":
+        return f"Ne produit pas de PNB par elle-même : {texte}."
+    if nature == "defense":
+        return f"Défend l'acquis : {texte}."
+    if mds is None:
+        return f"Contribue à l'objectif par {texte}." if texte else \
+            "Contribue au plan à trois ans de la stratégie globale."
+    if not ecart:
+        return f"Apport estimé : {_fr(f'{mds:.1f}')} Mds FCFA par an."
+    part = 100 * mds / ecart
+    # Un apport réel mais faible ne doit pas s'afficher « 0 % » : arrondi à l'entier, la
+    # contribution de la conquête sectorielle — 0,066 Md sur 27,7 — devenait un zéro, et une
+    # carte qui annonce zéro se lit comme une carte inutile. Elle ne l'est pas : elle est
+    # petite, ce qui est une information différente et qu'il faut donner telle quelle.
+    if 0 < part < 1:
+        pc = "moins de 1 %"
+    else:
+        pc = _fr(f"{part:.0f}") + " %"
+    montant = _fr(f"{mds:.2f}" if mds < 1 else f"{mds:.1f}")
+    return (f"Apport estimé {montant} Mds FCFA par an, soit "
+            f"{pc} des {_fr(str(ecart))} Mds à combler.")
+
+
+def _enjeu(rang=None, sur=None, valeur="", reference="", nature="retard"):
+    """L'écart MESURÉ qui justifie la directive — première ligne lue de la carte.
+
+    Champ ajouté le 2026-08-09. Les cartes ouvraient sur un constat descriptif (« 3 services
+    sont facturés sous la médiane ») sans jamais dire OÙ SE SITUE LA SGCI. Le lecteur voyait
+    une observation, pas un problème, et n'avait aucune raison d'agir. On place donc en tête
+    le rang de la banque et l'écart à celui qui fait mieux — ou, quand la SGCI est devant, on
+    le dit aussi : une directive qui défend une avance n'est pas une directive au rabais, et
+    la présenter comme un retard serait faux.
+    """
+    tete = ""
+    if rang and sur:
+        tete = f"SGCI {rang}ᵉ sur {sur}" if rang > 1 else f"SGCI 1ʳᵉ sur {sur}"
+    morceaux = [m for m in (tete, valeur, reference) if m]
+    txt = " · ".join(morceaux)
+    return {"texte": txt, "nature": nature} if txt else None
 
 
 # ── RÉPARTITION DES COMPÉTENCES (2026-08-07, correction du directeur) ────────────────
@@ -1028,17 +1229,38 @@ def _financiere(socle):
     if eco.get("part_commissions_pnb") and eco.get("meilleur_ratio"):
         pts = round(eco["meilleur_ratio"] - eco["part_commissions_pnb"], 1)
         gain = (eco.get("pnb_m") or 0) * pts / 100 * 1e6
+        # LA CARTE PIVOT DU PLAN. L'écart de commissions à lui seul dépasse l'objectif à trois
+        # ans : le dire explicitement change la nature de la note. Tant que la carte se
+        # contentait d'annoncer « 12,5 points d'écart », le comité pouvait la lire comme une
+        # observation parmi vingt. Rapportée aux 27,7 Mds, elle devient le sujet principal — et
+        # les dix-neuf autres directives se lisent comme les moyens d'en obtenir une fraction.
+        # On ne prétend pas pour autant combler la totalité de l'écart en trois ans : on chiffre
+        # ce que vaudrait le quart du chemin, seule hypothèse que l'on assume.
+        obj_ecart = (socle.get("objectif") or {}).get("ecart_a_combler") or 0
+        gain_mds = gain / 1e9
+        quart = gain_mds / 4
+        couverture = (100 * gain_mds / obj_ecart) if obj_ecart else 0
         d.append({
             "titre": "Porter la part des commissions au niveau du mieux placé du marché",
+            "enjeu": _enjeu(valeur=f"commissions {_fr(str(eco['part_commissions_pnb']))} % du PNB",
+                            reference=(f"{_fr(f'{pts:.1f}')} points derrière "
+                                       f"{eco['meilleur_ratio_banque']} "
+                                       f"({_fr(str(eco['meilleur_ratio']))} %)")),
             "constat": (f"Les commissions pèsent {eco['part_commissions_pnb']} % du PNB de SGCI contre "
                         f"{eco['meilleur_ratio']} % chez {eco['meilleur_ratio_banque']}, le mieux placé "
-                        f"des {socle['n_banques']} banques suivies."),
+                        f"des {socle['n_banques']} banques suivies. À PNB inchangé, ces {pts} points "
+                        f"valent {_mds(gain)} par an — "
+                        + (f"soit {_fr(f'{couverture:.0f}')} % de l'objectif à trois ans à eux seuls. "
+                           f"Aucune autre directive du dossier n'approche cet ordre de grandeur."
+                           if couverture >= 100 else
+                           f"soit {_fr(f'{couverture:.0f}')} % de l'objectif à trois ans.")),
             "action": ("Combler l'écart par les revenus de service : monétique, opérations avec "
                        "l'étranger, engagements par signature."),
-            "cible": f"{pts} points d'écart, soit environ {_fmt(gain)} par an à PNB inchangé.",
+            "cible": (f"Reprendre le quart de l'écart en trois ans, soit {_fr(f'{pts / 4:.1f}')} points "
+                      f"de PNB — hypothèse volontairement prudente, l'écart total valant {_mds(gain)}."),
             "indicateur": "Part des commissions dans le PNB, par trimestre.",
             "effort": "Élevé", "horizon": "24 mois",
-            "contribution": _lien_objectif(socle, "la croissance des revenus de commissions"),
+            "contribution": _contribution(socle, mds=quart), "contribution_mds": quart,
         })
     else:
         d.append(_lacune("Mesurer la structure du PNB face au marché",
@@ -1054,14 +1276,22 @@ def _financiere(socle):
         pct = round(100 * (couvert / 1e9) / obj["ecart_a_combler"], 1)
         d.append({
             "titre": "Boucler le plan : dire d'où viendra la part non couverte",
+            "enjeu": _enjeu(valeur=f"{_fr(str(pct))} % de l'objectif couvert par des actions chiffrées",
+                            reference=f"{_fr(f'{100 - pct:.1f}')} % encore sans source identifiée",
+                            nature="alerte"),
             "constat": (f"Les secteurs suivis couvrent au mieux {_fmt(couvert)} de commissions par an, "
-                        f"soit {pct} % des {obj['ecart_a_combler']} {obj.get('unite','Mds')} FCFA à combler."),
+                        f"soit {pct} % des {obj['ecart_a_combler']} {obj.get('unite','Mds')} FCFA à combler. "
+                        f"Le reste du chemin repose aujourd'hui sur la structure du PNB — c'est la "
+                        f"directive sur les commissions qui le porte, pas la conquête sectorielle."),
             "action": ("Chiffrer explicitement le reste : tarification du portefeuille existant, "
                        "volumes, coût du risque."),
             "cible": "Un plan couvrant la totalité de l'écart, avec une source identifiée par tranche.",
             "indicateur": "Part de l'écart couverte par des actions chiffrées.",
             "effort": "Moyen", "horizon": "6 mois",
-            "contribution": "Directive de bouclage : elle vérifie que la somme des actions atteint la cible.",
+            "contribution": _contribution(
+                socle, nature="condition",
+                texte=("elle vérifie que la somme des dix-neuf autres directives atteint bien "
+                       "l'objectif, et interdit d'annoncer un plan dont le chemin n'est pas chiffré")),
         })
     else:
         d.append(_lacune("Établir la trajectoire à trois ans",
@@ -1080,8 +1310,17 @@ def _commerciale(socle):
     if secteurs:
         s = secteurs[0]
         bc = s.get("business_case") or {}
+        # On dit la vérité sur l'ordre de grandeur. Le dossier sectoriel le mieux noté vaut
+        # quelques dizaines de millions ; l'objectif est en milliards. Laisser croire que la
+        # conquête sectorielle porte le plan serait le rendre invérifiable — et le comité s'en
+        # apercevrait au premier arrêté. Ce que ce secteur apporte vraiment, c'est une méthode
+        # démontrée sur un marché documenté, réplicable aux six autres.
+        gain = (bc.get("commissions_max_fcfa") or 0) / 1e9
         d.append({
             "titre": f"Ouvrir la conquête sur le secteur le mieux noté : {s.get('nom','')}",
+            "enjeu": _enjeu(valeur=f"note d'opportunité {s.get('opportunite')}/100",
+                            reference=f"la plus élevée des {len(secteurs)} secteurs documentés",
+                            nature="opportunite"),
             "constat": (f"Ce secteur obtient la note d'opportunité la plus élevée ({s.get('opportunite')}/100) "
                         f"parmi les {len(secteurs)} suivis. Cible : {s.get('cibles','')}."),
             "action": (f"Constituer un portefeuille de prospects sur {s.get('segment','')} et pousser : "
@@ -1091,7 +1330,12 @@ def _commerciale(socle):
                       f"de commissions par an." if bc else "Cible à chiffrer une fois les volumes connus."),
             "indicateur": "Nombre de nouvelles entrées en relation sur le secteur.",
             "effort": "Moyen", "horizon": s.get("delai_libelle", "12 mois"),
-            "contribution": _lien_objectif(socle, "la conquête de nouveaux clients sur un marché documenté"),
+            "contribution_mds": gain or None,
+            "contribution": (_contribution(socle, mds=gain) +
+                             " Ordre de grandeur modeste, et c'est un fait à retenir : la conquête "
+                             "sectorielle prouve la méthode, elle ne porte pas le plan à elle seule."
+                             ) if gain else _contribution(
+                socle, texte="la conquête de nouveaux clients sur un marché documenté"),
         })
     else:
         d.append(_lacune("Documenter les secteurs de conquête",
@@ -1099,54 +1343,132 @@ def _commerciale(socle):
                          "Relancer la veille sectorielle pour alimenter les indicateurs.",
                          "Nombre de secteurs disposant d'au moins un fait daté."))
 
+    # Le rang de compétitivité prix est la mesure la plus directe du problème commercial de la
+    # SGCI : sur les services que le client peut comparer, combien de fois est-elle la moins
+    # chère ? C'est ce rang, et non le nombre de services, qui donne son enjeu à la carte.
+    comp = socle.get("competitivite") or {}
+    sg = comp.get("sgci") or {}
+    rang_prix, n_classees = comp.get("rang_sgci"), comp.get("n_classees")
+    winrate, wins, duels = sg.get("winrate"), sg.get("wins"), sg.get("n")
+    tete = (comp.get("classement") or [{}])[0]
+
     if competitifs:
-        liste = ", ".join(f"« {cite(x)} » ({x['ecart_pct']:.0f} %)" for x in competitifs)
+        liste = ", ".join(f"« {cite(x)} » à {_fmt(x['sgci'])} contre {_fmt(x['median'])} "
+                          f"de médiane ({x['ecart_pct']:.0f} %)" for x in competitifs)
+        perdus = (duels - wins) if (duels and wins is not None) else None
+        wr_tete = tete.get("winrate")
+        ref_tete = f"{_fr(f'{wr_tete:.1f}')} % pour {tete.get('banque')}" if wr_tete else ""
         d.append({
             "titre": "Armer le réseau des arguments prix déjà gagnants",
-            "constat": (f"{_pluriel(len(competitifs), 'service')} sont facturés sous la médiane du marché : {liste}. "
-                        f"L'avantage est acquis mais n'est pas nécessairement dit au client."),
+            "enjeu": _enjeu(rang=rang_prix, sur=n_classees,
+                            valeur=(f"{_fr(f'{winrate:.1f}')} % de duels prix gagnés"
+                                    if winrate is not None else ""),
+                            reference=ref_tete),
+            "constat": ((f"Sur {duels} services réellement comparés, SGCI est la moins chère "
+                         f"{wins} fois et se classe {rang_prix}ᵉ sur {n_classees}. "
+                         if duels and rang_prix else "")
+                        + f"Les écarts les plus favorables sont : {liste}. "
+                        + ("L'avantage est acquis et déjà financé, mais rien ne garantit qu'il "
+                           "soit dit au client.")),
             "action": "Fournir aux chargés de clientèle une fiche par service, avec le tarif SGCI et la médiane marché.",
             "cible": "Chaque chargé de clientèle dispose des trois arguments prix de son portefeuille.",
             "indicateur": "Taux d'équipement sur les services mis en avant.",
             "effort": "Faible", "horizon": "3 mois",
-            "contribution": _lien_objectif(socle, "l'exploitation commerciale d'un avantage déjà financé"),
+            "contribution": _contribution(
+                socle, nature="condition",
+                texte=(f"elle transforme un avantage déjà payé en argument de vente ; "
+                       f"sans elle, les {len(competitifs)} écarts favorables restent invisibles du client"
+                       + (f", alors que {perdus} des {duels} duels sont perdus par ailleurs"
+                          if perdus else ""))),
         })
     else:
         d.append(_lacune("Identifier les arguments prix",
-                         "un service sous la médiane du marché",
+                         "un service facturé sous la médiane du marché",
                          "Élargir le panier comparable.",
                          "Nombre de services sous la médiane."))
 
     if gratuits:
-        g = gratuits[0]
+        # LES TROIS SONT CITÉES, PAS SEULEMENT LA PLUS CHÈRE (2026-08-09). La carte ne retenait
+        # que le montant le plus élevé et bâtissait tout son argumentaire dessus. Comme le tri
+        # privilégiait le tarif, elle proposait au réseau de faire de la reproduction d'une clé
+        # de COFFRE l'argument d'ouverture de compte. Un argument commercial se juge à la
+        # fréquence d'usage, pas au prix affiché : on cite donc l'ensemble des gratuités que la
+        # moitié du marché facture, et on laisse le réseau retenir celles qui parlent à ses
+        # clients — c'est lui qui les connaît, pas la base de données.
+        # On ne cumule PAS les médianes. Additionner le prix d'une clé de coffre et celui de
+        # frais de dossier donnerait un « 72 000 FCFA cumulés » qui n'est le prix de rien : nul
+        # client ne paie les trois, et le total ne mesure ni une économie ni un manque à gagner.
+        # Ce qui compte est le nombre de concurrents qui facturent, déjà dans le libellé.
+        liste = ", ".join(f"« {g['libelle']} » ({_fmt(g['median'])} de médiane chez "
+                          f"{g['n_conc']} concurrents)" for g in gratuits)
         d.append({
-            "titre": "Faire de la gratuité un argument d'entrée en relation",
-            "constat": (f"« {g['libelle']} » est gratuit chez SGCI alors que la médiane du marché "
-                        f"s'établit à {_fmt(g['median'])} sur {g['n_conc']} concurrents."),
-            "action": "Intégrer ces gratuités au discours d'ouverture de compte et aux supports d'agence.",
+            "titre": "Faire des gratuités un argument d'entrée en relation",
+            "enjeu": _enjeu(valeur=f"{len(gratuits)} services gratuits chez SGCI",
+                            reference=f"chacun facturé par au moins {gratuits[-1]['n_conc']} "
+                                      f"concurrents sur {socle['n_banques'] - 1}",
+                            nature="avance"),
+            "constat": (f"{_pluriel(len(gratuits), 'service')} du panier "
+                        f"{'sont gratuits' if len(gratuits) > 1 else 'est gratuit'} chez SGCI alors "
+                        f"qu'au moins la moitié du marché les facture : {liste}."),
+            "action": ("Intégrer ces gratuités au discours d'ouverture de compte et aux supports "
+                       "d'agence, en commençant par celles que le réseau rencontre le plus souvent."),
             "cible": "Une mention systématique lors de l'entrée en relation.",
             "indicateur": "Nombre d'ouvertures de compte, et taux de citation en entretien.",
             "effort": "Faible", "horizon": "3 mois",
-            "contribution": _lien_objectif(socle, "l'augmentation du nombre de clients"),
+            "contribution": _contribution(
+                socle, nature="condition",
+                texte=("elle donne au réseau de quoi ouvrir une relation sans concession de prix ; "
+                       "le gain se lit en nombre de clients, pas en commissions immédiates")),
         })
     else:
         d.append(_lacune("Recenser les gratuités distinctives",
-                         "un service gratuit chez SGCI et payant chez les concurrents",
+                         "un service gratuit chez SGCI et facturé par la moitié du marché",
                          "Vérifier la complétude des grilles concurrentes chargées.",
                          "Nombre de gratuités distinctives."))
 
-    clipro = services_du_segment(p, "CLIPRO", 3)
+    # CONSTAT RECONSTRUIT (2026-08-09). L'ancienne version justifiait l'équipement des
+    # professionnels par « 2 services du panier relèvent du périmètre professionnel, dont
+    # "Frais de timbre pour versement d'espèces" à 100 FCFA ». Un timbre à cent francs
+    # n'établit rien sur l'équipement d'un client professionnel : le constat et l'action ne
+    # parlaient pas du même sujet, et une carte dont la prémisse ne soutient pas la conclusion
+    # est pire qu'une carte absente. On la fonde donc sur ce que les données disent vraiment —
+    # la commission moyenne par client, qui mesure exactement ce que l'équipement fait bouger.
+    eco = socle.get("eco") or {}
+    moy, clients = eco.get("commission_moyenne"), eco.get("clients")
+    pro = [s for s in p if (s.get("segment") or "").lower().startswith("entrep")]
+    if moy and clients:
+        # Trois services supplémentaires par client professionnel, sur 5 % de la base : une
+        # hypothèse basse, énoncée comme telle, plutôt qu'un chiffre décidé au doigt mouillé.
+        vise = int(clients * 0.05)
+        gain = vise * moy * 0.30 / 1e9
+        constat = (f"Chaque client rapporte en moyenne {_fmt(moy)} de commissions par an, sur "
+                   f"{_fr(f'{clients:,}'.replace(',', ' '))} clients. Le catalogue Entreprises "
+                   f"compte {len(pro)} services comparables au marché : la matière existe pour "
+                   f"élargir l'équipement, ce qui déplace directement cette moyenne.")
+        mds_clipro = gain
+        contribution = _contribution(socle, mds=gain) + (
+            f" Hypothèse : {_fr(f'{vise:,}'.replace(',', ' '))} clients professionnels — 5 % de la "
+            f"base — dont la commission moyenne progresse de 30 %.")
+    else:
+        constat = (f"Le catalogue Entreprises compte {len(pro)} services comparables au marché, "
+                   f"mais la commission moyenne par client n'est pas disponible : l'apport de "
+                   f"l'équipement ne peut pas encore être chiffré.")
+        contribution, mds_clipro = _contribution(
+            socle, texte="l'équipement des clients professionnels"), None
     d.append({
         "titre": "Équiper la clientèle professionnelle du socle de services de flux",
-        "constat": ((f"{_pluriel(len(clipro), 'service')} du panier relève{'nt' if len(clipro) > 1 else ''} du périmètre professionnel, dont "
-                     f"« {clipro[0]['libelle']} » à {_fmt(clipro[0]['sgci'])}.") if clipro else
-                    "Le catalogue professionnel est peu représenté dans le panier comparable."),
+        "enjeu": _enjeu(valeur=(f"commission moyenne {_fmt(moy)} par client" if moy else ""),
+                        reference=(f"sur {_fr(f'{clients:,}'.replace(',', ' '))} clients"
+                                   if clients else ""),
+                        nature="masse"),
+        "constat": constat,
         "action": ("Proposer systématiquement compte professionnel, encaissement et acceptation "
                    "monétique à toute entreprise dont le chiffre d'affaires est inférieur à 750 millions."),
         "cible": "Un socle de trois services par client professionnel entrant.",
-        "indicateur": "Nombre de services par client professionnel.",
+        "indicateur": "Nombre de services par client professionnel, et commission moyenne du segment.",
         "effort": "Moyen", "horizon": "12 mois",
-        "contribution": _lien_objectif(socle, "l'équipement du segment CLIPRO, le plus large en nombre"),
+        "contribution": contribution,
+        "contribution_mds": mds_clipro,
     })
     return d[:PAR_DIRECTION]
 
@@ -1188,19 +1510,40 @@ def _marketing(socle):
             constat = ("Aucun service du panier comparable ne se rattache à ce segment : la "
                        "communication ne peut pas encore s'appuyer sur un écart de prix mesuré.")
             action = "Élargir le panier comparable sur les services de ce segment avant de communiquer."
+        # Le sens de l'écart décide du levier, et donc de ce que la carte apporte : au-dessus de
+        # la médiane, le segment est exposé et la directive DÉFEND des volumes ; en dessous, la
+        # banque a un avantage financé qu'elle n'exploite pas encore.
+        au_dessus = bool(svc) and (svc[0]["ecart_pct"] or 0) > 0
         d.append({
             "titre": f"Adresser le segment {seg['nom']} par les conditions de banque",
+            "enjeu": _enjeu(
+                valeur=(f"{_pluriel(len(svc), 'service')} tarifés sur le segment {seg['cle']}" if svc else
+                        f"aucun tarif comparable sur le segment {seg['cle']}"),
+                reference=(f"écart de {abs(svc[0]['ecart_pct']):.0f} % "
+                           f"{'au-dessus' if au_dessus else 'en dessous'} du marché" if svc else ""),
+                nature="retard" if au_dessus else "avance"),
             "constat": f"Segment défini par un {seg['critere']}. " + constat,
             "action": action,
             "cible": f"Un message par segment, adossé à un tarif publié — enjeu : {seg['enjeu']}.",
             "indicateur": f"Taux d'équipement et nombre d'entrées en relation sur le segment {seg['cle']}.",
             "effort": "Faible" if svc else "Moyen", "horizon": "6 mois",
-            "contribution": _lien_objectif(socle, f"la mobilisation du segment {seg['cle']}"),
+            "contribution": _contribution(
+                socle,
+                nature="defense" if au_dessus else "condition",
+                texte=(f"les volumes du segment {seg['cle']}, exposé sur un tarif supérieur au marché"
+                       if au_dessus else
+                       f"elle donne au segment {seg['cle']} un message adossé à un prix publié, "
+                       f"seule façon de transformer un avantage tarifaire en entrées en relation")),
         })
 
     pro = services_du_segment(p, "CLIPRO", 2) + services_du_segment(p, "CLICOM", 2)
     d.append({
         "titre": "Adresser les deux segments professionnels par les services de flux",
+        "enjeu": _enjeu(valeur=f"{_pluriel(len(pro), 'service')} de flux comparables sur les segments "
+                               f"professionnels",
+                        reference="encaissement et monétique pour CLIPRO, étranger et change "
+                                  "pour CLICOM",
+                        nature="opportunite"),
         "constat": ((f"CLIPRO (chiffre d'affaires jusqu'à 750 millions) et CLICOM (au-delà) sont "
                      f"couverts par {_pluriel(len(pro), 'service')} du panier, dont « {pro[0]['libelle']} » "
                      f"à {_fmt(pro[0]['sgci'])}.") if pro else
@@ -1210,7 +1553,10 @@ def _marketing(socle):
         "cible": "Deux campagnes distinctes, chacune adossée à des tarifs publiés.",
         "indicateur": "Nombre de clients professionnels équipés, par segment.",
         "effort": "Moyen", "horizon": "12 mois",
-        "contribution": _lien_objectif(socle, "les revenus de commissions des segments professionnels"),
+        "contribution": _contribution(
+            socle, nature="condition",
+            texte=("elle porte au marché les deux relais de la directive sur les commissions — "
+                   "monétique et opérations avec l'étranger — qui sans campagne restent au catalogue")),
     })
     return d[:PAR_DIRECTION]
 
@@ -1235,30 +1581,53 @@ def _innovation(socle):
         "action": ("Déployer terminal de paiement, acceptation en ligne et rapprochement "
                    "automatique des encaissements, avec un raccordement au compte professionnel "
                    "sans ressaisie."),
+        "enjeu": _enjeu(valeur=(f"paiement mobile {mob['valeur']}" if mob else ""),
+                        reference=(f"bancarisation {banc['valeur']} : "
+                                   f"les flux sont hors du bilan bancaire" if banc else ""),
+                        nature="opportunite"),
         "cible": "Une solution d'acceptation en production, raccordée au compte professionnel.",
         "indicateur": "Nombre de commerçants équipés en acceptation.",
         "effort": "Moyen", "horizon": "12 mois",
-        "contribution": _lien_objectif(socle, "la captation de flux aujourd'hui hors du système bancaire"),
+        "contribution": _contribution(
+            socle, nature="condition",
+            texte=("elle fournit l'outil que la Direction Commerciale vendra aux commerçants ; "
+                   "sans solution d'acceptation, la conquête des professionnels n'a rien à "
+                   "raccorder au compte")),
     })
 
     if distance:
         t = distance[0]
+        # « La couverture reste étroite » était une appréciation, pas une mesure : la carte
+        # affirmait une insuffisance sans jamais la chiffrer (2026-08-09). On la remplace par ce
+        # que les données établissent — la part du catalogue comparable accessible à distance —
+        # en disant honnêtement ce que cette part mesure et ce qu'elle ne mesure pas : elle
+        # compte des lignes de grille tarifaire, pas des opérations réelles.
+        tous = len(p) or 1
+        a_dist = len([s for s in p if "distance" in (s.get("section") or "").lower()])
+        part = 100 * a_dist / tous
         d.append({
             # Reformulé le 2026-08-07 : la version précédente demandait d'ALIGNER LA
             # TARIFICATION du canal numérique — une décision de Marketing, pas d'Innovation.
             # Ce qui relève d'ici, c'est la couverture fonctionnelle : quelles opérations un
             # client peut-il réellement faire sans venir en agence.
             "titre": "Porter à distance toutes les opérations qui n'exigent pas le guichet",
-            "constat": (f"{_pluriel(len(distance), 'service')} de banque à distance figure"
-                        f"{'nt' if len(distance) > 1 else ''} au catalogue comparable, dont "
-                        f"« {cite(t)} » — la couverture reste étroite au regard de ce qui "
-                        f"se traite encore en agence."),
+            "enjeu": _enjeu(valeur=f"{_fr(f'{part:.0f}')} % du catalogue comparable accessible "
+                                   f"à distance",
+                            reference=f"{a_dist} services sur {tous}",
+                            nature="retard"),
+            "constat": (f"{a_dist} des {tous} services comparables relèvent de la banque à distance, "
+                        f"soit {_fr(f'{part:.0f}')} % du catalogue — dont « {cite(t)} ». La mesure "
+                        f"porte sur les lignes de la grille tarifaire, non sur les volumes traités : "
+                        f"elle dit ce que le client PEUT faire à distance, pas ce qu'il fait."),
             "action": ("Recenser les opérations réalisables à distance, combler les manques par "
                        "ordre de fréquence, et rendre le parcours numérique complet de bout en bout."),
             "cible": "Toute opération sans obligation de présence disponible sur le canal numérique.",
             "indicateur": "Part des opérations réalisées hors agence.",
             "effort": "Moyen", "horizon": "12 mois",
-            "contribution": _lien_objectif(socle, "la baisse du coût de traitement par opération"),
+            "contribution": _contribution(
+                socle, nature="condition",
+                texte=("elle allège le coût de traitement par opération, seul levier qui protège "
+                       "le coefficient d'exploitation pendant que les volumes augmentent")),
         })
     else:
         d.append(_lacune("Cartographier l'offre de banque à distance",
@@ -1272,8 +1641,26 @@ def _innovation(socle):
     # occupent le guichet.
     d.append(_bloc_automatisation(socle))
 
+    # Ce que vaut un client, la banque le sait : la commission moyenne est au dossier. On peut
+    # donc chiffrer l'apport d'un élargissement de la base plutôt que d'invoquer « la conquête ».
+    eco = socle.get("eco") or {}
+    moy, clients = eco.get("commission_moyenne"), eco.get("clients")
+    if moy and clients:
+        vise = int(clients * 0.05)
+        gain_ouv = vise * moy / 1e9
+        mds_ouverture = gain_ouv
+        contribution = _contribution(socle, mds=gain_ouv) + (
+            f" Hypothèse : {_fr(f'{vise:,}'.replace(',', ' '))} clients de plus — 5 % de la base "
+            f"actuelle — à {_fmt(moy)} de commissions par an chacun.")
+    else:
+        contribution, mds_ouverture = _contribution(
+            socle, texte="l'élargissement de la base de clients"), None
     d.append({
         "titre": "Réduire le délai et le coût d'entrée en relation",
+        "enjeu": _enjeu(valeur=(f"bancarisation {banc['valeur']}" if banc else ""),
+                        reference=(f"base actuelle {_fr(f'{clients:,}'.replace(',', ' '))} clients"
+                                   if clients else ""),
+                        nature="opportunite"),
         "constat": ((f"La bancarisation plafonne à {banc['valeur']} ({banc['source']}) : le frein n'est "
                      f"pas la demande mais le parcours d'ouverture.") if banc else
                     "Le taux de bancarisation n'est pas disponible dans les données chargées."),
@@ -1281,7 +1668,8 @@ def _innovation(socle):
         "cible": "Une ouverture de compte aboutie sans second passage en agence.",
         "indicateur": "Délai moyen d'entrée en relation, et taux d'abandon.",
         "effort": "Élevé", "horizon": "18 mois",
-        "contribution": _lien_objectif(socle, "l'élargissement de la base de clients"),
+        "contribution": contribution,
+        "contribution_mds": mds_ouverture,
     })
     return d[:PAR_DIRECTION]
 
@@ -1295,16 +1683,33 @@ def _risques(socle):
     # Une seule ligne fausse suffit à faire douter de toute la note : on exige donc que le
     # LIBELLÉ porte le vocabulaire de l'engagement, et on ne se rabat pas sur autre chose.
     _MOTS_ENGAGEMENT = ("caution", "garantie", "aval", "engagement", "signature")
+    # ET ON EXCLUT LES ATTESTATIONS (2026-08-09). Le filtre par vocabulaire laissait passer
+    # « Attestation de NON engagement » — un document qui certifie précisément que le client
+    # n'a AUCUN engagement. La carte fondait donc l'encadrement des engagements par signature
+    # sur la preuve de leur absence. C'est le même piège que « Frais d'envoi DHL » qu'on avait
+    # écarté : un mot juste dans une phrase qui dit le contraire.
+    _CONTRE = ("non engagement", "non-engagement", "sans engagement", "attestation")
     cautions = [s for s in services_de_section(p, "crédit", 20) + p
-                if any(m in s["libelle"].lower() for m in _MOTS_ENGAGEMENT)]
+                if any(m in s["libelle"].lower() for m in _MOTS_ENGAGEMENT)
+                and not any(c in s["libelle"].lower() for c in _CONTRE)]
     cautions = sorted({s["libelle"]: s for s in cautions}.values(),
                       key=lambda s: -abs(s["ecart_pct"] or 0))[:3]
     impayes = [s for s in p if any(m in s["libelle"].lower()
                                    for m in ("impay", "incident", "rejet", "opposition"))]
     d = []
 
+    # Ce que la sinistralité du marché coûterait sur le PNB visé : c'est la seule façon de
+    # rendre cette carte comparable aux dix-neuf autres, toutes exprimées en milliards.
+    obj = socle.get("objectif") or {}
+    cible_pnb = obj.get("cible_centrale")
     d.append({
         "titre": "Tenir le coût du risque sous la moyenne du secteur",
+        # La valeur de veille porte déjà son propre libellé (« 7,7 % de créances dégradées ») :
+        # la préfixer donnait « créances dégradées du secteur 7,7 % de créances dégradées ».
+        # C'est le même piège qu'au constat, où il avait été traité — pas ici.
+        "enjeu": _enjeu(valeur=(f"marché : {npl['valeur']}" if npl else ""),
+                        reference="repère auquel se juge toute conquête nouvelle",
+                        nature="alerte"),
         # La valeur de veille porte déjà son libellé (« 7,7 % de créances dégradées ») : la
         # réintroduire dans une phrase qui le répète donnait « les créances dégradées
         # s'établissent à 7,7 % de créances dégradées ». On l'annonce donc comme un repère.
@@ -1315,11 +1720,18 @@ def _risques(socle):
         "cible": "Un taux de créances en souffrance inférieur à la moyenne du secteur.",
         "indicateur": "Taux de créances en souffrance, par segment et par secteur.",
         "effort": "Moyen", "horizon": "12 mois",
-        "contribution": "Condition de la croissance : un PNB gagné puis provisionné n'est pas gagné.",
+        "contribution": _contribution(
+            socle, nature="condition",
+            texte=("un PNB gagné puis provisionné n'est pas gagné ; elle conditionne la totalité "
+                   + (f"des {_fr(str(cible_pnb))} Mds visés à trois ans" if cible_pnb
+                      else "de la trajectoire à trois ans"))),
     })
 
     d.append({
         "titre": "Sécuriser le dispositif de déclaration des opérations en espèces",
+        "enjeu": _enjeu(valeur=(f"seuil de déclaration {_fmt(seuil['valeur'])}" if seuil else ""),
+                        reference="obligation opposable, indépendante du volume conquis",
+                        nature="alerte"),
         "constat": ((f"Le seuil de déclaration s'établit à {_fmt(seuil['valeur'])} ({seuil['source']}). "
                      f"La conquête des professionnels augmente mécaniquement les flux d'espèces.") if seuil else
                     "Le seuil de déclaration des opérations en espèces n'est pas disponible."),
@@ -1327,20 +1739,32 @@ def _risques(socle):
         "cible": "Aucune opération au-dessus du seuil sans déclaration tracée.",
         "indicateur": "Nombre de déclarations transmises, et délai de transmission.",
         "effort": "Moyen", "horizon": "6 mois",
-        "contribution": "Protège la conquête professionnelle d'un risque de sanction.",
+        "contribution": _contribution(
+            socle, nature="condition",
+            texte=("elle protège d'une sanction la conquête des professionnels, sur laquelle "
+                   "reposent les relais monétique et encaissement")),
     })
 
     if cautions:
         t = cautions[0]
         d.append({
             "titre": "Encadrer les engagements par signature avant d'en faire un levier",
+            "enjeu": _enjeu(valeur=f"{_pluriel(len(cautions), 'service')} d'engagement comparables",
+                            reference=("troisième relais désigné pour combler l'écart de "
+                                       "commissions"),
+                            nature="opportunite"),
             "constat": (f"{_pluriel(len(cautions), 'service')} d'engagement figure{'nt' if len(cautions) > 1 else ''} au panier, dont « {cite(t)} » "
-                        f"à {_fmt(t['sgci'])} contre {_fmt(t['median'])} de médiane."),
+                        f"à {_fmt(t['sgci'])} contre {_fmt(t['median'])} de médiane. Les engagements "
+                        f"par signature sont l'un des trois relais retenus pour les commissions : "
+                        f"ils ne peuvent être poussés qu'une fois leurs limites écrites."),
             "action": "Fixer les limites par contrepartie et par secteur avant toute campagne sur les cautions.",
             "cible": "Un cadre d'engagement écrit, opposable au réseau.",
             "indicateur": "Encours d'engagements par signature, et concentration par contrepartie.",
             "effort": "Moyen", "horizon": "6 mois",
-            "contribution": _lien_objectif(socle, "des commissions d'engagement prises sous contrôle"),
+            "contribution": _contribution(
+                socle, nature="condition",
+                texte=("elle autorise le troisième relais de la directive sur les commissions ; "
+                       "sans cadre écrit, la campagne cautions est un risque, pas un revenu")),
         })
     else:
         # PAS DE REPLI « DONNÉE MANQUANTE » ICI (2026-08-07, consigne du directeur : « si on
@@ -1357,26 +1781,47 @@ def _risques(socle):
 
     if impayes:
         t = impayes[0]
+        eco = socle.get("eco") or {}
+        clients, moy = eco.get("clients"), eco.get("commission_moyenne")
+        # Ce que coûte l'attrition : un point de clients perdus, valorisé à la commission
+        # moyenne. La carte cesse d'être un principe de prudence et devient un arbitrage chiffré.
+        cout = (clients * 0.01 * moy / 1e9) if (clients and moy) else None
         d.append({
             "titre": "Vérifier que la tarification des incidents reste dissuasive sans être punitive",
+            "enjeu": _enjeu(valeur=f"tarif d'incident {t['ecart_pct']:+.0f} % face au marché",
+                            reference=(f"1 % de la base perdue vaut {_fr(f'{cout:.1f}')} Mds FCFA "
+                                       f"de commissions" if cout else
+                                       "arbitrage entre dissuasion et attrition"),
+                            nature="alerte"),
             "constat": (f"« {cite(t)} » est facturé {_fmt(t['sgci'])} contre {_fmt(t['median'])} de "
-                        f"médiane sur {t['n_conc']} concurrents ({t['ecart_pct']:+.0f} %)."),
+                        f"médiane sur {t['n_conc']} concurrents ({t['ecart_pct']:+.0f} %)."
+                        + (f" À {_fmt(moy)} de commissions par client et par an, perdre 1 % de la "
+                           f"base coûte {_fr(f'{cout:.1f}')} Mds — davantage que ce que ce tarif "
+                           f"peut rapporter." if cout else "")),
             "action": "Arbitrer entre effet dissuasif et risque d'attrition sur la clientèle fragile.",
             "cible": "Un tarif d'incident justifié par le coût réel de traitement.",
             "indicateur": "Nombre d'incidents, et taux de clôture après incident.",
             "effort": "Faible", "horizon": "6 mois",
-            "contribution": "Protège la base de clients, sur laquelle repose tout le reste du plan.",
+            "contribution": _contribution(
+                socle, nature="defense",
+                texte=("la base de clients, dont dépend chaque franc de commission du plan"
+                       + (f" ; 1 % de cette base vaut {_fr(f'{cout:.1f}')} Mds par an" if cout else ""))),
         })
     else:
         d.append({
             "titre": "Maintenir le ratio de solvabilité au-dessus de l'exigence",
+            "enjeu": _enjeu(valeur=(f"solvabilité du secteur {solva['valeur']}" if solva else ""),
+                            reference="plafond de fait à toute montée en volume",
+                            nature="alerte"),
             "constat": ((f"La solvabilité du secteur s'établit à {solva['valeur']} ({solva['source']})."
                          ) if solva else "Le ratio de solvabilité du secteur n'est pas disponible."),
             "action": "Vérifier la compatibilité du plan de conquête avec les fonds propres disponibles.",
             "cible": "Un ratio maintenu au-dessus de l'exigence réglementaire sur tout l'horizon.",
             "indicateur": "Ratio de solvabilité, par trimestre.",
             "effort": "Moyen", "horizon": "12 mois",
-            "contribution": "Condition de faisabilité du plan à trois ans.",
+            "contribution": _contribution(
+                socle, nature="condition",
+                texte="sans fonds propres disponibles, la trajectoire à trois ans est inatteignable"),
         })
     return d[:PAR_DIRECTION]
 
@@ -1480,12 +1925,30 @@ def directives(annee=None, semestre=None, segment="Particuliers"):
         if not x.get("premier_pas"):
             x["premier_pas"] = _premier_pas_depuis(x)
 
+    # ── BILAN : LES VINGT DIRECTIVES ATTEIGNENT-ELLES L'OBJECTIF ? ───────────────────
+    # Ajouté le 2026-08-09. Une note qui recommande vingt actions sans jamais les additionner
+    # laisse au lecteur le soin de vérifier qu'elle tient debout — et personne ne le fait. On
+    # somme donc les seules cartes qui annoncent un montant, et on affiche le reste À DÉCOUVERT.
+    # Si le compte n'y est pas, la page le dit d'elle-même : c'est la fonction de la directive
+    # de bouclage de la Direction Financière, et elle serait vaine si le total restait caché.
     obj = socle.get("objectif") or {}
+    ecart = obj.get("ecart_a_combler")
+    chiffrees = [x for x in out if x.get("contribution_mds")]
+    somme = sum(x["contribution_mds"] for x in chiffrees)
+    bilan = {
+        "n_chiffrees": len(chiffrees),
+        "n_total": len(out),
+        "somme_mds": round(somme, 2),
+        "ecart_mds": ecart,
+        "couverture_pct": round(100 * somme / ecart, 1) if ecart else None,
+        "reste_mds": round(ecart - somme, 2) if ecart else None,
+    }
     return {
         "directives": out,
         "directions": DIRECTIONS,
         "par_direction": PAR_DIRECTION,
         "objectif_global": obj,
+        "bilan": bilan,
         "segmentation": [{k: v for k, v in s.items() if k != "mots"} for s in SEGMENTS],
         "perimetre": {
             "periode_reference": f"{annee} {semestre}",

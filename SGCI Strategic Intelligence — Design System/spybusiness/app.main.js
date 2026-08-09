@@ -7993,6 +7993,35 @@ function setSoDir(d){ _SO_DIR = d; _soRender(); }
    un directeur vient chercher ce qui le concerne, pas un inventaire. */
 // `sect` est un helper LOCAL à _soRender ; il est passé en paramètre plutôt que dupliqué,
 // pour que les trois sections de la page gardent exactement la même présentation.
+/* ── L'ÉCART MESURÉ, EN TÊTE DE CARTE ────────────────────────────────────────────────
+   Ajouté le 2026-08-09. Reproche du directeur : « les recommandations sont ambiguës, je ne
+   vois en rien le lien avec la stratégie et les problèmes de la SGCI ». Les cartes ouvraient
+   sur un constat descriptif — « 3 services sont facturés sous la médiane » — qui décrit sans
+   situer : le lecteur voyait une observation, jamais un problème, et n'avait donc aucune
+   raison d'agir. La première ligne porte désormais le RANG de la banque et son écart à celui
+   qui fait mieux.
+
+   Cinq natures, cinq couleurs, parce qu'un retard et une avance ne se lisent pas de la même
+   façon et qu'un aplat unique les aurait confondus. « avance » est volontairement présent :
+   sur le coefficient d'exploitation, la SGCI est PREMIÈRE, et présenter cela comme un retard
+   serait faux. */
+const _SO_ENJEU = {
+  retard:      {c:"#B45309", f:"Écart au marché"},
+  alerte:      {c:"#B91C1C", f:"Risque mesuré"},
+  avance:      {c:"#15803D", f:"Avantage mesuré"},
+  opportunite: {c:"#1565C0", f:"Gisement mesuré"},
+  masse:       {c:"#4338CA", f:"Masse en jeu"}
+};
+function _soEnjeu(e){
+  if(!e || !e.texte) return "";
+  const s = _SO_ENJEU[e.nature] || _SO_ENJEU.retard;
+  return `<div style="display:flex;align-items:baseline;gap:8px;margin:0 0 7px;padding:7px 11px;
+    background:${s.c}14;border-left:3px solid ${s.c};border-radius:0 6px 6px 0">
+    <span style="font:800 9.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;
+      color:${s.c};white-space:nowrap">${s.f}</span>
+    <span style="font:700 12px/1.5 var(--sans);color:var(--ink)">${_soEsc(e.texte)}</span></div>`;
+}
+
 function _soDirectives(d, sect, dossiersHtml){
   const D = (d.directives && d.directives.directives) || [];
   if(!D.length) return "";
@@ -8029,6 +8058,7 @@ function _soDirectives(d, sect, dossiersHtml){
         <span style="font:700 9.5px var(--sans);color:${_SO_EFFCOL[x.effort]||'#64748B'};background:${(_SO_EFFCOL[x.effort]||'#64748B')}1a;
           border-radius:5px;padding:2px 7px;white-space:nowrap">${_soEsc(x.effort)} · ${_soEsc(x.horizon)}</span>
       </div>
+      ${_soEnjeu(x.enjeu)}
       <div style="font:500 12.5px/1.65 var(--sans);color:var(--ink);background:var(--bg-raise);border-radius:7px;padding:10px 12px">
         ${_soEsc(x.constat)}</div>
       ${_soSignal(x.signal)}
@@ -8039,10 +8069,37 @@ function _soDirectives(d, sect, dossiersHtml){
         <span style="color:var(--accent-2);font-weight:800">▸ Sous 30 jours</span> ${_soEsc(x.premier_pas)}</div>`:""}
       ${ligne("Cible", x.cible)}
       ${ligne("Indicateur de suivi", x.indicateur)}
-      <div style="margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font:500 11.5px/1.55 var(--sans);color:var(--faint)">
-        ${_soEsc(x.contribution)}</div>
+      <div style="margin-top:9px;padding-top:8px;border-top:1px solid var(--line)">
+        <div style="font:700 9.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:2px">Apport à l'objectif</div>
+        <div style="font:600 12px/1.6 var(--sans);color:var(--ink)">${_soEsc(x.contribution)}</div></div>
       ${_soChatBtn(x)}
     </div>`).join("");
+
+  /* LE PLAN S'ADDITIONNE-T-IL ? Une note qui recommande vingt actions sans jamais les
+     totaliser laisse au lecteur le soin de vérifier qu'elle tient — et personne ne le fait.
+     On affiche donc la somme des directives chiffrées face à l'objectif, et le reste À
+     DÉCOUVERT. Le chiffre n'est pas flatteur, et c'est précisément l'information utile :
+     il justifie la directive de bouclage de la Direction Financière. */
+  const b = d.directives.bilan || {};
+  const bilan = (b.ecart_mds && b.n_chiffrees) ? (()=>{
+    const couv = Math.max(0, Math.min(100, b.couverture_pct||0));
+    const col = couv >= 90 ? "#15803D" : (couv >= 50 ? "#B45309" : "#B91C1C");
+    const fr = v => String(v).replace(".", ",");
+    return `<div class="tile c12 tpad" style="padding:13px 16px;margin-bottom:11px;border-left:3px solid ${col}">
+      <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:5px">
+        <span style="font:800 10px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:${col}">Bouclage du plan</span>
+        <span style="font:800 15px var(--display);color:var(--ink)">${fr(b.somme_mds)} Mds FCFA
+          <span style="font-weight:600;color:var(--muted)">sur ${fr(b.ecart_mds)} Mds à combler</span></span>
+        <span style="font:800 13px var(--mono);color:${col}">${fr(couv.toFixed(1))} %</span>
+      </div>
+      <div style="height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-bottom:6px">
+        <div style="height:100%;width:${couv}%;background:${col}"></div></div>
+      <div style="font:500 11.5px/1.6 var(--sans);color:var(--muted)">
+        ${b.n_chiffrees} des ${b.n_total} directives portent un apport chiffré ; les autres sont des
+        conditions ou des défenses d'acquis, qui ne s'additionnent pas.
+        <b style="color:var(--ink)">${fr(b.reste_mds)} Mds restent sans source identifiée</b> —
+        c'est l'objet de la directive de bouclage de la Direction Financière.</div></div>`;
+  })() : "";
 
   const per = (d.directives.perimetre)||{};
   const pied = `<div class="tile c12 tpad" style="padding:11px 15px">
@@ -8065,7 +8122,7 @@ function _soDirectives(d, sect, dossiersHtml){
   // à faire lui-même le lien entre la décision et ce qui la justifie.
   return sect("①","Ce que chaque direction doit faire",
     "<b>Quatre directives par direction.</b> Chacune part d'un fait mesuré, dit sur quel terrain elle s'exerce et ce qu'il peut rapporter, puis quoi faire, sur quelle cible, et ce qui sera suivi.",
-    `<div style="margin-bottom:11px">${onglets}</div><div class="bento">${cartes}</div>${pied}`);
+    `<div style="margin-bottom:11px">${onglets}</div>${bilan}<div class="bento">${cartes}</div>${pied}`);
 }
 
 function _soRender(){
@@ -8261,13 +8318,14 @@ function _soRender(){
   const bandeau = og ? `<div class="tile c12 tpad" style="border-left:4px solid var(--accent-2);margin-bottom:4px">
       <div style="font:700 10.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--accent-2);margin-bottom:5px">Objectif de la stratégie globale</div>
       <div style="font:500 13.5px/1.65 var(--sans);color:var(--ink)">
-        Porter le PNB à <b>${og.cible_centrale} ${og.unite} FCFA</b> en ${og.horizon_ans} ans (scénario central),
-        contre <b>${og.trajectoire_naturelle} ${og.unite}</b> en trajectoire naturelle —
-        soit <b style="color:var(--accent-2)">${og.ecart_a_combler} ${og.unite} FCFA à aller chercher</b>.</div>
+        Porter le PNB à <b>${String(og.cible_centrale).replace(".",",")} ${og.unite} FCFA</b> en ${og.horizon_ans} ans (scénario central),
+        contre <b>${String(og.trajectoire_naturelle).replace(".",",")} ${og.unite}</b> en trajectoire naturelle —
+        soit <b style="color:var(--accent-2)">${String(og.ecart_a_combler).replace(".",",")} ${og.unite} FCFA à aller chercher</b>.</div>
       ${og.couverture_pct!=null?`<div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--line);font:500 12.5px/1.6 var(--sans);color:var(--muted)">
-        Les décisions ci-dessous en couvrent <b style="color:var(--ink)">${og.couvert_par_secteurs_mds} ${og.unite}</b>,
-        soit <b style="color:${og.couverture_pct<10?'#E53935':'#12895C'}">${og.couverture_pct} %</b> de l'écart.
-        Le reste doit venir du portefeuille existant — tarification, volumes, coût du risque — et non de la conquête sectorielle.</div>`:""}
+        La <b>conquête sectorielle</b> seule en couvre <b style="color:var(--ink)">${String(og.couvert_par_secteurs_mds).replace(".",",")} ${og.unite}</b>,
+        soit <b style="color:${og.couverture_pct<10?'#E53935':'#12895C'}">${String(og.couverture_pct).replace(".",",")} %</b> de l'écart.
+        Le reste vient du portefeuille existant — structure du PNB, tarification, volumes, coût du risque — et se lit
+        dans le bouclage du plan ci-dessous.</div>`:""}
     </div>` : "";
 
   // ORDRE DE LECTURE (2026-08-07) : l'objectif global, puis CE QUE CHAQUE DIRECTION DOIT
