@@ -42,3 +42,5 @@ scratch_*.json
 desktop.ini
 .DS_Store
 Thumbs.db
+cible.tmp
+essai_url.tmp
