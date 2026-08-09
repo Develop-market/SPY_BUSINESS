@@ -175,14 +175,14 @@ def creer_structure(src, dst):
 
 
 # ── DONNÉES ──────────────────────────────────────────────────────────────────────────
-def copier(src, dst, table, sans_vecteurs, depuis):
+def copier(src, dst, table, sans_vecteurs, depuis, cible=None):
     cols = colonnes(src, table, sans_vecteurs)
     liste = ", ".join(cols)
     total = compter(src, table) or 0
     deja = compter(dst, table) or 0
     if deja >= total:
         print(f"  {table:16} déjà complète ({deja}/{total})")
-        return deja
+        return deja, dst
 
     # Reprise : on saute ce qui est passé. L'ordre par clé primaire rend la reprise fiable —
     # sans ORDER BY, deux exécutions ne voient pas forcément les lignes dans le même ordre et
@@ -195,31 +195,66 @@ def copier(src, dst, table, sans_vecteurs, depuis):
     with src.cursor(name=f"lecture_{table}") as cs:
         cs.itersize = LOT
         cs.execute(f"SELECT {liste} FROM {table} ORDER BY {tri} OFFSET {depart}")
+        # Lots plus petits pour les tables porteuses de vecteurs : 768 nombres par ligne, le
+        # pooler de l'hébergeur refuse les envois trop volumineux.
+        pas = 100 if ("embedding" in cols and not sans_vecteurs) else LOT
         lot = []
         for ligne in cs:
             lot.append(ligne)
-            if len(lot) >= LOT:
-                ecrites += _ecrire(dst, table, cols, lot)
+            if len(lot) >= pas:
+                n, dst = _ecrire(dst, table, cols, lot, cible)
+                ecrites += n
                 lot = []
                 fait = ecrites - depart
                 reste = (total - ecrites)
                 vitesse = fait / max(time.time() - t0, 0.1)
                 print(f"    {ecrites}/{total}  ({vitesse:.0f} lignes/s, "
-                      f"~{reste / max(vitesse, 0.1):.0f}s restantes)", end="\r")
+                      f"~{reste / max(vitesse, 0.1):.0f}s restantes)   ", end="\r")
         if lot:
-            ecrites += _ecrire(dst, table, cols, lot)
+            n, dst = _ecrire(dst, table, cols, lot, cible)
+            ecrites += n
     print(f"    {ecrites}/{total} — terminé{' ' * 30}")
-    return ecrites
+    return ecrites, dst
 
 
-def _ecrire(dst, table, cols, lot):
+def _ecrire(dst, table, cols, lot, cible=None):
+    """Écrit un lot, en se reconnectant si l'hébergeur a coupé la ligne.
+
+    Supabase passe par un « pooler » qui ferme une connexion restée trop longtemps occupée ou
+    ayant reçu une requête trop volumineuse — et une ligne de cb_tarifs porte un vecteur de 768
+    nombres, ce qui pèse. Sans reprise, la migration s'arrêtait net au premier incident, après
+    plusieurs minutes de transfert, et il fallait tout recommencer. On rouvre donc la connexion
+    et on réessaie le même lot, en le coupant en deux à chaque échec : si 500 lignes passent
+    mal, 250 passeront peut-être, et 125 sûrement.
+    """
     liste = ", ".join(cols)
-    with dst.cursor() as c:
-        psycopg2.extras.execute_values(
-            c, f"INSERT INTO {table} ({liste}) VALUES %s ON CONFLICT DO NOTHING", lot,
-            page_size=LOT)
-    dst.commit()
-    return len(lot)
+
+    def pousser(connexion, morceau):
+        with connexion.cursor() as c:
+            psycopg2.extras.execute_values(
+                c, f"INSERT INTO {table} ({liste}) VALUES %s ON CONFLICT DO NOTHING",
+                morceau, page_size=len(morceau))
+        connexion.commit()
+
+    taille = len(lot)
+    for essai in range(5):
+        try:
+            for i in range(0, len(lot), taille):
+                pousser(dst, lot[i:i + taille])
+            return len(lot), dst
+        except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+            if cible is None:
+                raise
+            print(f"\n    ligne coupée ({str(e).strip()[:60]}) — reconnexion, "
+                  f"lots de {max(taille // 2, 25)}")
+            time.sleep(3)
+            try:
+                dst.close()
+            except Exception:
+                pass
+            dst = psycopg2.connect(**params(cible))
+            taille = max(taille // 2, 25)
+    raise RuntimeError(f"échec répété sur {table} après reconnexions")
 
 
 def verifier(src, dst):
@@ -305,7 +340,7 @@ def main():
         print("\nCopie des données"
               + (" (sans les vecteurs)" if a.sans_vecteurs else "") + " :")
         for t in ([a.table] if a.table else TABLES):
-            copier(src, dst, t, a.sans_vecteurs, a.depuis)
+            _, dst = copier(src, dst, t, a.sans_vecteurs, a.depuis, a.cible)
         print()
         verifier(src, dst)
     finally:

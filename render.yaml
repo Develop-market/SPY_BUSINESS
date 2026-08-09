@@ -22,14 +22,26 @@ services:
     plan: free                    # 512 Mo de mémoire, 0,1 CPU
     region: frankfurt             # le plus proche d'Abidjan parmi les régions offertes
     branch: main
-    buildCommand: pip install --no-cache-dir -r "SGCI Strategic Intelligence — Design System/spybusiness/requirements-deploy.txt"
+    # Passer le chemin de l'inventaire directement à pip ne marche PAS : il contient des
+    # espaces, et pip le coupe au premier (essayé, il cherchait un fichier nommé « SGCI »).
+    # build.py le résout en Python. Voir son en-tête.
+    buildCommand: python build.py
+    # DÉMARRAGE PAR wsgi:app, DEPUIS LA RACINE — pas par un `cd` vers le dossier de
+    # l'application. Ce dossier s'appelle « SGCI Strategic Intelligence — Design System » :
+    # des espaces et un tiret cadratin. Faire dépendre le démarrage de la façon dont
+    # l'interpréteur de commandes de l'hébergeur traite ces octets, c'est parier sur un détail
+    # qu'on ne maîtrise pas, pour un échec qui se produirait en production. wsgi.py localise le
+    # dossier en Python, qui n'a pas ce problème (cf. son en-tête).
+    #
     # Un seul worker : le plan gratuit n'a pas la mémoire pour deux, et les caches de
     # l'application sont EN MÉMOIRE — deux workers tiendraient deux caches divergents, dont
     # l'un servirait des chiffres différents de l'autre selon la requête. Les fils d'exécution
     # (threads) suffisent : les requêtes attendent surtout la base et les API, pas le CPU.
+    #
+    # timeout 180 : le préchauffage reconstruit les analyses au premier démarrage, et la
+    # valeur par défaut (30 s) tuerait le worker en pleine tâche.
     startCommand: >
-      cd "SGCI Strategic Intelligence — Design System/spybusiness" &&
-      gunicorn server:app
+      gunicorn wsgi:app
       --bind 0.0.0.0:$PORT
       --workers 1
       --threads 8
