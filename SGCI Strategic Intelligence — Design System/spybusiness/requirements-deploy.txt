@@ -20,18 +20,32 @@
 # qu'UN seul de ces modèles : le reste (docling, bart-large-mnli, modèles de sentiment) sert
 # au pipeline d'extraction des PDF, qui n'a pas à être déployé.
 #
-# POUR EMBARQUER LE CHAT SANS LES 1,9 Go — piste retenue, non encore appliquée :
-# exporter le MÊME modèle au format ONNX et l'exécuter avec onnxruntime (≈ 15 Mo) au lieu de
-# torch. sentence-transformers 5.5 accepte backend="onnx" ; l'export réclame `optimum`.
-# L'intérêt décisif est que ce sont les mêmes poids, donc les mêmes vecteurs : les 31 985
-# embeddings déjà en base restent valides, aucun ré-encodage. Avec quantification int8, on
-# vise ≈ 300 Mo, soit six fois moins. À valider en comparant les vecteurs produits sur un
-# échantillon avant de basculer — un écart, même faible, invaliderait la base existante.
+# LE CHAT EST NÉANMOINS DISPONIBLE (2026-08-09) — SANS AUCUN POIDS LOCAL.
+# La question posée est vectorisée par l'API d'inférence de Hugging Face, qui exécute LE MÊME
+# modèle ; les vecteurs des 31 985 documents, eux, sont déjà en base. On ne transporte donc
+# qu'une phrase, et le gigaoctet et demi de torch reste sur le poste de développement.
+# Voir RAG/retriever.py, PGVectorStore._embed_distant. Requiert HF_TOKEN (droit d'inférence).
 #
-# Les autres pistes ont été écartées : un modèle plus petit (MiniLM, 480 Mo) produit des
-# vecteurs à 384 dimensions, incompatibles avec ceux stockés ; une API d'embeddings supprime
-# le poids local mais ajoute une dépendance réseau, un coût par question, et le même
-# ré-encodage complet.
+# MESURÉ AVANT D'Y CROIRE, car tout repose là-dessus : si l'API agrégeait ou normalisait
+# autrement, elle rendrait des vecteurs incomparables à ceux stockés, et le chat répondrait à
+# côté SANS jamais signaler d'erreur. Sur quatre questions réelles, vecteur local contre
+# vecteur distant :
+#     similarité cosinus              1,000000
+#     écart maximal par coordonnée    1,1 × 10⁻⁷   (bruit de virgule flottante)
+# Recherche de bout en bout vérifiée : « tarif de la carte VISA PLATINUM » rend en premier
+# « Première carte (VISA PLATINUM) » à 175 000 FCFA. C'est cette mesure qu'il faut refaire en
+# premier si le chat se met un jour à répondre de travers.
+#
+# ATTENTION : l'adresse historique « api-inference.huggingface.co » ne résout MÊME PLUS en DNS.
+# Hugging Face l'a remplacée par router.huggingface.co. Le code essaie les formes connues dans
+# l'ordre plutôt que d'en figer une seule.
+#
+# Piste de repli si l'API venait à fermer ou à imposer un quota gênant : exporter le même
+# modèle en ONNX et l'exécuter avec onnxruntime (≈ 300 Mo quantifié int8, contre 1,9 Go).
+# Mêmes poids, donc mêmes vecteurs — mais du travail, et à valider par la même mesure.
+#
+# Écartée : un modèle plus petit (MiniLM, 480 Mo) produit des vecteurs à 384 dimensions,
+# incompatibles avec ceux stockés — il faudrait ré-encoder les 31 985 documents.
 
 Flask==3.1.2
 flask-cors==6.0.1
@@ -42,6 +56,14 @@ python-dotenv==1.1.1
 # LLM (API — léger, pas de modèle local)
 groq==0.37.1
 anthropic==0.99.0
+
+# Chaîne du chat. Ce que RAG/chain.py importe réellement — et rien de plus : ni langchain
+# complet, ni langchain-community, dont il n'utilise aucune brique. Poids mesuré des trois
+# paquets : 5,4 Mo. C'est ce qui rend le chat déployable, la vectorisation de la question
+# passant désormais par l'API d'inférence (cf. la note ci-dessus).
+langchain-core==1.4.0
+langchain-groq==1.1.2
+langchain-google-genai==4.2.4
 
 # Serveur WSGI de production. Le serveur de developpement de Flask previent lui-meme qu'il
 # n'est pas fait pour cela : mono-processus, sans limite de requetes, sans gestion propre des

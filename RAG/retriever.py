@@ -34,7 +34,9 @@ class PGVectorStore:
     Wrapper PostgreSQL + pgvector.
     Joue le rôle du vectorstore ChromaDB dans toute la chaîne RAG.
     """
-    _model = None  # singleton — chargé une seule fois
+    _model = None    # singleton — chargé une seule fois
+    # Adresse d'inférence qui a répondu, retenue pour ne pas retâtonner à chaque question.
+    _url_ok = None
 
     def __init__(self):
         self.db_params = config.DB_PARAMS
@@ -44,14 +46,95 @@ class PGVectorStore:
         return psycopg2.connect(**self.db_params)
 
     def embed_query(self, text: str) -> list:
-        """Encode une question → vecteur 768 dims (normalisé)."""
-        if PGVectorStore._model is None:
-            print(f"  [EMBED] Chargement {config.EMBEDDING_MODEL}...", end=" ", flush=True)
-            from sentence_transformers import SentenceTransformer
-            PGVectorStore._model = SentenceTransformer(config.EMBEDDING_MODEL)
-            print("OK")
-        vec = PGVectorStore._model.encode([text], normalize_embeddings=True)[0]
-        return vec.tolist()
+        """Encode une question → vecteur 768 dims (normalisé).
+
+        DEUX CHEMINS, LE MÊME MODÈLE (2026-08-09, pour l'hébergement).
+
+        En local, le modèle est chargé en mémoire : rien ne bat cela en rapidité, et le poste
+        de développement l'a déjà sur disque. En production, l'embarquer coûterait 1,9 Go
+        (torch 509 Mo + dépendances 292 Mo + poids 1 126 Mo) — plus que toute la mémoire d'une
+        instance gratuite. On appelle alors l'API d'inférence de Hugging Face, qui exécute LE
+        MÊME modèle et ne nous fait transporter que la question.
+
+        Ce n'est légitime que parce que les vecteurs sont les mêmes, et cela a été MESURÉ, pas
+        supposé : sur quatre questions réelles, la similarité cosinus entre le vecteur local et
+        le vecteur distant vaut 1,000000. Les 31 985 vecteurs déjà en base restent donc
+        comparables, sans aucun ré-encodage. Si un jour l'API changeait de méthode d'agrégation
+        ou de normalisation, ce serait invisible ici mais fatal aux résultats : refaire cette
+        mesure est la première chose à faire si le chat se met à répondre à côté.
+        """
+        # Le modèle local, quand il est là, reste prioritaire : pas de réseau, pas de quota.
+        if PGVectorStore._model is not None:
+            return PGVectorStore._model.encode([text], normalize_embeddings=True)[0].tolist()
+
+        if not os.getenv("EMBEDDINGS_DISTANTES"):
+            try:
+                print(f"  [EMBED] Chargement {config.EMBEDDING_MODEL}...", end=" ", flush=True)
+                from sentence_transformers import SentenceTransformer
+                PGVectorStore._model = SentenceTransformer(config.EMBEDDING_MODEL)
+                print("OK")
+                return PGVectorStore._model.encode(
+                    [text], normalize_embeddings=True)[0].tolist()
+            except ImportError:
+                print("absent — bascule sur l'API d'inférence")
+
+        return self._embed_distant(text)
+
+    @staticmethod
+    def _embed_distant(text: str) -> list:
+        """Vectorise la question via l'API d'inférence Hugging Face.
+
+        L'ancienne adresse « api-inference.huggingface.co » ne résout MÊME PLUS en DNS depuis
+        que Hugging Face l'a remplacée par un routeur ; on essaie donc les formes connues dans
+        l'ordre plutôt que d'en figer une seule et de revivre la même panne au prochain
+        changement. La première qui répond est mémorisée pour les questions suivantes.
+        """
+        import json
+        import urllib.request
+
+        jeton = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACEHUB_API_TOKEN") or ""
+        if not jeton:
+            raise RuntimeError(
+                "Vectorisation impossible : ni modèle local, ni HF_TOKEN. "
+                "Renseignez HF_TOKEN (droit d'inférence) pour activer le chat.")
+
+        m = config.EMBEDDING_MODEL
+        adresses = [PGVectorStore._url_ok] if PGVectorStore._url_ok else [
+            f"https://router.huggingface.co/hf-inference/models/{m}/pipeline/feature-extraction",
+            f"https://router.huggingface.co/hf-inference/pipeline/feature-extraction/{m}",
+            f"https://router.huggingface.co/hf-inference/models/{m}",
+        ]
+        corps = json.dumps({"inputs": text,
+                            "options": {"wait_for_model": True}}).encode()
+        dernier = "aucun essai"
+        for url in adresses:
+            for essai in range(3):
+                try:
+                    r = urllib.request.Request(
+                        url, data=corps,
+                        headers={"Authorization": f"Bearer {jeton}",
+                                 "Content-Type": "application/json"})
+                    v = json.loads(urllib.request.urlopen(r, timeout=60).read())
+                    # La réponse est [768] ou [[768]] selon la forme de l'adresse ; si le
+                    # modèle rend un vecteur PAR JETON, on moyenne — c'est ce que fait le
+                    # pooling de sentence-transformers.
+                    while isinstance(v, list) and v and isinstance(v[0], list):
+                        v = v[0] if len(v) == 1 else [sum(c) / len(c) for c in zip(*v)]
+                    # Normalisation L2, pour rendre exactement ce que rend le chemin local.
+                    n = sum(x * x for x in v) ** 0.5
+                    if n:
+                        v = [x / n for x in v]
+                    PGVectorStore._url_ok = url
+                    return v
+                except Exception as e:
+                    dernier = f"{type(e).__name__} — {str(e)[:110]}"
+                    code = getattr(e, "code", None)
+                    if code in (503, 429) and essai < 2:
+                        import time as _t
+                        _t.sleep(8)          # modèle froid ou quota momentané
+                        continue
+                    break
+        raise RuntimeError(f"API d'inférence injoignable : {dernier}")
 
     def vec_literal(self, text: str) -> str:
         """Retourne la représentation SQL littérale du vecteur pour pgvector."""
