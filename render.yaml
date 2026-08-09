@@ -1,0 +1,85 @@
+# ══════════════════════════════════════════════════════════════════════════════════════
+#  DÉPLOIEMENT RENDER — SpyBusiness
+# ══════════════════════════════════════════════════════════════════════════════════════
+# Un seul service web. La base de données n'est PAS déclarée ici : elle est hébergée sur
+# Supabase, dont l'offre gratuite n'expire pas — celle de Render supprime la base au bout de
+# trente jours, ce qui tomberait pendant la période de soutenance.
+#
+# Ce qui vit ailleurs, et pourquoi :
+#   base de données          Supabase (PostgreSQL + pgvector) — 310 Mo pour 500 Mo offerts
+#   rédaction des analyses   Groq / Gemini, par appel d'API — aucun modèle local
+#   vecteur de la question   Hugging Face Inference API — évite d'embarquer 1,9 Go de modèle
+#
+# Le pipeline d'extraction (PIPELINE/) n'est PAS déployé : ses dépendances — docling,
+# paddleocr, torch-vision — pèsent plusieurs gigaoctets et ne servent qu'à transformer des PDF
+# en lignes de base. L'ajout de données se fait donc depuis un poste local, pointé sur la même
+# base. L'application le détecte seule et masque le bouton (cf. /api/features).
+
+services:
+  - type: web
+    name: spybusiness
+    runtime: python
+    plan: free                    # 512 Mo de mémoire, 0,1 CPU
+    region: frankfurt             # le plus proche d'Abidjan parmi les régions offertes
+    branch: main
+    buildCommand: pip install --no-cache-dir -r "SGCI Strategic Intelligence — Design System/spybusiness/requirements-deploy.txt"
+    # Un seul worker : le plan gratuit n'a pas la mémoire pour deux, et les caches de
+    # l'application sont EN MÉMOIRE — deux workers tiendraient deux caches divergents, dont
+    # l'un servirait des chiffres différents de l'autre selon la requête. Les fils d'exécution
+    # (threads) suffisent : les requêtes attendent surtout la base et les API, pas le CPU.
+    startCommand: >
+      cd "SGCI Strategic Intelligence — Design System/spybusiness" &&
+      gunicorn server:app
+      --bind 0.0.0.0:$PORT
+      --workers 1
+      --threads 8
+      --timeout 180
+      --graceful-timeout 30
+      --access-logfile -
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.4"
+
+      # ── Base de données ────────────────────────────────────────────────────────────
+      # Chaîne de connexion Supabase, à coller dans le tableau de bord Render.
+      # Prendre le mode « Session pooler » (port 5432) : le mode transaction ne supporte pas
+      # les curseurs nommés ni les instructions préparées dont psycopg2 se sert.
+      - key: DATABASE_URL
+        sync: false
+
+      # ── Sécurité ──────────────────────────────────────────────────────────────────
+      # Clé de signature des sessions. Render en tire une au hasard à la création, ce qui est
+      # exactement ce qu'il faut : elle n'existe alors nulle part ailleurs, pas même ici.
+      # ATTENTION : la changer déconnecte tout le monde — les cookies signés avec l'ancienne
+      # clé deviennent invalides.
+      - key: APP_SECRET_KEY
+        generateValue: true
+
+      # Rend le cookie de session « Secure » : le navigateur refuse alors de l'envoyer hors
+      # HTTPS. Render sert exclusivement en HTTPS, donc la valeur est toujours vraie ici.
+      - key: APP_HTTPS
+        value: "1"
+
+      # Origines autorisées à interroger l'API avec le cookie de session. À compléter avec
+      # l'adresse réelle du service une fois connue (onglet Settings de Render).
+      - key: APP_ORIGINES
+        sync: false
+
+      # Mot de passe du compte d'administration, créé au tout premier démarrage sur une base
+      # vide. Sur une base déjà migrée, le compte existe et cette variable ne sert plus à rien :
+      # le mot de passe est celui de la base. Elle reste utile pour un redéploiement à neuf.
+      - key: APP_ADMIN_PASSWORD
+        sync: false
+
+      # ── Modèles de langage (appels d'API, aucun poids local) ───────────────────────
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+      # ── Vectorisation de la question posée au chat ─────────────────────────────────
+      # Jeton Hugging Face en lecture. Sans lui, le chat se désactive proprement et affiche un
+      # message ; le reste de l'application n'en dépend pas.
+      - key: HF_TOKEN
+        sync: false

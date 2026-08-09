@@ -6698,11 +6698,22 @@ def ajout_logo():
     return jsonify({"ok": True, "path": f"assets/logos/{safe}{ext}"})
 
 
-if __name__ == "__main__":
-    print("\n" + "="*55)
-    print(" SpyBusiness · http://localhost:5000")
-    print("="*55 + "\n")
-    # Préchauffage des caches lourds en arrière-plan
+# ── PRÉCHAUFFAGE DES CACHES ──────────────────────────────────────────────────────────
+# SORTI DU BLOC __main__ LE 2026-08-09, pour l'hébergement. Sous un serveur WSGI (gunicorn),
+# server.py est IMPORTÉ, pas exécuté : `__name__` ne vaut pas « __main__ » et le préchauffage
+# n'aurait jamais tourné. Ce n'est pas seulement une question de lenteur au premier appel — le
+# commentaire de _strat_build_persist(), plus bas, le dit déjà : sans _warm(), _STRAT_CACHE
+# reste vide, _strat_build_load() recharge le fichier disque, et l'application sert alors
+# SILENCIEUSEMENT des analyses périmées. En production, personne ne s'en apercevrait.
+_PRECHAUFFAGE_LANCE = False
+
+
+def demarrer_prechauffage():
+    """Lance le préchauffage en arrière-plan, une seule fois par processus."""
+    global _PRECHAUFFAGE_LANCE
+    if _PRECHAUFFAGE_LANCE:
+        return
+    _PRECHAUFFAGE_LANCE = True
     import threading
     def _warm():
         # 1) Évolutions sémantiques (~13s)
@@ -6755,4 +6766,14 @@ if __name__ == "__main__":
         # silencieusement servi les anciennes données depuis le disque, sans aucune alerte.
         _strat_build_persist()
     threading.Thread(target=_warm, daemon=True).start()
+
+
+# Sous gunicorn, l'import du module suffit à armer le préchauffage.
+demarrer_prechauffage()
+
+
+if __name__ == "__main__":
+    print("\n" + "="*55)
+    print(" SpyBusiness · http://localhost:5000")
+    print("="*55 + "\n")
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False, threaded=True)

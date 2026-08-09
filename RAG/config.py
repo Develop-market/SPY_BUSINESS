@@ -14,13 +14,37 @@ _env = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(_env)
 
 # ── PostgreSQL ────────────────────────────────────────────────────────────────
-DB_PARAMS = {
-    "host"    : os.getenv("DB_HOST",     "localhost"),
-    "port"    : int(os.getenv("DB_PORT", 5432)),
-    "dbname"  : os.getenv("DB_NAME",     "intelligence_bancaire"),
-    "user"    : os.getenv("DB_USER",     "postgres"),
-    "password": os.getenv("DB_PASSWORD", ""),
-}
+# DATABASE_URL D'ABORD (2026-08-09, pour l'hébergement). Render et Supabase ne fournissent pas
+# cinq variables mais une seule chaîne de connexion. Sans elle, le moteur de recherche déployé
+# viserait « localhost » — où il n'y a pas de base — et le chat répondrait « aucun résultat »
+# à toutes les questions, sans qu'aucune erreur ne le signale.
+def _params_bd():
+    url = (os.getenv("DATABASE_URL") or "").strip()
+    if not url:
+        return {
+            "host"    : os.getenv("DB_HOST",     "localhost"),
+            "port"    : int(os.getenv("DB_PORT", 5432)),
+            "dbname"  : os.getenv("DB_NAME",     "intelligence_bancaire"),
+            "user"    : os.getenv("DB_USER",     "postgres"),
+            "password": os.getenv("DB_PASSWORD", ""),
+        }
+    from urllib.parse import unquote, urlparse
+    u = urlparse(url)
+    p = {
+        "host"    : u.hostname or "localhost",
+        "port"    : int(u.port or 5432),
+        "dbname"  : (u.path or "/postgres").lstrip("/") or "postgres",
+        "user"    : unquote(u.username or "postgres"),
+        # Décodage indispensable : un « @ » ou un « / » dans le mot de passe est encodé dans
+        # l'URL, et le passer tel quel produit un refus d'authentification inexplicable.
+        "password": unquote(u.password or ""),
+    }
+    if p["host"] not in ("localhost", "127.0.0.1"):
+        p["sslmode"] = "require"     # le mot de passe traverse l'internet public
+    return p
+
+
+DB_PARAMS = _params_bd()
 
 # ── LLM — Gemini (principal) + Groq (backup) ─────────────────────────────────
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")

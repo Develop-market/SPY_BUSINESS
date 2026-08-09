@@ -42,3 +42,8 @@ python-dotenv==1.1.1
 # LLM (API — léger, pas de modèle local)
 groq==0.37.1
 anthropic==0.99.0
+
+# Serveur WSGI de production. Le serveur de developpement de Flask previent lui-meme qu'il
+# n'est pas fait pour cela : mono-processus, sans limite de requetes, sans gestion propre des
+# arrets. gunicorn est le minimum pour une adresse publique.
+gunicorn==23.0.0

@@ -26,13 +26,51 @@ try:
 except Exception:
     pass
 
-DB = dict(
-    host=os.getenv("DB_HOST", "localhost"),
-    port=os.getenv("DB_PORT", "5432"),
-    dbname=os.getenv("DB_NAME", "intelligence_bancaire"),
-    user=os.getenv("DB_USER", "postgres"),
-    password=os.getenv("DB_PASSWORD", ""),
-)
+def _config_bd():
+    """Paramètres de connexion — depuis DATABASE_URL si elle existe, sinon les cinq variables.
+
+    AJOUTÉ POUR L'HÉBERGEMENT (2026-08-09). Render et Supabase ne donnent pas cinq variables :
+    ils donnent UNE chaîne, `postgresql://utilisateur:motdepasse@hôte:port/base`. Sans lecture
+    de cette chaîne, l'application déployée retombait silencieusement sur « localhost », où il
+    n'y a pas de base — et db.query() rendant [] plutôt que de lever, le tableau de bord se
+    serait affiché VIDE sans dire pourquoi. C'est exactement le genre de panne muette qu'on
+    passe une soirée à chercher.
+
+    DATABASE_URL est prioritaire : là où elle existe, c'est l'hébergeur qui l'a posée, et elle
+    fait autorité sur un .env laissé dans l'image.
+
+    sslmode=require en prod : Supabase et Render exigent TLS, et un mot de passe de base qui
+    voyage en clair sur l'internet public n'est plus un mot de passe.
+    """
+    url = (os.getenv("DATABASE_URL") or "").strip()
+    if url:
+        from urllib.parse import unquote, urlparse
+        u = urlparse(url)
+        cfg = dict(
+            host=u.hostname or "localhost",
+            port=str(u.port or 5432),
+            dbname=(u.path or "/postgres").lstrip("/") or "postgres",
+            user=unquote(u.username or "postgres"),
+            # Le mot de passe est encodé dans l'URL : un « @ » ou un « / » non décodé
+            # produirait un refus d'authentification incompréhensible.
+            password=unquote(u.password or ""),
+        )
+        if "sslmode=" in (u.query or ""):
+            cfg["sslmode"] = dict(p.split("=", 1) for p in u.query.split("&")
+                                  if "=" in p)["sslmode"]
+        elif cfg["host"] not in ("localhost", "127.0.0.1"):
+            cfg["sslmode"] = "require"
+        return cfg
+    return dict(
+        host=os.getenv("DB_HOST", "localhost"),
+        port=os.getenv("DB_PORT", "5432"),
+        dbname=os.getenv("DB_NAME", "intelligence_bancaire"),
+        user=os.getenv("DB_USER", "postgres"),
+        password=os.getenv("DB_PASSWORD", ""),
+    )
+
+
+DB = _config_bd()
 
 BANKS = ["BACI", "BICICI", "BNI", "ECOBANK", "NSIA", "SGCI", "SIB"]
 
