@@ -573,13 +573,33 @@ RÈGLES ABSOLUES :
     # Elles sont ajoutées APRÈS les dossiers sectoriels et ne dépendent pas d'eux : une
     # panne de rédaction laisse les dossiers sans texte, jamais les directives.
     try:
-        import directives as _dir
-        d["directives"] = _dir.directives(segment=segment)
+        d["directives"] = _directives_en_cache(segment)
     except Exception as e:
         import traceback as _tb
         print("[strat-op] directives :", _tb.format_exc()[:500])
         d["directives"] = {"directives": [], "erreur": str(e)[:200]}
     return jsonify(d)
+
+
+# ── CACHE DES DIRECTIVES (2026-08-09, pour l'hébergement) ────────────────────────────
+# Mesuré en conditions réelles, l'application pointée sur la base hébergée : la composition
+# des vingt directives a demandé 495 SECONDES. Elle enchaîne des centaines de requêtes, et ce
+# qui coûte des millisecondes sur une base locale coûte un aller-retour réseau chacune.
+# Aucun serveur ne laisse une requête durer huit minutes : le worker aurait été tué et la page
+# n'aurait jamais fini de charger.
+#
+# La mise en cache est SANS RISQUE ICI, et le module le dit lui-même : « aucun appel réseau,
+# aucun modèle de langage : à données inchangées, le résultat est strictement identique ».
+# Rien n'est rédigé, tout est calculé — deux exécutions sur la même base donnent la même
+# empreinte, ce qui a été vérifié. Le cache est vidé à l'ajout de données, comme les autres.
+_SO_DIRECTIVES = {}
+
+
+def _directives_en_cache(segment):
+    if segment not in _SO_DIRECTIVES:
+        import directives as _dir
+        _SO_DIRECTIVES[segment] = _dir.directives(segment=segment)
+    return _SO_DIRECTIVES[segment]
 
 
 @app.route("/api/cb_periodes")
@@ -6381,6 +6401,12 @@ def _refresh_analyses_job(job_id, section):
     except Exception as e:
         print(f"[refresh] refresh_banks: {e}")
 
+    # Les directives sont calculées à partir de la base : de nouvelles données les changent.
+    # Sans ce vidage, l'écran « Stratégie opérationnelle » aurait continué de servir les cartes
+    # d'avant l'ingestion, indéfiniment et sans le dire — le défaut même que le cache de
+    # Stratégie avait connu et qu'on avait mis une semaine à voir.
+    _SO_DIRECTIVES.clear()
+
     client = app.test_client()
     warmed, failed = [], []
 
@@ -6757,6 +6783,16 @@ def demarrer_prechauffage():
                 print(f"[cache] strategie({seg}) OK")
             except Exception as e:
                 print(f"[cache] warm échoué strategie({seg}): {e}")
+        # 5) Directives par direction — LE PLUS LOURD DE TOUS. Mesuré sur la base hébergée :
+        #    495 secondes pour les composer, faute de latence locale. Les calculer ICI, dans le
+        #    fil de préchauffage, plutôt qu'au premier clic, est la différence entre une page
+        #    qui s'affiche et un serveur qui tue sa propre requête au bout du délai imparti.
+        for seg in ("Particuliers", "Entreprises"):
+            try:
+                n = len(_directives_en_cache(seg).get("directives", []))
+                print(f"[cache] directives({seg}) → {n} cartes")
+            except Exception as e:
+                print(f"[cache] warm échoué directives({seg}): {e}")
         # PERSISTE sur disque ce qui vient d'être reconstruit frais — sans ce _strat_build_persist(),
         # le fichier disque restait figé indéfiniment (trouvé le 2026-07-14 : dernier vécu le
         # 2026-07-07, une semaine avant la correction du bug de fenêtre glissante EF is_primary).
