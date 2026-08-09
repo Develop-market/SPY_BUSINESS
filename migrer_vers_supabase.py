@@ -148,11 +148,19 @@ def creer_structure(src, dst):
                 sql = f"{nom} text[]"
             else:
                 sql = f"{nom} {typ}"
-            # Les séquences locales n'existent pas sur la destination : on recrée l'identité.
+            # TOUTES LES VALEURS PAR DÉFAUT SONT REPORTÉES (corrigé le 2026-08-09). La première
+            # version ne traitait que « nextval » et « now() » : les sept autres — est_gratuit
+            # false, is_header false, rang 1, is_primary true, succes true, role 'lecture',
+            # actif true — étaient perdues. Conséquence constatée en ligne : le compte
+            # d'administration créé au premier démarrage recevait actif = NULL au lieu de TRUE,
+            # et la connexion était refusée sans que rien n'explique pourquoi. Une valeur par
+            # défaut absente ne casse rien à la création de la table ; elle casse la première
+            # écriture qui comptait sur elle, plus tard, ailleurs.
             if defaut and "nextval" in str(defaut):
+                # Les séquences locales n'existent pas sur la destination : on recrée l'identité.
                 sql = f"{nom} serial" if typ == "integer" else f"{nom} bigserial"
-            elif defaut and "now()" in str(defaut).lower():
-                sql += " DEFAULT now()"
+            elif defaut is not None:
+                sql += f" DEFAULT {defaut}"
             morceaux.append(sql)
 
         with dst.cursor() as c:
