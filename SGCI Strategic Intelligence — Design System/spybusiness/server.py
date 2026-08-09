@@ -302,21 +302,6 @@ def index():
     return send_from_directory(HERE, "app.html")
 
 
-# ── CONSOLE D'ADMINISTRATION — INTERFACE SÉPARÉE (2026-08-09) ────────────────────────
-# Demande du directeur : « on doit avoir une interface à part destinée à l'admin ; l'admin va
-# créer les accès lui-même pour le monitoring ; sans accès créé par l'admin on ne peut pas
-# accéder à l'application ».
-#
-# La page elle-même est servie librement, comme l'est app.html : elle ne contient qu'un
-# formulaire de connexion et du code d'affichage. Ce qu'elle pilote, en revanche, ne répond
-# qu'à un administrateur — /api/admin/* passe par _exige_admin(), et _controle_acces() ferme
-# déjà tout /api/* à une session absente. Protéger le HTML n'ajouterait rien : le secret n'est
-# pas dans la page, il est dans ce que le serveur accepte de faire.
-@app.route("/console")
-def console_admin():
-    return send_from_directory(HERE, "console.html")
-
-
 @app.route("/<path:filename>")
 def static_files(filename):
     return send_from_directory(HERE, filename)
