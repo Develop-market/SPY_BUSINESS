@@ -45,11 +45,19 @@
       <a class="nav-item" data-go="stratop" onclick="go('stratop')"><span class="ic">▶</span><span class="nav-lbl">Stratégie opérationnelle</span></a>
       <div class="nav-grp">Système</div>
       <a class="nav-item" id="nav-gloss" onclick="toggleGlossContext()"><span class="ic">📖</span><span class="nav-lbl">Glossaire</span></a>
-      <a class="nav-item" id="nav-ajout" onclick="openAjout()"><span class="ic">＋</span><span class="nav-lbl">Ajouter des données</span></a>
-      <a class="nav-item" id="nav-refresh" onclick="confirmRafraichirAnalyses()"><span class="ic">↻</span><span class="nav-lbl">Rafraîchir les analyses</span></a>
-      <!-- Administration : masquée par _appliquerDroits() pour tout compte non administrateur.
-           Le serveur refuse de toute façon (403), mais afficher une porte fermée n'aide personne. -->
-      <a class="nav-item" id="nav-admin" data-go="admin" onclick="go('admin')" style="display:none"><span class="ic">🛡</span><span class="nav-lbl">Administration</span></a>
+      <!-- ADMINISTRATION DÉPLACÉE DANS UNE INTERFACE À PART (2026-08-09).
+           « Ajouter des données », « Rafraîchir les analyses » et « Administration » vivaient
+           ici, au milieu des onglets d'analyse. Trois raisons de les en sortir :
+             — ce ne sont pas des écrans de lecture ; un directeur qui compare des tarifs et un
+               administrateur qui distribue des accès ne font pas le même métier ;
+             — les mêmes boutons au même endroit finissent par être cliqués par la mauvaise
+               personne, et « Rafraîchir » consomme des jetons à chaque appel ;
+             — ce qui n'est pas affiché ne peut pas être cherché.
+           Elles sont désormais dans /console, réservée au rôle administrateur. Le lien
+           ci-dessous n'apparaît QUE pour ce rôle (cf. _appliquerDroits) — il évite d'avoir à
+           retenir une adresse, sans rien ouvrir de plus : le serveur refuse /api/admin/* à
+           tout autre compte. -->
+      <a class="nav-item" id="nav-console" href="/console" style="display:none"><span class="ic">🛡</span><span class="nav-lbl">Console d'administration</span></a>
       <a class="nav-item" id="nav-logout" onclick="_deconnexion()"><span class="ic">⏻</span><span class="nav-lbl">Se déconnecter</span></a>
     </nav>
     <div class="foot">

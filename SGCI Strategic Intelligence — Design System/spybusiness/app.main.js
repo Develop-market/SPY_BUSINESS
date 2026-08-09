@@ -8451,6 +8451,11 @@ const AFTER = {
 };
 
 function go(key){
+  // L'ADMINISTRATION A QUITTÉ CETTE APPLICATION (2026-08-09) pour /console. Le renvoi ne
+  // relève pas de la coquetterie : `localStorage` garde la dernière page ouverte, si bien
+  // qu'un administrateur qui était sur « Administration » avant la séparation y serait
+  // renvoyé au prochain démarrage, dans une application censée ne plus la contenir.
+  if(key === "admin"){ localStorage.setItem("sb-page", "apercu"); location.href = "/console"; return; }
   const p = PAGES[key]; if(!p) return;
   closeNav();                       // ferme le tiroir mobile à la navigation
   window.__redraw = null;
@@ -8698,13 +8703,9 @@ function _bootApp(){
     });
   _checkLlmStatus();
   setInterval(_checkLlmStatus, 90000);   // ré-affiche/masque le bandeau si l'état change en cours de session
-  // Masque "Ajouter des données" sur les environnements où le pipeline d'extraction n'est pas embarqué (ex. cloud allégé).
-  fetch("/api/features").then(r=>r.json()).then(f=>{
-    if(f && f.ingest_available===false){
-      const nav = document.getElementById("nav-ajout");
-      if(nav) nav.style.display = "none";
-    }
-  }).catch(()=>{});
+  // L'ajout de données a quitté cette application pour /console : la sonde qui masquait son
+  // entrée de menu sur les environnements sans pipeline d'extraction n'a plus d'objet ici.
+  // C'est la console qui affiche le message du serveur (503) le cas échéant.
   // Tampon discret de traçabilité (filigrane) — date/heure de la session en cours.
   const _wmStamp = document.getElementById("app-watermark-stamp");
   if(_wmStamp) _wmStamp.textContent = "Direction Innovation SGCI · " + new Date().toLocaleString("fr-FR", {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"});
@@ -9072,19 +9073,22 @@ async function _adminJournal(){
 // qui refuse. Mais laisser dans le menu une porte qui répond 403 fait passer une règle de
 // sécurité pour une panne.
 function _appliquerDroits(){
+  // ADMINISTRATION SORTIE DE L'APPLICATION (2026-08-09). Les entrées « Ajouter des données »,
+  // « Rafraîchir les analyses » et « Administration » ont rejoint /console, une interface à
+  // part. Il ne reste ici qu'un LIEN vers cette console, affiché au seul administrateur : il
+  // lui évite de retenir une adresse et n'ouvre rien de plus, le serveur refusant /api/admin/*
+  // à tout autre compte.
   const u = SB_UTILISATEUR;
   const admin = u && u.role === "admin";
-  const el = document.getElementById("nav-admin");
-  if(el) el.style.display = admin ? "" : "none";
+  const lien = document.getElementById("nav-console");
+  if(lien) lien.style.display = admin ? "" : "none";
   if(!u || admin) return;
+  // Un compte non administrateur ne voit que les sections que l'administrateur lui a cochées.
+  // Le serveur refuserait de toute façon (403), mais afficher une porte fermée n'aide personne.
   const droits = u.droits || [];
   document.querySelectorAll(".nav-item[data-go]").forEach(a=>{
     const section = SECTION_DE_PAGE[a.dataset.go];
     if(section && !droits.includes(section)) a.style.display = "none";
-  });
-  ["nav-ajout","nav-refresh"].forEach(id=>{
-    const n = document.getElementById(id);
-    if(n && !droits.includes("ajout")) n.style.display = "none";
   });
 }
 
