@@ -2883,16 +2883,23 @@ def cb_prix_par_libelle(annee=2026, semestre="S1", segment="Particuliers"):
         -- défendables — mais des chiffres qui bougent sans que la donnée bouge ne sont pas
         -- des chiffres qu'on présente à un comité. Un VACUUM aurait suffi à les déplacer.
         --
-        -- On ajoute donc deux critères stables : le libellé du concurrent, puis son
-        -- identifiant. À score égal, c'est toujours la même ligne qui gagne, sur n'importe
-        -- quelle base et après n'importe quelle réorganisation.
+        -- On ajoute donc des critères stables : le libellé du concurrent, son identifiant,
+        -- PUIS L'IDENTIFIANT DE LA LIGNE SGCI. Ce dernier est le moins évident et c'est le
+        -- seul qui refermait vraiment le problème : le DISTINCT ON groupe par LIBELLÉ SGCI,
+        -- or un même libellé existe en plusieurs exemplaires — « Frais de dossier » compte
+        -- trois lignes SGCI, à des sections et des types de valeur différents. Une même ligne
+        -- concurrente s'apparie donc à plusieurs d'entre elles avec le MÊME score, et rien ne
+        -- disait laquelle fournissait le `tv_sgci` retenu. Le résultat changeait alors d'une
+        -- base à l'autre sans qu'aucune donnée ne change.
+        -- À score égal, c'est désormais toujours la même ligne qui gagne, sur n'importe quelle
+        -- base et après n'importe quelle réorganisation.
         ORDER BY s.libelle, o.banque,
                  GREATEST(
                      similarity(LOWER(TRIM(o.libelle)), LOWER(TRIM(s.libelle))),
                      word_similarity(LOWER(TRIM(s.libelle)), LOWER(TRIM(o.libelle))),
                      word_similarity(LOWER(TRIM(o.libelle)), LOWER(TRIM(s.libelle)))
                  ) DESC,
-                 o.libelle, o.id
+                 o.libelle, o.id, s.id
         """,
         (_OCR_RE, annee, semestre, segment, _OCR_RE),
     )
