@@ -151,8 +151,22 @@ const _CHARGEMENT = {
   taux: 0,         // pourcentage affiché — ne redescend jamais
   apparition: null,
   filet: null,
+  veilleur: null,      // surveille l'arrêt de la progression
+  dernierMouvement: 0, // horodatage du dernier départ ou retour
   demarrage: false // vrai quand l'hébergeur répond une page d'attente (service au réveil)
 };
+
+/* RÈGLE D'ARRÊT : ON FERME QUAND PLUS RIEN NE PROGRESSE, PAS QUAND TOUT EST FINI.
+
+   Énumérer les appels d'arrière-plan dans une liste était sans fin — à peine `cb_repricing`
+   écarté, `cb_rattrapage_depassement` prenait sa place, puis un autre. Chaque écran a ses
+   traînards, et la liste aurait vieilli au premier endpoint ajouté.
+
+   La progression, elle, est observable sans rien savoir des endpoints : tant que des réponses
+   arrivent, l'écran a une raison d'être ; dès que plus rien ne bouge pendant deux secondes,
+   c'est que ce qui reste en vol est lent — et le contenu déjà rendu est lisible. Mesuré : le
+   compteur stagnait à 82 % dès la 8ᵉ seconde et ne bougeait plus jusqu'au filet de 25 s. */
+const _STAGNATION = 2000;
 
 const _DELAI_AVANT_ECRAN = 300;    // en dessous, une donnée en cache ferait clignoter l'écran
 const _FILET_ECRAN = 25000;
@@ -234,6 +248,7 @@ function _ecranMaj(){
 function _ecranRetirer(){
   clearTimeout(_CHARGEMENT.apparition); _CHARGEMENT.apparition = null;
   clearTimeout(_CHARGEMENT.filet); _CHARGEMENT.filet = null;
+  clearInterval(_CHARGEMENT.veilleur); _CHARGEMENT.veilleur = null;
   const d = document.getElementById("sb-chargement");
   if(!d) return;
   // On termine à 100 % avant de disparaître : un écran qui s'efface à 78 % laisse penser
@@ -257,6 +272,12 @@ function _ecranEtat(){
         _ecranCreer(); _ecranMaj();
         clearTimeout(_CHARGEMENT.filet);
         _CHARGEMENT.filet = setTimeout(_ecranRetirer, _FILET_ECRAN);
+        // Veilleur de stagnation : il ferme l'écran dès que plus rien n'avance, sans avoir
+        // besoin de savoir QUELS appels traînent.
+        clearInterval(_CHARGEMENT.veilleur);
+        _CHARGEMENT.veilleur = setInterval(()=>{
+          if(Date.now() - _CHARGEMENT.dernierMouvement > _STAGNATION) _ecranRetirer();
+        }, 400);
       }, _DELAI_AVANT_ECRAN);
     }
     _ecranMaj();
@@ -286,7 +307,7 @@ function chargementNouvelleVue(){
     if(!url.includes("/api/")) return vraiFetch(ressource, options);
 
     const compte = !_ARRIERE_PLAN.test(url);
-    if(compte){ _CHARGEMENT.total++; _ecranEtat(); }
+    if(compte){ _CHARGEMENT.total++; _CHARGEMENT.dernierMouvement = Date.now(); _ecranEtat(); }
     try{
       let reponse = await vraiFetch(ressource, options);
       /* On ne réessaie que si c'est L'HÉBERGEUR qui parle, pas l'application. Le code seul
@@ -308,7 +329,7 @@ function chargementNouvelleVue(){
     } finally {
       // `finally` et non la ligne d'après : une requête qui échoue doit compter elle aussi,
       // sans quoi le total n'est jamais atteint et l'écran ne part plus.
-      if(compte){ _CHARGEMENT.faites++; _ecranEtat(); }
+      if(compte){ _CHARGEMENT.faites++; _CHARGEMENT.dernierMouvement = Date.now(); _ecranEtat(); }
     }
   };
 })();

@@ -346,21 +346,31 @@ def api_frais_detail():
 def api_cb_serie_temporelle():
     """Série temporelle SGCI (rang, gratuité, indice prix) sur toutes les périodes."""
     segment = request.args.get("segment", "Particuliers")
-    return jsonify(AGENTS["CB"].structured.cb_serie_temporelle(segment))
+    return jsonify(servir_avec_cache(
+        f"cb_serie_temporelle:{segment}",
+        lambda: AGENTS["CB"].structured.cb_serie_temporelle(segment)))
 
 
 @app.route("/api/cb_innovation_vs_finance")
 def api_cb_innovation_vs_finance():
     """Croisement innovation (CB) × force financière (EF) par banque — dynamique."""
     segment = request.args.get("segment", "Particuliers")
-    return jsonify(AGENTS["CB"].structured.cb_innovation_vs_finance(segment))
+    return jsonify(servir_avec_cache(
+        f"cb_innovation_vs_finance:{segment}",
+        lambda: AGENTS["CB"].structured.cb_innovation_vs_finance(segment)))
 
 
 @app.route("/api/cb_rattrapage_depassement")
 def api_cb_rattrapage_depassement():
-    """Par concurrent : nouveaux services déjà chez SGCI (rattrapage) vs absents (dépassement)."""
+    """Par concurrent : nouveaux services déjà chez SGCI (rattrapage) vs absents (dépassement).
+
+    Mesuré à 79,3 s au premier appel sur le service hébergé, 0,3 s ensuite : le @lru_cache qui
+    le protège meurt avec le processus, et l'hébergeur en redémarre un neuf à chaque réveil.
+    """
     segment = request.args.get("segment", "Particuliers")
-    return jsonify(AGENTS["CB"].structured.cb_rattrapage_depassement(segment))
+    return jsonify(servir_avec_cache(
+        f"cb_rattrapage_depassement:{segment}",
+        lambda: AGENTS["CB"].structured.cb_rattrapage_depassement(segment)))
 
 
 @app.route("/api/rn")
@@ -638,6 +648,31 @@ def _cache_lire(cle):
     except Exception as e:
         print(f"[cache] lecture impossible ({str(e)[:70]}) — recalcul")
         return None
+
+
+def servir_avec_cache(cle, producteur):
+    """Sert depuis la base si la clé existe, sinon calcule, enregistre et sert.
+
+    POURQUOI CE HELPER (2026-08-10). Plusieurs calculs sont protégés par un @lru_cache : très
+    efficace, mais le cache vit DANS LE PROCESSUS. Or l'hébergeur endort le service après
+    quinze minutes et le redémarre à chaque mise à jour : le processus repart à vide, et le
+    premier visiteur paie le calcul entier. Mesuré sur le service en ligne :
+
+        cb_rattrapage_depassement    79,3 s au premier appel, 0,3 s ensuite
+        cb_repricing                 48,7 s au premier appel, 0,6 s ensuite
+
+    Le cache mémoire ne sert donc JAMAIS celui qu'il faudrait servir. La base, elle, survit.
+
+    Rien n'est enregistré si le résultat est vide : resservir indéfiniment une réponse vide
+    masquerait une panne au lieu de la signaler.
+    """
+    garde = _cache_lire(cle)
+    if garde is not None:
+        return garde
+    resultat = producteur()
+    if resultat:
+        _cache_ecrire(cle, resultat)
+    return resultat
 
 
 def _cache_ecrire(cle, contenu):
