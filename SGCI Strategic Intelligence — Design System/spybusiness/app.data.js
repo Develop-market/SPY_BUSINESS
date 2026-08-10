@@ -121,6 +121,54 @@ let APERCU_FILTERS = {
   rn_anx:      3,   // 1=AN1, 2=AN2, 3=AN3
 };
 
+/* ── RÉSISTANCE AU REDÉMARRAGE DU SERVICE (2026-08-10) ───────────────────────────────
+   L'hébergement gratuit endort le service après quinze minutes et le redémarre à chaque mise
+   à jour du code. Pendant ces quelques dizaines de secondes, l'hébergeur ne répond pas
+   l'application : il répond une PAGE HTML d'attente, avec un code 502 ou 503.
+
+   Les cinquante et un appels de l'application font tous « .json() » sur cette page HTML, et
+   le navigateur rend alors « Unexpected token '<' » ou « Unexpected end of JSON input ».
+   L'utilisateur lit un message de programmeur là où il ne se passe rien d'anormal : le
+   service démarre, il suffit d'attendre. C'est ce qu'a vu le directeur, écran après écran.
+
+   On interpose donc UNE couche, plutôt que de reprendre cinquante et un appels : sur ces
+   codes-là, on patiente et on réessaie, en allongeant l'attente. Un bandeau prévient pendant
+   ce temps — un écran qui se fige sans rien dire inquiète davantage qu'un écran qui explique.
+
+   On ne réessaie QUE sur 502/503/504, jamais sur 401, 403 ou 500 : ceux-là sont des réponses
+   de l'application, elles ne changeront pas en insistant. */
+(function installerReprise(){
+  const vraiFetch = window.fetch.bind(window);
+  const ATTENTES = [1500, 3000, 6000, 10000, 15000];   // ~35 s au total
+
+  function bandeau(actif){
+    let b = document.getElementById("sb-demarrage");
+    if(!actif){ if(b) b.remove(); return; }
+    if(b) return;
+    b = document.createElement("div");
+    b.id = "sb-demarrage";
+    b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;padding:9px 16px;"
+      + "text-align:center;background:#B45309;color:#fff;font:600 12.5px system-ui";
+    b.textContent = "Le service redémarre — les données arrivent dans quelques secondes…";
+    document.body.appendChild(b);
+  }
+
+  window.fetch = async function(ressource, options){
+    const url = typeof ressource === "string" ? ressource : (ressource && ressource.url) || "";
+    const surveille = url.includes("/api/");
+    let reponse = await vraiFetch(ressource, options);
+    if(!surveille) return reponse;
+
+    for(let i = 0; i < ATTENTES.length && [502,503,504].includes(reponse.status); i++){
+      bandeau(true);
+      await new Promise(r => setTimeout(r, ATTENTES[i]));
+      try{ reponse = await vraiFetch(ressource, options); }catch(e){ /* on retente */ }
+    }
+    bandeau(false);
+    return reponse;
+  };
+})();
+
 /* ── API helpers ─────────────────────────────────────────────────────── */
 async function apiFetch(path){
   try{

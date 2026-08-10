@@ -628,20 +628,36 @@ def _cache_table():
     return _CACHE_TABLE_PRETE
 
 
+def _cache_lire(cle):
+    """Contenu mémorisé pour cette clé, ou None."""
+    if not _cache_table():
+        return None
+    try:
+        r = db.query("SELECT contenu FROM cache_app WHERE cle = %s", (cle,))
+        return r[0]["contenu"] if r else None
+    except Exception as e:
+        print(f"[cache] lecture impossible ({str(e)[:70]}) — recalcul")
+        return None
+
+
+def _cache_ecrire(cle, contenu):
+    if not _cache_table():
+        return
+    try:
+        db.execute("""
+            INSERT INTO cache_app (cle, contenu, maj) VALUES (%s, %s::jsonb, now())
+            ON CONFLICT (cle) DO UPDATE SET contenu = EXCLUDED.contenu, maj = now()""",
+                   (cle, json.dumps(contenu, ensure_ascii=False, default=str)))
+    except Exception as e:
+        print(f"[cache] écriture impossible : {str(e)[:90]}")
+
+
 def _stratop_cle(annee, semestre, segment):
     return f"stratop:{annee}:{semestre}:{segment}"
 
 
 def _stratop_lire(annee, semestre, segment):
-    if not _cache_table():
-        return None
-    try:
-        r = db.query("SELECT contenu FROM cache_app WHERE cle = %s",
-                     (_stratop_cle(annee, semestre, segment),))
-        return r[0]["contenu"] if r else None
-    except Exception as e:
-        print(f"[strat-op] cache illisible ({str(e)[:70]}) — recalcul")
-        return None
+    return _cache_lire(_stratop_cle(annee, semestre, segment))
 
 
 def _stratop_ecrire(annee, semestre, segment, d):
@@ -649,24 +665,23 @@ def _stratop_ecrire(annee, semestre, segment, d):
     # pire que la recalculer. Vingt directives ou rien.
     if len(((d or {}).get("directives") or {}).get("directives") or []) < 20:
         return
-    if not _cache_table():
-        return
-    try:
-        db.execute("""
-            INSERT INTO cache_app (cle, contenu, maj) VALUES (%s, %s::jsonb, now())
-            ON CONFLICT (cle) DO UPDATE SET contenu = EXCLUDED.contenu, maj = now()""",
-                   (_stratop_cle(annee, semestre, segment),
-                    json.dumps(d, ensure_ascii=False, default=str)))
-    except Exception as e:
-        print(f"[strat-op] écriture du cache impossible : {str(e)[:90]}")
+    _cache_ecrire(_stratop_cle(annee, semestre, segment), d)
 
 
 def _stratop_vider():
+    """Vide TOUT le cache calculé — pas seulement la stratégie opérationnelle.
+
+    Chaque entrée de cette table dérive de la base. Une ingestion change la base, donc les
+    rend toutes fausses. N'en effacer qu'une partie reviendrait à laisser des écrans afficher
+    l'état d'avant l'ajout, indéfiniment et sans le signaler : le défaut est d'autant plus
+    pernicieux qu'il ne touche QUE certains écrans, ce qui fait douter des données plutôt que
+    du cache.
+    """
     if not _cache_table():
         return
     try:
-        n = db.execute("DELETE FROM cache_app WHERE cle LIKE 'stratop:%%'")
-        print(f"[cache] stratégie opérationnelle : {n} entrée(s) effacée(s)")
+        n = db.execute("DELETE FROM cache_app")
+        print(f"[cache] {n} entrée(s) de cache effacée(s)")
     except Exception as e:
         print(f"[cache] vidage impossible : {str(e)[:90]}")
 
@@ -4092,10 +4107,21 @@ FORMAT markdown STRICT (squelette à REMPLIR avec TES données — n'imite que l
 
 @app.route("/api/cb_evolutions_all")
 def api_cb_evolutions_all():
-    """Évolution sémantique (nApp/nDis/net) pour toutes les banques — chargé séparément (lent ~13s)."""
+    """Évolution sémantique (nApp/nDis/net) pour toutes les banques.
+
+    MIS EN CACHE EN BASE (2026-08-10). Annoncé « lent ~13s » ; mesuré à 48,7 SECONDES sur le
+    service hébergé, où chaque requête traverse le réseau. C'est le plus long appel restant de
+    l'application, et il alimente le panneau « Évolution sur 3 ans » que le directeur voyait
+    échouer. Le calcul ne dépend que de la base : à données inchangées, il est identique.
+    """
     segment = request.args.get("segment", "Particuliers")
+    cle = f"cb_evolutions_all:{segment}"
+    garde = _cache_lire(cle)
+    if garde is not None:
+        return jsonify(garde)
     try:
         data = AGENTS["CB"].structured.cb_all_evolutions_summary(segment)
+        _cache_ecrire(cle, data)
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
