@@ -335,6 +335,38 @@ function chargementNouvelleVue(){
   _CHARGEMENT.debutVue = Date.now();         // ouvre la fenêtre de chargement initial
 }
 
+/* ── LIMITEUR DE CONCURRENCE (2026-08-10) ────────────────────────────────────────────
+   L'écran « Conditions bancaires » lance TREIZE requêtes d'un coup. Sur une machine
+   ordinaire c'est la bonne façon de faire : elles se recouvrent et l'ensemble va plus vite
+   que la somme. Sur l'instance hébergée, qui dispose d'UN DIXIÈME de processeur, c'est
+   l'inverse — il n'y a pas de parallélisme à exploiter, et treize requêtes se disputent le
+   même dixième en se ralentissant mutuellement.
+
+   La preuve par la mesure : prises une par une, `cb_strat_data` répond en 0,4 s et
+   `cb_prix_competitivite` en 0,5 s ; lancées dans le lot, elles n'étaient toujours pas
+   revenues au bout de vingt secondes. Ce n'est donc pas le serveur qui est lent, c'est la
+   file qui est mal formée.
+
+   Trois à la fois : assez pour couvrir la latence réseau (le temps qu'une réponse revienne
+   d'Europe, deux autres travaillent), pas assez pour saturer le processeur. Les suivantes
+   attendent leur tour au lieu de se marcher dessus.
+
+   Le chat et les rédactions du modèle échappent à la file : elles durent des dizaines de
+   secondes et bloqueraient trois places pour rien. */
+const _MAX_SIMULTANE = 3;
+const _FILE = { actives: 0, attente: [] };
+
+function _prendrePlace(){
+  if(_FILE.actives < _MAX_SIMULTANE){ _FILE.actives++; return Promise.resolve(); }
+  return new Promise(r => _FILE.attente.push(r));
+}
+
+function _rendrePlace(){
+  const suivant = _FILE.attente.shift();
+  if(suivant) suivant();        // la place change de main, `actives` ne bouge pas
+  else _FILE.actives--;
+}
+
 (function installerReprise(){
   const vraiFetch = window.fetch.bind(window);
   // Réveil du service : l'hébergement gratuit s'endort après quinze minutes et répond alors
@@ -349,6 +381,11 @@ function chargementNouvelleVue(){
     const dansLaFenetre = (Date.now() - _CHARGEMENT.debutVue) < _FENETRE_INITIALE;
     const compte = !_ARRIERE_PLAN.test(url) && dansLaFenetre;
     if(compte){ _CHARGEMENT.total++; _CHARGEMENT.dernierMouvement = Date.now(); _ecranEtat(); }
+
+    // Les appels longs (chat, redactions du modele) ne prennent pas de place dans la file :
+    // ils la bloqueraient des dizaines de secondes sans rien apporter aux tableaux.
+    const enFile = !_ARRIERE_PLAN.test(url);
+    if(enFile) await _prendrePlace();
     try{
       let reponse = await vraiFetch(ressource, options);
       /* On ne réessaie que si c'est L'HÉBERGEUR qui parle, pas l'application. Le code seul
@@ -370,6 +407,7 @@ function chargementNouvelleVue(){
     } finally {
       // `finally` et non la ligne d'après : une requête qui échoue doit compter elle aussi,
       // sans quoi le total n'est jamais atteint et l'écran ne part plus.
+      if(enFile) _rendrePlace();
       if(compte){ _CHARGEMENT.faites++; _CHARGEMENT.dernierMouvement = Date.now(); _ecranEtat(); }
     }
   };
