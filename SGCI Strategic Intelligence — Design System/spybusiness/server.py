@@ -1610,20 +1610,32 @@ def api_cb_strat_data():
     annee    = int(request.args.get("annee",    2026))
     semestre = request.args.get("semestre", "S1")
     segment  = request.args.get("segment",  "Particuliers")
-    try:
+    banque   = request.args.get("banque", "SGCI")
+
+    # MIS EN CACHE EN BASE (2026-08-10). C'est l'appel qui porte le contenu de l'écran
+    # « Conditions bancaires » — cinq requêtes, une par axe. Mesuré après un redéploiement,
+    # caches vidés : le texte n'apparaissait qu'à la 24ᵉ seconde. Les @lru_cache qui protègent
+    # ces calculs meurent avec le processus, et l'hébergeur en redémarre un neuf à chaque
+    # réveil comme à chaque mise à jour : le premier visiteur payait tout.
+    cle = f"cb_strat_data:{q_id}:{annee}:{semestre}:{segment}" + (f":{banque}" if q_id == 1 else "")
+
+    def _calculer():
         if q_id == 1:
-            banque = request.args.get("banque", "SGCI")
-            data = {
+            return {
                 "banques":        AGENTS["CB"].structured.cb_analyse_q1(segment),
                 "evolution":      AGENTS["CB"].structured.cb_evolution_details(segment, banque),
                 # evolutions_all chargé séparément via /api/cb_evolutions_all (trop lent pour le bundle Q1)
             }
-        elif q_id == 2: data = AGENTS["CB"].structured.cb_analyse_q2(annee, semestre, segment)
-        elif q_id in (3, 4): data = AGENTS["CB"].structured.cb_analyse_q3(annee, semestre, segment)
-        elif q_id == 5: data = AGENTS["CB"].structured.cb_analyse_q5(annee, semestre, segment)
-        elif q_id == 6: data = AGENTS["CB"].structured.cb_analyse_q6(annee, semestre, segment)
-        else:
+        if q_id == 2:      return AGENTS["CB"].structured.cb_analyse_q2(annee, semestre, segment)
+        if q_id in (3, 4): return AGENTS["CB"].structured.cb_analyse_q3(annee, semestre, segment)
+        if q_id == 5:      return AGENTS["CB"].structured.cb_analyse_q5(annee, semestre, segment)
+        if q_id == 6:      return AGENTS["CB"].structured.cb_analyse_q6(annee, semestre, segment)
+        return None
+
+    try:
+        if q_id not in (1, 2, 3, 4, 5, 6):
             return jsonify({"error": "q invalide (1-6)"}), 400
+        data = servir_avec_cache(cle, _calculer)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     return jsonify(data)

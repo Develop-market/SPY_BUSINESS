@@ -285,7 +285,13 @@ function _ecranEtat(){
         // besoin de savoir QUELS appels traînent.
         clearInterval(_CHARGEMENT.veilleur);
         _CHARGEMENT.veilleur = setInterval(()=>{
-          if(Date.now() - _CHARGEMENT.dernierMouvement > _STAGNATION) _ecranRetirer();
+          // Le veilleur ne ferme QUE si rien n'est en vol. Une requête longue produit
+          // légitimement un long silence : la fermer dessus découvrirait une page vide —
+          // mesuré, l'écran partait à 4 s alors que le contenu arrivait à 24 s.
+          const enVol = _CHARGEMENT.total - _CHARGEMENT.faites;
+          if(enVol <= 0 && Date.now() - _CHARGEMENT.dernierMouvement > _STAGNATION){
+            _ecranRetirer();
+          }
         }, 400);
       }, _DELAI_AVANT_ECRAN);
     }
