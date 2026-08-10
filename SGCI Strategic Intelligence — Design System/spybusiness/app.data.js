@@ -154,6 +154,10 @@ const _CHARGEMENT = {
   veilleur: null,      // surveille l'arrêt de la progression
   dernierMouvement: 0, // horodatage du dernier départ ou retour
   clos: false,         // l'écran a déjà été montré ET retiré pour cette vue
+  // Horodaté DÈS LE CHARGEMENT DU SCRIPT, pas à zéro : au tout premier affichage, `go()`
+  // n'a pas encore été appelé, et une fenêtre ouverte à l'époque 0 serait déjà refermée —
+  // aucune requête ne compterait, et l'écran ne paraîtrait jamais au démarrage.
+  debutVue: Date.now(),
   demarrage: false // vrai quand l'hébergeur répond une page d'attente (service au réveil)
 };
 
@@ -187,8 +191,26 @@ const _FILET_ECRAN = 25000;
 
    RÈGLE : l'écran attend la donnée SANS LAQUELLE la page n'a pas de sens — pas celle qui la
    rend meilleure. */
-const _ARRIERE_PLAN =
-  /\/api\/(chat|approfondir|conv_history|cb_repricing|cb_evolutions_all|cb_justifications|cb_exclusivites_axes|[a-z_0-9]*_llm)/;
+const _ARRIERE_PLAN = /\/api\/(chat|approfondir|conv_history|[a-z_0-9]*_llm)/;
+
+/* FENÊTRE DE CHARGEMENT INITIAL — trois secondes après le changement d'onglet.
+
+   C'est la règle qui a fini par marcher, après deux qui ont échoué :
+
+     — la LISTE d'endpoints d'arrière-plan était sans fin : à peine `cb_repricing` écarté,
+       `cb_rattrapage_depassement` prenait sa place, puis un autre. Elle aurait vieilli au
+       premier endpoint ajouté ;
+     — la STAGNATION (fermer quand rien ne bouge) fermait sur une requête longue, qui produit
+       légitimement un long silence : l'écran partait à 4 s en découvrant une page vide.
+
+   Ce qui distingue vraiment les deux familles n'est ni leur nom ni leur durée, c'est LE MOMENT
+   OÙ ELLES PARTENT. Le contenu principal se demande immédiatement, dans la foulée du rendu ;
+   les enrichissements sont déclenchés ensuite, par le code qui vient d'afficher la page.
+   Trois secondes séparent les deux sans jamais avoir à les nommer.
+
+   Mesuré sur « Conditions bancaires » : contenu complet à 10 s, écran retenu jusqu'à 26 s par
+   un appel d'arrière-plan parti bien après. */
+const _FENETRE_INITIALE = 3000;
 
 function _ecranCreer(){
   if(document.getElementById("sb-chargement")) return;
@@ -310,6 +332,7 @@ function chargementNouvelleVue(){
   _CHARGEMENT.demarrage = false;
   _CHARGEMENT.clos = false;                  // le prochain écran est de nouveau autorisé
   _CHARGEMENT.dernierMouvement = Date.now(); // sinon le veilleur fermerait aussitôt
+  _CHARGEMENT.debutVue = Date.now();         // ouvre la fenêtre de chargement initial
 }
 
 (function installerReprise(){
@@ -323,7 +346,8 @@ function chargementNouvelleVue(){
     const url = typeof ressource === "string" ? ressource : (ressource && ressource.url) || "";
     if(!url.includes("/api/")) return vraiFetch(ressource, options);
 
-    const compte = !_ARRIERE_PLAN.test(url);
+    const dansLaFenetre = (Date.now() - _CHARGEMENT.debutVue) < _FENETRE_INITIALE;
+    const compte = !_ARRIERE_PLAN.test(url) && dansLaFenetre;
     if(compte){ _CHARGEMENT.total++; _CHARGEMENT.dernierMouvement = Date.now(); _ecranEtat(); }
     try{
       let reponse = await vraiFetch(ressource, options);
