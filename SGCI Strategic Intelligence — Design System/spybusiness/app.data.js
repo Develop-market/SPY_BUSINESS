@@ -153,6 +153,7 @@ const _CHARGEMENT = {
   filet: null,
   veilleur: null,      // surveille l'arrêt de la progression
   dernierMouvement: 0, // horodatage du dernier départ ou retour
+  clos: false,         // l'écran a déjà été montré ET retiré pour cette vue
   demarrage: false // vrai quand l'hébergeur répond une page d'attente (service au réveil)
 };
 
@@ -251,6 +252,7 @@ function _ecranRetirer(){
   clearInterval(_CHARGEMENT.veilleur); _CHARGEMENT.veilleur = null;
   const d = document.getElementById("sb-chargement");
   if(!d) return;
+  _CHARGEMENT.clos = true;      // il ne reviendra pas avant le prochain changement d'onglet
   // On termine à 100 % avant de disparaître : un écran qui s'efface à 78 % laisse penser
   // qu'il manque quelque chose.
   _CHARGEMENT.taux = 100; _ecranMaj();
@@ -260,6 +262,13 @@ function _ecranRetirer(){
 }
 
 function _ecranEtat(){
+  /* UN SEUL ÉCRAN PAR NAVIGATION. Mesuré : l'écran se retirait bien à 6 secondes, puis
+     REVENAIT à 8, 10 et 22 secondes. Les enrichissements d'arrière-plan continuent en effet
+     de partir longtemps après que la page est lisible, et chaque départ replaçait le compteur
+     en situation « inachevé ». L'utilisateur voyait donc sa page clignoter sous un voile
+     alors qu'elle était complète — une impression de fragilité pire que l'attente initiale.
+     Une fois l'écran retiré pour une vue, il ne revient qu'au prochain changement d'onglet. */
+  if(_CHARGEMENT.clos) return;
   if(_CHARGEMENT.total > 0 && _CHARGEMENT.faites < _CHARGEMENT.total){
     const brut = 100 * _CHARGEMENT.faites / _CHARGEMENT.total;
     // Jamais en arrière : le total grandit quand une réponse en déclenche d'autres, et un
@@ -293,6 +302,8 @@ function chargementNouvelleVue(){
   _CHARGEMENT.faites = 0;
   _CHARGEMENT.taux = 0;
   _CHARGEMENT.demarrage = false;
+  _CHARGEMENT.clos = false;                  // le prochain écran est de nouveau autorisé
+  _CHARGEMENT.dernierMouvement = Date.now(); // sinon le veilleur fermerait aussitôt
 }
 
 (function installerReprise(){
