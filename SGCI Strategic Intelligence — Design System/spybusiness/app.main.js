@@ -5382,6 +5382,18 @@ ${_v3sec('1','#378ADD',"Qu'est-ce qui a globalement changé sur 3 ans ?","Catalo
 // ── Formatage riche des analyses LLM ────────────────────────────────────────
 const _BANKS_RE=new RegExp('\\b(BICICI|SIB|ECOBANK|BNI|NSIA|BACI|SGCI)\\b','g');
 const _llmPfx='';
+
+/* MENTION D'UNE RÉDACTION DE SECOURS (2026-08-10).
+   Quand le quota du modèle est épuisé, le serveur rédige lui-même à partir des données. Le
+   texte est juste — il est calculé sur les mêmes chiffres — mais plus sec. On le dit au
+   lecteur : faire passer une rédaction de secours pour l'analyse complète serait le tromper
+   sur ce qu'il lit, et c'est le genre de silence qui se paie en soutenance. */
+function _mentionSecours(d){
+  if(!d || d.source !== 'deterministe') return '';
+  return `<div style="margin-bottom:7px;padding:5px 9px;border-left:2px solid #B45309;
+    background:#B4530914;border-radius:0 5px 5px 0;font:600 10.5px/1.45 var(--sans);
+    color:var(--muted)">${_soEsc(d.mention || 'Rédaction automatique à partir des données.')}</div>`;
+}
 // Un montant brut (10 625 000 F) n'est pas toujours un prix ferme — la grille tarifaire porte
 // parfois un plafond/plancher (« <= 10 625 000 Fcfa Forfait ») que la seule colonne `montant`
 // ne montre pas. Repéré le 2026-07-28 (directeur) : le badge affichait "10 625 000 F" à côté
@@ -5591,7 +5603,7 @@ async function _fireQ1LLM(){
       const res=await fetch('/api/cb_q1_llm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...rankPayload,scope:'ranking'})});
       if(!res.ok)throw new Error('HTTP '+res.status);
       const d=await res.json();
-      if(d.analyse){rankDiv.dataset.loaded='1';rankDiv.innerHTML=_llmPfx+_fmtAnalyse(d.analyse);}
+      if(d.analyse){rankDiv.dataset.loaded='1';rankDiv.innerHTML=_mentionSecours(d)+_llmPfx+_fmtAnalyse(d.analyse);}
       else{rankDiv.innerHTML='';}
       _showStaleBadge('cb-q1-rank-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
     }catch(e){rankDiv.innerHTML='';}
@@ -5608,7 +5620,7 @@ async function _fireQ1LLM(){
     const res=await fetch('/api/cb_q1_llm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,scope:'synthesis'})});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const d=await res.json();
-    if(d.analyse){div.dataset.loaded='1';div.innerHTML=_llmPfx+_fmtAnalyse(d.analyse);}
+    if(d.analyse){div.dataset.loaded='1';div.innerHTML=_mentionSecours(d)+_llmPfx+_fmtAnalyse(d.analyse);}
     else{div.innerHTML='';}
     _showStaleBadge('cb-q1-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
   }catch(e){div.innerHTML='';}
@@ -5622,7 +5634,7 @@ async function _fireQ1RepricingLLM(){
     const res=await fetch('/api/cb_q1_repricing_llm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const d=await res.json();
-    if(d.analyse){div.dataset.loaded='1';div.innerHTML=_llmPfx+_fmtAnalyse(d.analyse);}
+    if(d.analyse){div.dataset.loaded='1';div.innerHTML=_mentionSecours(d)+_llmPfx+_fmtAnalyse(d.analyse);}
     else{div.innerHTML='';}
     _showStaleBadge('cb-q1-repricing-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
   }catch(e){div.innerHTML='';}
@@ -5636,7 +5648,7 @@ async function _fireQ1RetraitLLM(){
     const res=await fetch('/api/cb_q1_retrait_llm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const d=await res.json();
-    if(d.analyse){div.dataset.loaded='1';div.innerHTML=_llmPfx+_fmtAnalyse(d.analyse);}
+    if(d.analyse){div.dataset.loaded='1';div.innerHTML=_mentionSecours(d)+_llmPfx+_fmtAnalyse(d.analyse);}
     else{div.innerHTML='';}
     _showStaleBadge('cb-q1-retrait-llm-stale-badge', {stale:d.stale, generated_at:d.generated_at});
   }catch(e){div.innerHTML='';}

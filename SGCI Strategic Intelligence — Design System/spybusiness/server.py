@@ -4748,6 +4748,28 @@ Commence directement. Sois précis et nominatif."""
 
     if result.get("analyse"):
         return jsonify({"analyse": result["analyse"], "source": result.get("source","groq")})
+
+    # ── RÉDACTION DE SECOURS (2026-08-10) ────────────────────────────────────────────
+    # Jusqu'ici on rendait 503, et le front VIDAIT le bloc : l'utilisateur voyait un trou à
+    # l'endroit d'une analyse, sans rien qui l'explique. Un jour de quota épuisé, l'application
+    # paraissait cassée alors que tous ses chiffres étaient là.
+    #
+    # On rédige donc à partir des MÊMES faits que ceux envoyés au modèle. Ce n'est pas une
+    # phrase toute faite : elle est calculée, donc elle change avec les données — si SGCI
+    # passe du cinquième au troisième rang, le texte le dit sans qu'on y touche.
+    try:
+        import redaction_secours as _sec
+        if scope == "ranking":
+            texte = _sec.q1_classement(body.get("allBanks") or [], segment, period)
+        else:
+            texte = _sec.q1_synthese(n_app, n_dis, n_h, n_b,
+                                     body.get("apparus") or [],
+                                     body.get("mktContext") or [], segment)
+        if texte:
+            return jsonify({"analyse": texte, "source": "deterministe",
+                            "mention": _sec.MENTION})
+    except Exception as e:
+        print("[secours] q1 :", str(e)[:160])
     return jsonify({"analyse": None, "error": result.get("error")}), 503
 
 
