@@ -6824,6 +6824,9 @@ def ajout_logo():
 # reste vide, _strat_build_load() recharge le fichier disque, et l'application sert alors
 # SILENCIEUSEMENT des analyses périmées. En production, personne ne s'en apercevrait.
 _PRECHAUFFAGE_LANCE = False
+# Pause entre deux calculs lourds du préchauffage, pour laisser passer les requêtes des
+# utilisateurs. Réglable : 0 sur une machine puissante, davantage sur une instance bridée.
+_PAUSE_WARM = float(os.getenv("PAUSE_PRECHAUFFAGE", "2"))
 
 
 def demarrer_prechauffage():
@@ -6833,6 +6836,9 @@ def demarrer_prechauffage():
         return
     _PRECHAUFFAGE_LANCE = True
     import threading
+    import time      # `time` n'est pas importé au niveau du module : sans cette ligne, la
+                     # pause entre calculs lèverait NameError et tuerait le fil de
+                     # préchauffage — silencieusement, puisqu'il tourne en arrière-plan.
     def _warm():
         # 1) Évolutions sémantiques (~13s)
         for seg in ("Particuliers", "Entreprises"):
@@ -6853,9 +6859,30 @@ def demarrer_prechauffage():
                 AGENTS["CB"].structured.cb_evolution_details(seg, "SGCI")
             except Exception:
                 pass
-        # 3) Bundle des axes + prix — combinaisons les plus utilisées (15-30s chacune)
-        for annee in (2026, 2025, 2024):
-            for sem in ("S1", "S2"):
+        # 3) Bundle des axes + prix — 15 à 30 secondes CHACUN.
+        #
+        # PÉRIODE COURANTE SEULEMENT PAR DÉFAUT (2026-08-10). Ce préchauffage balayait trois
+        # années et deux semestres, soit DOUZE combinaisons : jusqu'à six minutes de calcul
+        # continu. Sur une machine de bureau, c'est du temps mort pendant qu'on va chercher un
+        # café. Sur l'instance hébergée, qui dispose d'un dixième de processeur, il sature ce
+        # dixième et TOUTES les requêtes attendent derrière — y compris celles de la personne
+        # qui vient de réveiller le service, et qui est la seule à regarder.
+        #
+        # C'est ce que le directeur constatait : « les données durent avant de s'afficher, et
+        # pourtant c'est en cache ». Le cache était bien là ; c'est le préchauffage qui prenait
+        # toute la machine pour remplir des périodes que personne ne consultait.
+        #
+        # On ne garde donc que la période affichée par défaut. Les périodes anciennes se
+        # calculent à la demande, une fois, quand quelqu'un les ouvre vraiment. Le balayage
+        # complet reste disponible par PRECHAUFFAGE_COMPLET=1, pour une machine qui en a les
+        # moyens.
+        complet = bool(os.getenv("PRECHAUFFAGE_COMPLET"))
+        annees = (2026, 2025, 2024) if complet else (2026,)
+        semestres = ("S1", "S2") if complet else ("S1",)
+        print(f"[cache] préchauffage {'complet' if complet else 'de la période courante'} : "
+              f"{len(annees) * len(semestres) * 2} combinaison(s)")
+        for annee in annees:
+            for sem in semestres:
                 for seg in ("Particuliers", "Entreprises"):
                     try:
                         AGENTS["CB"].structured.cb_analyse_q2(annee, sem, seg)
@@ -6868,6 +6895,12 @@ def demarrer_prechauffage():
                         print(f"[cache] bundle({annee},{sem},{seg}) → {n} services")
                     except Exception as e:
                         print(f"[cache] warm échoué bundle ({annee},{sem},{seg}): {e}")
+                    # Respiration entre deux calculs lourds. Sans elle, le fil de préchauffage
+                    # tient le processeur d'un bout à l'autre : sur une instance à un dixième
+                    # de cœur, la requête d'un utilisateur attend la fin du calcul en cours au
+                    # lieu de s'y intercaler. Deux secondes de pause coûtent quelques secondes
+                    # au préchauffage et rendent l'application utilisable pendant ce temps.
+                    time.sleep(_PAUSE_WARM)
         # 4) Stratégie (Niveau 3 du RAG) — pré-remplit _STRAT_CACHE → affichage instantané
         for seg in ("Particuliers", "Entreprises"):
             try:
