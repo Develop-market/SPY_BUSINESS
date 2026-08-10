@@ -2483,11 +2483,13 @@ async function _stratLoad(){
     if(d.error) throw new Error(d.error);
     root.innerHTML = _renderStrategie(d);
     _VRIST_DATA = d.vrist || {};
+    // Onglets armés DANS LA FOULÉE du rendu, pas dans le setTimeout qui suit : autrement les
+    // huit sections apparaissent ensemble avant de se replier, et l'œil voit un sursaut.
+    try{ _paneInit('strat',['st-essentiel','st-revel','st-conc','st-vrist','st-swot','st-pestel','st-plan','st-proj']); }catch(e){}
     setTimeout(()=>{
       try{ var _vc=(_VRIST_DATA.ordre||[]).filter(b=>b!=='SGCI'); setVristComp(_vc[0]||"BICICI"); }catch(e){}
       try{ _stratCharts(d); }catch(e){}
       try{ _stratProjScenarioCharts(d); }catch(e){}
-      try{ _paneInit('strat',['st-essentiel','st-revel','st-conc','st-vrist','st-swot','st-pestel','st-plan','st-proj']); }catch(e){}
     }, 40);
     _stratLLM();
     try{ _loadStratNarr(d.segment||'Particuliers'); }catch(e){}
@@ -7697,6 +7699,19 @@ async function _loadAndRenderCB(){
   <div id="cb-conclusion-content" style="margin-top:8px"></div>
   </div>`;
 
+  /* MODE ONGLETS ARMÉ TOUT DE SUITE (2026-08-10, signalé par le directeur : « au chargement
+     tous les onglets sont affichés sur une page »).
+
+     _paneInit était appelé APRÈS le chargement des cinq sections. Pendant toute la durée des
+     requêtes — plusieurs secondes, davantage sur l'instance hébergée — les cinq sections
+     restaient donc visibles l'une sous l'autre, chacune avec son « Chargement… ». On voyait
+     une longue page qui se remplissait par morceaux, puis qui se repliait brutalement sur un
+     seul onglet. D'où l'impression d'une navigation lente et d'un affichage désordonné.
+
+     Armé AVANT les requêtes, on ne voit qu'une section, celle du premier onglet, et son
+     chargement. C'est la même durée, mais elle se lit. */
+  _paneInit('cb', ['cb-ax-1','cb-ax-2','cb-ax-3','cb-ax-5','cb-ax-6']);
+
   // Fetch données SQL (sans LLM) en parallèle
   const fetchData=async(qId)=>{
     const key=qId<=2?`${qId}_${CB_SEG}`:`${qId}_${CB_YEAR}_${CB_SEM}_${CB_SEG}`;
@@ -7721,7 +7736,14 @@ async function _loadAndRenderCB(){
       const srcId=qId===2?1:qId;
       const data=await fetchData(srcId);
       if(!_cbAlive(myTok))return;           // filtre changé entre-temps → on abandonne
+      // ON NE PEUT PLUS EFFACER TOUT LE STYLE ICI. Le mode onglets est désormais armé AVANT
+      // les requêtes : chaque section masquée porte un « display:none » posé par _paneShow.
+      // Un removeAttribute('style') l'emportait avec le reste, et la section réapparaissait
+      // au moment précis où elle finissait de charger — les cinq se rallumaient donc une à
+      // une, ce qui annulait exactement ce qu'on venait de corriger.
+      const _garde = el.style.display;
       el.removeAttribute("style");
+      if(_garde) el.style.display = _garde;
       el.innerHTML=renderers[qId-1](data)+_cbIAButton(qId);
       if(qId===1){_fireQ1LLM();setTimeout(()=>{try{_renderEvolutionTemporelle();}catch(e){}},30);}
       if(qId===2)setTimeout(()=>{try{_renderRattrapage();}catch(e){}},40);

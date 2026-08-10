@@ -137,6 +137,74 @@ let APERCU_FILTERS = {
 
    On ne réessaie QUE sur 502/503/504, jamais sur 401, 403 ou 500 : ceux-là sont des réponses
    de l'application, elles ne changeront pas en insistant. */
+/* ── VOILE DE CHARGEMENT (2026-08-10) ────────────────────────────────────────────────
+   Demande du directeur : « on met un message genre chargement des données avec cercle de
+   progression, qui s'affiche tant que toutes les données ne sont pas affichées ».
+
+   Le compteur est un NOMBRE D'APPELS EN COURS, pas un drapeau : plusieurs requêtes partent
+   ensemble, et un simple booléen serait remis à faux par la PREMIÈRE qui revient, laissant
+   l'utilisateur devant une page encore vide sans plus rien qui tourne.
+
+   Le voile n'apparaît qu'au bout de 350 ms. En dessous, une donnée en cache revient si vite
+   que le voile clignoterait — un scintillement à chaque clic donne une impression de fragilité
+   pire que l'attente qu'il prétend couvrir. */
+const _CHARGEMENT = { enCours: 0, minuteur: null, plafond: null };
+
+/* PLAFOND DE HUIT SECONDES. Mesuré : sur Conditions bancaires, le voile tenait quarante-deux
+   secondes — non pas à cause d'une requête longue (la plus lente faisait six secondes) mais
+   parce que les requêtes s'ENCHAÎNENT : le compteur ne retombe jamais à zéro, chaque appel
+   qui se termine étant relayé par le suivant. Or les tableaux, eux, sont à l'écran depuis
+   longtemps ; ce qui continue d'arriver enrichit les marges.
+   Un voile qui survit au contenu qu'il masque est pire que pas de voile du tout : il cache
+   une page prête et fait croire à un blocage. On le retire donc au bout de huit secondes,
+   quoi qu'il reste en vol. */
+const _PLAFOND_VOILE = 8000;
+
+function _voileMaj(){
+  const actif = _CHARGEMENT.enCours > 0;
+  let v = document.getElementById("sb-voile");
+  if(actif && !v){
+    if(_CHARGEMENT.minuteur) return;
+    _CHARGEMENT.minuteur = setTimeout(()=>{
+      _CHARGEMENT.minuteur = null;
+      if(_CHARGEMENT.enCours <= 0 || document.getElementById("sb-voile")) return;
+      const d = document.createElement("div");
+      d.id = "sb-voile";
+      d.style.cssText = "position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;"
+        + "align-items:center;justify-content:center;gap:16px;pointer-events:none;"
+        + "background:color-mix(in srgb, var(--bg-deep, #0B1220) 62%, transparent);"
+        + "backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
+      d.innerHTML = '<div style="width:46px;height:46px;border-radius:50%;'
+        + 'border:3px solid color-mix(in srgb, var(--accent-2, #E31C23) 25%, transparent);'
+        + 'border-top-color:var(--accent-2, #E31C23);animation:sbTourne .8s linear infinite"></div>'
+        + '<div style="font:600 13px var(--sans, system-ui);color:var(--ink, #fff);letter-spacing:.02em">'
+        + 'Chargement des données…</div>'
+        + '<div id="sb-voile-n" style="font:500 11.5px var(--sans, system-ui);color:var(--muted, #93A6C0)"></div>';
+      document.body.appendChild(d);
+      if(!document.getElementById("sb-voile-css")){
+        const s = document.createElement("style");
+        s.id = "sb-voile-css";
+        s.textContent = "@keyframes sbTourne{to{transform:rotate(360deg)}}";
+        document.head.appendChild(s);
+      }
+      clearTimeout(_CHARGEMENT.plafond);
+      _CHARGEMENT.plafond = setTimeout(()=>{
+        const e = document.getElementById("sb-voile");
+        if(e) e.remove();
+      }, _PLAFOND_VOILE);
+    }, 350);
+  }
+  if(!actif){
+    clearTimeout(_CHARGEMENT.minuteur); _CHARGEMENT.minuteur = null;
+    clearTimeout(_CHARGEMENT.plafond); _CHARGEMENT.plafond = null;
+    if(v) v.remove();
+  } else if(v){
+    const n = document.getElementById("sb-voile-n");
+    if(n) n.textContent = _CHARGEMENT.enCours > 1
+      ? `${_CHARGEMENT.enCours} requêtes en cours` : "1 requête en cours";
+  }
+}
+
 (function installerReprise(){
   const vraiFetch = window.fetch.bind(window);
   const ATTENTES = [1500, 3000, 6000, 10000, 15000];   // ~35 s au total
@@ -156,16 +224,39 @@ let APERCU_FILTERS = {
   window.fetch = async function(ressource, options){
     const url = typeof ressource === "string" ? ressource : (ressource && ressource.url) || "";
     const surveille = url.includes("/api/");
-    let reponse = await vraiFetch(ressource, options);
-    if(!surveille) return reponse;
+    if(!surveille) return vraiFetch(ressource, options);
 
-    for(let i = 0; i < ATTENTES.length && [502,503,504].includes(reponse.status); i++){
-      bandeau(true);
-      await new Promise(r => setTimeout(r, ATTENTES[i]));
-      try{ reponse = await vraiFetch(ressource, options); }catch(e){ /* on retente */ }
+    /* CE QUI NE COMPTE PAS DANS LE VOILE. Le chat et les enrichissements rédigés par le
+       modèle de langage répondent en dizaines de secondes et ne portent aucun chiffre : les
+       tableaux, eux, sont déjà à l'écran. Les inclure retiendrait le voile bien après que
+       tout soit lisible — l'inverse exact du but. Chacun affiche déjà sa propre attente. */
+    const compte = !/\/api\/(chat|.*_llm|approfondir|conv_history)/.test(url);
+    if(compte){ _CHARGEMENT.enCours++; _voileMaj(); }
+    try{
+      let reponse = await vraiFetch(ressource, options);
+      /* ON NE RÉESSAIE QUE SI C'EST L'HÉBERGEUR QUI PARLE, PAS L'APPLICATION.
+         Le code seul ne suffit pas à les distinguer : l'application répond elle aussi 503
+         quand le quota du modèle de langage est épuisé — c'est une réponse définitive, et
+         insister cinq fois faisait patienter l'utilisateur trente-cinq secondes pour rien.
+         La page d'attente de l'hébergeur, elle, est du HTML. Le type de contenu tranche. */
+      const estDeLHebergeur = (r) => {
+        if(![502,503,504].includes(r.status)) return false;
+        const t = (r.headers.get("content-type") || "").toLowerCase();
+        return !t.includes("json");
+      };
+      for(let i = 0; i < ATTENTES.length && estDeLHebergeur(reponse); i++){
+        bandeau(true);
+        await new Promise(r => setTimeout(r, ATTENTES[i]));
+        try{ reponse = await vraiFetch(ressource, options); }catch(e){ /* on retente */ }
+      }
+      bandeau(false);
+      return reponse;
+    } finally {
+      // `finally` et pas la ligne d'après : une requête qui échoue doit décrémenter elle
+      // aussi, sans quoi le compteur ne redescend jamais à zéro et le voile reste à l'écran
+      // pour toujours — une panne bien plus visible que celle qu'il masquait.
+      if(compte){ _CHARGEMENT.enCours--; _voileMaj(); }
     }
-    bandeau(false);
-    return reponse;
   };
 })();
 
