@@ -423,6 +423,18 @@ def api_strategie_operationnelle():
     annee    = int(request.args.get("annee", 2026))
     semestre = (request.args.get("semestre") or "S1").strip()
     segment  = (request.args.get("segment") or "Particuliers").strip()
+
+    # RÉPONSE SERVIE DEPUIS LE DISQUE QUAND ELLE EXISTE (2026-08-10).
+    # Mesuré sur le service hébergé : 162 secondes au premier appel, 6 au second. Le cache
+    # mémoire fonctionne donc — mais l'offre gratuite endort le service après quinze minutes
+    # d'inactivité, et au réveil le processus repart à vide. La requête de l'utilisateur double
+    # alors le fil de préchauffage et paie le calcul complet. Autrement dit : le cache mémoire
+    # ne sert JAMAIS le premier visiteur, qui est précisément celui qu'il fallait servir.
+    # Sur disque, il survit au redémarrage.
+    depuis_disque = _stratop_lire(annee, semestre, segment)
+    if depuis_disque is not None:
+        return jsonify(depuis_disque)
+
     try:
         import strategie_operationnelle as _so
         d = _so.dossiers(annee, semestre, segment)
@@ -578,7 +590,52 @@ RÈGLES ABSOLUES :
         import traceback as _tb
         print("[strat-op] directives :", _tb.format_exc()[:500])
         d["directives"] = {"directives": [], "erreur": str(e)[:200]}
+    _stratop_ecrire(annee, semestre, segment, d)
     return jsonify(d)
+
+
+# ── PERSISTANCE DE L'ONGLET STRATÉGIE OPÉRATIONNELLE ─────────────────────────────────
+# Un fichier par (année, semestre, segment), à côté des autres caches. Le contenu est
+# entièrement calculé à partir de la base : à données inchangées il est identique, donc le
+# conserver ne fait courir aucun risque de servir une analyse « inventée » périmée. Il est
+# effacé à chaque ingestion et à chaque rafraîchissement, comme les autres.
+_STRATOP_DIR = os.path.join(DOSSIER_CACHE, "stratop")
+
+
+def _stratop_fichier(annee, semestre, segment):
+    return os.path.join(_STRATOP_DIR, f"{annee}_{semestre}_{segment}.json".replace("/", "_"))
+
+
+def _stratop_lire(annee, semestre, segment):
+    f = _stratop_fichier(annee, semestre, segment)
+    try:
+        if os.path.isfile(f):
+            with open(f, encoding="utf-8") as fh:
+                return json.load(fh)
+    except Exception as e:
+        print(f"[strat-op] cache disque illisible ({str(e)[:70]}) — recalcul")
+    return None
+
+
+def _stratop_ecrire(annee, semestre, segment, d):
+    # On n'enregistre pas un résultat incomplet : servir indéfiniment une page amputée serait
+    # pire que la recalculer. Vingt directives ou rien.
+    if len(((d or {}).get("directives") or {}).get("directives") or []) < 20:
+        return
+    try:
+        os.makedirs(_STRATOP_DIR, exist_ok=True)
+        with open(_stratop_fichier(annee, semestre, segment), "w", encoding="utf-8") as fh:
+            json.dump(d, fh, ensure_ascii=False, default=str)
+    except Exception as e:
+        print(f"[strat-op] écriture du cache disque impossible : {str(e)[:90]}")
+
+
+def _stratop_vider():
+    import shutil
+    try:
+        shutil.rmtree(_STRATOP_DIR, ignore_errors=True)
+    except Exception:
+        pass
 
 
 # ── CACHE DES DIRECTIVES (2026-08-09, pour l'hébergement) ────────────────────────────
@@ -6404,8 +6461,10 @@ def _refresh_analyses_job(job_id, section):
     # Les directives sont calculées à partir de la base : de nouvelles données les changent.
     # Sans ce vidage, l'écran « Stratégie opérationnelle » aurait continué de servir les cartes
     # d'avant l'ingestion, indéfiniment et sans le dire — le défaut même que le cache de
-    # Stratégie avait connu et qu'on avait mis une semaine à voir.
+    # Stratégie avait connu et qu'on avait mis une semaine à voir. Le fichier disque doit
+    # partir avec la mémoire, sinon il ressusciterait l'ancienne version au redémarrage.
     _SO_DIRECTIVES.clear()
+    _stratop_vider()
 
     client = app.test_client()
     warmed, failed = [], []
@@ -6783,16 +6842,23 @@ def demarrer_prechauffage():
                 print(f"[cache] strategie({seg}) OK")
             except Exception as e:
                 print(f"[cache] warm échoué strategie({seg}): {e}")
-        # 5) Directives par direction — LE PLUS LOURD DE TOUS. Mesuré sur la base hébergée :
-        #    495 secondes pour les composer, faute de latence locale. Les calculer ICI, dans le
-        #    fil de préchauffage, plutôt qu'au premier clic, est la différence entre une page
-        #    qui s'affiche et un serveur qui tue sa propre requête au bout du délai imparti.
+        # 5) Stratégie opérationnelle — LE PLUS LOURD DE TOUS. Mesuré sur le service hébergé :
+        #    162 secondes au premier appel, 6 au second. On passe par l'ENDPOINT plutôt que par
+        #    la seule fonction de directives, pour que le fichier disque soit écrit : sans lui,
+        #    le prochain réveil du service recommencerait tout, et c'est le premier visiteur
+        #    qui paierait — celui qu'il fallait servir.
+        _client_warm = app.test_client()
         for seg in ("Particuliers", "Entreprises"):
             try:
-                n = len(_directives_en_cache(seg).get("directives", []))
-                print(f"[cache] directives({seg}) → {n} cartes")
+                if _stratop_lire(2026, "S1", seg) is not None:
+                    print(f"[cache] strat-op({seg}) déjà sur disque")
+                    continue
+                r = _client_warm.get("/api/strategie_operationnelle?annee=2026"
+                                     f"&semestre=S1&segment={seg}")
+                n = len((r.get_json() or {}).get("directives", {}).get("directives", []))
+                print(f"[cache] strat-op({seg}) → {n} directives, persistées")
             except Exception as e:
-                print(f"[cache] warm échoué directives({seg}): {e}")
+                print(f"[cache] warm échoué strat-op({seg}): {e}")
         # PERSISTE sur disque ce qui vient d'être reconstruit frais — sans ce _strat_build_persist(),
         # le fichier disque restait figé indéfiniment (trouvé le 2026-07-14 : dernier vécu le
         # 2026-07-07, une semaine avant la correction du bug de fenêtre glissante EF is_primary).

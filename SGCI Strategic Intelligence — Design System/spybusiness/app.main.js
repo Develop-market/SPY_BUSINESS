@@ -3934,6 +3934,17 @@ async function askRAG(q){
       headers:{"Content-Type":"application/json"},
       body: JSON.stringify({question:q, conv_id: CUR_CONV}),
     });
+    // UN REFUS DE DROITS N'EST PAS UNE PANNE (2026-08-10, signalé par le directeur).
+    // Un compte sans accès à l'assistant recevait « Erreur de connexion au RAG » — un message
+    // qui décrit une avarie technique là où le serveur a simplement, et correctement, refusé.
+    // L'utilisateur croyait l'application cassée ; l'administrateur aussi.
+    if(res.status === 403){
+      return "**Vous n'avez pas accès à ce service.**\n\nL'assistant conversationnel n'est pas "
+           + "activé sur votre compte. Adressez-vous à l'administrateur si vous en avez besoin.";
+    }
+    if(res.status === 401){
+      return "**Votre session a expiré.** Reconnectez-vous pour continuer.";
+    }
     const data = await res.json();
     return data.reponse || "Erreur de connexion au RAG.";
   } catch(e){
@@ -8680,22 +8691,44 @@ function _gateUnlock(){
   _bootApp();
 }
 
+/* PAGE D'ARRIVÉE = UNE PAGE AUTORISÉE (2026-08-10, signalé par le directeur : « si je dis
+   marketing a accès uniquement à conditions de banques, dès que je me connecte je dois être
+   sur conditions de banque »).
+
+   L'application ouvrait sur « apercu », ou sur la dernière page mémorisée, sans jamais
+   vérifier que le compte y avait droit. Un profil restreint atterrissait donc sur un écran
+   absent de son menu : il voyait une page vide, ou — vu en production — la page Chat, qui
+   affichait « Erreur de connexion au RAG » parce que le serveur refusait l'appel. Le premier
+   contact avec l'application était un message d'erreur, pour un refus de droits parfaitement
+   normal.
+
+   On choisit donc la première page à laquelle le compte a droit, dans l'ordre du menu. */
+function _pageDArrivee(){
+  const memorisee = localStorage.getItem("sb-page");
+  const u = SB_UTILISATEUR;
+  const permise = (p) => {
+    if(!PAGES[p]) return false;
+    if(!u || u.role === "admin") return true;
+    const section = SECTION_DE_PAGE[p];
+    return !section || (u.droits || []).includes(section);
+  };
+  if(memorisee && permise(memorisee)) return memorisee;
+  // Ordre du menu, pour que l'arrivée corresponde à ce que l'utilisateur voit en premier.
+  return ["apercu","cb","strategie","stratop","analyse","chat"].find(permise) || "apercu";
+}
+
 function _bootApp(){
+  const demarrer = ()=>{
+    _appliquerDroits();
+    initChrome();
+    document.getElementById("burger").onclick = toggleNav;
+    go(_pageDArrivee());
+  };
   loadAll()
-    .then(()=> {
-      _appliquerDroits();
-      initChrome();
-      document.getElementById("burger").onclick = toggleNav;
-      go(localStorage.getItem("sb-page") || "apercu");
-    })
-    .catch(()=>{
-      // Les droits s'appliquent aussi quand le chargement échoue : un menu complet sur une
-      // application en panne laisserait croire que tout est accessible.
-      _appliquerDroits();
-      initChrome();
-      document.getElementById("burger").onclick = toggleNav;
-      go(localStorage.getItem("sb-page") || "apercu");
-    });
+    .then(demarrer)
+    // Les droits s'appliquent aussi quand le chargement échoue : un menu complet sur une
+    // application en panne laisserait croire que tout est accessible.
+    .catch(demarrer);
   _checkLlmStatus();
   setInterval(_checkLlmStatus, 90000);   // ré-affiche/masque le bandeau si l'état change en cours de session
   // Masque "Ajouter des données" sur les environnements où le pipeline d'extraction n'est pas embarqué (ex. cloud allégé).
@@ -9086,6 +9119,15 @@ function _appliquerDroits(){
     const n = document.getElementById(id);
     if(n && !droits.includes("ajout")) n.style.display = "none";
   });
+  // Le bouton flottant et la barre de recherche mènent tous deux à l'assistant. Les laisser
+  // visibles à un compte qui n'y a pas droit, c'est proposer une porte qui se ferme au nez :
+  // le serveur refuse (403), et l'utilisateur ne comprend pas pourquoi on la lui montrait.
+  if(!droits.includes("chat")){
+    const fab = document.querySelector(".fab");
+    if(fab) fab.style.display = "none";
+    const rech = document.querySelector(".search");
+    if(rech) rech.style.display = "none";
+  }
 }
 
 async function _deconnexion(){
