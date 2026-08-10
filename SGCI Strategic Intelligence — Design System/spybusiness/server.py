@@ -2193,12 +2193,26 @@ def api_cb_repricing():
     annee    = int(request.args.get("annee",    2026))
     semestre = request.args.get("semestre", "S1")
     segment  = request.args.get("segment",  "Particuliers")
+
+    # MIS EN CACHE EN BASE LE 2026-08-10. La docstring ci-dessus dit « servi instantanément
+    # ensuite » : c'était vrai des seuls VERDICTS rédigés, stockés dans un fichier. Les faits
+    # déterministes, eux, étaient recalculés à chaque appel — mesuré à 48,7 s puis 47,2 s sur
+    # le service en ligne, deux appels de suite. C'est le plus long appel restant de
+    # l'application, et il bloquait l'écran « Conditions bancaires » jusqu'au filet de 25 s.
+    cle = f"cb_repricing:{annee}:{semestre}:{segment}"
+    garde = _cache_lire(cle)
+    if garde is not None:
+        return jsonify(garde)
     try:
         sections, recap, engine, n_actions = _repricing_build(annee, semestre, segment)
     except Exception as e:
         import traceback; traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-    return jsonify({"sections": sections, "recap": recap, "engine": engine, "n_actions": n_actions})
+    charge = {"sections": sections, "recap": recap, "engine": engine, "n_actions": n_actions}
+    # On n'enregistre pas une réponse vide : la resservir indéfiniment masquerait une panne.
+    if sections:
+        _cache_ecrire(cle, charge)
+    return jsonify(charge)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -6982,6 +6996,20 @@ def demarrer_prechauffage():
                 print(f"[cache] strat-op({seg}) → {n} directives, persistées")
             except Exception as e:
                 print(f"[cache] warm échoué strat-op({seg}): {e}")
+        # 6) Repositionnement tarifaire — 48 secondes mesurées sur le service en ligne, à
+        #    chaque appel. Le calculer ici plutôt qu'au premier clic évite qu'un visiteur
+        #    attende trois quarts de minute sur l'écran « Conditions bancaires ».
+        for seg in ("Particuliers", "Entreprises"):
+            try:
+                if _cache_lire(f"cb_repricing:2026:S1:{seg}") is not None:
+                    print(f"[cache] repricing({seg}) déjà en base")
+                    continue
+                r = _client_warm.get(f"/api/cb_repricing?annee=2026&semestre=S1&segment={seg}")
+                n = (r.get_json() or {}).get("n_actions")
+                print(f"[cache] repricing({seg}) → {n} action(s), persistées")
+            except Exception as e:
+                print(f"[cache] warm échoué repricing({seg}): {e}")
+            time.sleep(_PAUSE_WARM)
         # PERSISTE sur disque ce qui vient d'être reconstruit frais — sans ce _strat_build_persist(),
         # le fichier disque restait figé indéfiniment (trouvé le 2026-07-14 : dernier vécu le
         # 2026-07-07, une semaine avant la correction du bug de fenêtre glissante EF is_primary).

@@ -157,6 +157,24 @@ const _CHARGEMENT = {
 const _DELAI_AVANT_ECRAN = 300;    // en dessous, une donnée en cache ferait clignoter l'écran
 const _FILET_ECRAN = 25000;
 
+/* CE QUE L'ÉCRAN DE CHARGEMENT N'ATTEND PAS.
+   Mesuré sur le service en ligne, écran « Conditions bancaires » : le compteur restait bloqué
+   à 18 sur 20 et l'écran ne partait qu'au filet de 25 secondes — alors que le contenu était
+   lisible dès la quatrième. Deux appels ne revenaient pas dans l'intervalle : `cb_repricing`
+   et `cb_evolutions_all`.
+
+   Ni l'un ni l'autre ne porte le contenu principal de l'écran : ce sont des enrichissements
+   déclenchés en arrière-plan, qui complètent des encarts déjà affichés. Les attendre revenait
+   à cacher une page prête pendant vingt secondes.
+
+   Même raison pour le chat et les textes rédigés par le modèle de langage : dizaines de
+   secondes, aucun chiffre, et chacun affiche déjà sa propre attente à sa place.
+
+   RÈGLE : l'écran attend la donnée SANS LAQUELLE la page n'a pas de sens — pas celle qui la
+   rend meilleure. */
+const _ARRIERE_PLAN =
+  /\/api\/(chat|approfondir|conv_history|cb_repricing|cb_evolutions_all|cb_justifications|cb_exclusivites_axes|[a-z_0-9]*_llm)/;
+
 function _ecranCreer(){
   if(document.getElementById("sb-chargement")) return;
   const d = document.createElement("div");
@@ -267,7 +285,7 @@ function chargementNouvelleVue(){
     const url = typeof ressource === "string" ? ressource : (ressource && ressource.url) || "";
     if(!url.includes("/api/")) return vraiFetch(ressource, options);
 
-    const compte = !/\/api\/(chat|.*_llm|approfondir|conv_history)/.test(url);
+    const compte = !_ARRIERE_PLAN.test(url);
     if(compte){ _CHARGEMENT.total++; _ecranEtat(); }
     try{
       let reponse = await vraiFetch(ressource, options);
