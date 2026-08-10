@@ -8485,6 +8485,10 @@ const AFTER = {
 
 function go(key){
   const p = PAGES[key]; if(!p) return;
+  // Compteur de progression remis à neuf à chaque changement d'onglet. Sans cela, le taux
+  // resterait à 100 % de la navigation précédente et l'écran de chargement ne reparaîtrait
+  // plus jamais — alors que c'est précisément à chaque onglet qu'on le veut.
+  try{ chargementNouvelleVue(); }catch(e){}
   closeNav();                       // ferme le tiroir mobile à la navigation
   window.__redraw = null;
   document.querySelectorAll(".nav-item").forEach(n =>

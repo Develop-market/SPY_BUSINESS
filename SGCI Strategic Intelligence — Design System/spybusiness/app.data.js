@@ -121,141 +121,176 @@ let APERCU_FILTERS = {
   rn_anx:      3,   // 1=AN1, 2=AN2, 3=AN3
 };
 
-/* ── RÉSISTANCE AU REDÉMARRAGE DU SERVICE (2026-08-10) ───────────────────────────────
-   L'hébergement gratuit endort le service après quinze minutes et le redémarre à chaque mise
-   à jour du code. Pendant ces quelques dizaines de secondes, l'hébergeur ne répond pas
-   l'application : il répond une PAGE HTML d'attente, avec un code 502 ou 503.
+/* ══════════════════════════════════════════════════════════════════════════════════════
+   ÉCRAN DE CHARGEMENT (2026-08-10)
+   ══════════════════════════════════════════════════════════════════════════════════════
+   Demandé par le directeur, référence visuelle à l'appui : un cercle de progression posé
+   SUR la page, celle-ci restant devinée en arrière-plan, avec le pourcentage au centre. Il
+   s'affiche à CHAQUE changement d'onglet et ne se retire qu'une fois toutes les données
+   arrivées — plus de contenu qui se remplit par morceaux sous les yeux.
 
-   Les cinquante et un appels de l'application font tous « .json() » sur cette page HTML, et
-   le navigateur rend alors « Unexpected token '<' » ou « Unexpected end of JSON input ».
-   L'utilisateur lit un message de programmeur là où il ne se passe rien d'anormal : le
-   service démarre, il suffit d'attendre. C'est ce qu'a vu le directeur, écran après écran.
+   POURQUOI UN POURCENTAGE RÉEL, ET COMMENT. Un pourcentage inventé qui avance tout seul est
+   un mensonge que l'utilisateur repère au premier écran lent. Celui-ci compte les requêtes :
+   dénominateur = tout ce qui est parti depuis le début de la navigation, numérateur = ce qui
+   est revenu. Le total GRANDIT en cours de route, puisqu'une réponse en déclenche d'autres —
+   la barre reculerait donc naturellement. On l'en empêche : un taux ne redescend jamais, sans
+   quoi il donne l'impression que le travail se défait.
 
-   On interpose donc UNE couche, plutôt que de reprendre cinquante et un appels : sur ces
-   codes-là, on patiente et on réessaie, en allongeant l'attente. Un bandeau prévient pendant
-   ce temps — un écran qui se fige sans rien dire inquiète davantage qu'un écran qui explique.
+   CE QUI N'EST PAS COMPTÉ : le chat et les textes rédigés par le modèle de langage. Ils
+   mettent des dizaines de secondes et ne portent AUCUN chiffre — les tableaux sont déjà à
+   l'écran quand ils arrivent. Les attendre retiendrait l'écran longtemps après que tout soit
+   lisible, exactement l'inverse du but recherché.
 
-   On ne réessaie QUE sur 502/503/504, jamais sur 401, 403 ou 500 : ceux-là sont des réponses
-   de l'application, elles ne changeront pas en insistant. */
-/* ── VOILE DE CHARGEMENT (2026-08-10) ────────────────────────────────────────────────
-   Demande du directeur : « on met un message genre chargement des données avec cercle de
-   progression, qui s'affiche tant que toutes les données ne sont pas affichées ».
+   FILET DE SÉCURITÉ. Au-delà de vingt-cinq secondes, l'écran se retire quoi qu'il reste en
+   vol. Un écran de chargement qui ne part jamais est une panne pire que celle qu'il masque ;
+   mesuré une fois à quarante-deux secondes parce que les requêtes s'enchaînent sans fin.
+   ══════════════════════════════════════════════════════════════════════════════════════ */
+const _CHARGEMENT = {
+  total: 0,        // requêtes parties depuis le début de la navigation
+  faites: 0,       // requêtes revenues
+  taux: 0,         // pourcentage affiché — ne redescend jamais
+  apparition: null,
+  filet: null,
+  demarrage: false // vrai quand l'hébergeur répond une page d'attente (service au réveil)
+};
 
-   Le compteur est un NOMBRE D'APPELS EN COURS, pas un drapeau : plusieurs requêtes partent
-   ensemble, et un simple booléen serait remis à faux par la PREMIÈRE qui revient, laissant
-   l'utilisateur devant une page encore vide sans plus rien qui tourne.
+const _DELAI_AVANT_ECRAN = 300;    // en dessous, une donnée en cache ferait clignoter l'écran
+const _FILET_ECRAN = 25000;
 
-   Le voile n'apparaît qu'au bout de 350 ms. En dessous, une donnée en cache revient si vite
-   que le voile clignoterait — un scintillement à chaque clic donne une impression de fragilité
-   pire que l'attente qu'il prétend couvrir. */
-const _CHARGEMENT = { enCours: 0, minuteur: null, plafond: null };
-
-/* PLAFOND DE HUIT SECONDES. Mesuré : sur Conditions bancaires, le voile tenait quarante-deux
-   secondes — non pas à cause d'une requête longue (la plus lente faisait six secondes) mais
-   parce que les requêtes s'ENCHAÎNENT : le compteur ne retombe jamais à zéro, chaque appel
-   qui se termine étant relayé par le suivant. Or les tableaux, eux, sont à l'écran depuis
-   longtemps ; ce qui continue d'arriver enrichit les marges.
-   Un voile qui survit au contenu qu'il masque est pire que pas de voile du tout : il cache
-   une page prête et fait croire à un blocage. On le retire donc au bout de huit secondes,
-   quoi qu'il reste en vol. */
-const _PLAFOND_VOILE = 8000;
-
-function _voileMaj(){
-  const actif = _CHARGEMENT.enCours > 0;
-  let v = document.getElementById("sb-voile");
-  if(actif && !v){
-    if(_CHARGEMENT.minuteur) return;
-    _CHARGEMENT.minuteur = setTimeout(()=>{
-      _CHARGEMENT.minuteur = null;
-      if(_CHARGEMENT.enCours <= 0 || document.getElementById("sb-voile")) return;
-      const d = document.createElement("div");
-      d.id = "sb-voile";
-      d.style.cssText = "position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;"
-        + "align-items:center;justify-content:center;gap:16px;pointer-events:none;"
-        + "background:color-mix(in srgb, var(--bg-deep, #0B1220) 62%, transparent);"
-        + "backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)";
-      d.innerHTML = '<div style="width:46px;height:46px;border-radius:50%;'
-        + 'border:3px solid color-mix(in srgb, var(--accent-2, #E31C23) 25%, transparent);'
-        + 'border-top-color:var(--accent-2, #E31C23);animation:sbTourne .8s linear infinite"></div>'
-        + '<div style="font:600 13px var(--sans, system-ui);color:var(--ink, #fff);letter-spacing:.02em">'
-        + 'Chargement des données…</div>'
-        + '<div id="sb-voile-n" style="font:500 11.5px var(--sans, system-ui);color:var(--muted, #93A6C0)"></div>';
-      document.body.appendChild(d);
-      if(!document.getElementById("sb-voile-css")){
-        const s = document.createElement("style");
-        s.id = "sb-voile-css";
-        s.textContent = "@keyframes sbTourne{to{transform:rotate(360deg)}}";
-        document.head.appendChild(s);
-      }
-      clearTimeout(_CHARGEMENT.plafond);
-      _CHARGEMENT.plafond = setTimeout(()=>{
-        const e = document.getElementById("sb-voile");
-        if(e) e.remove();
-      }, _PLAFOND_VOILE);
-    }, 350);
+function _ecranCreer(){
+  if(document.getElementById("sb-chargement")) return;
+  const d = document.createElement("div");
+  d.id = "sb-chargement";
+  d.style.cssText =
+    "position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;align-items:center;"
+  + "justify-content:center;gap:18px;pointer-events:all;"
+  + "background:color-mix(in srgb, var(--bg-deep, #0B1220) 55%, transparent);"
+  + "backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);"
+  + "animation:sbApparait .18s ease-out";
+  // Deux cercles superposés : un anneau clair immobile qui donne l'échelle, et par-dessus
+  // l'arc de progression, dont la longueur suit le taux. Le tout tourne lentement pour que
+  // l'écran reste vivant même quand une requête longue fige le pourcentage.
+  d.innerHTML = `
+    <div style="position:relative;width:104px;height:104px">
+      <svg width="104" height="104" viewBox="0 0 104 104"
+           style="transform:rotate(-90deg);animation:sbTourne 2.4s linear infinite">
+        <circle cx="52" cy="52" r="46" fill="none" stroke-width="7"
+                stroke="color-mix(in srgb, var(--accent-2, #E31C23) 18%, transparent)"></circle>
+        <circle id="sb-arc" cx="52" cy="52" r="46" fill="none" stroke-width="7"
+                stroke="var(--accent-2, #E31C23)" stroke-linecap="round"
+                stroke-dasharray="289" stroke-dashoffset="289"
+                style="transition:stroke-dashoffset .35s ease-out"></circle>
+      </svg>
+      <div id="sb-taux" style="position:absolute;inset:0;display:flex;align-items:center;
+           justify-content:center;font:800 22px var(--mono, ui-monospace);
+           color:var(--ink, #EAF1FB)">0 %</div>
+    </div>
+    <div style="font:700 14px var(--sans, system-ui);color:var(--ink, #EAF1FB);letter-spacing:.01em">
+      Chargement des données…</div>
+    <div id="sb-sous" style="font:500 12px var(--sans, system-ui);color:var(--muted, #93A6C0);
+         text-align:center;max-width:320px;line-height:1.5"></div>`;
+  document.body.appendChild(d);
+  if(!document.getElementById("sb-chargement-css")){
+    const st = document.createElement("style");
+    st.id = "sb-chargement-css";
+    st.textContent = "@keyframes sbTourne{to{transform:rotate(270deg)}}"
+                   + "@keyframes sbApparait{from{opacity:0}to{opacity:1}}";
+    document.head.appendChild(st);
   }
-  if(!actif){
-    clearTimeout(_CHARGEMENT.minuteur); _CHARGEMENT.minuteur = null;
-    clearTimeout(_CHARGEMENT.plafond); _CHARGEMENT.plafond = null;
-    if(v) v.remove();
-  } else if(v){
-    const n = document.getElementById("sb-voile-n");
-    if(n) n.textContent = _CHARGEMENT.enCours > 1
-      ? `${_CHARGEMENT.enCours} requêtes en cours` : "1 requête en cours";
+}
+
+function _ecranMaj(){
+  const d = document.getElementById("sb-chargement");
+  if(!d) return;
+  const arc = document.getElementById("sb-arc");
+  const txt = document.getElementById("sb-taux");
+  const sous = document.getElementById("sb-sous");
+  // 289 ≈ 2πr pour r = 46. L'offset décroît quand le taux monte.
+  if(arc) arc.setAttribute("stroke-dashoffset", String(289 - 289 * _CHARGEMENT.taux / 100));
+  if(txt) txt.textContent = Math.round(_CHARGEMENT.taux) + " %";
+  if(sous) sous.textContent = _CHARGEMENT.demarrage
+    ? "Le service démarre — cela peut prendre une minute la première fois."
+    : (_CHARGEMENT.total ? `${_CHARGEMENT.faites} bloc(s) sur ${_CHARGEMENT.total}` : "");
+}
+
+function _ecranRetirer(){
+  clearTimeout(_CHARGEMENT.apparition); _CHARGEMENT.apparition = null;
+  clearTimeout(_CHARGEMENT.filet); _CHARGEMENT.filet = null;
+  const d = document.getElementById("sb-chargement");
+  if(!d) return;
+  // On termine à 100 % avant de disparaître : un écran qui s'efface à 78 % laisse penser
+  // qu'il manque quelque chose.
+  _CHARGEMENT.taux = 100; _ecranMaj();
+  d.style.transition = "opacity .22s ease-in";
+  d.style.opacity = "0";
+  setTimeout(()=>{ if(d.parentNode) d.remove(); }, 230);
+}
+
+function _ecranEtat(){
+  if(_CHARGEMENT.total > 0 && _CHARGEMENT.faites < _CHARGEMENT.total){
+    const brut = 100 * _CHARGEMENT.faites / _CHARGEMENT.total;
+    // Jamais en arrière : le total grandit quand une réponse en déclenche d'autres, et un
+    // taux qui recule donne l'impression que le travail se défait.
+    _CHARGEMENT.taux = Math.max(_CHARGEMENT.taux, Math.min(brut, 97));
+    if(!document.getElementById("sb-chargement") && !_CHARGEMENT.apparition){
+      _CHARGEMENT.apparition = setTimeout(()=>{
+        _CHARGEMENT.apparition = null;
+        if(_CHARGEMENT.faites >= _CHARGEMENT.total) return;   // tout est déjà revenu
+        _ecranCreer(); _ecranMaj();
+        clearTimeout(_CHARGEMENT.filet);
+        _CHARGEMENT.filet = setTimeout(_ecranRetirer, _FILET_ECRAN);
+      }, _DELAI_AVANT_ECRAN);
+    }
+    _ecranMaj();
+  } else {
+    _ecranRetirer();
   }
+}
+
+/* Appelé par go() à chaque changement d'onglet : on repart d'un compteur neuf, sinon le taux
+   resterait bloqué à 100 % de la navigation précédente et l'écran ne reparaîtrait jamais. */
+function chargementNouvelleVue(){
+  _CHARGEMENT.total = 0;
+  _CHARGEMENT.faites = 0;
+  _CHARGEMENT.taux = 0;
+  _CHARGEMENT.demarrage = false;
 }
 
 (function installerReprise(){
   const vraiFetch = window.fetch.bind(window);
-  const ATTENTES = [1500, 3000, 6000, 10000, 15000];   // ~35 s au total
-
-  function bandeau(actif){
-    let b = document.getElementById("sb-demarrage");
-    if(!actif){ if(b) b.remove(); return; }
-    if(b) return;
-    b = document.createElement("div");
-    b.id = "sb-demarrage";
-    b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;padding:9px 16px;"
-      + "text-align:center;background:#B45309;color:#fff;font:600 12.5px system-ui";
-    b.textContent = "Le service redémarre — les données arrivent dans quelques secondes…";
-    document.body.appendChild(b);
-  }
+  // Réveil du service : l'hébergement gratuit s'endort après quinze minutes et répond alors
+  // une page d'attente HTML en 502/503. Les appels feraient .json() dessus et afficheraient
+  // « Unexpected token '<' » — un message de programmeur pour une situation normale.
+  const ATTENTES = [1500, 3000, 6000, 10000, 15000];
 
   window.fetch = async function(ressource, options){
     const url = typeof ressource === "string" ? ressource : (ressource && ressource.url) || "";
-    const surveille = url.includes("/api/");
-    if(!surveille) return vraiFetch(ressource, options);
+    if(!url.includes("/api/")) return vraiFetch(ressource, options);
 
-    /* CE QUI NE COMPTE PAS DANS LE VOILE. Le chat et les enrichissements rédigés par le
-       modèle de langage répondent en dizaines de secondes et ne portent aucun chiffre : les
-       tableaux, eux, sont déjà à l'écran. Les inclure retiendrait le voile bien après que
-       tout soit lisible — l'inverse exact du but. Chacun affiche déjà sa propre attente. */
     const compte = !/\/api\/(chat|.*_llm|approfondir|conv_history)/.test(url);
-    if(compte){ _CHARGEMENT.enCours++; _voileMaj(); }
+    if(compte){ _CHARGEMENT.total++; _ecranEtat(); }
     try{
       let reponse = await vraiFetch(ressource, options);
-      /* ON NE RÉESSAIE QUE SI C'EST L'HÉBERGEUR QUI PARLE, PAS L'APPLICATION.
-         Le code seul ne suffit pas à les distinguer : l'application répond elle aussi 503
-         quand le quota du modèle de langage est épuisé — c'est une réponse définitive, et
-         insister cinq fois faisait patienter l'utilisateur trente-cinq secondes pour rien.
-         La page d'attente de l'hébergeur, elle, est du HTML. Le type de contenu tranche. */
-      const estDeLHebergeur = (r) => {
+      /* On ne réessaie que si c'est L'HÉBERGEUR qui parle, pas l'application. Le code seul
+         ne les distingue pas : l'application répond elle aussi 503 quand le quota du modèle
+         de langage est épuisé — réponse définitive, insister serait faire attendre pour rien.
+         La page d'attente de l'hébergeur est du HTML ; le type de contenu tranche. */
+      const deLHebergeur = (r) => {
         if(![502,503,504].includes(r.status)) return false;
         const t = (r.headers.get("content-type") || "").toLowerCase();
         return !t.includes("json");
       };
-      for(let i = 0; i < ATTENTES.length && estDeLHebergeur(reponse); i++){
-        bandeau(true);
+      for(let i = 0; i < ATTENTES.length && deLHebergeur(reponse); i++){
+        _CHARGEMENT.demarrage = true; _ecranMaj();
         await new Promise(r => setTimeout(r, ATTENTES[i]));
         try{ reponse = await vraiFetch(ressource, options); }catch(e){ /* on retente */ }
       }
-      bandeau(false);
+      _CHARGEMENT.demarrage = false;
       return reponse;
     } finally {
-      // `finally` et pas la ligne d'après : une requête qui échoue doit décrémenter elle
-      // aussi, sans quoi le compteur ne redescend jamais à zéro et le voile reste à l'écran
-      // pour toujours — une panne bien plus visible que celle qu'il masquait.
-      if(compte){ _CHARGEMENT.enCours--; _voileMaj(); }
+      // `finally` et non la ligne d'après : une requête qui échoue doit compter elle aussi,
+      // sans quoi le total n'est jamais atteint et l'écran ne part plus.
+      if(compte){ _CHARGEMENT.faites++; _ecranEtat(); }
     }
   };
 })();
