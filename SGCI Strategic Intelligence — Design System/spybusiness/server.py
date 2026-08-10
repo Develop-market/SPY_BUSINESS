@@ -703,8 +703,39 @@ _SO_DIRECTIVES = {}
 def _directives_en_cache(segment):
     if segment not in _SO_DIRECTIVES:
         import directives as _dir
-        _SO_DIRECTIVES[segment] = _dir.directives(segment=segment)
+        d = _dir.directives(segment=segment)
+        _joindre_themes_globale(d, segment)
+        _SO_DIRECTIVES[segment] = d
     return _SO_DIRECTIVES[segment]
+
+
+def _joindre_themes_globale(d, segment):
+    """Rattache chaque année du phasage au THÈME de la stratégie globale correspondante.
+
+    AJOUTÉ LE 2026-08-10. Les deux pages travaillaient côte à côte sans se parler : la
+    Stratégie globale porte déjà une feuille de route An 1 / An 2 / An 3, avec un thème et des
+    actes chiffrés pour chacune, et la Stratégie opérationnelle recommandait vingt directives
+    sans jamais dire à quelle année elles servaient. Trois directives font pourtant EXACTEMENT
+    ce que la globale demande — réexaminer les tarifs éloignés (An 1), tenir le coût du risque
+    (An 1), porter la part des commissions (An 2). Le lien existait ; il n'était écrit nulle part.
+
+    On lit la feuille de route depuis le cache de la Stratégie (déjà rempli par le
+    préchauffage), et on ne fait qu'y ATTACHER le thème : aucun recalcul, aucune duplication —
+    si la globale change de thème, cette page suit.
+    """
+    try:
+        feuille = ((_strat_get(segment) or {}).get("roadmap") or {}).get("horizons") or []
+    except Exception as e:
+        print(f"[strat-op] thèmes de la globale indisponibles : {str(e)[:80]}")
+        return
+    # `d` EST DÉJÀ la charge utile des directives : son bilan est à la racine, pas sous une
+    # clé « directives » — celle-ci contient la LISTE des vingt cartes. La confusion a coûté
+    # un « 'list' object has no attribute 'get' » qui vidait toute la page.
+    for p in ((d or {}).get("bilan") or {}).get("phasage") or []:
+        i = p.get("annee", 0) - 1
+        if 0 <= i < len(feuille):
+            p["theme_globale"] = feuille[i].get("theme")
+            p["actes_globale"] = [a.get("acte") for a in (feuille[i].get("actes") or [])]
 
 
 @app.route("/api/cb_periodes")

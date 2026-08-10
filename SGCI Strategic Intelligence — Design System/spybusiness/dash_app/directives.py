@@ -38,6 +38,7 @@ trois ans mobilisent tout l'historique chargé.
 """
 import json
 import os
+import re
 import statistics
 
 from functools import lru_cache
@@ -1182,6 +1183,33 @@ def _contribution(socle, mds=None, nature="revenu", texte=""):
             f"{pc} des {_fr(str(ecart))} Mds à combler.")
 
 
+def _annee_du_plan(horizon):
+    """Année du plan à trois ans dans laquelle tombe une directive, d'après son horizon.
+
+    AJOUTÉ LE 2026-08-10. La stratégie globale est une trajectoire à TROIS ANS, découpée en
+    An 1 / An 2 / An 3 avec un thème et des actes chiffrés pour chacune. Les directives, elles,
+    n'avaient aucun axe temporel : impossible de répondre à la première question d'un comité —
+    « qu'est-ce qu'on fait cette année, et sommes-nous dans les temps ? ».
+
+    ON NE RÉPARTIT RIEN À LA MAIN. Chaque directive porte déjà un horizon d'exécution réel,
+    déduit de la nature de l'action (3 à 24 mois). Il suffit de le lire. Inventer une
+    répartition annuelle aurait été exactement ce que ce module s'interdit partout ailleurs.
+
+    Conséquence à assumer, et à AFFICHER plutôt qu'à masquer : l'horizon le plus lointain des
+    directives est de 24 mois, donc l'An 3 ressort VIDE. Ce n'est pas un défaut de calcul,
+    c'est un constat sur le plan — il ne va pas jusqu'au bout de la trajectoire qu'il sert.
+    """
+    mois = 12
+    m = re.search(r"(\d+)", str(horizon or ""))
+    if m:
+        mois = int(m.group(1))
+    if mois <= 12:
+        return 1
+    if mois <= 24:
+        return 2
+    return 3
+
+
 def _enjeu(rang=None, sur=None, valeur="", reference="", nature="retard"):
     """L'écart MESURÉ qui justifie la directive — première ligne lue de la carte.
 
@@ -1924,6 +1952,7 @@ def directives(annee=None, semestre=None, segment="Particuliers"):
                 x[champ] = _fr(x[champ])
         if not x.get("premier_pas"):
             x["premier_pas"] = _premier_pas_depuis(x)
+        x["annee_plan"] = _annee_du_plan(x.get("horizon"))
 
     # ── BILAN : LES VINGT DIRECTIVES ATTEIGNENT-ELLES L'OBJECTIF ? ───────────────────
     # Ajouté le 2026-08-09. Une note qui recommande vingt actions sans jamais les additionner
@@ -1942,7 +1971,36 @@ def directives(annee=None, semestre=None, segment="Particuliers"):
         "ecart_mds": ecart,
         "couverture_pct": round(100 * somme / ecart, 1) if ecart else None,
         "reste_mds": round(ecart - somme, 2) if ecart else None,
+        # UNITÉ DITE EXPLICITEMENT (2026-08-10). La stratégie globale chiffre certains de ses
+        # actes en RÉSULTAT NET (« +5,0 Mds de RN »), cette page en PNB. Les deux grandeurs ne
+        # s'additionnent pas, et rien ne le signalait : un lecteur pouvait de bonne foi
+        # rapprocher un « +5 Mds » d'un « +8,6 Mds » qui ne parlent pas de la même chose.
+        "unite": "PNB",
     }
+
+    # ── PHASAGE SUR LA TRAJECTOIRE À TROIS ANS ───────────────────────────────────────
+    # La stratégie globale est un plan An 1 / An 2 / An 3. Ces directives servent ce plan :
+    # elles doivent donc se lire dans le même découpage, sinon on ne peut pas répondre à la
+    # question que le comité pose en premier — « qu'est-ce qu'on fait cette année ? ».
+    phasage = []
+    for an in (1, 2, 3):
+        lot = [x for x in out if x.get("annee_plan") == an]
+        mds = sum(x.get("contribution_mds") or 0 for x in lot)
+        phasage.append({
+            "annee": an,
+            "libelle": f"An {an}",
+            "intervalle": {1: "0–12 mois", 2: "12–24 mois", 3: "24–36 mois"}[an],
+            "n_directives": len(lot),
+            "somme_mds": round(mds, 2),
+            "part_pct": round(100 * mds / ecart, 1) if ecart else None,
+            "directions": sorted({x["direction"] for x in lot}),
+        })
+    bilan["phasage"] = phasage
+    # Ce que le phasage révèle et qu'il ne faut PAS masquer : l'horizon le plus lointain des
+    # directives est de 24 mois. La troisième année du plan ne reçoit donc aucune directive.
+    # C'est un constat sur le plan lui-même — il ne va pas jusqu'au bout de la trajectoire
+    # qu'il sert — et le comité doit le voir plutôt qu'un tableau qui l'escamote.
+    bilan["annees_sans_directive"] = [p["annee"] for p in phasage if not p["n_directives"]]
     return {
         "directives": out,
         "directions": DIRECTIONS,

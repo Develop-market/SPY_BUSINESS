@@ -1075,6 +1075,38 @@ def cb_annees():
     return [2024, 2025, 2026]
 
 
+def part_commissions_pnb(commissions, pnb=None, interets=None):
+    """Part des commissions dans le PNB, en pourcentage — DÉFINITION UNIQUE.
+
+    AJOUTÉE LE 2026-08-10 POUR RÉSOUDRE UNE INCOHÉRENCE ENTRE DEUX ÉCRANS. Le même indicateur
+    y était calculé de deux façons :
+
+        Stratégie globale        commissions ÷ (commissions + intérêts)  →  24,0 %
+        Stratégie opérationnelle commissions ÷ PNB                       →  26,3 %
+
+    Soit 2,3 points d'écart pour ce que le lecteur prend pour la même chose. Un comité qui
+    compare les deux pages y voit une contradiction, et cesse alors de croire les deux.
+
+    C'EST « ÷ PNB » QUI EST RETENU, pour trois raisons :
+      — c'est l'indicateur consacré du secteur, celui qu'on lit dans les rapports annuels et
+        que le jury reconnaîtra ;
+      — le dénominateur est le PNB PUBLIÉ, une grandeur des états financiers, alors que
+        « commissions + intérêts » est une somme reconstruite qui omet le reste du PNB ;
+      — c'est celui sur lequel repose la comparaison à BICICI (38,8 %) et tout le chiffrage
+        des directives.
+
+    Le paramètre `interets` n'est utilisé qu'en REPLI, quand le PNB manque : mieux vaut un
+    ordre de grandeur qu'un blanc, mais on ne mélange jamais les deux quand le PNB est là.
+    """
+    if not commissions:
+        return None
+    if pnb:
+        return round(100 * commissions / pnb, 1)
+    if interets:
+        return round(100 * commissions / (commissions + interets), 1)
+    return None
+
+
 def kpis_vue_ensemble(frais_annee=2026, frais_sem="S1", frais_seg="Particuliers", rn_anx=3):
     """KPIs Vue d'ensemble. rn_anx = INDEX dans la fenêtre propre de chaque banque (1=AN1, 2=AN2, 3=AN3).
     PRINCIPE : chaque banque utilise SES 3 dernières années disponibles.

@@ -8055,6 +8055,63 @@ function _soEnjeu(e){
     <span style="font:700 12px/1.5 var(--sans);color:var(--ink)">${_soEsc(e.texte)}</span></div>`;
 }
 
+/* ── LE PLAN, ANNÉE PAR ANNÉE ────────────────────────────────────────────────────────
+   Ajouté le 2026-08-10, sur une remarque du directeur : « la globale c'est sur 3 ans hein.
+   Je me demande si on ne doit pas faire aussi sur 3 ans l'opérationnelle ».
+
+   Il avait raison, et le manque était plus profond qu'un affichage : la Stratégie globale
+   porte DÉJÀ une feuille de route An 1 / An 2 / An 3, avec un thème et des actes chiffrés
+   pour chacune, et l'opérationnelle recommandait vingt directives sans jamais dire à quelle
+   année elles servaient. Trois d'entre elles font pourtant exactement ce que la globale
+   demande. Le lien existait ; il n'était écrit nulle part.
+
+   Rien n'est réparti à la main : chaque directive porte un horizon d'exécution réel (3 à
+   24 mois), on ne fait que le lire. Le thème vient de la globale, il n'est pas recopié.
+
+   CE QUE LE TABLEAU MONTRE, ET QU'IL NE FAUT PAS ADOUCIR : le plan est déséquilibré. L'An 1
+   concentre seize directives pour un dixième de la valeur ; quatre directives d'An 2 en
+   portent près de la moitié ; l'An 3 est VIDE, aucune directive n'allant au-delà de 24 mois.
+   Un tableau qui masquerait cela serait plus flatteur et sans usage. */
+function _soPhasage(b){
+  const ph = (b && b.phasage) || [];
+  if(!ph.length) return "";
+  const fr = v => String(v).replace(".", ",");
+  const vide = (b.annees_sans_directive||[]).length;
+  const lignes = ph.map(p=>{
+    const creux = !p.n_directives;
+    const large = Math.max(0, Math.min(100, p.part_pct||0));
+    return `<div style="display:grid;grid-template-columns:74px 1fr 128px;gap:11px;align-items:center;
+        padding:8px 0;border-top:1px solid var(--line)">
+      <div>
+        <div style="font:800 13px var(--display);color:${creux?'#B45309':'var(--ink)'}">${p.libelle}</div>
+        <div style="font:500 9.5px var(--sans);color:var(--faint)">${_soEsc(p.intervalle)}</div>
+      </div>
+      <div>
+        <div style="font:600 11.5px/1.5 var(--sans);color:${creux?'#B45309':'var(--ink)'}">
+          ${creux ? "Aucune directive — le plan ne va pas jusque-là"
+                  : `${p.n_directives} directive(s) · ${_soEsc((p.directions||[]).map(x=>x.replace("Direction ","")).join(", "))}`}</div>
+        ${p.theme_globale?`<div style="font:500 10.5px/1.45 var(--sans);color:var(--faint);margin-top:2px">
+          <b style="color:var(--accent-2)">Stratégie globale</b> · ${_soEsc(p.theme_globale)}</div>`:""}
+        <div style="height:5px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:5px">
+          <div style="height:100%;width:${large}%;background:${creux?'#B45309':'var(--accent-2)'}"></div></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font:800 13px var(--mono);color:${creux?'#B45309':'var(--ink)'}">${fr(p.somme_mds)} Mds</div>
+        <div style="font:600 10px var(--mono);color:var(--faint)">${fr((p.part_pct||0).toFixed(1))} % de l'écart</div>
+      </div>
+    </div>`;
+  }).join("");
+  return `<div style="margin-top:12px;padding-top:4px">
+    <div style="font:700 9.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:2px">
+      Répartition sur la trajectoire à 3 ans</div>
+    ${lignes}
+    ${vide?`<div style="margin-top:9px;padding:8px 11px;background:#B4530914;border-left:3px solid #B45309;
+      border-radius:0 6px 6px 0;font:500 11.5px/1.6 var(--sans);color:var(--ink)">
+      <b>La troisième année ne reçoit aucune directive.</b> L'horizon le plus lointain est de
+      24 mois : le plan opérationnel s'arrête avant le terme de la trajectoire qu'il sert.
+      C'est un constat sur le plan, pas un défaut d'affichage.</div>`:""}</div>`;
+}
+
 function _soDirectives(d, sect, dossiersHtml){
   const D = (d.directives && d.directives.directives) || [];
   if(!D.length) return "";
@@ -8088,6 +8145,8 @@ function _soDirectives(d, sect, dossiersHtml){
       <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:6px">
         <span style="font:900 20px var(--mono);color:${x.lacune?'#B45309':'var(--accent-2)'};line-height:1">${x.rang}</span>
         <div style="font:800 15px/1.32 var(--display);color:var(--ink);flex:1">${_soEsc(x.titre)}</div>
+        ${x.annee_plan?`<span style="font:800 9.5px var(--sans);color:#fff;background:var(--accent-2);
+          border-radius:5px;padding:2px 7px;white-space:nowrap" title="Année de la trajectoire à 3 ans que cette directive sert">An ${x.annee_plan}</span>`:""}
         <span style="font:700 9.5px var(--sans);color:${_SO_EFFCOL[x.effort]||'#64748B'};background:${(_SO_EFFCOL[x.effort]||'#64748B')}1a;
           border-radius:5px;padding:2px 7px;white-space:nowrap">${_soEsc(x.effort)} · ${_soEsc(x.horizon)}</span>
       </div>
@@ -8128,10 +8187,11 @@ function _soDirectives(d, sect, dossiersHtml){
       <div style="height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-bottom:6px">
         <div style="height:100%;width:${couv}%;background:${col}"></div></div>
       <div style="font:500 11.5px/1.6 var(--sans);color:var(--muted)">
-        ${b.n_chiffrees} des ${b.n_total} directives portent un apport chiffré ; les autres sont des
-        conditions ou des défenses d'acquis, qui ne s'additionnent pas.
+        ${b.n_chiffrees} des ${b.n_total} directives portent un apport chiffré <b>en ${_soEsc(b.unite||"PNB")}</b> ;
+        les autres sont des conditions ou des défenses d'acquis, qui ne s'additionnent pas.
         <b style="color:var(--ink)">${fr(b.reste_mds)} Mds restent sans source identifiée</b> —
-        c'est l'objet de la directive de bouclage de la Direction Financière.</div></div>`;
+        c'est l'objet de la directive de bouclage de la Direction Financière.</div>
+      ${_soPhasage(b)}</div>`;
   })() : "";
 
   const per = (d.directives.perimetre)||{};

@@ -16,6 +16,8 @@ aux outils des agents (AGENTS[...].structured / .semantic).
 """
 import re
 import statistics
+
+import db                      # part_commissions_pnb : définition unique du mix commissions
 from agents import AGENTS
 
 try:
@@ -905,7 +907,11 @@ def build_action_plan(ev, problems):
     # ── 4) PNB / CROISSANCE — diversification commissions + corporate ──
     comm = ef.get("commissions", {}).get("SGCI")
     inte = ef.get("interets", {}).get("SGCI")
-    mix = round(comm / (comm + inte) * 100) if comm and inte else None
+    # DÉFINITION UNIQUE (2026-08-10) : commissions / PNB, via db.part_commissions_pnb.
+    # Cette page calculait commissions / (commissions + intérêts) — 24,0 % — quand la
+    # Stratégie opérationnelle affichait 26,3 % pour le même indicateur. Deux pages de la
+    # même application se contredisaient de 2,3 points, ce qui suffit à faire douter des deux.
+    mix = db.part_commissions_pnb(comm, (ef.get('pnb') or {}).get('SGCI'), inte)
     plan.append({
         "levier": "PNB / Croissance",
         "probleme": "Dynamique de revenus en retrait",
@@ -1257,7 +1263,11 @@ def build_roadmap(ev, projection=None):
     roe = (ef["roe"] or {}).get("SGCI")
     comm = ef.get("commissions", {}).get("SGCI")
     inte = ef.get("interets", {}).get("SGCI")
-    mix = round(comm / (comm + inte) * 100) if comm and inte else None
+    # DÉFINITION UNIQUE (2026-08-10) : commissions / PNB, via db.part_commissions_pnb.
+    # Cette page calculait commissions / (commissions + intérêts) — 24,0 % — quand la
+    # Stratégie opérationnelle affichait 26,3 % pour le même indicateur. Deux pages de la
+    # même application se contredisaient de 2,3 points, ce qui suffit à faire douter des deux.
+    mix = db.part_commissions_pnb(comm, (ef.get('pnb') or {}).get('SGCI'), inte)
     pt = round(pnb / 100) if pnb else None        # 1 pt de PNB en M FCFA
     rp = cb.get("repricing") or {}
     npl = (widx.get("npl_secteur") or {}).get("valeur", "7,7%")
@@ -1472,8 +1482,10 @@ def detect_revelations(ev):
     SG = "SGCI"
 
     # Métriques dérivées par banque (pour les croisements)
-    mix = {b: round(comm[b] / (comm[b] + inte[b]) * 100, 1)
-           for b in BANKS if comm.get(b) and inte.get(b)}          # % commissions
+    # Même définition unique que partout ailleurs : commissions / PNB (cf. db.part_commissions_pnb).
+    _pnb_b = ef.get('pnb') or {}
+    mix = {b: db.part_commissions_pnb(comm.get(b), _pnb_b.get(b), inte.get(b))
+           for b in BANKS if comm.get(b) and (_pnb_b.get(b) or inte.get(b))}   # % commissions du PNB
     ld  = {b: round(cred[b] / dep[b] * 100, 1)
            for b in BANKS if cred.get(b) and dep.get(b)}           # crédits/dépôts %
 
@@ -1741,7 +1753,11 @@ def build_comite(ev):
     roe = (ef["roe"] or {}).get("SGCI")
     mn = (ef["marge_nette"] or {}).get("SGCI")
     comm, inte = ef.get("commissions", {}).get("SGCI"), ef.get("interets", {}).get("SGCI")
-    mix = round(comm / (comm + inte) * 100) if comm and inte else None
+    # DÉFINITION UNIQUE (2026-08-10) : commissions / PNB, via db.part_commissions_pnb.
+    # Cette page calculait commissions / (commissions + intérêts) — 24,0 % — quand la
+    # Stratégie opérationnelle affichait 26,3 % pour le même indicateur. Deux pages de la
+    # même application se contredisaient de 2,3 points, ce qui suffit à faire douter des deux.
+    mix = db.part_commissions_pnb(comm, (ef.get('pnb') or {}).get('SGCI'), inte)
 
     # ── Lecture SEGMENT (particuliers vs entreprises) — intervient partout ──
     tilt = cb.get("tilt") or {}                    # >1 = orienté entreprises (catalogue Ent/Part)
