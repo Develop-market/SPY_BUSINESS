@@ -594,27 +594,54 @@ RÈGLES ABSOLUES :
     return jsonify(d)
 
 
-# ── PERSISTANCE DE L'ONGLET STRATÉGIE OPÉRATIONNELLE ─────────────────────────────────
-# Un fichier par (année, semestre, segment), à côté des autres caches. Le contenu est
-# entièrement calculé à partir de la base : à données inchangées il est identique, donc le
-# conserver ne fait courir aucun risque de servir une analyse « inventée » périmée. Il est
-# effacé à chaque ingestion et à chaque rafraîchissement, comme les autres.
-_STRATOP_DIR = os.path.join(DOSSIER_CACHE, "stratop")
+# ── PERSISTANCE DE L'ONGLET STRATÉGIE OPÉRATIONNELLE — DANS LA BASE ──────────────────
+# EN BASE, PAS SUR LE DISQUE (2026-08-10). La première version écrivait un fichier par
+# (année, semestre, segment). C'était déjà mieux qu'un cache en mémoire, mais insuffisant :
+# l'hébergeur repart d'une machine vierge à CHAQUE redéploiement, et le disque part avec.
+# Le premier visiteur suivant repayait les 162 secondes de calcul.
+#
+# La base, elle, est le seul endroit qui survit à tout — réveil, redéploiement, changement de
+# machine. Et elle est déjà là : aucune dépendance nouvelle, aucun service de plus à surveiller.
+#
+# La table est volontairement GÉNÉRIQUE : d'autres calculs coûteux voudront s'y ranger, et une
+# table par cache finirait en collection de tables jumelles.
+_CACHE_TABLE_PRETE = False
 
 
-def _stratop_fichier(annee, semestre, segment):
-    return os.path.join(_STRATOP_DIR, f"{annee}_{semestre}_{segment}.json".replace("/", "_"))
+def _cache_table():
+    """Crée la table de cache au premier besoin, une seule fois par processus."""
+    global _CACHE_TABLE_PRETE
+    if _CACHE_TABLE_PRETE:
+        return True
+    try:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS cache_app (
+                cle      text PRIMARY KEY,
+                contenu  jsonb NOT NULL,
+                maj      timestamptz NOT NULL DEFAULT now()
+            )""")
+        _CACHE_TABLE_PRETE = True
+    except Exception as e:
+        # Sans la table, l'application fonctionne — elle recalcule, c'est tout. On le dit une
+        # fois plutôt que de laisser croire que le cache opère.
+        print(f"[cache] table cache_app indisponible ({str(e)[:80]}) — recalcul à chaque appel")
+    return _CACHE_TABLE_PRETE
+
+
+def _stratop_cle(annee, semestre, segment):
+    return f"stratop:{annee}:{semestre}:{segment}"
 
 
 def _stratop_lire(annee, semestre, segment):
-    f = _stratop_fichier(annee, semestre, segment)
+    if not _cache_table():
+        return None
     try:
-        if os.path.isfile(f):
-            with open(f, encoding="utf-8") as fh:
-                return json.load(fh)
+        r = db.query("SELECT contenu FROM cache_app WHERE cle = %s",
+                     (_stratop_cle(annee, semestre, segment),))
+        return r[0]["contenu"] if r else None
     except Exception as e:
-        print(f"[strat-op] cache disque illisible ({str(e)[:70]}) — recalcul")
-    return None
+        print(f"[strat-op] cache illisible ({str(e)[:70]}) — recalcul")
+        return None
 
 
 def _stratop_ecrire(annee, semestre, segment, d):
@@ -622,20 +649,26 @@ def _stratop_ecrire(annee, semestre, segment, d):
     # pire que la recalculer. Vingt directives ou rien.
     if len(((d or {}).get("directives") or {}).get("directives") or []) < 20:
         return
+    if not _cache_table():
+        return
     try:
-        os.makedirs(_STRATOP_DIR, exist_ok=True)
-        with open(_stratop_fichier(annee, semestre, segment), "w", encoding="utf-8") as fh:
-            json.dump(d, fh, ensure_ascii=False, default=str)
+        db.execute("""
+            INSERT INTO cache_app (cle, contenu, maj) VALUES (%s, %s::jsonb, now())
+            ON CONFLICT (cle) DO UPDATE SET contenu = EXCLUDED.contenu, maj = now()""",
+                   (_stratop_cle(annee, semestre, segment),
+                    json.dumps(d, ensure_ascii=False, default=str)))
     except Exception as e:
-        print(f"[strat-op] écriture du cache disque impossible : {str(e)[:90]}")
+        print(f"[strat-op] écriture du cache impossible : {str(e)[:90]}")
 
 
 def _stratop_vider():
-    import shutil
+    if not _cache_table():
+        return
     try:
-        shutil.rmtree(_STRATOP_DIR, ignore_errors=True)
-    except Exception:
-        pass
+        n = db.execute("DELETE FROM cache_app WHERE cle LIKE 'stratop:%%'")
+        print(f"[cache] stratégie opérationnelle : {n} entrée(s) effacée(s)")
+    except Exception as e:
+        print(f"[cache] vidage impossible : {str(e)[:90]}")
 
 
 # ── CACHE DES DIRECTIVES (2026-08-09, pour l'hébergement) ────────────────────────────
