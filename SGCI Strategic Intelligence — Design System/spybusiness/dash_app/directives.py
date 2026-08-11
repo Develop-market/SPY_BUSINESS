@@ -878,7 +878,10 @@ def _bloc_coefficient(socle):
                   "résultat, sans dépendre de la conquête commerciale.")
         cible = "Rester sous le meilleur coefficient du marché à chaque arrêté."
         enjeu = _enjeu(rang=1, sur=n, valeur=f"coefficient d'exploitation {_fr(f'{sgci:.1f}')} %",
-                       reference=f"{_fr(f'{abs(ecart):.1f}')} point(s) devant {meilleur}",
+                       # L'accord se fait ici : « 1,4 point(s) » montre la couture du gabarit
+                       # dans une note destinée à un comité de direction.
+                       reference=(f"{_fr(f'{abs(ecart):.1f}')} "
+                                  f"{'point' if abs(ecart) < 2 else 'points'} devant {meilleur}"),
                        nature="avance")
         contribution = _contribution(
             socle, nature="defense",
