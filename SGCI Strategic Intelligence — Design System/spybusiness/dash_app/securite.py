@@ -95,12 +95,72 @@ SECTIONS = {
     "admin":     "Administration",
 }
 
+# ── DIRECTIONS VISIBLES DANS LA STRATÉGIE OPÉRATIONNELLE ─────────────────────────────
+# Demande du directeur (2026-08-11) : un droit sur l'onglet ne suffit plus. La Direction des
+# Risques doit voir ses quatre directives, pas les vingt — celles des autres directions ne la
+# concernent pas, et les lui montrer dilue précisément ce qu'on lui demande de faire.
+#
+# Le filtrage est appliqué PAR LE SERVEUR, qui ne renvoie que les directions autorisées. Le
+# masquer côté navigateur laisserait les vingt cartes transiter dans la réponse : il suffirait
+# d'ouvrir les outils de développement pour lire celles des autres.
+#
+# Un compte sans aucune de ces cases cochées voit TOUTES les directions : c'est le cas de la
+# Direction Générale, et c'est le comportement d'avant cette évolution — ne rien cocher ne
+# doit jamais restreindre par surprise un compte créé auparavant.
+DIRECTIONS_STRATOP = {
+    "dir_fin": "Direction Financière",
+    "dir_com": "Direction Commerciale",
+    "dir_mkt": "Direction Marketing",
+    "dir_inn": "Direction Innovation",
+    "dir_ris": "Direction des Risques",
+}
+
+# Les directions rejoignent les sections cochables : l'écran d'administration les affiche donc
+# sans modification, et un droit reste un droit, quelle que soit sa finesse.
+SECTIONS.update(DIRECTIONS_STRATOP)
+
 # Ce qu'un compte reçoit à sa création, selon son rôle. L'administrateur peut ensuite affiner.
+_BASE_LECTURE = ["apercu", "analyse", "cb", "strategie", "stratop", "chat"]
 DROITS_PAR_DEFAUT = {
-    LECTURE: ["apercu", "analyse", "cb", "strategie", "stratop", "chat"],
-    EDITION: ["apercu", "analyse", "cb", "strategie", "stratop", "chat", "ajout"],
+    LECTURE: list(_BASE_LECTURE),
+    EDITION: _BASE_LECTURE + ["ajout"],
     ADMIN:   list(SECTIONS),
 }
+
+# ── PROFILS PRÊTS À L'EMPLOI ─────────────────────────────────────────────────────────
+# Cocher huit cases sans se tromper, pour chaque nouvel arrivant, est une invitation à
+# l'erreur — et une case cochée de travers ouvre un écran qu'on ne voulait pas ouvrir.
+# Ces profils traduisent l'arbitrage retenu : chaque direction voit la matière dont elle
+# répond, et ses propres directives.
+PROFILS = {
+    "dg": ("Direction Générale",
+           ["strategie", "stratop", "chat"] + list(DIRECTIONS_STRATOP)),
+    "risques": ("Direction des Risques",
+                ["apercu", "stratop", "dir_ris"]),
+    "commerciale": ("Direction Commerciale",
+                    ["cb", "stratop", "dir_com"]),
+    "marketing": ("Direction Marketing",
+                  ["cb", "stratop", "dir_mkt"]),
+    "financiere": ("Direction Financière",
+                   ["apercu", "stratop", "dir_fin"]),
+    "innovation": ("Direction Innovation",
+                   ["strategie", "stratop", "dir_inn"]),
+}
+
+
+def directions_autorisees(utilisateur):
+    """Directions de la Stratégie opérationnelle visibles par ce compte.
+
+    Rend None quand il n'y a AUCUNE restriction — l'appelant sert alors tout. On distingue
+    volontairement « aucune case cochée » (= tout voir) de « une seule cochée » (= une seule
+    direction) : sans cette distinction, l'évolution aurait vidé l'écran de tous les comptes
+    existants du jour au lendemain.
+    """
+    if not utilisateur or utilisateur.get("role") == ADMIN:
+        return None
+    choisies = [DIRECTIONS_STRATOP[c] for c in (utilisateur.get("droits") or [])
+                if c in DIRECTIONS_STRATOP]
+    return choisies or None
 
 # Rattachement des endpoints aux sections. Un chemin non listé relève du socle commun
 # (banques, périodes, logos, état du service) : le refuser casserait l'application pour tout

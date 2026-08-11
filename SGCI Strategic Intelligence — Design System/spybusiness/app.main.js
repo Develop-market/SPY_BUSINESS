@@ -9145,11 +9145,14 @@ function _adminRender(){
         <input id="adm-mp" type="text" placeholder="mot de passe (${_ADMIN_DATA.longueur_min||8} car. min.)" style="font:500 12.5px var(--sans);padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg-raise);color:var(--ink);min-width:230px">
         <select id="adm-role" style="font:700 11.5px var(--sans);padding:7px 9px;border-radius:7px;border:1px solid var(--line);background:var(--bg-raise);color:var(--ink)">
           ${(_ADMIN_DATA.roles||[]).map(r=>`<option value="${r}">${r}</option>`).join("")}</select>
+        <select id="adm-profil" title="Profil metier — coche les acces d'un coup" style="font:700 11.5px var(--sans);padding:7px 9px;border-radius:7px;border:1px solid var(--line);background:var(--bg-raise);color:var(--ink)">
+          <option value="">profil… (facultatif)</option>
+          ${Object.entries(_ADMIN_DATA.profils||{}).map(([k,v])=>`<option value="${k}">${_soEsc(v.libelle)}</option>`).join("")}</select>
         <button onclick="_adminCreer()" style="cursor:pointer;font:700 12px var(--sans);border:none;background:var(--accent-2);color:#fff;border-radius:7px;padding:8px 16px">Créer</button>
       </div>
       <div id="adm-msg" style="font:500 11.5px var(--sans);margin-top:7px;color:var(--muted)"></div>
       <div style="font:500 11px/1.5 var(--sans);color:var(--faint);margin-top:5px">
-        Le compte reçoit les accès par défaut de son rôle ; ajustez-les ensuite case par case.</div>
+        Choisissez un profil pour cocher les accès d'une direction d'un coup, ou laissez vide pour les droits par défaut du rôle. Tout reste ajustable case par case ensuite.</div>
     </div>`;
 
   box.innerHTML = `<div class="bento">${lignes}${creation}</div>
@@ -9198,9 +9201,17 @@ async function _adminCreer(){
   const role = document.getElementById("adm-role").value;
   const msg = document.getElementById("adm-msg");
   if(!id || !mp){ if(msg) msg.textContent = "Identifiant et mot de passe sont requis."; return; }
+  /* PROFIL METIER : il coche d'un coup les acces d'une direction. Sans lui, l'administrateur
+     doit cocher huit cases sans se tromper pour chaque arrivant — et une case de travers
+     ouvre un ecran qu'on ne voulait pas ouvrir. Laisse vide, on retombe sur les droits par
+     defaut du role, comme avant. */
+  const profil = (document.getElementById("adm-profil")||{}).value || "";
+  const corps = {identifiant:id, mot_de_passe:mp, role};
+  const p = (_ADMIN_DATA.profils||{})[profil];
+  if(p) corps.droits = p.droits;
   const r = await fetch("/api/admin/utilisateur", {
     method:"POST", headers:{"Content-Type":"application/json"},
-    credentials:"same-origin", body: JSON.stringify({identifiant:id, mot_de_passe:mp, role})
+    credentials:"same-origin", body: JSON.stringify(corps)
   });
   const d = await r.json().catch(()=>({}));
   if(msg) msg.textContent = d.ok ? `Compte « ${id} » créé.` : (d.error||"Création impossible.");

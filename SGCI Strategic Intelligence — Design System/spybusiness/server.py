@@ -178,6 +178,12 @@ def api_admin_utilisateurs():
                     "sections": securite.SECTIONS,
                     "roles": list(securite.ROLES),
                     "droits_par_defaut": securite.DROITS_PAR_DEFAUT,
+                    # Profils prêts à l'emploi : cocher huit cases sans se tromper pour chaque
+                    # arrivant est une invitation à l'erreur, et une case de travers ouvre un
+                    # écran qu'on ne voulait pas ouvrir.
+                    "profils": {k: {"libelle": v[0], "droits": v[1]}
+                                for k, v in securite.PROFILS.items()},
+                    "directions_stratop": securite.DIRECTIONS_STRATOP,
                     "longueur_min": securite.LONGUEUR_MIN})
 
 
@@ -443,7 +449,11 @@ def api_strategie_operationnelle():
     # Sur disque, il survit au redémarrage.
     depuis_disque = _stratop_lire(annee, semestre, segment)
     if depuis_disque is not None:
-        return jsonify(depuis_disque)
+        # LE FILTRE S'APPLIQUE AUSSI ICI. C'est le chemin emprunté par presque tous les
+        # appels — le cache sert la quasi-totalité des requêtes. L'oublier aurait laissé
+        # passer les vingt directives à tout le monde, et le contrôle placé plus bas n'aurait
+        # protégé que le tout premier appel après un vidage de cache.
+        return jsonify(_filtrer_directions(depuis_disque))
 
     try:
         import strategie_operationnelle as _so
@@ -601,7 +611,36 @@ RÈGLES ABSOLUES :
         print("[strat-op] directives :", _tb.format_exc()[:500])
         d["directives"] = {"directives": [], "erreur": str(e)[:200]}
     _stratop_ecrire(annee, semestre, segment, d)
-    return jsonify(d)
+    return jsonify(_filtrer_directions(d))
+
+
+def _filtrer_directions(d):
+    """Ne laisse passer que les directions auxquelles le compte a droit.
+
+    LE FILTRE EST ICI, PAS DANS LE NAVIGATEUR (2026-08-11). Masquer les onglets côté client
+    laisserait les vingt directives voyager dans la réponse : il suffirait d'ouvrir les outils
+    de développement pour lire celles des autres directions. Un droit qui ne tient qu'à
+    l'affichage n'est pas un droit.
+
+    Le cache, lui, garde TOUT — il est calculé une fois pour tous les comptes, et c'est à la
+    sortie qu'on retire ce qui ne regarde pas le demandeur. Filtrer avant le cache reviendrait
+    à en tenir un par profil, avec le risque de servir le mauvais.
+    """
+    autorisees = securite.directions_autorisees(session.get("utilisateur"))
+    if not autorisees:
+        return d
+    bloc = dict(d.get("directives") or {})
+    gardees = [x for x in (bloc.get("directives") or []) if x.get("direction") in autorisees]
+    bloc["directives"] = gardees
+    bloc["directions"] = [n for n in (bloc.get("directions") or []) if n in autorisees]
+    # Le bouclage porte sur le PLAN ENTIER : le recalculer sur une seule direction donnerait
+    # un pourcentage faux, et laisserait croire à un directeur que son périmètre suffit à
+    # combler l'écart. On le conserve tel quel, en signalant que la vue est partielle.
+    bloc["vue_partielle"] = True
+    bloc["n_directions_totales"] = len(d.get("directives", {}).get("directions") or [])
+    out = dict(d)
+    out["directives"] = bloc
+    return out
 
 
 # ── PERSISTANCE DE L'ONGLET STRATÉGIE OPÉRATIONNELLE — DANS LA BASE ──────────────────
