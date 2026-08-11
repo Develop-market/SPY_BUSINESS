@@ -166,7 +166,7 @@ TinyTeX ne peut pas installer de paquets : `setspace`, `eso-pic`, `caption`, `en
 
 Contraintes de forme demandées : cadre sur chaque page, titre de chapitre de la couleur de
 l'intitulé, pas de mention « Soutenu publiquement », numéro de page bien dégagé du cadre
-(réglé par `footskip=1.05cm` — il était traversé par le filet).
+(réglé par `footskip=0.88cm` — il était traversé par le filet).
 
 ---
 
@@ -183,15 +183,40 @@ l'intitulé, pas de mention « Soutenu publiquement », numéro de page bien dé
 
 ---
 
-## 9. En cours
+## 9. État au 11 août 2026
 
-- **Stratégie opérationnelle sur 3 ans.** L'objectif global est une trajectoire à 3 ans
-  (312,3 → 340 Mds, soit +27,7 Mds) ; l'opérationnel n'a aucun axe temporel. Chaque directive
-  porte déjà un `horizon` réel (3 à 24 mois) : le grouper en AN1/AN2/AN3 plutôt que d'inventer
-  une répartition. À noter — l'horizon le plus lointain est 24 mois, donc **AN3 serait vide**,
-  ce qui est un constat sur le plan et mérite d'être montré.
-- **PESTEL.** Les signaux récents de la veille arrivent bien au modèle, mais il ne les reprend
+**L'application est terminée, en ligne et mesurée.** Stratégie opérationnelle 3,8 s (162 s
+avant), Conditions bancaires 7,1 s (28,9 s avant), 0 erreur de console. Trois causes ont été
+trouvées, et aucune n'était la lenteur du serveur :
+
+1. le préchauffage monopolisait le dixième de processeur de l'instance ;
+2. les caches vivaient en mémoire et ne servaient donc **jamais le premier visiteur** — celui
+   qui réveille le service. Déplacés dans la table `cache_app` ;
+3. surtout, la page lançait **treize requêtes simultanées** qui s'étranglaient mutuellement.
+   Prises une par une elles répondaient en moins d'une seconde. Une file limitée à trois a
+   suffi. *Le serveur n'était pas lent : la file était mal formée.*
+
+**Quota du modèle épuisé — l'application rédige elle-même.** `dash_app/redaction_secours.py`
+compose les analyses à partir des mêmes faits que ceux envoyés au modèle. Textes **calculés**,
+donc évolutifs ; le lecteur est prévenu par une mention. Plus jamais de bloc vide.
+
+**Mémoire : 81 pages, 0 erreur, 0 débordement.** Il décrit désormais la refonte des directives,
+le raccordement à la trajectoire à trois ans, le déploiement et les mesures de performance.
+
+> **Compiler par `python compiler.py`, jamais `xelatex` directement.** Un PDF ouvert dans un
+> lecteur verrouille le fichier : XeLaTeX échoue sur « Unable to open memoire.pdf », s'arrête,
+> et laisse un `.aux` **tronqué** — d'où une centaine d'erreurs qui n'ont aucun rapport avec le
+> document et font perdre une heure. Le script compile sous le nom `build`, vérifie l'intégrité
+> du `.aux` et recommence si nécessaire.
+
+### Ce qui reste
+
+- **Régénérer les clés** (Groq, Gemini, Hugging Face, mot de passe Supabase) : elles ont
+  transité en clair dans une conversation.
+- **Réveil automatique** aux heures ouvrées (GitHub Actions) pour supprimer les ~30 s de
+  démarrage après 15 minutes d'inactivité. Proposé, non fait.
+- **PESTEL** : les signaux récents de la veille arrivent bien au modèle, mais il ne les reprend
   pas dans sa prose. Défaut de consigne, pas de cache.
-- **Bilan des directives.** 5 des 20 sont chiffrables : 15,45 Mds sur 27,7, soit 55,8 %.
-  Les 15 autres sont des conditions ou des défenses d'acquis — elles ne s'additionnent pas.
-- Le mémoire ne décrit pas encore la refonte des directives ni le déploiement.
+- **265 lignes** où un numéro de section a été lu comme un montant, **339 lignes** à 0 non
+  marquées gratuites. Script écrit et essayé à blanc, **jamais appliqué** — règle du projet :
+  pas de production sans validation.
