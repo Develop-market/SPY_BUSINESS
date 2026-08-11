@@ -308,6 +308,25 @@ def index():
     return send_from_directory(HERE, "app.html")
 
 
+@app.route("/sante")
+def sante():
+    """Sonde de santé — délibérément la route la plus légère du serveur.
+
+    AJOUTÉE LE 2026-08-11, après une alerte de l'hébergeur : « HTTP health check failed
+    (timed out after 5 seconds) ». La sonde interrogeait « / », qui lit un fichier de 78 ko sur
+    disque. En temps normal c'est instantané ; pendant qu'un calcul lourd occupe les fils
+    d'exécution du worker unique, la lecture attend son tour et dépasse les cinq secondes
+    accordées. L'hébergeur en conclut que l'instance est morte et la remplace — interrompant
+    précisément le calcul qui était en cours.
+
+    Cette route ne touche ni au disque, ni à la base, ni à aucun cache : elle répond que le
+    processus est vivant, ce qui est exactement la question posée. Savoir si la base répond
+    est une autre question, et y répondre ici transformerait une lenteur de base de données
+    en redémarrage du serveur.
+    """
+    return {"ok": True}, 200
+
+
 @app.route("/<path:filename>")
 def static_files(filename):
     return send_from_directory(HERE, filename)
@@ -403,11 +422,22 @@ def api_rn_series():
 
 @app.route("/api/cb")
 def api_cb():
-    """Table comparative des services CB (tarifs par banque × service)."""
+    """Table comparative des services CB (tarifs par banque × service).
+
+    MIS EN CACHE EN BASE (2026-08-11). Cet appel ne s'appuyait que sur les @lru_cache de
+    db.py — un cache EN MÉMOIRE, donc perdu à chaque redémarrage et rempli seulement pour les
+    combinaisons préchauffées. Comme le préchauffage a été réduit à la période courante pour
+    libérer le processeur, toutes les autres combinaisons — Entreprises, 2025, 2024, S2 —
+    étaient recalculées intégralement à chaque consultation, sur un dixième de processeur et
+    à travers le réseau. D'où des minutes d'attente là où 2026 S1 répondait en une seconde,
+    et la sonde de santé de l'hébergeur qui expirait faute de fil disponible.
+    """
     annee    = int(request.args.get("annee", 2026))
     semestre = request.args.get("semestre", "S1")
     segment  = request.args.get("segment", "Particuliers")
-    return jsonify(db.cb_comparatif(annee, semestre, segment))
+    return jsonify(servir_avec_cache(
+        f"cb:{annee}:{semestre}:{segment}",
+        lambda: db.cb_comparatif(annee, semestre, segment)))
 
 
 @app.route("/api/stats")

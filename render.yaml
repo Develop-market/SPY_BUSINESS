@@ -48,7 +48,11 @@ services:
       --timeout 180
       --graceful-timeout 30
       --access-logfile -
-    healthCheckPath: /
+    # Sonde pointee sur /sante et non sur / : la page d accueil lit un fichier de 78 ko, ce
+    # qui depasse les cinq secondes accordees quand un calcul lourd occupe les fils du worker
+    # unique. L hebergeur concluait a une instance morte et la remplacait, interrompant
+    # justement le calcul en cours. /sante ne touche ni disque, ni base, ni cache.
+    healthCheckPath: /sante
     envVars:
       - key: PYTHON_VERSION
         value: "3.13.4"

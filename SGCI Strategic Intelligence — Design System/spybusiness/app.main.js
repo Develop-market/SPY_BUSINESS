@@ -4185,7 +4185,17 @@ let CB_SEG="Particuliers", CB_YEAR="2026", CB_SEM="S1", CB_CONCURRENT="BICICI", 
 // erreurs en cascade lors d'un changement rapide de filtre (Particuliers↔Entreprises).
 let _cbToken=0;
 function _cbAlive(tok){return tok===_cbToken;}
-function _resetCBState(){_cbToken++;_CB_EXHAUS_CACHE={};_CB_SUBSECTION_CACHE={};_conclusionFired=false;window._CB_Q3_DATA=null;window._CB_Q5_SUMMARY={};}
+function _resetCBState(){
+  /* L'ÉCRAN DE CHARGEMENT DOIT REPARAÎTRE AU CHANGEMENT DE FILTRE (2026-08-11).
+     Le compteur n'était remis à neuf que dans go(), or changer de segment, d'année ou de
+     semestre ne passe pas toujours par là — setCBSem() recharge la vue directement. Le taux
+     restait donc à 100 % de la navigation précédente et l'écran ne se montrait plus : la page
+     semblait se figer sans rien annoncer, alors même que le calcul pouvait durer des minutes
+     sur une combinaison non encore mise en cache. Ce reset est appelé par les trois filtres,
+     c'est le seul endroit qui les couvre tous. */
+  try{ chargementNouvelleVue(); }catch(e){}
+  _cbToken++;_CB_EXHAUS_CACHE={};_CB_SUBSECTION_CACHE={};_conclusionFired=false;window._CB_Q3_DATA=null;window._CB_Q5_SUMMARY={};
+}
 function setCBSeg(s){CB_SEG=s;_resetCBState();go("cb");}
 // Semestres réellement disponibles pour une année (2026-07-30). Le sélecteur proposait S1 et S2
 // en dur : « 2026 S2 » n'existe pas en base, et le sélectionner produisait un écran incohérent —
