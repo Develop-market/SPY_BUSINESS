@@ -125,9 +125,21 @@ def appels(periodes, segments, banques):
                             ("/api/rn", "résultat net"),
                             ("/api/rn_series", "série résultat net"),
                             ("/api/frais", "frais"),
-                            ("/api/radar_agent", "radar"),
                             ("/api/dashboard_resume", "résumé tableau de bord")):
         plan.append((libelle, chemin))
+
+    # LE RADAR SE CHAUFFE AVEC SES VRAIS PARAMÈTRES — c'est l'erreur que j'ai faite au premier
+    # jet. Je l'appelais sans aucun argument, alors que le navigateur lui en passe CINQ
+    # (banque, année, semestre, segment, exercice) et le redemande POUR CHAQUE BANQUE. La clé
+    # de cache ne correspondait donc jamais : mesuré à 26 SECONDES sur l'écran des conditions
+    # bancaires, alors qu'il figurait au plan de préchauffage depuis le début.
+    # Leçon générale : chauffer une adresse sans ses paramètres ne chauffe rien.
+    for seg in segments:
+        for b in banques:
+            for anx in (1, 2, 3):
+                plan.append((f"radar {b[:6]} AN{anx} {seg[:4]}",
+                             f"/api/radar_agent?bank={b}&annee=2026&sem=S1"
+                             f"&seg={seg}&anx={anx}"))
     return plan
 
 
