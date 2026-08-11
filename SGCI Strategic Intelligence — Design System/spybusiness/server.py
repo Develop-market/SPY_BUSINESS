@@ -4443,11 +4443,26 @@ def _llm_mark_up():
         globals()["_LLM_HEALTH"] = {"ok": True, "reason": None, "since": None}
 
 
+# Au-delà de ce délai sans nouvel échec, on considère l'incident clos. Sans cette péremption,
+# un seul refus passager — un 429 sur un endpoint qu'on ne rappelle pas ensuite — laissait le
+# bandeau rouge affiché indéfiniment, alors que tout le reste fonctionnait. Le bandeau perdait
+# alors son sens : à force d'être là sans raison, on cesse de le lire.
+_LLM_PEREMPTION_S = 900          # 15 minutes
+
+
 @app.route("/api/llm_status")
 def api_llm_status():
     """État courant du LLM (Groq/Gemini/Claude) — le front affiche un message si indisponible,
     plutôt que de laisser croire que les analyses affichées sont fraîches."""
-    return jsonify(_LLM_HEALTH)
+    import time as _t
+    etat = dict(_LLM_HEALTH)
+    depuis = etat.get("since")
+    if not etat.get("ok") and depuis and (_t.time() - depuis) > _LLM_PEREMPTION_S:
+        # L'incident n'a pas été confirmé depuis un quart d'heure : on le considère clos.
+        # Le prochain échec réel relèvera le drapeau immédiatement.
+        _llm_mark_up()
+        etat = dict(_LLM_HEALTH)
+    return jsonify(etat)
 
 
 # ── Traçabilité de fraîcheur des analyses LLM ────────────────────────────────────────────────

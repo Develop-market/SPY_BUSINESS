@@ -323,8 +323,16 @@ function _ecranEtat(){
   }
 }
 
-/* Appelé par go() à chaque changement d'onglet : on repart d'un compteur neuf, sinon le taux
-   resterait bloqué à 100 % de la navigation précédente et l'écran ne reparaîtrait jamais. */
+/* UN SEUL ÉCRAN DE CHARGEMENT, AU DÉMARRAGE (2026-08-11).
+
+   Demande du directeur : « quand ça a chargé une fois, plus besoin de recharger encore et
+   encore ; le cercle ne va pas s'afficher au moindre filtre ». Il a raison, et c'est aussi ce
+   que dit la mesure : une fois les caches chauds, un changement d'onglet répond en une à trois
+   secondes — un voile qui apparaît puis disparaît aussitôt donne une impression de fragilité,
+   pas de soin.
+
+   L'écran couvre donc le PREMIER chargement, celui où l'application se remplit, et plus jamais
+   ensuite. `go()` n'appelle plus cette fonction ; seul le démarrage l'arme. */
 function chargementNouvelleVue(){
   _CHARGEMENT.total = 0;
   _CHARGEMENT.faites = 0;
@@ -333,6 +341,22 @@ function chargementNouvelleVue(){
   _CHARGEMENT.clos = false;                  // le prochain écran est de nouveau autorisé
   _CHARGEMENT.dernierMouvement = Date.now(); // sinon le veilleur fermerait aussitôt
   _CHARGEMENT.debutVue = Date.now();         // ouvre la fenêtre de chargement initial
+}
+
+/* PROLONGE la fenêtre sans remettre les compteurs à zéro.
+
+   Le démarrage se fait en deux temps : `loadAll()` charge les référentiels communs, PUIS la
+   première page demande ses propres données. Ces secondes demandes partaient après la fenêtre
+   de trois secondes, n'étaient donc pas comptées, et l'écran se retirait dès la fin de
+   `loadAll()` — sur une page encore vide. Mesuré : « Santé financière » rendait
+   23 caractères, « Conditions bancaires » 455, et les quatre encarts de tête restaient blancs.
+
+   Remettre les compteurs à zéro n'était pas la solution : à zéro requête en vol, l'écran se
+   ferme aussitôt puis rouvre au départ suivant — il clignote. On déplace donc seulement la
+   borne, ce qui laisse les requêtes déjà comptées le rester. */
+function chargementProlonger(){
+  _CHARGEMENT.debutVue = Date.now();
+  _CHARGEMENT.dernierMouvement = Date.now();
 }
 
 /* ── LIMITEUR DE CONCURRENCE (2026-08-10) ────────────────────────────────────────────

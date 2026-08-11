@@ -8557,10 +8557,9 @@ const AFTER = {
 
 function go(key){
   const p = PAGES[key]; if(!p) return;
-  // Compteur de progression remis à neuf à chaque changement d'onglet. Sans cela, le taux
-  // resterait à 100 % de la navigation précédente et l'écran de chargement ne reparaîtrait
-  // plus jamais — alors que c'est précisément à chaque onglet qu'on le veut.
-  try{ chargementNouvelleVue(); }catch(e){}
+  // L'écran de chargement N'EST PLUS réarmé ici : il couvre le seul premier chargement de
+  // l'application. Une fois les caches chauds, un changement d'onglet répond en une à trois
+  // secondes, et un voile qui clignote à chaque filtre inquiète plus qu'il ne rassure.
   closeNav();                       // ferme le tiroir mobile à la navigation
   window.__redraw = null;
   document.querySelectorAll(".nav-item").forEach(n =>
@@ -8820,6 +8819,10 @@ function _bootApp(){
     _appliquerDroits();
     initChrome();
     document.getElementById("burger").onclick = toggleNav;
+    // Le démarrage se fait en deux temps : loadAll() charge les référentiels communs, puis la
+    // première page demande SES données. Sans prolonger la fenêtre ici, ces secondes demandes
+    // ne sont plus comptées et l'écran de chargement se retire sur une page encore vide.
+    try{ chargementProlonger(); }catch(e){}
     go(_pageDArrivee());
   };
   loadAll()
