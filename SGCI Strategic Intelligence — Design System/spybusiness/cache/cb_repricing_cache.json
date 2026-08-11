@@ -921,6 +921,30 @@
       "cible": null,
       "justif": "Arme d'acquisition: gratuit vs BICICI 26000F; frais dossier type-dépendant, comparaison non fiable, ne pas monter",
       "src": "claude"
+    },
+    "II||frais de relevés | mois/compte": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, NSIA et SIB gratuits",
+      "src": "groq"
+    },
+    "III||emission chèque de banque en fcfa": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, bas prix",
+      "src": "groq"
+    },
+    "VIII||frais swift": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Frais réglementaire, marge de manœuvre limitée",
+      "src": "groq"
     }
   },
   "2024_S1_Particuliers": {
@@ -2641,6 +2665,54 @@
       "cible": 16000,
       "justif": "SGCI 3x moins cher que NSIA(55000). Marge de hausse modérée sans perdre l'avantage vs SIB(12000).",
       "src": "claude"
+    },
+    "II||virement entre agences en faveur d’un tiers": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition",
+      "src": "groq"
+    },
+    "II||virement interne reçu ou émis (de compte à compte dans la même banque)": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Déjà gratuit",
+      "src": "groq"
+    },
+    "II||frais pour procuration": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Concurrents plus chers",
+      "src": "groq"
+    },
+    "II||dans la zone uemoa": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition",
+      "src": "groq"
+    },
+    "II||frais de timbre pour versement d’espèces en compte": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Médiane marché égale",
+      "src": "groq"
+    },
+    "II||commission de transmission (client confrère)": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Positionnement déjà cohérent — pas de mouvement pertinent.",
+      "src": "groq"
     }
   },
   "2025_S1_Entreprises": {
@@ -3082,6 +3154,62 @@
       "montant": null,
       "cible": null,
       "justif": "Barrière de sortie, prix élevé",
+      "src": "groq"
+    },
+    "II||frais de mise en place": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition, BACI et ECOBANK gratuits",
+      "src": "groq"
+    },
+    "II||frais d’ouverture": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Médiane marché, BNI et SIB gratuits",
+      "src": "groq"
+    },
+    "II||gratuit 5 500 ttc": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Médiane marché, BICICI et BNI gratuits",
+      "src": "groq"
+    },
+    "IV||commission d'annulation": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Prix compétitif, proche médiane",
+      "src": "groq"
+    },
+    "VIII||frais de modification": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Arme d'acquisition à bas prix",
+      "src": "groq"
+    },
+    "VIII||commission d’annulation": {
+      "verdict": "NE_PAS_TOUCHER",
+      "fleche": "lock",
+      "montant": null,
+      "cible": null,
+      "justif": "Barrière de sortie à prix élevé",
+      "src": "groq"
+    },
+    "VIII||commission de transmission (client confrère)": {
+      "verdict": "MAINTENIR",
+      "fleche": "flat",
+      "montant": null,
+      "cible": null,
+      "justif": "Positionnement déjà cohérent — pas de mouvement pertinent.",
       "src": "groq"
     }
   }
