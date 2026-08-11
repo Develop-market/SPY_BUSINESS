@@ -1137,6 +1137,17 @@ def _premier_pas_depuis(directive):
     return "Désigner le responsable de cette directive et fixer la date du premier point."
 
 
+def _mois(horizon):
+    """Nombre de mois porté par un horizon (« 3 mois », « 24 mois »), pour pouvoir trier.
+
+    Un horizon illisible est renvoyé loin derrière plutôt qu'en tête : une directive dont on
+    ne sait pas quand elle s'exécute n'a rien à faire en première position d'une note
+    d'arbitrage. Mieux vaut la voir en fin de liste et s'en étonner.
+    """
+    m = re.search(r"(\d+)", str(horizon or ""))
+    return int(m.group(1)) if m else 999
+
+
 def _mds(fcfa):
     """Un montant en francs, rendu en milliards — l'unité dans laquelle l'objectif est fixé."""
     return _fr(f"{(fcfa or 0) / 1e9:,.1f}".replace(",", " ")) + " Mds FCFA"
@@ -1917,6 +1928,17 @@ def directives(annee=None, semestre=None, segment="Particuliers"):
         terrains = [s for s in (socle.get("secteurs") or [])
                     if nom in (s.get("directions_imposees") or []) or s.get("direction") == nom]
         terrains.sort(key=lambda s: -(s.get("opportunite") or 0))
+        # ── ORDRE DE LECTURE : LE PLUS PROCHE D'ABORD (2026-08-11) ──────────────────
+        # Chaque direction présentait ses quatre directives dans l'ordre où le compositeur les
+        # avait écrites. La Direction Financière ouvrait donc sur deux actions à VINGT-QUATRE
+        # MOIS et refermait sur celle à six — exactement l'inverse de ce qu'un comité doit
+        # lire. Ce qu'on attend d'une note d'arbitrage, c'est ce qu'on fait MAINTENANT ;
+        # l'horizon lointain vient ensuite, quand la première année est engagée.
+        #
+        # On trie donc par horizon croissant. À horizon égal, on conserve l'ordre d'écriture,
+        # qui porte la logique du compositeur (le constat fondateur avant ses déclinaisons) :
+        # `sorted` est stable, et c'est précisément ce qu'on lui demande ici.
+        lot.sort(key=lambda x: _mois(x.get("horizon")))
         pris = set()
         for i, x in enumerate(lot, 1):
             x["direction"], x["rang"] = nom, i
