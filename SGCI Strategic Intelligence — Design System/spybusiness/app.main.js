@@ -8134,6 +8134,35 @@ function _soPhasage(b){
       C'est un constat sur le plan, pas un défaut d'affichage.</div>`:""}</div>`;
 }
 
+
+/* BOUCLAGE DU PLAN — RENDU EN TETE DE PAGE (2026-08-11, demande du directeur).
+   Il vivait au milieu de la section des directives, apres les onglets de direction. Or il ne
+   parle d aucune direction en particulier : il dit si LE PLAN TIENT. Sa place est sous
+   l objectif global, dont il est la reponse chiffree — on lit l ambition, puis aussitot ce
+   qui la couvre et ce qui manque. Le lecteur n a plus a descendre pour savoir ou l on en est. */
+function _soBouclage(d){
+  const b = ((d||{}).directives||{}).bilan || {};
+  if(!(b.ecart_mds && b.n_chiffrees)) return "";
+  const couv = Math.max(0, Math.min(100, b.couverture_pct||0));
+  const col = couv >= 90 ? "#15803D" : (couv >= 50 ? "#B45309" : "#B91C1C");
+  const fr = v => String(v).replace(".", ",");
+  return `<div class="tile c12 tpad" style="padding:13px 16px;margin-bottom:11px;border-left:3px solid ${col}">
+      <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:5px">
+        <span style="font:800 10px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:${col}">Bouclage du plan</span>
+        <span style="font:800 15px var(--display);color:var(--ink)">${fr(b.somme_mds)} Mds FCFA
+          <span style="font-weight:600;color:var(--muted)">sur ${fr(b.ecart_mds)} Mds à combler</span></span>
+        <span style="font:800 13px var(--mono);color:${col}">${fr(couv.toFixed(1))} %</span>
+      </div>
+      <div style="height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-bottom:6px">
+        <div style="height:100%;width:${couv}%;background:${col}"></div></div>
+      <div style="font:500 11.5px/1.6 var(--sans);color:var(--muted)">
+        ${b.n_chiffrees} des ${b.n_total} directives portent un apport chiffré <b>en ${_soEsc(b.unite||"PNB")}</b> ;
+        les autres sont des conditions ou des défenses d'acquis, qui ne s'additionnent pas.
+        <b style="color:var(--ink)">${fr(b.reste_mds)} Mds restent sans source identifiée</b> —
+        c'est l'objet de la directive de bouclage de la Direction Financière.</div>
+      ${_soPhasage(b)}</div>`;
+}
+
 function _soDirectives(d, sect, dossiersHtml){
   const D = (d.directives && d.directives.directives) || [];
   if(!D.length) return "";
@@ -8194,27 +8223,6 @@ function _soDirectives(d, sect, dossiersHtml){
      On affiche donc la somme des directives chiffrées face à l'objectif, et le reste À
      DÉCOUVERT. Le chiffre n'est pas flatteur, et c'est précisément l'information utile :
      il justifie la directive de bouclage de la Direction Financière. */
-  const b = d.directives.bilan || {};
-  const bilan = (b.ecart_mds && b.n_chiffrees) ? (()=>{
-    const couv = Math.max(0, Math.min(100, b.couverture_pct||0));
-    const col = couv >= 90 ? "#15803D" : (couv >= 50 ? "#B45309" : "#B91C1C");
-    const fr = v => String(v).replace(".", ",");
-    return `<div class="tile c12 tpad" style="padding:13px 16px;margin-bottom:11px;border-left:3px solid ${col}">
-      <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:5px">
-        <span style="font:800 10px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:${col}">Bouclage du plan</span>
-        <span style="font:800 15px var(--display);color:var(--ink)">${fr(b.somme_mds)} Mds FCFA
-          <span style="font-weight:600;color:var(--muted)">sur ${fr(b.ecart_mds)} Mds à combler</span></span>
-        <span style="font:800 13px var(--mono);color:${col}">${fr(couv.toFixed(1))} %</span>
-      </div>
-      <div style="height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-bottom:6px">
-        <div style="height:100%;width:${couv}%;background:${col}"></div></div>
-      <div style="font:500 11.5px/1.6 var(--sans);color:var(--muted)">
-        ${b.n_chiffrees} des ${b.n_total} directives portent un apport chiffré <b>en ${_soEsc(b.unite||"PNB")}</b> ;
-        les autres sont des conditions ou des défenses d'acquis, qui ne s'additionnent pas.
-        <b style="color:var(--ink)">${fr(b.reste_mds)} Mds restent sans source identifiée</b> —
-        c'est l'objet de la directive de bouclage de la Direction Financière.</div>
-      ${_soPhasage(b)}</div>`;
-  })() : "";
 
   const per = (d.directives.perimetre)||{};
   const pied = `<div class="tile c12 tpad" style="padding:11px 15px">
@@ -8237,7 +8245,7 @@ function _soDirectives(d, sect, dossiersHtml){
   // à faire lui-même le lien entre la décision et ce qui la justifie.
   return sect("①","Ce que chaque direction doit faire",
     "<b>Quatre directives par direction.</b> Chacune part d'un fait mesuré, dit sur quel terrain elle s'exerce et ce qu'il peut rapporter, puis quoi faire, sur quelle cible, et ce qui sera suivi.",
-    `<div style="margin-bottom:11px">${onglets}</div>${bilan}<div class="bento">${cartes}</div>${pied}`);
+    `<div style="margin-bottom:11px">${onglets}</div><div class="bento">${cartes}</div>${pied}`);
 }
 
 function _soRender(){
@@ -8447,7 +8455,7 @@ function _soRender(){
   // FAIRE, puis seulement ensuite l'arbitrage sectoriel et les dossiers qui l'étayent.
   // L'inverse obligeait un directeur à traverser une analyse de marché avant d'atteindre
   // ce qui le concerne.
-  box.innerHTML = bandeau + _soDirectives(d, sect, cartes) +
+  box.innerHTML = bandeau + _soBouclage(d) + _soDirectives(d, sect, cartes) +
     sect("②","Arbitrage — où concentrer la conquête",
       "<b>Rendement · Délai · Difficulté.</b> Le ROI est en étoiles, pas en pourcentage : c'est un ordre de priorité, pas une prévision.",
       `<div class="tile c12 tpad">
@@ -8857,6 +8865,17 @@ function _bootApp(){
 // Bandeau visible si le LLM est indisponible (quota épuisé / panne) — pour ne JAMAIS laisser
 // l'utilisateur croire qu'une analyse silencieusement obsolète est fraîche.
 async function _checkLlmStatus(){
+  /* RÉSERVÉ À L'ADMINISTRATEUR (2026-08-11). Ce bandeau annonce l'épuisement du quota du
+     modèle de langage : c'est une information d'exploitation, pas de lecture. Un directeur
+     du marketing n'a rien à en faire — il ne peut ni recharger le quota ni décider d'attendre,
+     et le message le conduit surtout à douter de chiffres qui, eux, restent exacts puisqu'ils
+     viennent de la base. Seul l'administrateur agit dessus, seul il le voit. */
+  const u = SB_UTILISATEUR;
+  if(!u || u.role !== "admin"){
+    const b0 = document.getElementById("llm-status-banner");
+    if(b0) b0.style.display = "none";
+    return;
+  }
   try{
     const d = await (await fetch("/api/llm_status")).json();
     const b = document.getElementById("llm-status-banner");
