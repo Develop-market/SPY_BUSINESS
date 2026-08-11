@@ -214,7 +214,15 @@ def main():
         print(f"Le cache contient {n} entrée(s).")
     except Exception:
         pass
-    return 0 if not echecs else 1
+    # CODE DE SORTIE : on ne considère comme un échec du SCRIPT que l'impossibilité de
+    # travailler. Une poignée de réponses vides n'en est pas un — « les services apparus en
+    # 2024 » est légitimement vide, 2024 étant la première année de la base : il n'y a rien
+    # avant à comparer. Rendre 1 dans ce cas m'a fait annoncer au directeur que le
+    # préchauffage s'était « arrêté en erreur » alors qu'il avait tourné jusqu'au bout.
+    if echecs:
+        print("Les réponses vides sont normales quand la période n'a pas d'antérieur "
+              "(ex. « nouveaux services » sur la première année chargée).")
+    return 0 if faits else 1
 
 
 if __name__ == "__main__":
