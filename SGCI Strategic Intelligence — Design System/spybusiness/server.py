@@ -2764,15 +2764,34 @@ Utilise EXACTEMENT ces clés : {", ".join("@@%s@@" % k for k in _EF_BLOCKS)}."""
             v = _re_rp.sub(r"^json\s*", "", v)  # retire un éventuel reliquat de fence
             if k in _EF_BLOCKS and v:
                 parsed[k] = _llm_polish(_llm_br(v))
+    def _secours(motif):
+        """Analyses calculées, quand le modèle n'a rien rendu d'exploitable.
+
+        AJOUTÉ LE 2026-08-11. On renvoyait un jeu VIDE, et le front laissait ses quatre blocs
+        « Signal Analytique » sur « Analyse en cours… » — définitivement, une fois les quatre
+        reprises épuisées. Mesuré sur le service en ligne : vingt-huit blocs figés, alors que
+        les chiffres étaient là (ils servaient à composer le prompt).
+        """
+        try:
+            import redaction_secours as _sec
+            textes = _sec.ef_signaux(kp)
+            if textes:
+                print(f"[ef_llm] {motif} → rédaction de secours ({len(textes)} blocs)")
+                return jsonify({"analyses": textes, "source": "deterministe",
+                                "mention": _sec.MENTION}), 200
+        except Exception as e:
+            print("[ef_llm] secours impossible :", str(e)[:160])
+        return jsonify({"analyses": {}, "source": "none", "error": motif}), 200
+
     if not parsed or not isinstance(parsed, dict) or not parsed:
-        return jsonify({"analyses": {}, "source": "none"}), 200
+        return _secours("aucune analyse rendue")
     missing = [k for k in _EF_BLOCKS if k not in parsed]
     if missing:
         # Réponse tronquée (max_tokens atteint avant la fin) : on ne met PAS en cache un jeu de
         # blocs incomplet (sinon il serait servi comme définitif pour toujours, cf. bug trouvé le
         # 2026-07-15 sur Entreprises/anx=3 où s2/s3 manquaient silencieusement).
         print(f"[ef_llm] réponse incomplète ({engine}), blocs manquants : {missing}")
-        return jsonify({"analyses": {}, "source": "none", "error": "réponse incomplète"}), 200
+        return _secours("réponse incomplète")
     cache[key] = parsed
     _mark_fresh(cache, key)
     try:

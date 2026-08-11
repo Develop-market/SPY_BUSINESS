@@ -705,9 +705,19 @@ function pageApercu(){
 
   // Critique card (string concat — pas de backtick imbriqué)
   const C = function(txt, efKey){
-    // Bloc avec clé LLM → on N'AFFICHE JAMAIS le texte template ; on met un loader que
-    // _loadEFAnalysesLLM() remplace par l'analyse LLM (cachée & fiable). Sans clé → texte tel quel.
-    const body = efKey ? "<span style='opacity:.4'>Analyse en cours…</span>" : txt;
+    /* LE TEXTE CALCULÉ S'AFFICHE TOUT DE SUITE (2026-08-11).
+
+       La version précédente le jetait au profit d'un « Analyse en cours… », que
+       _loadEFAnalysesLLM() devait remplacer par la rédaction du modèle. Tant que le modèle
+       répondait, personne ne s'en apercevait. Le jour où son quota journalier s'épuise, les
+       quatre tentatives de reprise échouent et le bloc reste sur son loader — DÉFINITIVEMENT.
+       Mesuré sur le service en ligne : vingt-huit blocs figés sur « Analyse en cours… », alors
+       que le texte déterministe existait et était juste.
+
+       On affiche donc ce texte immédiatement. Le modèle, quand il répond, le remplace par une
+       version plus développée. Quand il ne répond pas, il ne manque rien d'essentiel : c'est
+       le principe du projet — le déterministe établit, le modèle formule. */
+    const body = txt;
     return "<div" + (efKey ? " data-ef='" + efKey + "'" : "") + " style='margin-top:14px;padding:11px 14px;background:rgba(56,209,240,.07);border-left:3px solid #38D1F0;border-radius:0 6px 6px 0'>"
       + "<div style='font:700 9px var(--sans,sans-serif);text-transform:uppercase;letter-spacing:.08em;color:#38D1F0;margin-bottom:5px'>◆ Analyse</div>"
       + "<div" + (efKey ? " data-ef-body" : "") + " style='font:500 12px/1.6 var(--sans,sans-serif);color:var(--ink,#F6F6F7)'>" + body + "</div></div>";

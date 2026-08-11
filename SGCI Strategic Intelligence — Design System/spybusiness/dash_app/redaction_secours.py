@@ -28,7 +28,14 @@ CE QUI DISTINGUE CES TEXTES
 
 
 def _fr(x):
-    """Nombre à la française : séparateur de milliers en espace, virgule décimale."""
+    """Nombre à la française : séparateur de milliers en espace, virgule décimale.
+
+    Accepte aussi une CHAÎNE déjà formatée (« 101.4 ») : les appelants passent souvent le
+    résultat d'un f-string pour choisir eux-mêmes le nombre de décimales, et lever sur ce cas
+    obligeait à connaître le type attendu à chaque appel.
+    """
+    if isinstance(x, str):
+        return x.replace(",", " ").replace(".", ",")
     if isinstance(x, float) and x != int(x):
         return f"{x:,.1f}".replace(",", " ").replace(".", ",")
     return f"{int(x):,}".replace(",", " ")
@@ -189,6 +196,102 @@ def q1_synthese(n_app, n_dis, n_hausses, n_baisses, apparus, marche, segment="Pa
             f"services élargissent l'écart de couverture si SGCI n'ajuste pas son rythme.")
 
     return " ".join(phrases)
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+#  SANTÉ FINANCIÈRE — LES QUATRE SIGNAUX ANALYTIQUES
+# ══════════════════════════════════════════════════════════════════════════════════════
+# Ces quatre blocs n'avaient AUCUN texte de repli : ils restaient sur « Analyse en cours… »
+# tant que le modèle ne répondait pas, et le jour où son quota s'épuise, définitivement.
+# Mesuré sur le service en ligne : vingt-huit blocs figés, alors que tous les chiffres
+# nécessaires étaient déjà calculés — ils servaient à composer le prompt.
+
+def _ord(n):
+    """« 1ʳᵉ », « 2ᵉ », « 3ᵉ » — le premier rang ne s'écrit pas comme les autres."""
+    return "1ʳᵉ" if n == 1 else f"{n}ᵉ"
+
+
+def _rang(valeurs, banque="SGCI", croissant=False):
+    """Rang de la banque dans un dictionnaire {banque: valeur}, et le total comparé."""
+    lot = {b: v for b, v in (valeurs or {}).items() if v is not None}
+    if banque not in lot:
+        return None, len(lot), None, None
+    ordonne = sorted(lot.items(), key=lambda x: x[1], reverse=not croissant)
+    rang = 1 + [b for b, _ in ordonne].index(banque)
+    tete_b, tete_v = ordonne[0]
+    return rang, len(lot), tete_b, tete_v
+
+
+def ef_signaux(kp):
+    """Quatre analyses de santé financière, calculées — une par section de l'écran.
+
+    `kp` est le dictionnaire de kpis_vue_ensemble : exactement ce que reçoit le modèle.
+    Renvoie {s1, s2, s3, s4} ou {} si les données manquent.
+    """
+    if not kp:
+        return {}
+    out = {}
+    mds = lambda v: _fr(f"{(v or 0) / 1000:.1f}") + " Mds FCFA"
+
+    # s1 — position d'ensemble : résultat net.
+    rn = kp.get("rn_data") or {}
+    rang, n, tete, valeur = _rang(rn)
+    if rang:
+        sgci = rn.get("SGCI") or 0
+        if rang == 1:
+            ecart = sgci - sorted(rn.values(), reverse=True)[1] if len(rn) > 1 else 0
+            out["s1"] = (f"SGCI réalise {mds(sgci)} de résultat net et occupe le premier rang "
+                         f"sur {n} banques, avec {mds(ecart)} d'avance sur le suivant. "
+                         f"La position est acquise ; l'enjeu est de la tenir.")
+        else:
+            out["s1"] = (f"SGCI réalise {mds(sgci)} de résultat net, au {_ord(rang)} rang sur {n}. "
+                         f"{tete} mène avec {mds(valeur)}, soit {mds(valeur - sgci)} d'écart.")
+
+    # s2 — puissance commerciale : produit net bancaire.
+    pnb = kp.get("pnb_data") or {}
+    rang, n, tete, valeur = _rang(pnb)
+    if rang:
+        sgci = pnb.get("SGCI") or 0
+        part = 100 * sgci / sum(v for v in pnb.values() if v) if any(pnb.values()) else 0
+        out["s2"] = (f"Le produit net bancaire de SGCI s'établit à {mds(sgci)}, "
+                     f"{_ord(rang)} sur {n}, soit {_fr(f'{part:.1f}')} % du produit net cumulé des "
+                     f"banques suivies. C'est la mesure de la puissance commerciale : ce que "
+                     f"l'activité rapporte avant toute charge.")
+
+    # s3 — efficience : coefficient d'exploitation, où le plus BAS est le meilleur.
+    co = kp.get("coeff_expl_data") or {}
+    rang, n, tete, valeur = _rang(co, croissant=True)
+    if rang:
+        sgci = co.get("SGCI")
+        if rang == 1:
+            out["s3"] = (f"Avec un coefficient d'exploitation de {_fr(f'{sgci:.1f}')} %, SGCI est "
+                         f"la plus efficiente des {n} banques comparées : elle consomme moins de "
+                         f"charges par franc de produit net que tous ses concurrents. Chaque "
+                         f"point regagné tombe directement au résultat.")
+        else:
+            out["s3"] = (f"Le coefficient d'exploitation de SGCI atteint {_fr(f'{sgci:.1f}')} %, "
+                         f"au {_ord(rang)} rang sur {n} ; {tete} tient {_fr(f'{valeur:.1f}')} %, soit "
+                         f"{_fr(f'{sgci - valeur:.1f}')} points de mieux. L'écart se traduit "
+                         f"directement en résultat non réalisé.")
+
+    # s4 — qualité du risque : coût du risque rapporté au PNB, le plus BAS étant le meilleur.
+    cr = kp.get("cout_r_pnb_data") or {}
+    rang, n, tete, valeur = _rang(cr, croissant=True)
+    if rang:
+        sgci = cr.get("SGCI")
+        pnb_sg = pnb.get("SGCI") or 0
+        prov = sgci / 100 * pnb_sg if pnb_sg else 0
+        phrase = (f"SGCI provisionne {_fr(f'{sgci:.1f}')} % de son produit net bancaire au titre "
+                  f"du risque de crédit, soit environ {mds(prov)} qui ne deviendront jamais du "
+                  f"résultat.")
+        if tete != "SGCI" and valeur:
+            gain = (sgci - valeur) / 100 * pnb_sg
+            phrase += (f" Le plus sain du marché est {tete}, à {_fr(f'{valeur:.1f}')} % : "
+                       f"ramener SGCI à ce niveau représenterait environ {mds(gain)} de résultat "
+                       f"supplémentaire, sans accorder un seul crédit de plus.")
+        out["s4"] = phrase
+
+    return out
 
 
 # ══════════════════════════════════════════════════════════════════════════════════════
