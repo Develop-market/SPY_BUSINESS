@@ -4756,7 +4756,12 @@ Commence directement."""
         # (all() sur liste vide = True mais le "and" court-circuitait), laissant le LLM halluciner
         # un risque chiffré sans aucune donnée concurrente réelle. Bloqué aussi dans ce cas.
         if not mkt_context or all(b.get('delta', 0) == 0 for b in mkt_context):
-            return jsonify({"analyse": None, "error": "données concurrentes en cours de chargement"}), 503
+            # 200 ET NON 503 (2026-08-11). Ce n'est pas une panne : les données concurrentes
+            # arrivent après le premier rendu, et le front rappellera. Un 503 s'inscrivait en
+            # rouge dans la console du navigateur à chaque ouverture de l'écran — une alerte
+            # pour un fonctionnement normal, ce qui apprend à ignorer les vraies.
+            return jsonify({"analyse": None, "en_attente": True,
+                            "error": "données concurrentes en cours de chargement"}), 200
 
         prompt = f"""Tu es un analyste bancaire senior, marché ivoirien (UEMOA), {period}, segment {segment}.
 
