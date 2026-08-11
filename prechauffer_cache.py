@@ -72,28 +72,62 @@ def combinaisons(app):
     return periodes, segments or ["Particuliers"]
 
 
-def appels(periodes, segments):
-    """Liste des requêtes à jouer, la plus consultée d'abord.
+def appels(periodes, segments, banques):
+    """Toutes les requêtes portant des DONNÉES, la plus consultée d'abord.
+
+    EXHAUSTIVITÉ VOULUE (2026-08-11). Une première version ne couvrait que sept endpoints sur
+    la quinzaine qui portent des données : les autres restaient calculés à la demande, et
+    c'est toujours celui qu'on a oublié que l'utilisateur ouvre en premier. La liste est
+    désormais alignée sur ce que le navigateur appelle réellement.
+
+    Ne sont PAS chauffés ici :
+      — les rédactions du modèle de langage (elles ont leur propre cache, et dépendent d'un
+        quota journalier : les forcer ici le viderait sans rien garantir) ;
+      — les appels sans état (login, moi, features, banques) qui répondent en millisecondes.
 
     L'ordre compte : si le processus est interrompu, mieux vaut avoir chauffé ce que les gens
-    ouvrent en premier.
+    ouvrent en premier — l'année la plus récente, puis les précédentes.
     """
     plan = []
-    annees = sorted(periodes, reverse=True)
-    for annee in annees:
+    for annee in sorted(periodes, reverse=True):
         for sem in sorted(periodes[annee]):
             for seg in segments:
                 p = f"annee={annee}&semestre={sem}&segment={seg}"
-                plan.append((f"CB {annee} {sem} {seg[:4]}", f"/api/cb?{p}"))
+                court = f"{annee} {sem} {seg[:4]}"
+                plan.append((f"CB {court}", f"/api/cb?{p}"))
+                plan.append((f"  détail prix {court}", f"/api/cb_prix_par_libelle?{p}"))
+                plan.append((f"  bandeau {court}", f"/api/cb_bd?{p}"))
                 for q in (1, 2, 3, 5, 6):
-                    plan.append((f"  q{q} {annee} {sem} {seg[:4]}", f"/api/cb_strat_data?q={q}&{p}"))
-                plan.append((f"  prix {annee} {sem} {seg[:4]}", f"/api/cb_prix_competitivite?{p}"))
-                plan.append((f"  repricing {annee} {sem} {seg[:4]}", f"/api/cb_repricing?{p}"))
-                plan.append((f"  strat-op {annee} {sem} {seg[:4]}",
-                             f"/api/strategie_operationnelle?{p}"))
+                    plan.append((f"  q{q} {court}", f"/api/cb_strat_data?q={q}&{p}"))
+                # q1 dépend AUSSI de la banque comparée : le panneau « Nouveaux services
+                # concurrents » en change à chaque clic sur un onglet de banque.
+                for b in banques:
+                    plan.append((f"  q1·{b[:6]} {court}",
+                                 f"/api/cb_strat_data?q=1&{p}&banque={b}"))
+                plan.append((f"  compétitivité {court}", f"/api/cb_prix_competitivite?{p}"))
+                plan.append((f"  repricing {court}", f"/api/cb_repricing?{p}"))
+                plan.append((f"  strat-op {court}", f"/api/strategie_operationnelle?{p}"))
+
     for seg in segments:
-        plan.append((f"évolutions {seg[:4]}", f"/api/cb_evolutions_all?segment={seg}"))
-        plan.append((f"stratégie {seg[:4]}", f"/api/strategie?segment={seg}"))
+        s = seg[:4]
+        plan.append((f"évolutions {s}", f"/api/cb_evolutions_all?segment={seg}"))
+        plan.append((f"série temporelle {s}", f"/api/cb_serie_temporelle?segment={seg}"))
+        plan.append((f"rattrapage {s}", f"/api/cb_rattrapage_depassement?segment={seg}"))
+        plan.append((f"innovation/finance {s}", f"/api/cb_innovation_vs_finance?segment={seg}"))
+        plan.append((f"STRATÉGIE {s}", f"/api/strategie?segment={seg}"))
+
+    # Santé financière : rapide aujourd'hui, mais elle dépend de l'exercice choisi (AN1/2/3)
+    # et le préchauffage ne coûte presque rien. Autant qu'aucun écran ne fasse exception.
+    for anx in (1, 2, 3):
+        plan.append((f"KPI AN{anx}", f"/api/kpis?rn_anx={anx}"))
+        plan.append((f"résilience AN{anx}", f"/api/resilience?anx={anx}"))
+    for chemin, libelle in (("/api/ef_series", "séries financières"),
+                            ("/api/rn", "résultat net"),
+                            ("/api/rn_series", "série résultat net"),
+                            ("/api/frais", "frais"),
+                            ("/api/radar_agent", "radar"),
+                            ("/api/dashboard_resume", "résumé tableau de bord")):
+        plan.append((libelle, chemin))
     return plan
 
 
@@ -137,7 +171,9 @@ def main():
         except Exception as e:
             print("Vidage impossible :", str(e)[:80])
 
-    plan = appels(periodes, segments)
+    banques = list(getattr(db, "BANKS", []) or ["SGCI"])
+    plan = appels(periodes, segments, banques)
+    print(f"Banques  : {', '.join(banques)}")
     print(f"\n{len(plan)} appels à jouer.\n")
 
     client = app.test_client()
@@ -160,7 +196,10 @@ def main():
                 etat = f"ÉCHEC {rep.status_code}"
             else:
                 faits += 1
-                etat = f"{taille // 1024} ko"
+                # Afficher en octets sous le kilo-octet : « 0 ko » pour une réponse de
+                # 532 octets se lit comme un échec, et j'ai perdu du temps à chercher une
+                # panne qui n'existait pas. Une unité mal choisie fabrique de faux bugs.
+                etat = f"{taille} o" if taille < 1024 else f"{taille // 1024} ko"
         except Exception as e:
             echecs += 1
             etat = f"ÉCHEC {type(e).__name__}"
