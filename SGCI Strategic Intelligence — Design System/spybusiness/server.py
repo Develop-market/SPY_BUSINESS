@@ -707,6 +707,71 @@ def _cache_table():
     return _CACHE_TABLE_PRETE
 
 
+# ══════════════════════════════════════════════════════════════════════════════════════
+#  CACHE DE RÉPONSE GÉNÉRIQUE
+# ══════════════════════════════════════════════════════════════════════════════════════
+# AJOUTÉ LE 2026-08-11, sur un constat désagréable : le script de préchauffage appelait des
+# endpoints qui n'écrivaient RIEN en base. Précalculer sans persister ne sert à rien — le
+# détail des prix mettait toujours 231 secondes en ligne, jusqu'à expiration, et le radar
+# douze secondes, alors qu'ils figuraient tous deux au plan de préchauffage.
+#
+# Plutôt que de modifier dix gestionnaires un par un — dix occasions d'en oublier un —, on
+# intercepte au niveau de la requête. La clé est le chemin et ses paramètres, triés pour que
+# l'ordre d'écriture n'engendre pas deux entrées pour la même chose.
+#
+# NE SONT LISTÉS QUE DES ENDPOINTS DONT LE CONTENU EST LE MÊME POUR TOUS. C'est la condition
+# qui rend ce cache sûr : « strategie_operationnelle » en est volontairement absent, puisque
+# sa réponse est filtrée selon les directions auxquelles le compte a droit — la mettre ici
+# servirait à un directeur la vue d'un autre. Le droit d'ACCÉDER reste vérifié à chaque appel
+# par la porte unique ; ce cache ne court-circuite que le CALCUL, jamais le contrôle.
+_CACHE_REPONSE = (
+    "/api/cb_prix_par_libelle", "/api/cb_bd", "/api/cb_prix_competitivite",
+    "/api/radar_agent", "/api/dashboard_resume", "/api/kpis", "/api/resilience",
+    "/api/ef_series", "/api/rn", "/api/rn_series", "/api/frais",
+)
+
+
+def _cle_reponse():
+    """Clé de cache d'une requête GET : son chemin et ses paramètres triés."""
+    q = "&".join(f"{k}={v}" for k, v in sorted(request.args.items(multi=True)))
+    return f"resp:{request.path}" + (f"?{q}" if q else "")
+
+
+@app.before_request
+def _servir_du_cache():
+    if request.method != "GET" or request.path not in _CACHE_REPONSE:
+        return None
+    # Après _controle_acces() dans l'ordre d'enregistrement : un utilisateur sans droit a
+    # déjà été refusé quand on arrive ici.
+    garde = _cache_lire(_cle_reponse())
+    if garde is None:
+        return None
+    from flask import Response
+    return Response(json.dumps(garde, ensure_ascii=False, default=str),
+                    mimetype="application/json")
+
+
+@app.after_request
+def _enregistrer_en_cache(reponse):
+    if (request.method != "GET" or request.path not in _CACHE_REPONSE
+            or reponse.status_code != 200
+            or "json" not in (reponse.content_type or "")):
+        return reponse
+    # `direct_passthrough` signale un corps que Flask n'a pas en main (fichier servi en flux) :
+    # le lire le consommerait, et le client recevrait une réponse vide.
+    if getattr(reponse, "direct_passthrough", False):
+        return reponse
+    try:
+        corps = reponse.get_data(as_text=True)
+        # On n'enregistre ni les réponses vides ni les erreurs déguisées en 200 : les
+        # resservir indéfiniment masquerait une panne au lieu de la signaler.
+        if len(corps) > 20 and '"error"' not in corps[:200]:
+            _cache_ecrire(_cle_reponse(), json.loads(corps))
+    except Exception as e:
+        print(f"[cache] enregistrement de {request.path} impossible : {str(e)[:80]}")
+    return reponse
+
+
 def _cache_lire(cle):
     """Contenu mémorisé pour cette clé, ou None."""
     if not _cache_table():
