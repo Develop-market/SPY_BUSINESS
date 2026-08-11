@@ -1788,10 +1788,25 @@ function afterApercu(){
 // Badge visible « analyse de secours » — affiché quand le backend indique stale:true (le
 // dernier rafraîchissement a échoué et on sert la DERNIÈRE analyse réussie, pas une nouvelle).
 // Sans ça, un texte restauré était indiscernable d'une génération fraîche.
+/* AVERTISSEMENT D'EXPLOITATION, RÉSERVÉ À L'ADMINISTRATEUR (2026-08-11).
+   « Analyse de secours — dernière génération réussie le… » décrit l'état du service de
+   rédaction, pas la valeur du contenu : les CHIFFRES affichés restent exacts, ils viennent de
+   la base. Un directeur du marketing ne peut ni relancer une génération ni décider d'attendre ;
+   le message ne fait que le conduire à douter d'un tableau qui, lui, est juste. Seul
+   l'administrateur agit dessus, seul il le voit. */
+/* QUI VOIT LES AVERTISSEMENTS D'EXPLOITATION (2026-08-11).
+   Quota epuise, analyse de secours, IA indisponible : tous decrivent l'etat du service de
+   REDACTION, jamais la justesse des chiffres — ceux-ci viennent de la base et restent exacts.
+   Un directeur metier ne peut rien y faire ; le message ne fait que le conduire a douter d'un
+   tableau qui est juste. Un seul helper, pour ne pas en oublier un au prochain ajout. */
+function _voitAvertissementsTechniques(){
+  return !!(SB_UTILISATEUR && SB_UTILISATEUR.role === "admin");
+}
+
 function _showStaleBadge(elId, meta){
   const el = document.getElementById(elId);
   if(!el) return;
-  if(!meta || !meta.stale){ el.style.display='none'; el.innerHTML=''; return; }
+  if(!_voitAvertissementsTechniques() || !meta || !meta.stale){ el.style.display='none'; el.innerHTML=''; return; }
   let dateTxt = 'date inconnue';
   if(meta.generated_at){
     try{
@@ -3568,7 +3583,7 @@ async function _stratLLM(){
       _renderProps(d.analyse, d.verif);
       if(fb) fb.style.display="none";
       if(partial){
-        if(Array.isArray(d.missing_directeurs) && d.missing_directeurs.length){
+        if(_voitAvertissementsTechniques() && Array.isArray(d.missing_directeurs) && d.missing_directeurs.length){
           partial.style.display="flex";
           partial.textContent=`⚠️ IA indisponible pour ${d.missing_directeurs.join(', ')} — les autres directions affichées ci-dessous sont à jour.`;
         } else {
@@ -5409,7 +5424,10 @@ const _llmPfx='';
    lecteur : faire passer une rédaction de secours pour l'analyse complète serait le tromper
    sur ce qu'il lit, et c'est le genre de silence qui se paie en soutenance. */
 function _mentionSecours(d){
-  if(!d || d.source !== 'deterministe') return '';
+  // Même raison que le badge ci-dessus : c'est l'état du service de rédaction qui est
+  // décrit, pas la justesse du contenu. Le texte de secours est CALCULÉ sur les mêmes
+  // chiffres — il est plus sec, pas moins exact. Inutile d'en avertir qui n'y peut rien.
+  if(!_voitAvertissementsTechniques() || !d || d.source !== 'deterministe') return '';
   return `<div style="margin-bottom:7px;padding:5px 9px;border-left:2px solid #B45309;
     background:#B4530914;border-radius:0 5px 5px 0;font:600 10.5px/1.45 var(--sans);
     color:var(--muted)">${_soEsc(d.mention || 'Rédaction automatique à partir des données.')}</div>`;
@@ -7209,7 +7227,7 @@ async function _fireQ6SubSectionComparison(){
     // Transparence : quand l'IA (Groq/Claude) a échoué et que les verdicts viennent du
     // repli déterministe (règles de marge, pas de raisonnement IA), le prévenir une fois
     // en tête plutôt que de laisser croire que CHAQUE verdict est un raisonnement IA.
-    const _estimBanner = rp.engine==='estimation'
+    const _estimBanner = (rp.engine==='estimation' && _voitAvertissementsTechniques())
       ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 12px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;font:600 11px var(--sans);color:#92400E">⚠️ IA indisponible pour cette génération — verdicts ci-dessous calculés par règle déterministe (marge/écart marché), pas par raisonnement IA.</div>`
       : '';
     let html=_estimBanner+`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
@@ -8880,8 +8898,7 @@ async function _checkLlmStatus(){
      du marketing n'a rien à en faire — il ne peut ni recharger le quota ni décider d'attendre,
      et le message le conduit surtout à douter de chiffres qui, eux, restent exacts puisqu'ils
      viennent de la base. Seul l'administrateur agit dessus, seul il le voit. */
-  const u = SB_UTILISATEUR;
-  if(!u || u.role !== "admin"){
+  if(!_voitAvertissementsTechniques()){
     const b0 = document.getElementById("llm-status-banner");
     if(b0) b0.style.display = "none";
     return;
