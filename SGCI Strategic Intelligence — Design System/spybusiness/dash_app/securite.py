@@ -84,15 +84,25 @@ LONGUEUR_MIN = 8
 # Les droits sont donc attribués SECTION PAR SECTION, et par utilisateur. Les clés reprennent
 # exactement les onglets de l'application : ce que l'administrateur coche est ce que
 # l'utilisateur voit.
+# ORDRE VOULU (2026-08-11) : celui de la lecture, pas celui de l'alphabet. L'écran
+# d'administration présente les cases dans CET ordre — d'abord ce qui relève de l'exploitation,
+# puis les écrans d'analyse dans l'ordre du menu, et la Stratégie opérationnelle en dernier
+# parce que ses directions se cochent en dessous.
+#
+# « ANALYSE » A ÉTÉ RETIRÉE. C'était un résidu : aucun onglet du menu n'y mène, et la page
+# qu'elle protégeait n'est plus atteignable. Elle gardait pourtant /api/frais, que
+# l'application appelle au DÉMARRAGE pour tout le monde — un compte sans cette case recevait
+# donc un 403 à chaque ouverture, sur un écran qu'il n'avait de toute façon jamais demandé.
+# Une case qui ne donne accès à rien mais qui casse le démarrage quand elle manque n'a aucune
+# raison d'être proposée.
 SECTIONS = {
+    "admin":     "Administration",
+    "ajout":     "Ajouter des données",
     "apercu":    "Santé financière",
-    "analyse":   "Analyse",
     "cb":        "Benchmark concurrentiel",
+    "chat":      "Assistant conversationnel",
     "strategie": "Stratégie",
     "stratop":   "Stratégie opérationnelle",
-    "chat":      "Assistant conversationnel",
-    "ajout":     "Ajouter des données",
-    "admin":     "Administration",
 }
 
 # ── DIRECTIONS VISIBLES DANS LA STRATÉGIE OPÉRATIONNELLE ─────────────────────────────
@@ -120,7 +130,7 @@ DIRECTIONS_STRATOP = {
 SECTIONS.update(DIRECTIONS_STRATOP)
 
 # Ce qu'un compte reçoit à sa création, selon son rôle. L'administrateur peut ensuite affiner.
-_BASE_LECTURE = ["apercu", "analyse", "cb", "strategie", "stratop", "chat"]
+_BASE_LECTURE = ["apercu", "cb", "strategie", "stratop", "chat"]
 DROITS_PAR_DEFAUT = {
     LECTURE: list(_BASE_LECTURE),
     EDITION: _BASE_LECTURE + ["ajout"],
@@ -185,8 +195,10 @@ _SECTION_PAR_PREFIXE = (
     ("/api/rn", "apercu"),
     ("/api/resilience", "apercu"),
     ("/api/radar_agent", "apercu"),
-    ("/api/frais", "analyse"),
-    ("/api/regl", "analyse"),
+    # /api/frais rejoint le SOCLE COMMUN : il est appelé au démarrage, pour tout le monde
+    # (il alimente le bandeau de chiffres et la vue d'ensemble). Le garder derrière un droit
+    # revenait à refuser le démarrage à qui ne l'avait pas — pour une page inatteignable.
+    ("/api/regl", "strategie"),
 )
 
 

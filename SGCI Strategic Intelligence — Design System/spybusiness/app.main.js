@@ -9108,15 +9108,32 @@ function _adminRender(){
   const S = _ADMIN_DATA.sections || {};
   const E = _soEsc;
 
+  /* LES DIRECTIONS SE COCHENT SOUS LA STRATEGIE OPERATIONNELLE (2026-08-11).
+     Elles etaient melees aux sections, sur la meme ligne : « Direction Commerciale » voisinait
+     avec « Administration » sans rien qui dise qu elles n ont pas la meme portee. On voyait
+     douze cases equivalentes, alors qu il y a sept acces et cinq VUES d un seul d entre eux.
+     Elles sont donc retirees de la liste principale et presentees en retrait, sous leur
+     parent — la mise en page dit alors ce que le libelle ne disait pas. */
+  const DIRS = _ADMIN_DATA.directions_stratop || {};
   const lignes = (_ADMIN_DATA.utilisateurs||[]).map(u=>{
-    const cases = Object.entries(S).map(([cle,nom])=>{
-      const coche = (u.droits||[]).includes(cle);
-      const admin = u.role === "admin";
-      return `<label title="${E(nom)}" style="display:inline-flex;align-items:center;gap:4px;margin:0 9px 5px 0;
-                font:500 11.5px var(--sans);color:${coche?'var(--ink)':'var(--faint)'};cursor:${admin?'not-allowed':'pointer'}">
-        <input type="checkbox" ${coche?"checked":""} ${admin?"disabled":""}
+    const admin = u.role === "admin";
+    const aDroit = c => (u.droits||[]).includes(c);
+    const boite = (cle, nom, retrait) => `<label title="${E(nom)}" style="display:inline-flex;align-items:center;gap:4px;margin:0 9px 5px 0;
+                font:500 11.5px var(--sans);color:${aDroit(cle)?'var(--ink)':'var(--faint)'};cursor:${admin?'not-allowed':'pointer'}">
+        <input type="checkbox" ${aDroit(cle)?"checked":""} ${admin?"disabled":""}
                onchange="_adminDroit('${E(u.identifiant)}','${cle}',this.checked)"> ${E(nom)}</label>`;
-    }).join("");
+    const principales = Object.entries(S).filter(([c])=>!DIRS[c])
+                              .map(([c,n])=>boite(c,n)).join("");
+    const vues = Object.entries(DIRS).map(([c,n])=>boite(c, n.replace(/^Direction /,""))).join("");
+    /* Aucune vue cochee = toutes visibles. On l ECRIT, car l inverse se devine mal : un
+       administrateur qui ne coche rien croirait avoir tout ferme alors qu il a tout ouvert. */
+    const aucuneVue = !Object.keys(DIRS).some(aDroit);
+    const cases = principales + (aDroit("stratop") ? `
+      <div style="margin:4px 0 2px 16px;padding-left:11px;border-left:2px solid var(--line)">
+        <div style="font:700 9.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:3px">
+          Vues de la Stratégie opérationnelle${aucuneVue?" — aucune cochée : toutes visibles":""}</div>
+        ${vues}
+      </div>` : "");
     const jamais = !u.derniere_connexion;
     return `<div class="tile c12 tpad" style="border-left:3px solid ${u.actif?'var(--accent-2)':'#94a3b8'};margin-bottom:9px">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -9278,6 +9295,13 @@ function _appliquerDroits(){
     if(fab) fab.style.display = "none";
     const rech = document.querySelector(".search");
     if(rech) rech.style.display = "none";
+  }
+  // Le bandeau défilant montre le résultat net de chaque banque : c'est de la santé
+  // financière, et il est présent sur TOUS les écrans. Le laisser à un compte qui n'a pas ce
+  // droit reviendrait à lui montrer par la bande ce qu'on lui refuse par la porte.
+  if(!droits.includes("apercu")){
+    const tk = document.querySelector(".ticker");
+    if(tk) tk.style.display = "none";
   }
 }
 

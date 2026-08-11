@@ -467,16 +467,26 @@ async function loadAll(){
   const f = APERCU_FILTERS;
   const kpiUrl = `/api/kpis?frais_annee=${f.frais_annee}&frais_sem=${f.frais_sem}&frais_seg=${f.frais_seg}&rn_anx=${f.rn_anx}`;
 
+  /* ON NE DEMANDE PAS CE QU ON N A PAS LE DROIT DE VOIR (2026-08-11).
+     Les series financieres alimentent le bandeau defilant et la vue d ensemble : elles
+     relevent de « Sante financiere ». Un compte Marketing les demandait quand meme au
+     demarrage et recoltait trois 403 — le serveur refusait correctement, mais la console du
+     navigateur s emplissait d erreurs rouges a chaque ouverture, pour un refus parfaitement
+     normal. Une alerte qui se declenche sans raison apprend a ignorer les vraies. */
+  const _voitSF = !SB_UTILISATEUR || SB_UTILISATEUR.role === "admin"
+                || (SB_UTILISATEUR.droits || []).includes("apercu");
+  const _siSF = (chemin) => _voitSF ? apiFetch(chemin) : Promise.resolve(null);
+
   const [frais, rn, series, kpis, annees, periodes, resil, efSeries,
          cbPar24, cbPar25, cbPar26, cbEnt24, cbEnt25, cbEnt26, cbBanks, logos] = await Promise.all([
     apiFetch("/api/frais"),
-    apiFetch("/api/rn"),
-    apiFetch("/api/rn_series"),
-    apiFetch(kpiUrl),
+    _siSF("/api/rn"),
+    _siSF("/api/rn_series"),
+    _siSF(kpiUrl),
     apiFetch("/api/cb_annees"),
     apiFetch("/api/cb_periodes"),
-    apiFetch(`/api/resilience?anx=${f.rn_anx}`),
-    apiFetch("/api/ef_series"),
+    _siSF(`/api/resilience?anx=${f.rn_anx}`),
+    _siSF("/api/ef_series"),
     apiFetch("/api/cb_bd?annee=2024&semestre=S1&segment=Particuliers"),
     apiFetch("/api/cb_bd?annee=2025&semestre=S1&segment=Particuliers"),
     apiFetch("/api/cb_bd?annee=2026&semestre=S1&segment=Particuliers"),
