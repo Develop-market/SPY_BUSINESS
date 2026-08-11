@@ -131,10 +131,10 @@ Sur l'instance hébergée, chaque requête traverse le réseau. Mesures réelles
 
 | | Avant | Après |
 |---|---|---|
-| Stratégie opérationnelle | 162 s | 0,7 s |
-| Évolution sur 3 ans | 73 s | 0,9 s |
+| Stratégie opérationnelle | 162 s | 3,8 s |
+| Conditions bancaires | 28,9 s | 7,1 s |
 
-Deux causes, toutes deux non évidentes :
+Trois causes, aucune n étant la lenteur du serveur :
 
 1. **Le préchauffage monopolisait le processeur.** Il calculait 12 combinaisons (3 ans × 2
    semestres × 2 segments) sur une instance à **0,1 CPU** : les requêtes de l'utilisateur
@@ -143,6 +143,11 @@ Deux causes, toutes deux non évidentes :
    Les résultats coûteux vivent désormais dans la table **`cache_app`** (base), qui survit aux
    réveils *et* aux redéploiements. Vidée à chaque ingestion.
 
+3. **Treize requêtes simultanées s'étranglaient.** Prises une par une, elles répondaient en
+   moins d'une seconde ; ensemble, elles n'étaient pas revenues au bout de vingt secondes. Sur
+   un dixième de processeur il n'y a aucun parallélisme à exploiter. Une file limitée à trois
+   a suffi, sans modifier une seule requête.
+
 L'interface : un **écran de chargement** (cercle + pourcentage réel, page floutée) à chaque
 changement d'onglet. Le taux ne redescend jamais et finit toujours à 100 %. Filet à 25 s.
 
@@ -150,16 +155,23 @@ changement d'onglet. Le taux ne redescend jamais et finit toujours à 100 %. Fil
 
 ## 7. Le mémoire
 
-`C:\Users\ALPHEE COLOMBE\Desktop\MEMOIRE_LATEX` — XeLaTeX, compilé deux fois.
+`C:\Users\ALPHEE COLOMBE\Desktop\MEMOIRE_LATEX`
 
 ```bash
-cd "C:/Users/ALPHEE COLOMBE/Desktop/MEMOIRE_LATEX"
-xelatex -interaction=nonstopmode memoire.tex && xelatex -interaction=nonstopmode memoire.tex
-cp memoire.pdf "C:/Users/ALPHEE COLOMBE/Desktop/MEMOIRE MASTER ZONGO COLOMBE.pdf"
+cd "C:/Users/ALPHEE COLOMBE/Desktop/MEMOIRE_LATEX" && python compiler.py
 ```
 
-**81 pages, plafond ferme.** Vérifier après chaque compilation, ainsi que
-`grep -cE '^! '` (erreurs) et `Overfull \hbox` (débordements) — les deux doivent être à 0.
+**Ne jamais lancer `xelatex` directement.** Si le PDF est ouvert dans un lecteur, le fichier
+est verrouillé : XeLaTeX échoue sur « Unable to open memoire.pdf », s'interrompt, et laisse un
+`.aux` **tronqué**. La passe suivante produit alors une centaine d'erreurs (« Undefined control
+sequence », « Missing \begin{document} ») qui n'ont **aucun rapport avec le document** — le
+source est intact. Une heure perdue à chercher une faute qui n'existait pas.
+
+`compiler.py` compile sous le nom `build`, contrôle l'intégrité du `.aux` après chaque passe,
+recommence depuis un état propre si besoin, et ne recopie vers le nom final qu'après deux
+passes saines. Il annonce erreurs, débordements et nombre de pages.
+
+**81 pages, plafond ferme.** Les erreurs et les `Overfull \hbox` doivent être à 0.
 
 TinyTeX ne peut pas installer de paquets : `setspace`, `eso-pic`, `caption`, `enumitem` et
 `babel-french` sont **absents**. Ne pas les utiliser.
