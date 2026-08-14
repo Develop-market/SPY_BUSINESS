@@ -101,14 +101,33 @@ def _creer_llm(temperature: float = None):
         except ImportError:
             print("[WARN] langchain-groq non installé — bascule sur Gemini")
 
-    # Gemini (défaut)
+    return _creer_llm_gemini(temp)
+
+
+def _creer_llm_gemini(temp: float):
+    """Construit le modèle Gemini, RAISONNEMENT COUPÉ.
+
+    Les modèles Gemini récents « réfléchissent » avant de répondre, et ce raisonnement se
+    paie sur le MÊME budget de sortie que la réponse. Mesuré ici : sur 1 496 jetons produits,
+    1 388 partaient en raisonnement et il en restait 108 pour la réponse — coupée en plein
+    mot, comme l'a montré la question sur le taux de l'usure. Budget de raisonnement à zéro :
+    la même réponse passe de 401 à 872 caractères, entière, et de 8,7 s à 2,8 s.
+
+    Ce n'est pas une économie au détriment de la qualité, c'est le principe du projet appliqué
+    au modèle : le déterministe établit, le LLM formule. Les montants, les rangs et les écarts
+    sont déjà calculés en SQL et fournis dans le contexte ; faire raisonner le modèle sur des
+    faits qu'on lui impose ne peut rien améliorer, seulement lui laisser moins de place pour
+    les écrire.
+    """
     from langchain_google_genai import ChatGoogleGenerativeAI
-    return ChatGoogleGenerativeAI(
-        model              = config.GEMINI_MODEL,
-        google_api_key     = config.GEMINI_API_KEY,
-        temperature        = temp,
-        max_output_tokens  = config.LLM_MAX_TOKENS,
-    )
+    commun = dict(model=config.GEMINI_MODEL, google_api_key=config.GEMINI_API_KEY,
+                  temperature=temp, max_output_tokens=config.LLM_MAX_TOKENS)
+    try:
+        return ChatGoogleGenerativeAI(thinking_budget=0, **commun)
+    except Exception as e:
+        # Tous les modèles n'acceptent pas ce réglage : mieux vaut un modèle bavard qu'aucun.
+        print(f"  [GEMINI] raisonnement non réglable ({str(e)[:70]}) — réponses plus longues à venir")
+        return ChatGoogleGenerativeAI(**commun)
 
 
 # Singletons LLM (initialisés au premier appel)
@@ -202,6 +221,56 @@ def _chiffres_inventes_chat(reponse, contexte):
 
 _groq_key_index = 0  # index courant dans la rotation des clés
 
+def _autre_fournisseur_dispo() -> bool:
+    """L'autre fournisseur a-t-il une clé ? Sans clé, annoncer une bascule serait mentir."""
+    if config.LLM_PROVIDER == "groq":
+        return bool(config.GEMINI_API_KEY)
+    return bool(config.GROQ_API_KEY or config.GROQ_API_KEYS)
+
+
+def _adapter_messages(messages, budget: int):
+    """Ramène le contexte au budget de l'autre fournisseur.
+
+    Le contexte est assemblé AVANT l'appel, à la taille du fournisseur en cours : 200 000
+    caractères pour Gemini, 9 000 pour Groq. Basculer de Gemini vers Groq avec le contexte
+    d'origine reviendrait à remplacer une panne de quota par un refus pour requête trop
+    grosse — la bascule échouerait toujours, et donnerait l'illusion d'un filet qui n'attrape
+    rien. On réduit donc le message porteur du contexte, avec le même partage sans gaspillage
+    qu'ailleurs.
+    """
+    adaptes, change = [], False
+    for m in messages:
+        contenu = getattr(m, "content", None)
+        if contenu is None and isinstance(m, dict):
+            contenu = m.get("content")
+        role = getattr(m, "type", None) or (m.get("role") if isinstance(m, dict) else "")
+        if role in ("human", "user") and isinstance(contenu, str) and len(contenu) > budget:
+            court = _tronquer_equitablement(contenu, budget)
+            print(f"  [BASCULE] contexte ramené de {len(contenu):,} à {len(court):,} caractères")
+            change = True
+            if isinstance(m, dict):
+                adaptes.append({**m, "content": court})
+            else:
+                adaptes.append(m.model_copy(update={"content": court}))
+            continue
+        adaptes.append(m)
+    return adaptes if change else messages
+
+
+def _creer_llm_autre(temp: float):
+    """Construit le modèle de l'AUTRE fournisseur, ou None si c'est impossible."""
+    try:
+        if config.LLM_PROVIDER == "groq":
+            return _creer_llm_gemini(temp)
+        from langchain_groq import ChatGroq
+        cle = (config.GROQ_API_KEYS or [config.GROQ_API_KEY])[0]
+        return ChatGroq(model=config.GROQ_MODEL, groq_api_key=cle,
+                        temperature=temp, max_tokens=config.LLM_MAX_TOKENS)
+    except Exception as e:
+        print(f"  [BASCULE] impossible — {type(e).__name__} {str(e)[:80]}")
+        return None
+
+
 def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
     """
     Appelle le LLM avec retry et rotation des clés Groq sur quota épuisé.
@@ -219,10 +288,11 @@ def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
 
     current_llm = llm  # copie locale pour permettre la rotation
     rotations_413_de_suite = 0  # compteur pour détecter un cycle complet épuisé
+    bascule_faite = False       # on ne change de fournisseur qu'une fois par question
 
     for attempt in range(max_retries):
         try:
-            return current_llm.invoke(messages).content
+            return _texte_reponse(current_llm.invoke(messages))
         except Exception as e:
             err = str(e)
             err_low     = err.lower()
@@ -235,9 +305,28 @@ def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
             # requête — vues dans le stress-test (2/8 appels, sans lien avec le contexte ni la
             # clé). Un simple retry sur la même clé suffit presque toujours.
             is_connexion = ("connection" in err_low or "timeout" in err_low or "timed out" in err_low)
+            is_indispo   = "503" in err or "unavailable" in err_low or "high demand" in err_low
 
             if attempt >= max_retries - 1:
                 return f"Erreur après {max_retries} tentatives : {err[:150]}"
+
+            # BASCULE DE FOURNISSEUR quand celui en cours est à sec. Les deux paliers gratuits
+            # sont étroits, mais ils ne comptent pas la même chose : Groq alloue 100 000 jetons
+            # par jour, Gemini 20 REQUÊTES par jour et par modèle. Aucun des deux ne tient une
+            # séance de travail à lui seul ; ensemble ils la tiennent. L'un s'épuise, l'autre
+            # prend la suite — une seule fois, pour ne pas faire l'aller-retour entre deux
+            # fournisseurs tous deux vides.
+            if (is_tpd or is_resource) and not bascule_faite and _autre_fournisseur_dispo():
+                bascule_faite = True
+                autre = "gemini" if config.LLM_PROVIDER == "groq" else "groq"
+                print(f"  [BASCULE] {config.LLM_PROVIDER} épuisé → {autre}")
+                remplacant = _creer_llm_autre(getattr(current_llm, "temperature", 0.3))
+                if remplacant is not None:
+                    current_llm = remplacant
+                    if autre == "groq":
+                        messages = _adapter_messages(messages,
+                                                     config.MAX_CONTEXT_CHARS_COMPARAISON)
+                    continue
 
             if (is_tpd or is_resource or is_413) and config.LLM_PROVIDER == "groq" and n_keys > 1:
                 _groq_key_index = (_groq_key_index + 1) % n_keys
@@ -268,6 +357,14 @@ def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
                 wait = 15 if is_413 else 30
                 print(f"  [RATE LIMIT] Attente {wait}s (tentative {attempt+1})...")
                 time.sleep(wait)
+            elif is_indispo:
+                # 503 « high demand » : ni quota ni taille, seulement un modèle très
+                # sollicité à cet instant. Cette erreur tombait dans le « sinon » et rendait
+                # une erreur définitive à l'utilisateur, alors qu'un simple essai un peu plus
+                # tard passe. Constaté sur « une banque doit-elle publier ses conditions
+                # tarifaires ? », question qui réussit à l'essai suivant.
+                print(f"  [MODÈLE SATURÉ] 503 — nouvelle tentative dans 8s ({attempt+1})...")
+                time.sleep(8)
             else:
                 return f"Erreur : {err[:200]}"
     return "Erreur : nombre maximum de tentatives atteint."
@@ -445,6 +542,52 @@ def _tronquer_equitablement(context: str, budget: int) -> str:
         en_lice = [i for i in en_lice if i not in set(tiennent)]
 
     return "\n".join(SEP + s[:alloue[i]] for i, s in enumerate(sections))
+
+
+def _texte_reponse(message) -> str:
+    """Rend la réponse du modèle SOUS FORME DE TEXTE, quel que soit le fournisseur.
+
+    `.content` valait une chaîne. Les modèles Gemini récents rendent une LISTE de blocs —
+    `[{'type': 'text', 'text': '...', 'extras': {...}}]` — parce qu'un même message peut
+    désormais mêler du texte, du raisonnement et des signatures. Tout ce qui suit dans cette
+    chaîne attend une chaîne : les garde-fous qui traquent les chiffres inventés, les
+    découpes, la mise en cache, et la réponse envoyée au navigateur. Une liste y passerait
+    soit en exception, soit — pire — en `str(liste)`, et l'utilisateur lirait des accolades.
+
+    On ne teste pas le nom du fournisseur mais la FORME de ce qu'on reçoit : le jour où un
+    modèle changera encore de format, seule cette fonction sera à revoir.
+    """
+    contenu = getattr(message, "content", message)
+    if isinstance(contenu, str):
+        return contenu
+
+    # On recolle les blocs de texte nous-mêmes AVANT d'essayer `.text`. Cette propriété est
+    # la voie officielle, mais elle est méthode dans la version installée ici et l'appeler
+    # émet un avertissement de dépréciation — à CHAQUE réponse, donc à chaque ligne du
+    # journal de production. Un journal noyé sous un avertissement connu ne sert plus à
+    # repérer celui qu'on ne connaît pas.
+    if isinstance(contenu, list):
+        morceaux = []
+        for bloc in contenu:
+            if isinstance(bloc, str):
+                morceaux.append(bloc)
+            elif isinstance(bloc, dict) and bloc.get("type") == "text":
+                morceaux.append(bloc.get("text") or "")
+        if any(m.strip() for m in morceaux):
+            return "".join(morceaux)
+
+    # Repli : une forme que l'on n'a pas prévue. `.text` s'en tire peut-être — propriété dans
+    # les versions récentes, méthode dans les anciennes, on accepte les deux.
+    txt = getattr(message, "text", None)
+    if callable(txt):
+        try:
+            txt = txt()
+        except Exception:
+            txt = None
+    if isinstance(txt, str) and txt.strip():
+        return txt
+
+    return "" if contenu is None else str(contenu)
 
 
 def _texte_regl(chunk: dict) -> str:
@@ -1313,6 +1456,12 @@ def _agent_llm_pour_cle(groq_key: str):
                      temperature=0, max_tokens=600).bind_tools(agent_tools.ALL_TOOLS)
 
 
+def _agent_llm_gemini():
+    # Même raisonnement coupé qu'ailleurs, et pour la même raison : 600 jetons de sortie
+    # seraient intégralement consommés par la réflexion, sans qu'il reste une phrase.
+    return _creer_llm_gemini(0).bind_tools(agent_tools.ALL_TOOLS)
+
+
 def _agent_invoke_avec_rotation(msgs):
     """BUG TROUVÉ en testant (2026-07-25) : la 1ʳᵉ version de l'agent utilisait une SEULE clé
     Groq figée (config.GROQ_API_KEY) — sans la rotation sur 12 clés que le reste de l'app
@@ -1321,16 +1470,31 @@ def _agent_invoke_avec_rotation(msgs):
     échouait alors SYSTÉMATIQUEMENT (échec silencieux, sans casser le chat — mais rendant
     l'agent inutile) alors que d'autres clés avaient probablement encore du quota. Fix : même
     rotation que le reste du chat sur 429/quota."""
-    keys = config.GROQ_API_KEYS or [config.GROQ_API_KEY]
+    # L'agent suit le FOURNISSEUR CHOISI, il n'est plus câblé sur Groq. Sinon, basculer
+    # l'application sur Gemini ne serait qu'un demi-passage : cet agent continuerait à
+    # consommer le quota Groq — celui-là même que l'on cherchait à quitter — et se tairait
+    # une fois ce quota épuisé, sans que rien ne relie sa disparition à la bascule.
     last_err = None
-    for key in keys:
+    if config.LLM_PROVIDER == "gemini" and config.GEMINI_API_KEY:
+        try:
+            llm = _agent_llm_gemini()
+            return llm, llm.invoke(msgs)
+        except Exception as e:
+            last_err = e
+            print(f"  [AGENT SECOURS] Gemini indisponible ({str(e)[:80]}) — essai des clés Groq")
+
+    # Repli sur Groq : les clés restent renseignées, autant s'en servir plutôt que de
+    # renoncer. La rotation sur les 12 clés reste utile ici (voir plus bas).
+    for key in (config.GROQ_API_KEYS or [config.GROQ_API_KEY]):
+        if not key:
+            continue
         try:
             llm = _agent_llm_pour_cle(key)
             return llm, llm.invoke(msgs)
         except Exception as e:
             last_err = e
             continue
-    raise last_err or RuntimeError("Aucune clé Groq disponible pour l'agent de secours.")
+    raise last_err or RuntimeError("Aucun modèle disponible pour l'agent de secours.")
 
 
 def _agent_secours(question: str, mem) -> str | None:
@@ -1366,7 +1530,7 @@ def _agent_secours(question: str, mem) -> str | None:
             final = llm.invoke(msgs)
         except Exception:
             _, final = _agent_invoke_avec_rotation(msgs)   # re-rotation si la clé a expiré entre-temps
-        reponse = (final.content or "").strip()
+        reponse = _texte_reponse(final).strip()
         if not reponse:
             return None
         print(f"  [AGENT SECOURS] Outil '{appel['name']}' utilisé (question non reconnue par les détecteurs existants).")

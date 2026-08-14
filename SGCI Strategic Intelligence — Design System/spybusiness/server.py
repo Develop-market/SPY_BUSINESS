@@ -4652,18 +4652,28 @@ def _gemini_call_cb(prompt: str, max_tokens: int = 512, temperature: float = 0.3
         return None
     try:
         import requests as _rq
+        # Le nom du modele se PERIME. Celui-ci visait « gemini-2.0-flash », retire par Google :
+        # l'appel rendait 404, la fonction rendait None sans un mot, et le secours des
+        # tableaux de bord etait donc mort sans que rien ne le signale. Reglable par variable
+        # d'environnement, pour ne plus avoir a toucher au code au prochain retrait.
+        modele = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
         url = ("https://generativelanguage.googleapis.com/v1beta/models/"
-               "gemini-2.0-flash:generateContent?key=" + key)
+               + modele + ":generateContent?key=" + key)
         r = _rq.post(url, timeout=18, json={
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {"maxOutputTokens": max_tokens, "temperature": temperature},
         })
         if r.status_code != 200:
+            # Un echec ANNONCE : un secours muet se croit disponible pendant des mois.
+            print(f"  [GEMINI {modele}] HTTP {r.status_code} — {r.text[:160]}")
             return None
-        data = r.json()
-        txt = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        # Les modeles recents rendent PLUSIEURS parts, dont certaines sans texte : prendre la
+        # premiere donnerait une chaine vide ou une exception. On recolle celles qui en ont.
+        parts = (r.json().get("candidates") or [{}])[0].get("content", {}).get("parts", [])
+        txt = "".join(p.get("text", "") for p in parts if isinstance(p, dict)).strip()
         return _trim_incomplete(txt) if txt else None
-    except Exception:
+    except Exception as e:
+        print(f"  [GEMINI] appel impossible — {type(e).__name__} {str(e)[:120]}")
         return None
 
 import hashlib as _hl_pr   # empreinte de prompt pour les clés de cache CB (cf. _groq_call_cb)

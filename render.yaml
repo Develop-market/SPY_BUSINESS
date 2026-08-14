@@ -89,6 +89,30 @@ services:
         sync: false
 
       # ── Modèles de langage (appels d'API, aucun poids local) ───────────────────────
+      # Gemini en tête, Groq en relais — et NON parce que Gemini serait plus généreux. Les
+      # deux paliers gratuits ont été mesurés, et aucun ne tient une séance à lui seul :
+      #   Groq    100 000 jetons par JOUR pour toutes les clés du compte, soit une quinzaine
+      #           de questions au chat ;
+      #   Gemini  20 REQUÊTES par jour et par modèle. C'est plus étroit encore.
+      # Ils ne comptent simplement pas la même chose, donc ils s'épuisent à des moments
+      # différents : le code bascule de l'un à l'autre en cours de question (chain.py,
+      # _invoke_with_retry). Deux budgets valent mieux qu'un.
+      #
+      # Ce qui départage, c'est la FENÊTRE. Groq accepte 9 000 caractères de contexte, Gemini
+      # 200 000. Tout un pan de complexité — réduire, partager la place entre les sections,
+      # choisir ce que l'on sacrifie — n'existe que pour tenir dans 9 000. À 200 000, les
+      # textes réglementaires arrivent ENTIERS au modèle, et les réponses citent l'article au
+      # lieu de s'excuser.
+      #
+      # Pour une démonstration sans risque, il faut activer la facturation chez l'un des
+      # deux : aucun réglage ne crée du quota qui n'existe pas.
+      - key: LLM_PROVIDER
+        value: gemini
+      # Le nom du modèle se périme : « gemini-2.0-flash » a été retiré sans préavis utilisable
+      # et l'appel rendait 404. Le garder ici permet d'en changer depuis le tableau de bord de
+      # l'hébergeur, sans redéploiement de code.
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
       - key: GROQ_API_KEY
         sync: false
       - key: GEMINI_API_KEY

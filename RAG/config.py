@@ -48,7 +48,12 @@ DB_PARAMS = _params_bd()
 
 # ── LLM — Gemini (principal) + Groq (backup) ─────────────────────────────────
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL   = "gemini-2.0-flash"
+# Le nom du modèle se PÉRIME. « gemini-2.0-flash » a été retiré par Google sans préavis
+# utilisable : l'appel rend un 404 « This model is no longer available », et le chat meurt
+# entier sur une ligne de configuration. On le rend donc réglable sans toucher au code, et
+# l'on note comment retrouver la liste du jour :
+#     https://generativelanguage.googleapis.com/v1beta/models?key=$GEMINI_API_KEY
+GEMINI_MODEL   = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 
 GROQ_MODEL   = "llama-3.3-70b-versatile"  # remis au modèle prévu le 2026-07-22 (le "demain" annoncé dans ce commentaire n'a jamais été fait — le chat tournait sur le petit 8b depuis)
 
@@ -80,7 +85,12 @@ SIMILARITY_THRESHOLD = 0.30  # cosine similarity minimum (scores moyens : 0.68-0
 # débuts d'articles. Mesuré sur les huit questions réglementaires, le bon texte n'est jamais
 # descendu au-delà du troisième rang — les rangs 7 à 25 ne servaient qu'à réduire la part
 # des six premiers.
-REGL_K_LARGE = 6
+#
+# Le chiffre suit le budget, il n'a pas de valeur en soi. Six articles sont ce que 9 000
+# caractères peuvent servir entiers ; avec Gemini le budget passe à 200 000 et cette
+# contrainte disparaît — s'y tenir reviendrait alors à s'interdire des textes pertinents
+# pour une raison qui n'existe plus.
+REGL_K_LARGE = 25 if LLM_PROVIDER == "gemini" else 6
 MAX_CHUNKS_GLOBAL    = 900   # au-delà → sémantique par banque
 MAX_CHUNKS_BANQUE    = 950   # au-delà pour 1 banque → sémantique k=100
 
