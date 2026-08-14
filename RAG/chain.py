@@ -360,25 +360,162 @@ def _retrieval_parallele(vectorstore, question: str, types_actifs: list) -> dict
 #  FORMATAGE DU CONTEXTE SECTIONNÉ PAR AGENT
 # ═══════════════════════════════════════════════════════════
 
+_TYPES_TEXTE = {"INSTRUCTION": "Instruction", "DECISION": "Décision", "DÉCISION": "Décision",
+                "LOI": "Loi", "CIRCULAIRE": "Circulaire", "ARRETE": "Arrêté"}
+_EMETTEURS   = {"BCEAO", "UMOA", "UEMOA"}
+_NUM_TEXTE   = re.compile(r"^\d{1,3}(-\d{2,4})+$")
+
+
+def _titre_reglementaire(nom_fichier: str) -> str:
+    """Rend le nom de fichier sous la forme d'une référence citable.
+
+    Les en-têtes de section portent la provenance de chaque article, pour que le modèle
+    puisse citer sa source. Y écrire le nom de fichier brut le lui faisait recopier tel
+    quel — « selon l'article 2 de la BCEAO_INSTRUCTION_004-05-2015_TRANSPARENCE_TARIFAIRE » —
+    alors que la consigne interdit toute référence technique interne. La transformation est
+    entièrement déterministe : on ne demande pas au modèle de deviner la référence, on la
+    lui donne déjà écrite.
+    """
+    if not nom_fichier:
+        return "texte réglementaire"
+    mots = [m for m in re.split(r"[_\s]+", nom_fichier.strip()) if m]
+    emetteur = next((m for m in mots if m.upper() in _EMETTEURS), "")
+    type_txt = next((_TYPES_TEXTE[m.upper()] for m in mots if m.upper() in _TYPES_TEXTE), "")
+    numero   = next((m for m in mots if _NUM_TEXTE.match(m)), "")
+    reste    = [m for m in mots
+                if m.upper() not in _EMETTEURS and m.upper() not in _TYPES_TEXTE and m != numero]
+
+    if not type_txt or not numero:
+        # Nom hors convention (« LOI DE CONSOMMATION ») : le mettre entre parenthèses
+        # donnerait « Loi (de consommation) ». On se contente de le rendre lisible.
+        return " ".join(mots).replace("-", " ").capitalize()
+
+    titre = type_txt
+    if emetteur:
+        titre += f" {emetteur.upper()}"
+    if numero:
+        titre += f" n° {numero}"
+    if reste:
+        titre += " (" + " ".join(reste).lower() + ")"
+    return titre
+
+
+def _tronquer_equitablement(context: str, budget: int) -> str:
+    """Réduit le contexte au budget, en partageant la place SANS la gaspiller.
+
+    Le partage précédent divisait le budget par le nombre de sections et coupait chacune à
+    cette longueur. Une part égale n'est équitable qu'entre sections de taille comparable —
+    or elles ne le sont pas du tout. Mesuré sur « la tenue de compte est-elle gratuite ? » :
+    24 sections, 250 caractères chacune. Vingt en-têtes tarifaires de 49 caractères
+    recevaient 250 places pour en occuper 49, gaspillant quatre cents caractères, pendant que
+    l'annexe de la BCEAO — 1 519 caractères — était coupée à 250, juste avant la ligne
+    « Tenue de compte sur livret d'épargne » qui répondait à la question.
+
+    On sert donc d'abord les sections qui tiennent dans leur part, puis on redistribue ce
+    qu'elles n'ont pas consommé à celles qui débordent, et on recommence jusqu'à ce que plus
+    rien ne circule. Aucune section ne reçoit plus qu'elle ne demande, et le surplus va aux
+    plus longues — les textes de loi, précisément. Personne n'est privilégié par une règle
+    particulière : c'est la taille réelle qui décide.
+    """
+    SEP = "═" * 50
+    sections = [s for s in context.split(SEP) if s.strip()]
+    n = len(sections)
+    if not n:
+        return context
+
+    reste = budget - n * len(SEP)      # les séparateurs seront réécrits, ils comptent
+    if reste <= 0:
+        return context[:max(0, budget)]
+
+    tailles = [len(s) for s in sections]
+    alloue  = [0] * n
+    en_lice = list(range(n))
+    while en_lice and reste > 0:
+        part = reste // len(en_lice)
+        if part <= 0:
+            break
+        tiennent = [i for i in en_lice if tailles[i] <= part]
+        if not tiennent:                # toutes débordent : on partage à parts égales
+            for i in en_lice:
+                alloue[i] = part
+            break
+        for i in tiennent:
+            alloue[i] = tailles[i]
+            reste -= tailles[i]
+        en_lice = [i for i in en_lice if i not in set(tiennent)]
+
+    return "\n".join(SEP + s[:alloue[i]] for i, s in enumerate(sections))
+
+
+def _texte_regl(chunk: dict) -> str:
+    """Le texte de l'article, sans l'habillage prévu pour les tarifs.
+
+    `format_context` regroupe par banque × période × cible et ajoute, pour chaque groupe,
+    deux filets de 55 caractères et une ligne « (1 entrées) ». Un article réglementaire n'a
+    ni banque ni période : cet habillage coûtait environ 180 caractères par article, sans
+    rien apprendre à personne. C'est beaucoup quand le budget total est de 9 000 caractères
+    partagés entre toutes les sections — assez pour que la phrase utile passe sous la coupe.
+    Constaté sur « sous quel délai une banque doit-elle communiquer ses tarifs à la BCEAO ? » :
+    l'article 2 arrivait en tête du classement, et « dans un délai d'une semaine » tombait
+    quelques caractères au-delà de la limite.
+    """
+    lignes = [l for l in (chunk.get("texte") or "").strip().split("\n")
+              if not (l.startswith("[") and l.endswith("]") and "|" in l)]
+    return "\n".join(lignes).strip()
+
+
 def _formater_contexte_sections(chunks_par_agent: dict, regl_chunks: list, niveau: int) -> str:
     sections = [
         f"[NIVEAU DE CONFIANCE ANALYTIQUE : {niveau}]\n"
         f"1=Factuel | 2=Analytique | 3=Prospectif (ancrage régl. obligatoire) | 4=Refus propre"
     ]
 
-    for type_doc, chunks in chunks_par_agent.items():
-        if chunks:
-            label = _AGENT_LABELS.get(type_doc, type_doc.upper())
-            sep   = "═" * 50
-            bloc  = retriever.format_context(chunks)
+    # La réglementation passe EN TÊTE. Elle était écrite en dernier, parce que la branche de
+    # comparaison la rattache après coup au dictionnaire des agents. Or deux réductions
+    # coupent le contexte PAR LA FIN — la compensation de la fiche marché (6e) et celle de la
+    # fiche mono-banque (6d) : la section réglementaire était donc la première sacrifiée.
+    # Constaté sur « quel est le taux de l'usure applicable aux banques ? » : l'agent trouvait
+    # bien la décision de l'UMOA, elle disparaissait avant le modèle, et le chat répondait
+    # « non disponible » sur une donnée qu'il avait en main. Le droit est le cadre dans lequel
+    # un tarif se lit, pas la chute d'un contexte trop long.
+    ordre = (["reglementation"] if "reglementation" in chunks_par_agent else []) + \
+            [t for t in chunks_par_agent if t != "reglementation"]
+
+    for type_doc in ordre:
+        chunks = chunks_par_agent[type_doc]
+        if not chunks:
+            continue
+        label = _AGENT_LABELS.get(type_doc, type_doc.upper())
+        sep   = "═" * 50
+
+        if type_doc == "reglementation":
+            # Un article, une section. Les fragments réglementaires n'ont ni banque ni
+            # période : `format_context` les regroupe donc TOUS sous une seule et même
+            # section, collés les uns aux autres. Or les réductions de contexte coupent
+            # chaque section au caractère et gardent sa tête — le modèle recevait le premier
+            # article et perdait les sept suivants, quel que soit leur classement.
+            # Constaté sur « quelles obligations de transparence tarifaire pèsent sur les
+            # banques ? » : il n'a reçu qu'un article sur l'agrément, pendant que
+            # l'instruction de 2015, classée troisième, était jetée avec le reste.
+            # Découpé ainsi, le partage équitable déjà en place donne sa part à CHAQUE
+            # article, et un article court — la plupart le sont — survit entier.
+            for i, c in enumerate(chunks, 1):
+                titre = _titre_reglementaire(c.get("source"))
+                sections.append(
+                    f"{sep}\n{label} — source {i}/{len(chunks)} : {titre}\n{sep}\n"
+                    f"{_texte_regl(c)}")
+        else:
+            bloc = retriever.format_context(chunks)
             sections.append(f"{sep}\n{label} ({len(chunks)} sources)\n{sep}\n{bloc}")
 
+    # Même découpage pour l'enrichissement réglementaire, et pour la même raison.
     if regl_chunks:
-        sep  = "═" * 50
-        bloc = retriever.format_context(regl_chunks)
-        sections.append(
-            f"{sep}\nTEXTES RÉGLEMENTAIRES APPLICABLES (enrichissement niveau 3)\n{sep}\n{bloc}"
-        )
+        sep = "═" * 50
+        for i, c in enumerate(regl_chunks, 1):
+            titre = _titre_reglementaire(c.get("source"))
+            sections.append(
+                f"{sep}\nTEXTE RÉGLEMENTAIRE APPLICABLE {i}/{len(regl_chunks)} : {titre}\n"
+                f"{sep}\n{_texte_regl(c)}")
 
     return "\n\n".join(sections)
 
@@ -622,22 +759,14 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
             # rendant cette troncature "équitable par section" strictement équivalente à une
             # troncature brutale de la fin — exactement le problème qu'elle devait éviter.
             if len(context) > config.MAX_CONTEXT_CHARS_COMPARAISON:
-                SEP = "═" * 50
-                sections = [s for s in context.split(SEP) if s.strip()]
-                n_sections = max(1, len(sections))
-                chars_par_section = config.MAX_CONTEXT_CHARS_COMPARAISON // n_sections
-                context = "\n".join(SEP + s[:chars_par_section] for s in sections)
+                context = _tronquer_equitablement(context, config.MAX_CONTEXT_CHARS_COMPARAISON)
 
         print(f"  Contexte réduit : {len(context):,} chars")
 
-    # 6c. Filet de sécurité final — truncature équitable par section (SEP corrigé, voir plus haut)
+    # 6c. Filet de sécurité final — même partage, sans gaspillage (voir _tronquer_equitablement)
     if len(context) > config.MAX_CONTEXT_CHARS:
-        SEP = "═" * 50
-        sections = [s for s in context.split(SEP) if s.strip()]
-        n_sections = max(1, len(sections))
-        chars_par_section = config.MAX_CONTEXT_CHARS // n_sections
-        context = "\n".join(SEP + s[:chars_par_section] for s in sections)
-        print(f"  Contexte tronqué ({n_sections} sections × {chars_par_section} chars) : {len(context):,} chars")
+        context = _tronquer_equitablement(context, config.MAX_CONTEXT_CHARS)
+        print(f"  Contexte tronqué : {len(context):,} chars")
 
     # 6d. Question analytique sur UNE SEULE banque ("X est-elle solide/compétitive ?") :
     # injecter la fiche de synthèse chiffrée ET CLASSÉE (ROE, coefficient d'exploitation,

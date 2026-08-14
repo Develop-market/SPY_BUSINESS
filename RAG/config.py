@@ -68,6 +68,19 @@ EMBEDDING_DIMS  = 768
 # ── Paramètres retrieval ──────────────────────────────────────────────────────
 RETRIEVER_K          = 6     # recherche sémantique générale (réduit pour les limites token llama-8b)
 SIMILARITY_THRESHOLD = 0.30  # cosine similarity minimum (scores moyens : 0.68-0.71)
+
+# Vue LARGE sur la réglementation, pour une question générale qui ne vise ni une banque ni
+# une période. Ce n'est plus la table entière : découpée par article, elle pèse 264 000
+# caractères pour un contexte de 9 000.
+#
+# Six et non vingt-cinq : chaque article occupe désormais sa propre section, et le budget se
+# partage entre elles. À vingt-cinq, chacune tombait à 360 caractères — un article coupé au
+# tiers, dont le modèle ne pouvait citer que le début. Peu de sources bien servies valent
+# mieux que beaucoup de sources amputées : mieux vaut six articles entiers que vingt-cinq
+# débuts d'articles. Mesuré sur les huit questions réglementaires, le bon texte n'est jamais
+# descendu au-delà du troisième rang — les rangs 7 à 25 ne servaient qu'à réduire la part
+# des six premiers.
+REGL_K_LARGE = 6
 MAX_CHUNKS_GLOBAL    = 900   # au-delà → sémantique par banque
 MAX_CHUNKS_BANQUE    = 950   # au-delà pour 1 banque → sémantique k=100
 
@@ -256,11 +269,56 @@ def refresh_banque_aliases():
     return dict(BANQUE_ALIASES)
 
 # ── Mots-clés routing par domaine ─────────────────────────────────────────────
+# Cette liste ne nommait que les CONTENANTS du droit — « loi », « décret », « article » —
+# et aucune des NOTIONS qu'il porte. « Quel est le taux de l'usure applicable aux banques ? »
+# n'y déclenchait rien, tandis que « taux » la rangeait dans les conditions tarifaires : la
+# question partait au mauvais agent et le chat répondait « non disponible dans le document »
+# alors que la décision de l'UMOA était en base. Or personne ne demande « que dit l'article
+# 8 » : on demande l'usure, la gratuité, le plafond.
+#
+# Les mots ajoutés ont été comptés dans les deux corpus avant d'être retenus. « avis »,
+# « décision » et « norme » ont été écartés malgré leur présence : trop courants en français
+# ordinaire, ils réveilleraient l'agent à tout propos. Les formes fléchies sont écrites une
+# à une, `_contient_mot` posant une frontière de mot : « gratuit » ne couvre pas « gratuité ».
 MOTS_REGLEMENTATION = [
     "loi", "juridique", "légal", "legal",
     "réglementation", "reglementation", "article", "décret", "decret",
     "bceao", "umoa", "uemoa", "instruction", "circulaire", "disposition",
     "conformité", "conformite", "obligation légale", "texte réglementaire",
+
+    # Notions réellement portées par les textes
+    "usure", "usuraire", "taux d'usure", "taux de l'usure",
+    "gratuit", "gratuits", "gratuite", "gratuites", "gratuité", "gratuite",
+    "plafond", "plafonné", "plafonnement",
+    "obligatoire", "obligatoires", "obligation", "obligations",
+    "réglementaire", "reglementaire", "réglementaires", "reglementaires",
+    "agrément", "agrement", "sanction", "sanctions", "amende",
+    "banque centrale", "conseil des ministres",
+    "établissement de crédit", "etablissement de credit",
+    "systèmes financiers décentralisés", "systemes financiers decentralises",
+    "consommateur", "consommateurs",
+    "interdiction", "interdit", "interdite", "dérogation", "derogation",
+    "infraction", "prescrit",
+    # Les formes verbales autant que les substantifs : `_contient_mot` pose une frontière de
+    # mot, « publication » ne couvre donc pas « publier ». « Une banque doit-elle publier ses
+    # conditions tarifaires ? » partait ainsi chez l'agent tarifaire, qui a répondu de
+    # mémoire — « conformément à la réglementation de la BCEAO » — sans citer aucun texte.
+    # Une réponse juste mais non sourcée est un faux positif : c'est le modèle qui parle.
+    "affichage", "afficher", "affiché", "affichées",
+    "publication", "publier", "publié", "publiée", "publiées", "publient",
+    # Vocabulaire du délai réglementaire. « Quel délai avant l'entrée en vigueur d'une
+    # nouvelle tarification ? » ne réveillait aucun agent réglementaire : « délai » et
+    # « tarification » appartiennent au tarifaire. « Entrée en vigueur » et « préavis », eux,
+    # ne se disent pas d'autre chose que d'un texte.
+    "entrée en vigueur", "entree en vigueur", "préavis", "preavis",
+    # Demander si un service est facturé, c'est demander s'il figure sur la liste des
+    # services que la BCEAO impose de rendre gratuits. La question paraît tarifaire ; sa
+    # réponse est d'abord réglementaire, et le tarif ne vient qu'ensuite. Les deux agents
+    # répondent alors ensemble, ce qui est exactement le cas d'usage de l'application.
+    "facturation", "facturé", "facturée", "facturer", "facturés",
+    # Absente du texte, qui dit « conditions de banque », mais c'est le mot de
+    # l'utilisateur : l'aiguillage suit la question, la recherche suit le texte.
+    "transparence", "transparence tarifaire",
 ]
 
 MOTS_EF = [

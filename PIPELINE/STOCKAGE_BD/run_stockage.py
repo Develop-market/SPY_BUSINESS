@@ -603,7 +603,7 @@ def load_regl(conn, reset=False):
     for txt in sorted(REGL_DIR.glob("*_clean.txt")):
         fichier = txt.stem.replace("_clean", "")
         texte   = txt.read_text(encoding="utf-8")
-        chunks  = _chunk_text(texte, REGL_CHUNK_WORDS)
+        chunks  = _chunk_reglementation(texte)
         rows    = [
             (fichier, i, chunk, len(chunk.split()))
             for i, chunk in enumerate(chunks)
@@ -618,9 +618,95 @@ def load_regl(conn, reset=False):
             )
         conn.commit()
         total += len(rows)
-        print(f"    [REGL] {txt.name} : {len(chunks)} chunks (~{REGL_CHUNK_WORDS} mots/chunk)")
+        print(f"    [REGL] {txt.name} : {len(chunks)} fragments (par article)")
 
     print(f"  [REGL] Total : {total} chunks inseres.")
+
+
+REGL_MAX_CHARS = 2200    # au-dela, un article est lui-meme redecoupe
+REGL_MIN_CHARS = 120     # en deca, on recolle au precedent (intitules restes seuls)
+
+# « Article premier », « Article 2 », « ART. 12 : », et l'ANNEXE, qui est une borne au meme
+# titre qu'un article. Le titre doit COMMENCER une ligne : « conformement a l'article 8 » au
+# fil du texte ne doit rien couper.
+_REGL_DEBUT = re.compile(
+    r"(?im)^[ \t]*(article\s+(?:premier|1er|\d{1,3})|art\.\s*\d{1,3}|annexe)\b[ \t]*:?[ \t]*")
+
+# Sous-titres numerotes d'une enumeration (« 1- Ouverture, fonctionnement et suivi de compte »).
+_REGL_RUBRIQUE = re.compile(r"(?m)^[ \t]*\d{1,2}\s*[-–)]\s+(?=[A-ZÉÈÀÂÎÔÛ])")
+
+
+def _chunk_reglementation(texte: str) -> list[str]:
+    """Decoupe un texte reglementaire par ARTICLE plutot que par tranches de mots.
+
+    Un texte de loi a une unite naturelle : l'article. Le couper tous les 500 mots le coupe
+    en son milieu et met la regle a la remorque des visas. Mesure a l'appui : la decision de
+    l'UMOA sur l'usure formait UN fragment de 2 150 caracteres, ou la phrase « le taux de
+    l'usure pour les banques est fixe a quatorze pour cent (14 %) l'an » se trouvait au
+    caractere 1 159, derriere une page entiere de « Vu le Traite..., Vu les Statuts... ».
+    Quand le contexte doit etre reduit, la troncature garde la TETE de chaque section : le
+    modele recevait les visas et jamais la regle.
+
+    Une ENUMERATION ne se coupe jamais en deux. Coupee, elle a l'air entiere, et le modele en
+    invente la fin : la liste des services obligatoirement gratuits a ete rendue amputee, puis
+    completee de memoire par le modele. Une liste tronquee est pire qu'une liste absente.
+
+    Les textes sans articles numerotes repassent par le decoupage general : mieux vaut un
+    decoupage imparfait qu'un decoupage invente.
+    """
+    coupes = [m.start() for m in _REGL_DEBUT.finditer(texte)]
+    if len(coupes) < 2:
+        return _chunk_text(texte, REGL_CHUNK_WORDS)
+
+    # Ce qui precede le premier article — intitule, visas — reste un fragment a part : c'est
+    # la carte d'identite du texte, ce par quoi on le cite.
+    bornes = [0] + coupes + [len(texte)]
+    bruts  = [texte[bornes[i]:bornes[i + 1]].strip() for i in range(len(bornes) - 1)]
+    bruts  = [b for b in bruts if b]
+
+    fusionnes = []
+    for b in bruts:
+        if fusionnes and len(b) < REGL_MIN_CHARS:
+            fusionnes[-1] += "\n" + b
+        else:
+            fusionnes.append(b)
+
+    final = []
+    for b in fusionnes:
+        final.extend(_regl_redecouper(b, REGL_MAX_CHARS) if len(b) > REGL_MAX_CHARS else [b])
+    return final
+
+
+def _regl_redecouper(texte: str, taille: int) -> list[str]:
+    """Coupe un article trop long a la couture la moins dommageable : d'abord aux rubriques
+    numerotees d'une enumeration, entre phrases seulement a defaut."""
+    coupes = [m.start() for m in _REGL_RUBRIQUE.finditer(texte) if m.start() > 0]
+    if coupes:
+        bornes = [0] + coupes + [len(texte)]
+        blocs  = [b for b in (texte[bornes[i]:bornes[i + 1]].strip()
+                              for i in range(len(bornes) - 1)) if b]
+        groupes, courant = [], ""
+        for b in blocs:
+            if courant and len(courant) + len(b) + 1 > taille:
+                groupes.append(courant.strip())
+                courant = b
+            else:
+                courant = f"{courant}\n{b}".strip()
+        if courant.strip():
+            groupes.append(courant.strip())
+        if all(len(g) <= taille for g in groupes):
+            return groupes
+
+    morceaux, courant = [], ""
+    for p in re.split(r"(?<=[.;])\s+", texte):
+        if courant and len(courant) + len(p) + 1 > taille:
+            morceaux.append(courant.strip())
+            courant = p
+        else:
+            courant = f"{courant} {p}".strip()
+    if courant.strip():
+        morceaux.append(courant.strip())
+    return morceaux
 
 
 def _chunk_text(text: str, words_per_chunk: int) -> list[str]:

@@ -7,6 +7,7 @@ Embedding : sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768 dim
 """
 
 import re
+import unicodedata
 import sys
 import os
 from pathlib import Path
@@ -462,16 +463,68 @@ def search(vectorstore: PGVectorStore, question: str, k: int = None, filters: di
                     chunks = [_chunk_ef(r) for r in cur.fetchall()]
 
                 elif type_doc == "reglementation":
-                    sql = f"""
-                        SELECT fichier, contenu,
-                               1 - (embedding <=> %s::vector) AS score
-                        FROM regl_documents
-                        WHERE embedding IS NOT NULL
-                          AND 1 - (embedding <=> %s::vector) >= {threshold}
-                        ORDER BY embedding <=> %s::vector
+                    # Recherche HYBRIDE — mesure à l'appui : sur ce corpus, la similarité
+                    # seule couvrait 98 % des cas mais avec un MRR de 0,052, autrement dit
+                    # elle retrouvait le bon fragment et le classait quarantième. Vérifié
+                    # sur « quel est le taux de l'usure » : la décision qui porte le chiffre
+                    # n'entrait pas dans les trois premiers résultats.
+                    #
+                    # Le vocabulaire juridique est rare et précis — « usure », « gratuité »,
+                    # « agrément » —, donc idéal pour une recherche par mots, là où un
+                    # vecteur confond « gratuité » avec « tarification » ou « exonération ».
+                    # On interroge donc les deux voies et on fusionne les CLASSEMENTS (rang
+                    # réciproque) plutôt que les scores, qui ne sont pas comparables entre
+                    # eux : un fragment bien placé par l'une OU par l'autre remonte.
+                    #
+                    # Le bras lexical interroge en OU, pas en ET. `plainto_tsquery` exige que
+                    # TOUS les mots de la question figurent dans le fragment : « quel est le
+                    # taux de l'usure applicable aux banques » ne ramenait rien, faute du mot
+                    # « applicable » dans la décision. On convertit donc la question en ses
+                    # lexèmes et on les joint par « | » ; c'est `ts_rank` qui départage, un
+                    # fragment portant plus de mots de la question passant devant.
+                    #
+                    # PROFONDEUR et CONSTANTE réglées par balayage sur huit questions
+                    # réglementaires, pas reprises par habitude. Les valeurs usuelles
+                    # (40 candidats, C = 60) visent des corpus de millions de documents ;
+                    # le nôtre en compte 408. Mesuré : 40/60 place 6 bonnes réponses sur 8
+                    # dans les trois premières pour un MRR de 0,688 ; 30/5 en place 7 pour
+                    # 0,762. À refaire si le corpus change d'ordre de grandeur — le réglage
+                    # dépend de sa taille, la même mesure sur 104 fragments donnait 10/1.
+                    prof = max(30, k)
+                    sql = """
+                        WITH q AS (
+                            SELECT array_to_string(
+                                       tsvector_to_array(to_tsvector('french', %s)), ' | '
+                                   )::tsquery AS tsq
+                        ),
+                        vect AS (
+                            SELECT id, fichier, contenu,
+                                   ROW_NUMBER() OVER (ORDER BY embedding <=> %s::vector) AS rang
+                            FROM regl_documents
+                            WHERE embedding IS NOT NULL
+                            ORDER BY embedding <=> %s::vector
+                            LIMIT %s
+                        ),
+                        lex AS (
+                            SELECT r.id, r.fichier, r.contenu,
+                                   ROW_NUMBER() OVER (
+                                       ORDER BY ts_rank(to_tsvector('french', r.contenu),
+                                                        q.tsq) DESC
+                                   ) AS rang
+                            FROM regl_documents r, q
+                            WHERE to_tsvector('french', r.contenu) @@ q.tsq
+                            LIMIT %s
+                        )
+                        SELECT COALESCE(v.fichier, l.fichier),
+                               COALESCE(v.contenu, l.contenu),
+                               COALESCE(1.0 / (5 + v.rang), 0)
+                             + COALESCE(1.0 / (5 + l.rang), 0) AS score
+                        FROM vect v
+                        FULL OUTER JOIN lex l ON v.id = l.id
+                        ORDER BY score DESC
                         LIMIT %s
                     """
-                    cur.execute(sql, [vec_lit, vec_lit, vec_lit, k])
+                    cur.execute(sql, [question, vec_lit, vec_lit, prof, prof, k])
                     chunks = [_chunk_regl(r) for r in cur.fetchall()]
 
                 else:
@@ -707,17 +760,26 @@ def _get_exhaustif_ef(vectorstore: PGVectorStore, banque=None, annee=None) -> li
         return []
 
 
-def _get_exhaustif_regl(vectorstore: PGVectorStore) -> list:
-    """Récupère tous les chunks réglementaires."""
-    sql = "SELECT fichier, contenu FROM regl_documents ORDER BY fichier, chunk_index"
-    try:
-        with vectorstore.get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql)
-                return [_chunk_regl(r) for r in cur.fetchall()]
-    except Exception as e:
-        print(f"  [EXHAUSTIF REGL ERREUR] {e}")
-        return []
+def _get_exhaustif_regl(vectorstore: PGVectorStore, question: str, k: int = None) -> list:
+    """Rend une LARGE sélection réglementaire, classée par pertinence.
+
+    Cette fonction versait auparavant la table entière, dans l'ordre des fichiers. C'était
+    tenable tant que le corpus tenait en 88 fragments ; découpé par article il en compte
+    près de 400, soit 264 000 caractères là où le modèle en reçoit 9 000. Le contexte était
+    donc rogné juste après, et cette réduction garde la TÊTE de ce qu'on lui donne : le
+    modèle recevait le début du premier fichier par ordre alphabétique, sans aucun rapport
+    avec la question. Constaté sur « quelles obligations de transparence tarifaire pèsent
+    sur les banques ? » — l'instruction de 2015 était en base, bien classée par la recherche,
+    et le chat répondait « non disponible dans le contexte fourni ».
+
+    On garde l'intention — une question générale mérite une vue large, pas trois fragments —
+    mais dans un ORDRE qui a un sens, pour que ce soit le plus pertinent qui survive à la
+    réduction et non le premier par ordre alphabétique.
+    """
+    if k is None:
+        k = config.REGL_K_LARGE
+    return search(vectorstore, question, k=k,
+                  filters=build_filters(type_doc="reglementation"))
 
 
 def get_semestres_disponibles(vectorstore: PGVectorStore, annee: int, type_doc: str = "conditions_banque") -> list:
@@ -816,6 +878,13 @@ def is_evolution(question: str) -> bool:
 _RE_CACHE_MOTS = {}
 
 
+def _sans_accents(t: str) -> str:
+    """Minuscules sans signes diacritiques : « Gratuité » et « gratuite » deviennent le même
+    mot. Sert uniquement à COMPARER — le texte affiché ou envoyé au modèle n'est pas touché."""
+    t = unicodedata.normalize("NFD", (t or "").lower())
+    return "".join(c for c in t if unicodedata.category(c) != "Mn")
+
+
 def _contient_mot(q: str, mots) -> bool:
     """Vérifie qu'un mot-clé apparaît comme un VRAI mot (frontière \\b), pas comme simple
     sous-chaîne. BUG TROUVÉ le 2026-07-25 (en testant l'agent de secours) : "efficiente
@@ -827,9 +896,17 @@ def _contient_mot(q: str, mots) -> bool:
     key = tuple(mots)
     compiled = _RE_CACHE_MOTS.get(key)
     if compiled is None:
-        compiled = re.compile(r"\b(?:" + "|".join(re.escape(m) for m in mots) + r")\b")
+        # Comparaison SANS ACCENTS, des deux côtés. Les listes de mots-clés dédoublaient
+        # jusqu'ici chaque entrée à la main — « rentabilité » et « rentabilite »,
+        # « conformité » et « conformite » — ce qui n'attrape que les cas auxquels on a
+        # pensé : « gratuité », « agrément », « préavis » ou « entrée en vigueur » restaient
+        # muets pour qui tape vite et sans accents, ce que fait tout le monde. Le repli est
+        # fait une fois ici plutôt que répété dans trois listes, et les doublons déjà
+        # présents deviennent inoffensifs.
+        motifs = sorted({_sans_accents(m) for m in mots}, key=len, reverse=True)
+        compiled = re.compile(r"\b(?:" + "|".join(re.escape(m) for m in motifs) + r")\b")
         _RE_CACHE_MOTS[key] = compiled
-    return compiled.search(q) is not None
+    return compiled.search(_sans_accents(q)) is not None
 
 
 def detect_types_doc(question: str) -> list:
@@ -961,7 +1038,7 @@ def search_banque_specifique(vectorstore, banque, annee, type_doc, semestre, cib
         annee_q = None if banque in BANQUES_CONSOLIDEES else annee
         chunks  = _get_exhaustif_ef(vectorstore, banque=banque, annee=annee_q)
     elif type_doc == "reglementation":
-        chunks = _get_exhaustif_regl(vectorstore)
+        chunks = _get_exhaustif_regl(vectorstore, question)
     else:
         chunks = _get_exhaustif_cb(vectorstore, banque=banque, annee=annee, semestre=semestre, cible=cible)
 
@@ -1021,8 +1098,8 @@ def search_toutes_banques(vectorstore, question: str) -> list:
                 print(f"     -- {banque:<10} : vide")
 
     else:  # reglementation
-        tous_chunks = _get_exhaustif_regl(vectorstore)
-        print(f"  [REGL GLOBALE] {len(tous_chunks)} chunks")
+        tous_chunks = _get_exhaustif_regl(vectorstore, question)
+        print(f"  [REGL VUE LARGE] {len(tous_chunks)} articles classes")
 
     print(f"  Total : {len(tous_chunks)} chunks (exhaustif)")
 
@@ -1187,8 +1264,8 @@ def search_auto(vectorstore, question: str, force_type_doc: str = None,
     # ── Cas 2c : comparaison toutes banques (0 banque nommée) ──
     if is_comparaison(question) and not banques:
         if type_doc == "reglementation":
-            chunks = _get_exhaustif_regl(vectorstore)
-            print(f"  [REGL GLOBALE] {len(chunks)} chunks")
+            chunks = _get_exhaustif_regl(vectorstore, question)
+            print(f"  [REGL VUE LARGE] {len(chunks)} articles classes")
             return chunks
         return search_toutes_banques(vectorstore, question)
 

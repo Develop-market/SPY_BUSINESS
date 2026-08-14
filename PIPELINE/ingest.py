@@ -220,8 +220,11 @@ def _extract_text(a, src, extr, clean, stem):
 
 
 def NT_chunks(texte):
+    # Le decoupage par article, pas par tranches de mots : sans cela, tout texte ajoute par
+    # l'ecran « Ajouter des donnees » repartirait en fragments de 500 mots et l'on perdrait,
+    # document apres document, le travail fait sur le corpus reglementaire existant.
     import run_stockage as ST
-    return ST._chunk_text(texte, ST.REGL_CHUNK_WORDS)
+    return ST._chunk_reglementation(texte)
 
 
 # ════════════════════════════════════════════════════════════════════════════
