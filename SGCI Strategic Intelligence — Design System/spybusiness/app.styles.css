@@ -42,7 +42,14 @@ html[data-theme="light"]{
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:var(--bg-deep);color:var(--ink);font-family:var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .4s ease,color .4s ease}
+/* overflow-x: CLIP et non HIDDEN. Les deux empêchent le défilement horizontal, mais « hidden »
+   fait du body un CONTENEUR DE DÉFILEMENT — la règle veut qu'un axe en « hidden » force
+   l'autre en « auto ». Or `position: sticky` s'ancre au conteneur de défilement le plus
+   proche : l'en-tête et le bandeau, pourtant déclarés collants, se remettaient donc à défiler
+   avec la page. La barre de question partait vers le haut dès qu'on descendait.
+   « clip » coupe le débordement SANS créer de conteneur de défilement : le sticky retrouve
+   la fenêtre comme point d'ancrage. */
+body{background:var(--bg-deep);color:var(--ink);font-family:var(--sans);overflow-x:clip;-webkit-font-smoothing:antialiased;transition:background .4s ease,color .4s ease}
 ::selection{background:rgba(229,20,43,.28)}
 ::-webkit-scrollbar{width:9px;height:9px}
 ::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:9px}
