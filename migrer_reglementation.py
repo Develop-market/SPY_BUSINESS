@@ -59,6 +59,35 @@ def etat(cx, ou):
     return n, ne, nf
 
 
+def aptitudes(cx):
+    """Éprouve, sur la destination, ce dont la recherche réglementaire dépend.
+
+    Compter les lignes ne suffit pas. La recherche est hybride : un bras vectoriel et un bras
+    lexical qui s'appuie sur le dictionnaire français de PostgreSQL. Si ce dictionnaire manque
+    à l'hébergeur, le bras lexical tombe — l'application se replie alors sur le vectoriel
+    seul, sans rien casser, mais elle perd ce qui a fait passer le MRR de 0,052 à 0,938. Mieux
+    vaut le savoir ici, en une seconde, que le déduire de réponses médiocres dans un mois.
+    """
+    controles = [
+        ("SELECT '[1,0]'::vector <=> '[0,1]'::vector", "opérateur <=> (pgvector)", True),
+        ("SELECT to_tsvector('french', 'taux de l''usure')", "dictionnaire français", True),
+        ("SELECT similarity('abc','abd')", "similarity() (pg_trgm)", False),
+    ]
+    tout_va = True
+    for sql, quoi, indispensable in controles:
+        try:
+            with cx.cursor() as c:
+                c.execute(sql)
+                c.fetchone()
+            print(f"  {quoi:28} utilisable")
+        except Exception as e:
+            cx.rollback()
+            print(f"  {quoi:28} INDISPONIBLE — {str(e)[:60]}")
+            if indispensable:
+                tout_va = False
+    return tout_va
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -80,8 +109,10 @@ def main():
         etat(dst, "hébergeur")
 
         if a.verifier:
+            print()
+            apte = aptitudes(dst)
             print("\n  (lecture seule)")
-            return 0
+            return 0 if apte else 1
 
         if ne_src < n_src:
             print(f"\n  REFUS : {n_src - ne_src} fragments locaux n'ont pas de vecteur.")
@@ -107,11 +138,39 @@ def main():
         dst.commit()
         print(f"    {len(lignes)}/{len(lignes)} — écrit en {time.time() - t0:.0f} s{' ' * 20}")
 
+        # ── L'INDEX VECTORIEL APPROXIMATIF EST RETIRE DE CETTE TABLE ──────────────────
+        # L'hebergeur portait un index ivfflat a 100 listes, avec ivfflat.probes = 1. Sur
+        # 396 fragments, chaque liste en contient quatre : la recherche n'en examine qu'une,
+        # soit 1 % du corpus, et rend cinq articles sans rapport. Verifie en direct — la
+        # decision sur l'usure n'apparaissait pas dans les cinq premiers, alors qu'elle est
+        # bien en base.
+        #
+        # Un index approximatif ne se justifie que lorsque parcourir tout coute cher. A 396
+        # lignes, le parcours complet est immediat ET EXACT. On retire donc l'index plutot
+        # que de le regler : moins de reglages, et le resultat cesse de dependre de la facon
+        # dont les centroides sont tombes.
+        #
+        # En local la table portait un index HNSW, qui n'a pas ce defaut — c'est pourquoi les
+        # mesures locales etaient excellentes et masquaient le probleme. Une verification en
+        # production ne remplace pas une verification locale : elle en teste une autre.
+        try:
+            with dst.cursor() as c:
+                c.execute("SELECT indexname FROM pg_indexes WHERE tablename = 'regl_documents' "
+                          "AND indexdef ILIKE '%ivfflat%'")
+                for (nom,) in c.fetchall():
+                    c.execute(f'DROP INDEX IF EXISTS "{nom}"')
+                    print(f"  index approximatif {nom} retiré (parcours exact sur 396 lignes)")
+            dst.commit()
+        except Exception as e:
+            dst.rollback()
+            print(f"  index vectoriel : inchangé ({str(e)[:70]})")
+
         print()
         etat(src, "locale")
         n_dst, ne_dst, _ = etat(dst, "hébergeur")
         ok = (n_dst == n_src and ne_dst == ne_src)
-        print(f"\n  {'identique' if ok else 'ÉCART — À REPRENDRE'}")
+        print(f"\n  {'identique' if ok else 'ÉCART — À REPRENDRE'}\n")
+        ok = aptitudes(dst) and ok
         return 0 if ok else 1
     except Exception:
         dst.rollback()
