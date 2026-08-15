@@ -114,7 +114,10 @@ LLM_TEMPERATURE_ANALYTIQUE = 0.7   # Multi + REGL + recommandations
 # 4 000 jetons laissent environ 12 000 caractères — largement de quoi conclure — sans partir
 # dans des réponses interminables sur un écran de démonstration.
 LLM_MAX_TOKENS_GROQ = 1500
-LLM_MAX_TOKENS  = 4000 if LLM_PROVIDER == "gemini" else LLM_MAX_TOKENS_GROQ
+# 2 500 et non 4 000 : une reponse de 400 mots pese environ 600 jetons, le plafond n'est
+# donc jamais atteint et ne coupe plus rien. Il ne sert que de garde-fou si le modele
+# s'emballe malgre la consigne de longueur.
+LLM_MAX_TOKENS  = 2500 if LLM_PROVIDER == "gemini" else LLM_MAX_TOKENS_GROQ
 SHOW_QUERY_DEBUG = os.getenv("SHOW_QUERY_DEBUG", "True").lower() == "true"
 
 # Gemini 1M tokens → on envoie TOUT sans troncature (~200k chars).

@@ -3799,7 +3799,19 @@ function pageChat(){
   </div>`;
 }
 
+function _mesurerChrome(){
+  // On MESURE l'en-tête et le bandeau plutôt que d'additionner des pixels a priori : toute
+  // barre ajoutée demain décalerait de nouveau la barre d'écriture hors de l'écran.
+  const h = document.querySelector("header.hdr");
+  const b = document.querySelector(".ticker");
+  const total = (h ? h.getBoundingClientRect().height : 72)
+              + (b && b.offsetParent !== null ? b.getBoundingClientRect().height : 0);
+  document.documentElement.style.setProperty("--chrome", Math.round(total) + "px");
+}
+window.addEventListener("resize", _mesurerChrome);
+
 function afterChat(){
+  _mesurerChrome();
   _convLoad();
   renderMsgs();
   _renderConvList("");

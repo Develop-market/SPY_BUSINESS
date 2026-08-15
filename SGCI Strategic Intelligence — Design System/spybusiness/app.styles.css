@@ -284,7 +284,13 @@ html[data-theme="light"] .bg .vig{background:radial-gradient(ellipse at 50% 35%,
 @keyframes hologramPulse{0%{box-shadow:0 0 20px rgba(229,20,43,.55),0 0 40px rgba(229,20,43,.35)}100%{box-shadow:0 0 38px rgba(229,20,43,.85),0 0 70px rgba(229,20,43,.6)}}
 
 /* ---------- CHAT page ---------- */
-.chat{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 72px)}
+/* La hauteur du bandeau supérieur est MESURÉE, pas supposée : --chrome est posée par
+   _mesurerChrome() (app.main.js). Elle valait 72px en dur — la hauteur de l'en-tête
+   SEUL — alors qu'un bandeau défilant de 44px s'est ajouté dessous. La zone de
+   discussion dépassait donc l'écran de 45px, et c'est la BARRE D'ÉCRITURE, tout en bas,
+   qui passait sous la ligne de flottaison. Elle disparaissait sans rien casser d'autre,
+   ce qui la rendait difficile à relier à sa cause. */
+.chat{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - var(--chrome,117px))}
 .convs{border-right:1px solid var(--line);display:flex;flex-direction:column;background:color-mix(in srgb,var(--bg-surf) 60%,transparent)}
 .convs .top{padding:var(--s5);border-bottom:1px solid var(--line)}
 .conv{padding:13px 14px;border-radius:11px;margin:3px 10px;border:1px solid transparent;cursor:pointer}
