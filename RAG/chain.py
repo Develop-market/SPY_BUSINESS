@@ -264,8 +264,11 @@ def _creer_llm_autre(temp: float):
             return _creer_llm_gemini(temp)
         from langchain_groq import ChatGroq
         cle = (config.GROQ_API_KEYS or [config.GROQ_API_KEY])[0]
+        # Le plafond de sortie de Groq, pas celui de Gemini : son budget par minute compte la
+        # sortie RÉSERVÉE autant que l'entrée. Lui demander les 4 000 jetons permis à Gemini
+        # ferait échouer la bascule pour requête trop grosse, au moment précis où elle sert.
         return ChatGroq(model=config.GROQ_MODEL, groq_api_key=cle,
-                        temperature=temp, max_tokens=config.LLM_MAX_TOKENS)
+                        temperature=temp, max_tokens=config.LLM_MAX_TOKENS_GROQ)
     except Exception as e:
         print(f"  [BASCULE] impossible — {type(e).__name__} {str(e)[:80]}")
         return None

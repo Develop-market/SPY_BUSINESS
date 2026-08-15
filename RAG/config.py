@@ -105,7 +105,16 @@ LLM_TEMPERATURE_ANALYTIQUE = 0.7   # Multi + REGL + recommandations
 # comparaison/analyse (niveau 3, plusieurs banques) ont un système prompt plus long que le
 # prompt factuel simple → budget contexte réduit spécifiquement pour ce cas (voir
 # MAX_CONTEXT_CHARS_COMPARAISON) plutôt que de pénaliser toutes les questions ici.
-LLM_MAX_TOKENS  = 1500
+#
+# LE PLAFOND SUIT LE FOURNISSEUR (2026-08-15). 1 500 jetons est la contrainte de Groq, dont
+# le budget par minute compte l'entrée ET la sortie RÉSERVÉE. Gemini n'a pas cette contrainte
+# et accepte 65 536 jetons de sortie. Garder 1 500 avec Gemini coupait les réponses EN PLEIN
+# MOT : la question « la SGCI est-elle plus chère que ses concurrents, et que prévoit la
+# BCEAO ? » s'arrêtait sur « … et du Relevé ré », juste avant la citation réglementaire.
+# 4 000 jetons laissent environ 12 000 caractères — largement de quoi conclure — sans partir
+# dans des réponses interminables sur un écran de démonstration.
+LLM_MAX_TOKENS_GROQ = 1500
+LLM_MAX_TOKENS  = 4000 if LLM_PROVIDER == "gemini" else LLM_MAX_TOKENS_GROQ
 SHOW_QUERY_DEBUG = os.getenv("SHOW_QUERY_DEBUG", "True").lower() == "true"
 
 # Gemini 1M tokens → on envoie TOUT sans troncature (~200k chars).
