@@ -2476,7 +2476,7 @@ function _paneInit(group, ids, opts){
 // ── Barre de navigation sticky (sections claires, façon EF/CB) ──
 function _stratStickyBar(segment){
   const nav=[["①","L'essentiel","st-essentiel"],["②","Révélations","st-revel"],
-             ["③","Porter","st-conc"],["④","VRIST","st-vrist"],["⑤","SWOT","st-swot"],["⑥","PESTEL","st-pestel"],["⑦","Décisions","st-plan"],["⑧","Projection","st-proj"]]
+             ["③","Porter","st-conc"],["④","VRIST","st-vrist"],["⑤","SWOT","st-swot"],["⑥","PESTEL","st-pestel"],["⑦","Projection","st-proj"]]
     .map(([n,l,id])=>`<button class="sec-nav-btn" data-sec="${id}" onclick="_paneShow('strat','${id}')">${n} ${l}</button>`).join("");
   return `<div style="position:sticky;top:116px;z-index:20;margin-bottom:14px;padding:6px 0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg-deep) 72%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -2490,7 +2490,7 @@ function _stratStickyBar(segment){
 // ── Scroll-spy : surligne la section active dans la barre ──
 function _stratScrollSpy(){
   const btns=document.querySelectorAll('#strat-root .sec-nav-btn'); if(!btns.length) return;
-  const ids=["st-essentiel","st-revel","st-conc","st-vrist","st-swot","st-pestel","st-plan","st-proj"];
+  const ids=["st-essentiel","st-revel","st-conc","st-vrist","st-swot","st-pestel","st-proj"];
   const setOn=id=>btns.forEach(b=>b.classList.toggle('on',b.dataset.sec===id));
   setOn("st-essentiel");
   let clicking=false,t;
@@ -2510,7 +2510,7 @@ async function _stratLoad(){
     _VRIST_DATA = d.vrist || {};
     // Onglets armés DANS LA FOULÉE du rendu, pas dans le setTimeout qui suit : autrement les
     // huit sections apparaissent ensemble avant de se replier, et l'œil voit un sursaut.
-    try{ _paneInit('strat',['st-essentiel','st-revel','st-conc','st-vrist','st-swot','st-pestel','st-plan','st-proj']); }catch(e){}
+    try{ _paneInit('strat',['st-essentiel','st-revel','st-conc','st-vrist','st-swot','st-pestel','st-proj']); }catch(e){}
     setTimeout(()=>{
       try{ var _vc=(_VRIST_DATA.ordre||[]).filter(b=>b!=='SGCI'); setVristComp(_vc[0]||"BICICI"); }catch(e){}
       try{ _stratCharts(d); }catch(e){}
@@ -2967,30 +2967,13 @@ function _renderStrategie(d){
     + sect("st-vrist","④","VRIST — avantage durable","<b>En clair :</b> les avantages de SGCI sont-ils <b>durables</b> ? Le cadre VRIST note chaque banque sur 5 axes (Valeur, Rareté, Inimitabilité, Durabilité, Transformation). Sélectionne un concurrent pour comparer.",
         `<div class="bento">${_narrBox('vrist')}${vrist}</div>`,
         {vrist: d.vrist})
-    + sect("st-swot","⑤","SWOT — la synthèse qui mène aux décisions","<b>En clair :</b> on résume Forces, Faiblesses, Opportunités, Menaces. Cette matrice <b>justifie les décisions</b> de la section suivante : chaque décision répond à une faiblesse à corriger ou une opportunité à saisir.",
+    + sect("st-swot","⑤","SWOT — la synthèse qui mène aux décisions","<b>En clair :</b> on résume Forces, Faiblesses, Opportunités, Menaces. Cette matrice <b>justifie les recommandations</b> de l'onglet Stratégie opérationnelle : chaque action y répond à une faiblesse à corriger ou une opportunité à saisir.",
         `<div class="bento">${_narrBox('swot')}</div>${swot}`,
         {swot: d.swot})
     + sect("st-pestel","⑥","PESTEL — environnement externe","<b>En clair :</b> les 6 forces EXTERNES qui pèsent sur SGCI (Politique, Économique, Social, Technologique, Environnemental, Légal). Chaque point est <b>sourcé</b> (BCEAO, APBEF-CI, GSMA…), pas une opinion.",
         _pestelHTML(d.pestel),
         {pestel: d.pestel})
-    + sect("st-plan","⑦","Décisions & recommandations","<b>En clair :</b> à partir du SWOT, du PESTEL et des données, des recommandations d'actions concrètes sont formulées par direction. <b>Filtre par direction.</b> Chaque chiffre est vérifié.",
-        // RECOMMANDATIONS DÉPLACÉES (2026-07-30, demande directe). Elles vivaient ici, mêlées
-        // au diagnostic : l'onglet répondait à la fois à « où en sommes-nous » et à « que fait
-        // ma direction », deux questions destinées à deux lecteurs différents, ce qui affaiblissait
-        // les deux. Elles sont désormais dans l'onglet Stratégie opérationnelle, où chaque action
-        // porte son segment, son levier, son écart mesuré et sa source. On ne laisse ici qu'un
-        // renvoi : dupliquer les recommandations exposerait à deux versions divergentes.
-        `<div class="bento" style="margin-bottom:8px">${_narrBox('plan')}</div>
-         <div class="panel" style="border-left:3px solid var(--accent-2);margin-top:6px">
-           <div style="font:700 12.5px var(--sans);color:var(--ink);margin-bottom:5px">Les recommandations par direction ont leur propre onglet</div>
-           <div style="font:400 11.5px/1.6 var(--sans);color:var(--muted);margin-bottom:10px">
-             Chaque action y indique le <b>segment</b> visé, le <b>levier</b> précis, l'<b>écart mesuré</b>
-             face au marché et sa <b>source</b> — pour les directions Financière, Commerciale, Marketing et Innovation.</div>
-           <button onclick="go('stratop')" style="cursor:pointer;border:none;border-radius:9px;padding:9px 15px;background:var(--accent-2);color:#fff;font:700 11.5px var(--sans)">
-             Ouvrir la Stratégie opérationnelle →</button>
-         </div>`,
-        {roadmap: d.roadmap})
-    + sect("st-proj","⑧","Projection 3 ans — ce que le plan change, chiffré","<b>En clair :</b> 3 scénarios (prudent/central/optimiste) sur les métriques-clés, modèle déterministe dérivé des chiffres réels — jamais inventé par l'IA.",
+    + sect("st-proj","⑦","Projection 3 ans — ce que le plan change, chiffré","<b>En clair :</b> 3 scénarios (prudent/central/optimiste) sur les métriques-clés, modèle déterministe dérivé des chiffres réels — jamais inventé par l'IA.",
         projHyp + proj,
         {projection: d.projection, projection_hypotheses: d.projection_hypotheses, roadmap: d.roadmap});
 }

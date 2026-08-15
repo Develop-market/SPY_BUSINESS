@@ -4646,9 +4646,19 @@ def _get_meta(cache, key):
 
 def _gemini_call_cb(prompt: str, max_tokens: int = 512, temperature: float = 0.3) -> str:
     """Fallback Gemini (REST) quand Groq est épuisé. Retourne le texte, ou None si KO.
-    N'utilise que GEMINI_API_KEY (format AIza…) ; ignore les jetons OAuth (AQ.…)."""
+
+    LE PRÉFIXE N'EST PLUS UN CRITÈRE (corrigé le 2026-08-15). Ce filtre n'acceptait que les
+    clés en « AIza… », pour écarter les jetons OAuth en « AQ.… » qui ne fonctionnent pas ici.
+    Or Google délivre désormais des clés d'API qui commencent AUSSI par « AQ. » : la clé
+    fournie pour la soutenance est de ce format, et elle fonctionne — vérifié, elle liste les
+    modèles et génère du texte. Le filtre l'aurait écartée sans un mot, et le secours serait
+    resté muet un jour de démonstration.
+
+    On se contente donc d'exiger une clé non vide : c'est l'appel qui tranche, pas la forme.
+    Un refus d'authentification est de toute façon signalé plus bas, avec son code HTTP.
+    """
     key = os.getenv("GEMINI_API_KEY", "")
-    if not key or not key.startswith("AIza"):
+    if not key:
         return None
     try:
         import requests as _rq
