@@ -355,6 +355,13 @@ MOTS_EF = [
 ]
 
 MOTS_CONDITIONS = [
+    # « Facturer » est un mot de TARIF autant qu'un mot de droit. Il figure aussi dans
+    # MOTS_REGLEMENTATION, et c'est voulu : « quels services la BCEAO impose-t-elle de rendre
+    # gratuits, et les banques les FACTURENT-elles ? » appelle les deux agents. Il n'y était
+    # que du côté réglementaire, si bien que la question recevait une réponse juridique
+    # impeccable et pas un seul tarif — la moitié de la question restait sans réponse.
+    "facturation", "facturé", "facturée", "facturés", "facturent", "facture", "facturer",
+    "gratuit", "gratuits", "gratuite", "gratuites", "gratuité", "payant", "payante",
     "frais", "tarif", "taux", "commission",
     "conditions", "coût", "cout", "tenue de compte",
     "virement", "tbb", "taux de base",

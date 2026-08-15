@@ -524,8 +524,31 @@ def search(vectorstore: PGVectorStore, question: str, k: int = None, filters: di
                         ORDER BY score DESC
                         LIMIT %s
                     """
-                    cur.execute(sql, [question, vec_lit, vec_lit, prof, prof, k])
-                    chunks = [_chunk_regl(r) for r in cur.fetchall()]
+                    # REPLI SUR LE VECTORIEL SEUL si le bras lexical est indisponible.
+                    # Les deux bras tiennent dans une seule requête : si le dictionnaire
+                    # français de PostgreSQL manque à l'hébergeur, ce n'est pas la moitié
+                    # lexicale qui se perd, c'est TOUTE la requête — et `search()` rendrait
+                    # une liste vide, donc un chat muet sur la réglementation, alors que la
+                    # recherche vectorielle seule fonctionnait avant. Un correctif ne doit
+                    # jamais pouvoir rendre l'application pire qu'avant lui. Le repli est
+                    # ANNONCÉ : sans message, une dégradation silencieuse se découvre des
+                    # semaines plus tard, comme les cinq chemins morts de ce projet.
+                    try:
+                        cur.execute(sql, [question, vec_lit, vec_lit, prof, prof, k])
+                        chunks = [_chunk_regl(r) for r in cur.fetchall()]
+                    except Exception as e:
+                        conn.rollback()
+                        print(f"  [REGL] recherche lexicale indisponible ({str(e)[:80]}) — "
+                              f"repli sur le vectoriel seul")
+                        cur.execute(f"""
+                            SELECT fichier, contenu, 1 - (embedding <=> %s::vector) AS score
+                            FROM regl_documents
+                            WHERE embedding IS NOT NULL
+                              AND 1 - (embedding <=> %s::vector) >= {threshold}
+                            ORDER BY embedding <=> %s::vector
+                            LIMIT %s
+                        """, [vec_lit, vec_lit, vec_lit, k])
+                        chunks = [_chunk_regl(r) for r in cur.fetchall()]
 
                 else:
                     # conditions_banque (défaut)
@@ -1058,14 +1081,23 @@ def search_banque_specifique(vectorstore, banque, annee, type_doc, semestre, cib
 CIBLES = ["entreprises", "particuliers"]
 
 
-def search_toutes_banques(vectorstore, question: str) -> list:
+def search_toutes_banques(vectorstore, question: str, type_doc: str = None) -> list:
     """
     Récupère les données de TOUTES les banques de façon exhaustive.
     CB : boucle banques × cibles × semestres.
     EF / REGL : boucle banques.
+
+    LE DOMAINE EST IMPOSÉ PAR L'APPELANT quand il le connaît. Cette fonction le redéduisait
+    de la question, et `detect_type_doc` donne la priorité à la réglementation : appelée pour
+    l'agent Conditions Tarifaires sur « la SGCI est-elle plus chère que ses concurrents, et
+    que prévoit la BCEAO ? », elle rendait des articles de loi. Les DEUX agents recevaient
+    alors la même matière réglementaire, aucun n'avait les grilles, et le modèle répondait
+    « les grilles tarifaires des concurrents ne sont pas disponibles » — ce qui était vrai
+    de ce qu'on lui avait donné. Un agent doit chercher dans SON domaine, pas dans celui que
+    la question évoque le plus fort.
     """
     annee    = detect_annee(question)
-    type_doc = detect_type_doc(question) or "conditions_banque"
+    type_doc = type_doc or detect_type_doc(question) or "conditions_banque"
     cible_det = detect_cible(question)
     tous_chunks = []
 
@@ -1261,13 +1293,26 @@ def search_auto(vectorstore, question: str, force_type_doc: str = None,
                                              annee=annee, type_doc=type_doc,
                                              cible=cible_rec, k_par_banque=5)
 
-    # ── Cas 2c : comparaison toutes banques (0 banque nommée) ──
-    if is_comparaison(question) and not banques:
+    # ── Cas 2c : comparaison sur TOUTES les banques ──
+    #
+    # La condition exigeait qu'AUCUNE banque ne soit nommée. C'était confondre « nommer une
+    # banque » et « ne parler que d'elle ». « La SGCI est-elle plus chère que ses
+    # CONCURRENTS ? » nomme la SGCI et demande pourtant les six autres : la question tombait
+    # dans « banque précise », on n'allait chercher que la SGCI, et le modèle répondait — avec
+    # raison — « les documents fournis ne contiennent pas les grilles des concurrents ». Il
+    # disait vrai : on ne lui avait donné qu'une banque. Le défaut était dans la récupération,
+    # pas dans la rédaction.
+    #
+    # Une banque nommée DANS une question comparative est le SUJET de la comparaison, pas son
+    # périmètre. Deux banques ou plus étaient déjà traitées ailleurs ; c'est le cas d'UNE
+    # seule qui manquait.
+    comparaison_ouverte = is_comparaison(question) and len(banques) <= 1
+    if comparaison_ouverte:
         if type_doc == "reglementation":
             chunks = _get_exhaustif_regl(vectorstore, question)
             print(f"  [REGL VUE LARGE] {len(chunks)} articles classes")
             return chunks
-        return search_toutes_banques(vectorstore, question)
+        return search_toutes_banques(vectorstore, question, type_doc=type_doc)
 
     # ── Cas 3 : banque précise ──
     if banque:
