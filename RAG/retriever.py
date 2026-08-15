@@ -43,8 +43,31 @@ class PGVectorStore:
         self.db_params = config.DB_PARAMS
 
     def get_conn(self):
+        """Ouvre une connexion, et ÉLARGIT LA FENÊTRE DE L'INDEX APPROXIMATIF.
+
+        Mesuré le 2026-08-15, en comparant les deux bases : le poste de développement indexe
+        `cb_tarifs` et `ef_indicateurs` en HNSW, l'hébergeur en ivfflat à 100 listes. Or
+        PostgreSQL n'explore par défaut qu'UNE liste — `ivfflat.probes = 1` —, soit environ
+        1 % des 31 985 lignes tarifaires. Sur douze lignes tirées au hasard et cherchées par
+        leur propre libellé, la base locale en retrouve quatre et l'hébergeur deux : l'index
+        approximatif coûte la moitié du rappel. Toutes les mesures faites en local étaient
+        donc flattées, et le chat en ligne trouvait une banque là où le local en trouvait six.
+
+        Dix sondes au lieu d'une, c'est la racine du nombre de listes — le réglage usuel. Le
+        `SET` est LOCAL à la session : il ne modifie rien de façon durable, ne demande aucune
+        reconstruction d'index, et reste sans effet sur une base indexée en HNSW, qui ignore
+        ce paramètre. On l'applique donc partout sans condition.
+        """
         import psycopg2
-        return psycopg2.connect(**self.db_params)
+        conn = psycopg2.connect(**self.db_params)
+        try:
+            with conn.cursor() as c:
+                c.execute("SET ivfflat.probes = 10")
+            conn.commit()
+        except Exception:
+            # pgvector absent ou trop ancien : la connexion reste utilisable telle quelle.
+            conn.rollback()
+        return conn
 
     def embed_query(self, text: str) -> list:
         """Encode une question → vecteur 768 dims (normalisé).
