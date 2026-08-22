@@ -362,5 +362,26 @@
   "resume_v8_strategie_Particuliers_7440744a0b37@meta": {
     "generated_at": "2026-07-25T11:20:31",
     "stale": false
+  },
+  "resume_v8_ef_Particuliers_2ee82c453927": {
+    "titre": "Santé financière des banques en Côte d'Ivoire",
+    "executif": "La santé financière des banques en Côte d'Ivoire présente des disparités notables, avec la SGCI en tête du classement en termes de résultat net, atteignant 101 352,0. Cette position dominante est cependant contrebalancée par des taux de croissance variés parmi les banques, avec certaines affichant des hausses significatives. La marge nette et le coefficient d'exploitation varient également, reflétant des stratégies et des performances différenciées. La SGCI doit maintenir son avance face à une concurrence croissante.",
+    "points": [
+      "La SGCI occupe la première place en termes de résultat net, avec 101 352,0, suivie par ECOBANK avec 63 482,0.",
+      "Le produit net bancaire de la SGCI s'élève à 276 048,0, tandis que celui d'ECOBANK est de 132 725,0.",
+      "Le ROE de la SGCI est de 20,5%, contre 29,0% pour ECOBANK et 27,2% pour SIB.",
+      "La marge nette de la SGCI est de 36,7%, alors que celle d'ECOBANK est de 47,8% et celle de SIB de 51,2%.",
+      "Le coefficient d'exploitation de la SGCI est de 38,8%, contre 42,9% pour ECOBANK et 38,6% pour SIB.",
+      "La croissance de la SGCI est de 4,2%, nettement inférieure à celle d'ECOBANK qui atteint 32,1% et de SIB avec 27,8%.",
+      "Le mix commissions de la SGCI est de 24%, contre 23% pour ECOBANK et 25% pour SIB."
+    ],
+    "analyse": "Les chiffres révèlent des différences significatives dans les stratégies et les performances des banques. La SGCI, malgré sa position dominante en termes de résultat net, affiche une croissance plus lente que certaines de ses concurrentes. Les taux de marge nette et les coefficients d'exploitation varient, indiquant des approches différentes en matière de gestion des coûts et de génération de revenus. Le coût du risque, qui varie de 1,9% pour BICICI à 17,0% pour la SGCI, souligne l'importance de la gestion des risques dans le secteur bancaire.",
+    "conclusion": "La priorité absolue pour la SGCI est de maintenir sa position de leader en termes de résultat net tout en améliorant sa croissance, qui est actuellement de 4,2%. Cela nécessite une analyse approfondie de ses stratégies actuelles et une adaptation pour répondre aux défis posés par la concurrence croissante dans le secteur bancaire ivoirien.",
+    "section": "Santé financière",
+    "segment": "Particuliers"
+  },
+  "resume_v8_ef_Particuliers_2ee82c453927@meta": {
+    "generated_at": "2026-08-11T11:49:36",
+    "stale": false
   }
 }
