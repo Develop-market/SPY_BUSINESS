@@ -1312,7 +1312,30 @@ def _financiere(socle):
 
     d.append(_bloc_cout_ressources(socle))
 
-    if obj.get("ecart_a_combler"):
+    if obj.get("aucun_ecart_concurrentiel"):
+        # 2026-08-22 : depuis que la cible PNB est mesurée (moyenne des 3 meilleures banques du
+        # panel), la SGCI la dépasse déjà — ecart_a_combler vaut 0, une valeur FALSY en Python
+        # que l'ancien `if obj.get("ecart_a_combler")` confondait avec une donnée absente,
+        # déclenchant à tort la directive de repli « donnée manquante ». Ce n'est pas un manque :
+        # c'est le résultat. On le dit, sans reproduire un chiffre à zéro comme s'il fallait
+        # « boucler un plan » sur un écart qui n'existe pas.
+        d.append({
+            "titre": "Consolider l'avance plutôt que rattraper un retard",
+            "constat": (f"Le PNB de la SGCI ({_fr(str(obj.get('trajectoire_naturelle')))} "
+                        f"{obj.get('unite','Mds')} FCFA en {obj.get('horizon_ans',3)} ans, "
+                        f"trajectoire naturelle) dépasse déjà la cible du panel (moyenne des 3 "
+                        f"meilleures banques concurrentes) : aucun écart concurrentiel à combler "
+                        f"sur cet indicateur."),
+            "action": ("Les directives sectorielles ci-dessous visent à amplifier l'avance, pas à "
+                       "rattraper un retard."),
+            "cible": "Maintenir le PNB au-dessus de la cible du panel à chaque arrêté.",
+            "indicateur": "PNB de la SGCI vs moyenne des 3 meilleures banques du panel.",
+            "effort": "Faible", "horizon": "3 mois",
+            "contribution": _contribution(
+                socle, nature="condition",
+                texte="elle confirme que le socle du plan (le PNB) part d'une position déjà favorable"),
+        })
+    elif obj.get("ecart_a_combler"):
         couvert = sum((s.get("business_case") or {}).get("commissions_max_fcfa") or 0
                       for s in socle.get("secteurs", []))
         pct = round(100 * (couvert / 1e9) / obj["ecart_a_combler"], 1)

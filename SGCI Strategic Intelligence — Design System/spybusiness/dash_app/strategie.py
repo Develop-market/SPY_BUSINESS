@@ -286,6 +286,7 @@ def collect_evidence(segment="Particuliers"):
             "rang_catalogue": rang_cat,
             "n_banques_cat":  len(bycat),
             "n_services_sgci": sgci_cat.get("n_services"),
+            "n_services_data": {r["banque"]: r.get("n_services") for r in bycat},
             "gratuite_sgci":  sgci_cat.get("pct_gratuit"),
             "gratuite_med":   _median({r["banque"]: r.get("pct_gratuit") for r in q6 if r.get("pct_gratuit") is not None}),
             "winrate":        cmp.get("classement", []),
@@ -870,7 +871,7 @@ def build_action_plan(ev, problems):
             "levier": "Tarification (PNB commissions) — levier CB×EF",
             "probleme": "Services sous-tarifés vs marché = revenu laissé sur la table",
             "constat": (f"SGCI est <b>moins chère que la médiane marché</b> sur {rp.get('n')} services comparables. "
-                        f"Exemple : « {ex['libelle']} » à {ex['sgci']} F vs médiane {ex['median']} F (écart −{ex['gap']} F)."),
+                        f"Exemple : « {ex['libelle']} » à {_fr(ex['sgci'])} F vs médiane {_fr(ex['median'])} F (écart −{_fr(ex['gap'])} F)."),
             "benchmark": f"Marge de réalignement cumulée : +{head_str} F par opération sur l'ensemble des {rp.get('n')} services sous-tarifés.",
             "solutions": [
                 {"t": "Réaligner progressivement les services nettement sous le marché sur la médiane",
@@ -878,7 +879,7 @@ def build_action_plan(ev, problems):
                 {"t": "Communiquer la valeur (digital, CONNECT) pour absorber la hausse sans attrition",
                  "d": "Coupler le réajustement tarifaire à la mise en avant des exclusivités pour préserver la fidélité."},
             ],
-            "chiffrage": (f"Aligner « {ex['libelle']} » sur la médiane = +{ex['gap']} F/opération. "
+            "chiffrage": (f"Aligner « {ex['libelle']} » sur la médiane = +{_fr(ex['gap'])} F/opération. "
                           f"À {vol_str} opérations/an (hypothèse) → <b>+{gain_str} de PNB</b> sur ce seul service. "
                           f"Étendu aux {rp.get('n')} services, le potentiel est un multiple."),
             "ancrage_bceao": "Réajustement compatible avec l'obligation BCEAO de transparence tarifaire ; ne pas toucher aux services gratuits obligatoires.",
@@ -936,103 +937,249 @@ def build_action_plan(ev, problems):
 #  6. PROJECTION 3 ANS — trajectoire actuelle vs avec actions, par levier
 # ════════════════════════════════════════════════════════════════════════════
 def build_projection(ev):
-    """Projection 3 ans à 3 SCÉNARIOS (prudent / central / optimiste) + ligne de base
-    « sans rien faire ». Tout déterministe, hypothèses explicites et chiffrées."""
+    """Projection 3 ans à 3 SCÉNARIOS (prudent / central / optimiste) + trajectoire naturelle
+    « sans rien faire ». MÉTHODE (2026-08-21, 2e refonte — la 1ʳᵉ (2026-08-20) plafonnait
+    l'optimiste à la cible ; corrigé sur remarque explicite : « la cible du benchmark devient
+    une référence, pas un plafond ») :
+      1. La CIBLE de chaque indicateur est la moyenne des 3 meilleures banques concurrentes du
+         panel (hors SGCI) — pas le seul leader, qui peut être un cas exceptionnel isolé.
+      2. L'ÉCART SGCI/cible est MESURÉ sur les données réelles, jamais supposé.
+      3. La trajectoire à 3 ans répartit cet écart de façon linéaire : Objectif(t) = Actuel +
+         (t/3) × Écart × niveau d'exécution du scénario — SANS plafond : l'optimiste (120 %)
+         peut dépasser la cible, ce qui a un sens stratégique (Prudent = réduction partielle de
+         l'écart, Central = atteinte de la cible, Optimiste = dépassement de la référence).
+      4. Deux UNITÉS DE RYTHME distinctes, jamais mélangées (erreur corrigée le 2026-08-21) :
+         - indicateurs qui COMPOSENT (PNB, résultat net, catalogue) : rythme en %/an (croissance
+           relative) — comparé à la croissance historique RÉELLE de la SGCI sur ce même
+           indicateur, en %/an.
+         - indicateurs en POINTS DE POURCENTAGE (ROE, coût du risque) : rythme en points/an
+           (variation additive) — comparé à la variation historique RÉELLE de la SGCI sur ce
+           même indicateur, en points/an. On ne compare jamais un %/an à un pt/an.
+      5. Si la SGCI est déjà au niveau ou au-dessus des 3 meilleures banques, aucun rattrapage
+         n'est modélisé : les trois scénarios suivent la trajectoire naturelle (croissance
+         historique propre, ou valeur constante si aucun historique n'est disponible).
+    Aucun LLM ne choisit un chiffre ici : seules la définition de la cible (3 meilleures
+    banques) et les trois niveaux d'exécution (60/100/120 %) sont des choix de méthode,
+    documentés comme tels — pas des valeurs mesurées."""
     ef = ev["ef"]
     out = []
 
-    pnb = (ef["pnb"] or {}).get("SGCI")
-    rn  = (ef["rn"] or {}).get("SGCI")
-    cr  = ef["cout_risque_pnb"].get("SGCI")
-    g   = ef.get("sgci_growth") or 4.0   # croissance historique
-    res = (ef.get("resilience") or {}).get("SGCI") or {}
-    cp  = res.get("capitaux_propres")
+    EXECUTION = {"prudent": 0.60, "central": 1.00, "optimiste": 1.20}
 
-    # Pondération des scénarios : part de l'effet « plan » réellement capté.
-    #   prudent = exécution partielle ; central = plan tenu ; optimiste = plan + macro porteuse.
-    W = {"prudent": 0.55, "central": 1.0, "optimiste": 1.35}
-
-    def croissance(base, premium, div=1000, unite="Mds"):
-        """base à div ; actuel = g ; scénarios = g + premium*poids."""
-        if base is None:
+    def cible_top3(data, sens):
+        """Moyenne des 3 meilleures banques concurrentes (hors SGCI). None si moins de 3
+        concurrents disposent d'une valeur exploitable."""
+        conc = [(b, v) for b, v in (data or {}).items() if b != "SGCI" and v is not None]
+        if len(conc) < 3:
             return None
-        b = base / div
-        ser = {"unite": unite, "actuel": [round(b, 1)]}
-        for sc in W:
-            ser[sc] = [round(b, 1)]
-        for _ in range(3):
-            ser["actuel"].append(round(ser["actuel"][-1] * (1 + g / 100), 1))
-            for sc, w in W.items():
-                taux = g + premium * w
-                ser[sc].append(round(ser[sc][-1] * (1 + taux / 100), 1))
-        return ser
+        conc.sort(key=lambda x: x[1], reverse=(sens == "hausse"))
+        top3 = [v for _, v in conc[:3]]
+        return sum(top3) / len(top3)
 
-    # PNB : +3 pts d'effet plan (commissions + corporate)
-    s = croissance(pnb, 3)
-    if s:
-        out.append({"nom": "PNB", **s,
-                    "hypothese": f"Base {g}%/an. Effet plan : +3 pts (commissions + corporate), pondéré par scénario."})
+    def taux_historique_relatif(serie_sgci):
+        """CAGR réel de la SGCI sur sa série disponible — %/an (grandeurs qui composent :
+        montants, effectifs)."""
+        if not serie_sgci or len(serie_sgci) < 2:
+            return None
+        annees = sorted(serie_sgci)
+        v0, vn = serie_sgci[annees[0]], serie_sgci[annees[-1]]
+        n = len(annees) - 1
+        if not v0 or not vn or v0 <= 0 or n <= 0:
+            return None
+        return ((vn / v0) ** (1 / n) - 1) * 100
 
-    # Coût du risque (% PNB) : décrue −x pt/an, plancher 12 (le plan le fait baisser)
-    if cr is not None:
-        ser = {"unite": "%", "actuel": [cr]}
-        decr = {"prudent": 1.1, "central": 1.7, "optimiste": 2.2}
-        for sc in W:
-            ser[sc] = [cr]
-        for _ in range(3):
-            ser["actuel"].append(cr)
-            for sc in W:
-                ser[sc].append(round(max(12.0, ser[sc][-1] - decr[sc]), 1))
-        out.append({"nom": "Coût du risque (% PNB)", **ser,
-                    "hypothese": "Base : maintenu. Plan : −1,1 à −2,2 pt/an selon scénario, plancher 12% (niveau des meilleurs)."})
+    def taux_historique_points(serie_sgci, sens):
+        """Rythme annuel réel d'AMÉLIORATION de la SGCI — points/an (ratios : ROE, coût du
+        risque). Additif, jamais composé : un ratio ne se « capitalise » pas. Positif = s'est
+        historiquement amélioré (compatible avec le sens de rythme_requis, toujours positif
+        côté amélioration) ; négatif = s'est historiquement dégradé — important pour le coût
+        du risque, qui a empiré chaque année (10,9→13,8→17,0) : sans ce signe, une comparaison
+        brute aurait pu masquer que TOUT objectif d'amélioration y est sans précédent."""
+        if not serie_sgci or len(serie_sgci) < 2:
+            return None
+        annees = sorted(serie_sgci)
+        v0, vn = serie_sgci[annees[0]], serie_sgci[annees[-1]]
+        n = len(annees) - 1
+        if n <= 0:
+            return None
+        if sens == "baisse":
+            return (v0 - vn) / n
+        return (vn - v0) / n
 
-    # Résultat net : +5 pts d'effet plan (PNB↑ ET coût du risque↓ cumulés)
-    s2 = croissance(rn, 5)
-    if s2:
-        out.append({"nom": "Résultat net", **s2,
-                    "hypothese": f"Base {g}%/an. Effet plan : +5 pts (PNB↑ & coût du risque↓ cumulés), pondéré."})
+    def trajectoire(actuel, cible, sens, mode, taux_hist):
+        """mode='relatif' (composé, %/an) ou 'points' (additif, pt/an) pour la ligne « actuel »
+        ET pour le rythme requis par scénario — jamais mélangés."""
+        # taux_hist est un rythme d'AMÉLIORATION (positif = mieux), quel que soit le sens de
+        # l'indicateur. Pour projeter la valeur BRUTE « sans rien faire », il faut le remettre
+        # dans le sens de la valeur elle-même : identique si "hausse", inversé si "baisse"
+        # (une amélioration du coût du risque, c'est une baisse de la valeur).
+        signe_valeur = 1 if sens == "hausse" else -1
+        serie = {"actuel": [round(actuel, 3)]}
+        for t in range(1, 4):
+            if taux_hist is None:
+                serie["actuel"].append(round(actuel, 3))
+            elif mode == "relatif":
+                serie["actuel"].append(round(actuel * (1 + signe_valeur * taux_hist / 100) ** t, 3))
+            else:
+                serie["actuel"].append(round(actuel + signe_valeur * t * taux_hist, 3))
 
-    # ROE : RN projeté (par scénario) / capitaux propres
-    if rn is not None and cp:
-        roe0 = round(rn / cp * 100, 1)
-        ser = {"unite": "%", "actuel": [roe0]}
-        for sc in W:
-            ser[sc] = [roe0]
-        rn_sc = {"actuel": rn, **{sc: rn for sc in W}}
-        for _ in range(3):
-            rn_sc["actuel"] *= (1 + g / 100)
-            ser["actuel"].append(round(rn_sc["actuel"] / cp * 100, 1))
-            for sc, w in W.items():
-                rn_sc[sc] *= (1 + (g + 5 * w) / 100)
-                ser[sc].append(round(rn_sc[sc] / cp * 100, 1))
-        out.append({"nom": "ROE", **ser,
-                    "hypothese": "ROE = RN projeté (par scénario) / capitaux propres (supposés stables)."})
+        ecart = (cible - actuel) if sens == "hausse" else (actuel - cible)
+        for sc in EXECUTION:
+            serie[sc] = [round(actuel, 3)]
+        if ecart <= 0:
+            for sc in EXECUTION:
+                serie[sc] = list(serie["actuel"])
+            return serie, ecart, {sc: None for sc in EXECUTION}
 
-    # ── Catalogue de services (SGCI) — 2026-07-24, enrichissement multi-source (demande
-    # explicite : « la projection c'est pas QUE EF, multi-sources multi-indicateurs »).
-    # Seule série CB avec un VRAI historique multi-périodes comparable à l'EF — l'indice prix
-    # et le taux de gratuité CB, une fois le bug de moyenne corrigé (cf. cb_analyse_q6), sont
-    # restés quasi plats sur l'historique réel : les ajouter aurait donné 3 courbes identiques
-    # par scénario, aucune vraie différenciation. Le nombre de services, lui, a une vraie
-    # tendance observée (178→184 en 2 ans) — base de croissance réelle, pas une hypothèse.
+        signe = 1 if sens == "hausse" else -1
+        rythmes = {}
+        for sc, pct in EXECUTION.items():
+            for t in range(1, 4):
+                val = actuel + signe * (t / 3) * pct * ecart
+                # Plancher physique à 0 : un taux, un montant ou un effectif ne peut pas être
+                # négatif. Ce n'est plus la cible qui plafonne (retirée sur demande), seulement
+                # cette borne physique — l'optimiste (120 %) peut sinon la franchir sur un
+                # écart déjà large (ex. coût du risque).
+                val = max(val, 0.0)
+                serie[sc].append(round(val, 3))
+            # Rythme requis par CE scénario, dans SA propre unité (jamais mélangé) :
+            realise = pct * ecart
+            if mode == "relatif":
+                fin = actuel + signe * realise
+                rythmes[sc] = (((fin / actuel) ** (1 / 3) - 1) * 100) if actuel > 0 and fin > 0 else None
+            else:
+                rythmes[sc] = realise / 3
+        return serie, ecart, rythmes
+
+    def plausibilite(rythmes, taux_hist, mode):
+        """taux_hist est un rythme d'AMÉLIORATION historique (positif = s'est amélioré,
+        négatif = s'est dégradé). Phrasé explicitement dans les deux cas pour ne jamais
+        laisser un nombre négatif se lire comme une vitesse d'amélioration."""
+        unite = "%/an" if mode == "relatif" else "pt/an"
+        out_p = {}
+        for sc, r in rythmes.items():
+            if r is None or taux_hist is None:
+                out_p[sc] = None
+                continue
+            if taux_hist < 0:
+                hist_txt = f"s'est au contraire dégradé de {round(abs(taux_hist),2)} {unite}"
+            else:
+                hist_txt = f"s'est amélioré de {round(taux_hist,2)} {unite}"
+            if r > taux_hist:
+                out_p[sc] = f"ambitieux : {round(r,2)} {unite} requis, alors qu'historiquement il {hist_txt}"
+            else:
+                out_p[sc] = f"compatible avec l'historique (qui {hist_txt})"
+        return out_p
+
+    def ajoute(nom, data_dict, sens, div, unite, mode, serie_hist_sgci, libelle_cible):
+        val_sgci = (data_dict or {}).get("SGCI")
+        cible = cible_top3(data_dict, sens)
+        if val_sgci is None or cible is None:
+            return
+        b, cb = val_sgci / div, cible / div
+        taux_hist = (taux_historique_relatif(serie_hist_sgci) if mode == "relatif"
+                     else taux_historique_points(serie_hist_sgci, sens))
+        s, ecart, rythmes = trajectoire(b, cb, sens, mode, taux_hist)
+        s["unite"] = unite
+        plaus = plausibilite(rythmes, taux_hist, mode)
+        unite_txt = "" if unite == "%" else f" {unite}"
+        hyp = (f"Cible : moyenne des 3 meilleures banques du panel sur {libelle_cible} "
+               f"({round(cb,1)}{unite_txt}{'%' if unite=='%' else ''}). "
+               f"Écart mesuré avec la SGCI : {round(abs(ecart),1)}{' pt' if unite=='%' else unite_txt}, "
+               f"réparti sur 3 ans selon le niveau d'exécution du scénario (aucun plafond : "
+               f"l'optimiste peut dépasser la cible).")
+        out.append({"nom": nom, **s, "cible": round(cb, 2),
+                    "rythme_requis": {k: (round(v, 2) if v is not None else None) for k, v in rythmes.items()},
+                    "plausibilite": plaus, "hypothese": hyp})
+
+    rn_sgci_series = db.resultat_net_series().get("SGCI", {})
+    pnb_sgci_series = db.ef_pnb_series().get("SGCI", {})
+    roe_sgci_series = db.ef_roe_series().get("SGCI", {})
+    cr_sgci_ratios = dict(db.ef_cout_risque_3ans().get("SGCI", {}).get("ratios") or [])
+
+    ajoute("PNB", ef.get("pnb"), "hausse", 1000, "Mds", "relatif", pnb_sgci_series, "le PNB")
+    ajoute("Coût du risque (% PNB)", ef.get("cout_risque_pnb"), "baisse", 1, "%", "points", cr_sgci_ratios, "le coût du risque")
+    ajoute("Résultat net", ef.get("rn"), "hausse", 1000, "Mds", "relatif", rn_sgci_series, "le résultat net")
+    ajoute("ROE", ef.get("roe"), "hausse", 1, "%", "points", roe_sgci_series, "la rentabilité des fonds propres")
+
+    # ── Effet mécanique du coût du risque sur le résultat net (2026-08-21, demande explicite :
+    # « le coût du risque représente une charge qui affecte le résultat, donc sa baisse doit
+    # avoir un effet mécanique sur le résultat net ») ──────────────────────────────────────
+    # Ligne SÉPARÉE du Résultat net (qui garde sa propre trajectoire, tirée du benchmark) —
+    # jamais fusionnée dans sa série pour ne PAS compter deux fois la même amélioration :
+    # ce bloc isole l'effet ADDITIONNEL, non déjà présent dans la trajectoire propre du RN.
+    # Vérifié en base avant d'écrire ceci (règle du projet : jamais deviner une définition) :
+    # « COUT DU RISQUE » / « COUT NET DU RISQUE » dans ef_indicateurs est une charge en
+    # MONTANT (SGCI 2025 : 46 829, soit 46829/276048 = 17,0 % du PNB — exactement le ratio
+    # utilisé) : Provision = coût_du_risque% × PNB est donc bien la définition réelle, pas une
+    # supposition. Impôt sur les bénéfices : appliqué au taux effectif RÉEL de la SGCI (1 −
+    # RN/Résultat avant impôt, sur le dernier exercice disponible), pas un taux inventé.
+    pnb_proj = next((p for p in out if p["nom"] == "PNB"), None)
+    cr_proj_ = next((p for p in out if p["nom"] == "Coût du risque (% PNB)"), None)
+    if pnb_proj and cr_proj_:
+        rai_sgci = None
+        try:
+            rai_rows = db.query(
+                "SELECT annee_donnee, AVG(montant) AS v FROM ef_indicateurs "
+                "WHERE banque='SGCI' AND is_primary=TRUE AND libelle ILIKE %s "
+                "GROUP BY annee_donnee ORDER BY annee_donnee DESC LIMIT 1",
+                ("%avant%imp%",))
+            rai_sgci = rai_rows[0]["v"] if rai_rows else None
+        except Exception:
+            rai_sgci = None
+        rn_actuel_val = (ef.get("rn") or {}).get("SGCI")
+        taux_impot = None
+        if rai_sgci and rn_actuel_val and rai_sgci > 0:
+            taux_impot = max(0.0, min(1.0, 1 - (rn_actuel_val / rai_sgci)))
+
+        cr_actuel_pct = cr_proj_["actuel"][0]
+        effet = {"unite": "Mds", "actuel": [0.0, 0.0, 0.0, 0.0]}
+        for sc in EXECUTION:
+            serie_cr_sc = cr_proj_[sc]
+            serie_pnb_ref = pnb_proj["actuel"]   # le PNB n'a pas de scénario propre (déjà au niveau du benchmark)
+            vals = []
+            for t in range(4):
+                provision_evitee = (cr_actuel_pct - serie_cr_sc[t]) / 100 * serie_pnb_ref[t]
+                if taux_impot is not None:
+                    vals.append(round(provision_evitee * (1 - taux_impot), 3))
+                else:
+                    vals.append(round(provision_evitee, 3))
+            effet[sc] = vals
+        note_impot = (f"taux effectif réel de la SGCI, {round(taux_impot*100,1)} %"
+                      if taux_impot is not None else "aucun taux d'imposition disponible en base : effet avant impôt")
+        effet["hypothese"] = (
+            "Effet ADDITIONNEL, distinct de la trajectoire propre du résultat net ci-dessus — "
+            "à additionner, jamais à confondre. Provision évitée = écart de coût du risque × "
+            f"PNB projeté, imposée au {note_impot}."
+        )
+        out.append({"nom": "Effet du coût du risque sur le résultat net", **effet})
+
+    # ── Catalogue de services (SGCI) — base réelle observée (tendance CB 2024→2026), cible
+    # mesurée sur le même principe que les indicateurs financiers (moyenne des 3 meilleures
+    # banques du panel par nombre de services, via n_services_data). Grandeur qui compose
+    # (un effectif), donc mode « relatif », comme PNB/RN.
     cb_serie = (ev.get("cb") or {}).get("serie") or []
+    n_services_data = (ev.get("cb") or {}).get("n_services_data") or {}
     if len(cb_serie) >= 2:
         n0 = cb_serie[0].get("sgci_n_services")
         n1 = cb_serie[-1].get("sgci_n_services")
         nb_annees = (len(cb_serie) - 1) / 2.0   # ~2 périodes (S1/S2) publiées par an
-        if n0 and n1 and n0 > 0 and nb_annees > 0:
+        cible_cat = cible_top3(n_services_data, "hausse")
+        if n0 and n1 and n0 > 0 and nb_annees > 0 and cible_cat is not None:
             g_cat = round((((n1 / n0) ** (1.0 / nb_annees)) - 1) * 100, 1)
-            CATALOGUE_PREMIUM = 4   # pts/an si le plan lance les nouveaux services digitaux (CONNECT, MyBusiness — cf. Roadmap An2/An3)
-            ser = {"unite": "services", "actuel": [n1]}
-            for sc in W:
-                ser[sc] = [n1]
-            for _ in range(3):
-                ser["actuel"].append(round(ser["actuel"][-1] * (1 + g_cat / 100)))
-                for sc, w in W.items():
-                    taux = g_cat + CATALOGUE_PREMIUM * w
-                    ser[sc].append(round(ser[sc][-1] * (1 + taux / 100)))
-            out.append({"nom": "Catalogue de services (SGCI)", **ser,
-                        "hypothese": f"Base {_pct(g_cat)}%/an (croissance réelle observée CB 2024→2026). Effet plan : +{CATALOGUE_PREMIUM} pts (nouveaux services digitaux), pondéré par scénario."})
+            s, ecart, rythmes = trajectoire(n1, cible_cat, "hausse", "relatif", g_cat)
+            s["unite"] = "services"
+            for k2 in ("actuel", "prudent", "central", "optimiste"):
+                s[k2] = [round(v) for v in s[k2]]
+            plaus = plausibilite(rythmes, g_cat, "relatif")
+            hyp = (f"Base {_pct(g_cat)}%/an (croissance réelle observée CB 2024→2026). "
+                   f"Cible : moyenne des 3 meilleures banques du panel ({round(cible_cat)} services). "
+                   f"Écart mesuré : {round(abs(ecart))} services, réparti sur 3 ans (aucun "
+                   f"plafond : l'optimiste peut dépasser la cible).")
+            out.append({"nom": "Catalogue de services (SGCI)", **s,
+                        "cible": round(cible_cat),
+                        "rythme_requis": {k: (round(v, 2) if v is not None else None) for k, v in rythmes.items()},
+                        "plausibilite": plaus, "hypothese": hyp})
 
     # ── Enrichissement « lisibilité » : sens, fourchette, message-clé ──
     SENS = {"Coût du risque (% PNB)": "bas"}   # BAISSER = mieux
@@ -1077,14 +1224,25 @@ def build_projection(ev):
     # (2) Coût cumulé de l'attentisme sur les 3 ans (pas qu'un instantané à AN3) : la somme des
     #     écarts annuels « central vs sans rien faire » — rend l'urgence tangible, pas un chiffre isolé.
     rn = next((p for p in out if p["nom"] == "Résultat net"), None)
+    effet_risque = next((p for p in out if p["nom"] == "Effet du coût du risque sur le résultat net"), None)
     if rn:
-        pr3, a3 = rn["prudent"][-1], rn["actuel"][-1]
         u = rn["unite"]
+        # Trajectoire propre du RN (souvent nulle : la SGCI dépasse déjà le benchmark sur cet
+        # indicateur pris isolément) + effet mécanique du coût du risque — additionnés une
+        # seule fois ici, jamais recalculés séparément ailleurs (build_roadmap les relit tels quels).
+        er_prudent3 = effet_risque["prudent"][-1] if effet_risque else 0
+        er_central = effet_risque["central"] if effet_risque else [0, 0, 0, 0]
+        er_actuel = effet_risque["actuel"] if effet_risque else [0, 0, 0, 0]
+        pr3 = rn["prudent"][-1] + er_prudent3
+        a3 = rn["actuel"][-1] + er_actuel[-1]
         gain_pire_cas = round(pr3 - a3, 1) if rn["sens"] == "haut" else round(a3 - pr3, 1)
         rn["gain_pire_cas"] = f"{gain_pire_cas:.1f}".replace(".", ",") + f" {u}"
         rn["pire_cas_bat_immobilisme"] = gain_pire_cas > 0
-        cumul = sum((c - a) if rn["sens"] == "haut" else (a - c)
-                    for c, a in zip(rn["central"][1:], rn["actuel"][1:]))
+        cumul = sum(
+            ((c + er_central[i] - (a + er_actuel[i])) if rn["sens"] == "haut"
+             else ((a + er_actuel[i]) - (c + er_central[i])))
+            for i, (c, a) in enumerate(zip(rn["central"][1:], rn["actuel"][1:]), start=1)
+        )
         rn["cumul_attentisme_3ans"] = _fmt_md(round(cumul * 1000)) if u != "%" else (
             f"{cumul:.1f}".replace(".", ",") + f" {u}")
 
@@ -1109,26 +1267,24 @@ def build_projection_hypotheses(ev, projection):
 
     by_nom = {p["nom"]: p for p in projection}
     pnb, cr, rn, roe = by_nom.get("PNB"), by_nom.get("Coût du risque (% PNB)"), by_nom.get("Résultat net"), by_nom.get("ROE")
+    effet = by_nom.get("Effet du coût du risque sur le résultat net")
 
+    cible_cr_txt = f"{_f(cr['cible'])}%" if cr and cr.get("cible") is not None else "la cible du panel"
     DESCRIPTION = {
-        "prudent":   "Exécution partielle ou retardée du plan.",
-        "central":   "Le plan est exécuté intégralement, au rythme prévu.",
-        "optimiste": "Le plan est exécuté intégralement ET porté par un contexte macro favorable.",
+        "prudent":   "Le plan n'atteint que 60 % de l'écart-cible mesuré (exécution partielle ou retardée).",
+        "central":   "Le plan atteint 100 % de l'écart-cible mesuré, au rythme prévu.",
+        "optimiste": "Le plan atteint 120 % de l'écart-cible (contexte macro porteur en plus), plafonné à la cible du panel.",
     }
     JUSTIF = {
         "prudent":   f"Le scoring d'octroi + early-warning J+15/J+30 (Plan-trajectoire, An 1) n'est déployé qu'en partie : le coût du risque recule moins vite, encore loin du secteur ({npl_secteur}).",
-        "central":   "Le scoring d'octroi et l'early-warning J+15/J+30 sont déployés dans les délais : le coût du risque atteint le plancher des meilleures banques du marché (BICICI ~1,9%).",
+        "central":   f"Le scoring d'octroi et l'early-warning J+15/J+30 sont déployés dans les délais : le coût du risque atteint la cible du panel ({cible_cr_txt}, moyenne des 3 meilleures banques du benchmark).",
         "optimiste": f"Mêmes actes que Central, portés en plus par le {pib} (BCEAO) : la croissance limite mécaniquement les défauts et amplifie l'effet du scoring.",
     }
-    CERTITUDE = {
-        "prudent":   {"pct": 75, "risque": "Retard ou déploiement partiel du scoring/early-warning."},
-        "central":   {"pct": 50, "risque": "Dérive de calendrier ou charge opérationnelle sous-estimée."},
-        "optimiste": {"pct": 20, "risque": f"Conjoncture macro moins favorable que le {pib} actuel."},
-    }
-    # % d'effet du plan capté par scénario — MÊMES constantes que le W de build_projection
-    # (0.55/1.0/1.35), reprises ici uniquement pour l'étiquette du schéma logique (aucun calcul
-    # de chiffre n'en dépend, donc aucun risque de divergence avec les indicateurs ci-dessus).
-    PCT_EFFET = {"prudent": 55, "central": 100, "optimiste": 135}
+    # Niveau d'exécution simulé par scénario — MÊMES constantes que EXECUTION dans
+    # build_projection (0.60/1.00/1.20). C'est un paramètre de simulation explicite, pas une
+    # probabilité : on ne prétend pas mesurer une chance de réussite, seulement modéliser
+    # différents degrés d'exécution du même plan.
+    EXECUTION_PCT = {"prudent": 60, "central": 100, "optimiste": 120}
 
     def _cagr(serie):
         """Taux de croissance annuel moyen sur la série [aujourd'hui, an1, an2, an3]."""
@@ -1159,10 +1315,15 @@ def build_projection_hypotheses(ev, projection):
 
         formulation = None
         if rn:
+            # Trajectoire propre du RN + effet mécanique du coût du risque (provisions
+            # évitées, imposées) — additionnés une seule fois, cf. bloc dédié dans
+            # build_projection ; jamais recalculés séparément ici.
+            er_cle3 = effet[cle][-1] if effet else 0
+            er_act3 = effet["actuel"][-1] if effet else 0
             base = rn["actuel"][0]
-            cible = rn[cle][-1]
+            cible = rn[cle][-1] + er_cle3
             pct_vs_aujourdhui = round((cible / base - 1) * 100, 1) if base else None
-            delta_vs_sq = round(cible - rn["actuel"][-1], 1)
+            delta_vs_sq = round(cible - (rn["actuel"][-1] + er_act3), 1)
             signe_sq = "+" if delta_vs_sq >= 0 else "−"
             pct_txt = f"soit {'+' if (pct_vs_aujourdhui or 0) >= 0 else ''}{_f(pct_vs_aujourdhui)}% par rapport à aujourd'hui" if pct_vs_aujourdhui is not None else ""
             formulation = (
@@ -1178,7 +1339,8 @@ def build_projection_hypotheses(ev, projection):
         # des séries déjà produites par build_projection (jamais un chiffre à la main).
         annees = []
         if cr and rn:
-            plancher_atteint = cr[cle][3] <= 12.01
+            cible_cr_val = cr.get("cible")
+            plancher_atteint = cible_cr_val is not None and cr[cle][3] <= cible_cr_val + 0.01
             ACTES_AN = {
                 1: ("Déployer le moteur de scoring d'octroi + l'application de détection des "
                     "clients à risque (alertes comportementales) et l'early-warning impayés J+15/J+30."),
@@ -1189,12 +1351,12 @@ def build_projection_hypotheses(ev, projection):
             }
             POURQUOI_AN = {
                 1: f"Le secteur n'affiche que {npl_secteur} (BCEAO) — SGCI reste au-dessus même dans ce scénario.",
-                2: ("Convergence vers le plancher des meilleures banques (~12%, BICICI ~1,9%)."
+                2: (f"Convergence vers la cible du panel ({cible_cr_txt}, moyenne des 3 meilleures banques)."
                     if plancher_atteint else
-                    "La baisse se poursuit mais n'atteint pas encore le plancher des meilleures banques (~12%)."),
-                3: ("Le plancher de coût du risque des meilleures banques est atteint : le plan a produit son plein effet."
+                    f"La baisse se poursuit mais n'atteint pas encore la cible du panel ({cible_cr_txt})."),
+                3: (f"La cible du panel ({cible_cr_txt}) est atteinte : le plan a produit son plein effet."
                     if plancher_atteint else
-                    "Le plancher des meilleures banques (~12%) n'est pas atteint à ce niveau d'exécution — un gain reste sur la table."),
+                    f"La cible du panel ({cible_cr_txt}) n'est pas atteinte à ce niveau d'exécution — un gain reste sur la table."),
             }
             for idx, label_an in ((1, "An 1"), (2, "An 2"), (3, "An 3")):
                 cr_avant = cr[cle][idx - 1]
@@ -1216,12 +1378,14 @@ def build_projection_hypotheses(ev, projection):
         out.append({
             "cle": cle, "nom": nom,
             "description": DESCRIPTION[cle],
-            "pct_effet": PCT_EFFET[cle],
+            "pct_effet": EXECUTION_PCT[cle],
             "formulation": formulation,
             "justification": JUSTIF[cle],
             "indicateurs": indicateurs,
-            "certitude_pct": CERTITUDE[cle]["pct"],
-            "certitude_risque": CERTITUDE[cle]["risque"],
+            "niveau_execution_pct": EXECUTION_PCT[cle],
+            # Le coût du risque est le levier actionnable de ce plan (scoring/early-warning) :
+            # sa plausibilité est la plus parlante ici. Repli sur le ROE si absent, puis le RN.
+            "plausibilite": next((d.get("plausibilite", {}).get(cle) for d in (cr, roe, rn) if d and d.get("plausibilite", {}).get(cle)), None),
             "annees": annees,
             "serie_rn": rn[cle] if rn else None,
             "serie_rn_actuel": rn["actuel"] if rn else None,
@@ -1283,6 +1447,10 @@ def build_roadmap(ev, projection=None):
     by_nom  = {p["nom"]: p for p in (projection or [])}
     cr_proj = by_nom.get("Coût du risque (% PNB)")
     rn_proj = by_nom.get("Résultat net")
+    roe_proj = by_nom.get("ROE")
+    effet_risque_proj = by_nom.get("Effet du coût du risque sur le résultat net")
+    cible_cr = cr_proj.get("cible") if cr_proj else None
+    cible_roe = roe_proj.get("cible") if roe_proj else None
 
     def _md1(v):
         return f"{round(v, 1)}".replace(".", ",") + " Mds"
@@ -1290,9 +1458,17 @@ def build_roadmap(ev, projection=None):
     cr_an1 = cr_proj["central"][1] if cr_proj else None
     cr_an2 = cr_proj["central"][2] if cr_proj else None
     cr_an3 = cr_proj["central"][3] if cr_proj else None
-    rn_gain_an1 = round(rn_proj["central"][1] - rn_proj["actuel"][1], 1) if rn_proj else None
-    rn_gain_an2 = round(rn_proj["central"][2] - rn_proj["actuel"][2], 1) if rn_proj else None
-    rn_gain_an3 = round(rn_proj["central"][3] - rn_proj["actuel"][3], 1) if rn_proj else None
+    # Gain de résultat net = trajectoire propre du RN (souvent nulle : la SGCI dépasse déjà le
+    # benchmark sur cet indicateur pris isolément) + effet mécanique du coût du risque (les
+    # provisions évitées, imposées au taux réel) — deux composantes distinctes, additionnées
+    # une seule fois ici, jamais recalculées séparément ailleurs.
+    def _rn_gain(t):
+        propre = (rn_proj["central"][t] - rn_proj["actuel"][t]) if rn_proj else 0
+        mecanique = effet_risque_proj["central"][t] if effet_risque_proj else 0
+        return round(propre + mecanique, 1)
+    rn_gain_an1 = _rn_gain(1) if (rn_proj or effet_risque_proj) else None
+    rn_gain_an2 = _rn_gain(2) if (rn_proj or effet_risque_proj) else None
+    rn_gain_an3 = _rn_gain(3) if (rn_proj or effet_risque_proj) else None
 
     def acte(a, r, j, srcs):
         return {"acte": a, "resultat": r, "justification": j, "sources": srcs}
@@ -1308,12 +1484,13 @@ def build_roadmap(ev, projection=None):
         a1.append(acte(
             "Déployer le moteur de scoring d'octroi + l'application de détection des clients à risque (alertes comportementales) et l'early-warning impayés J+15/J+30.",
             f"Coût du risque {_pct(cr)}% → {_pct(cr_an1_v)}% du PNB (−{_pct(delta_an1)} pt dès la 1ʳᵉ année) ≈ <b>+{rn_an1_txt} de résultat net</b>.",
-            f"Le secteur n'affiche que {npl} (BCEAO) alors que SGCI absorbe {_pct(cr)}% de coût du risque : {_pct(delta_an1)} pts de rattrapage sont prudents (scénario central). Le meilleur du marché (BICICI) est à 1,9%.",
+            f"Le secteur n'affiche que {npl} (BCEAO) alors que SGCI absorbe {_pct(cr)}% de coût du risque : {_pct(delta_an1)} pts de rattrapage sont prudents (scénario central)."
+            + (f" La cible du panel (moyenne des 3 meilleures banques du benchmark) est de {_pct(cible_cr)}%." if cible_cr is not None else ""),
             ["EF", "REGL", "WEB"]))
     if rp.get("services"):
         ex = rp["services"][0]
         a1.append(acte(
-            f"Réaligner sur la médiane marché les 3 plus gros écarts tarifaires (ex. « {ex['libelle']} » : {ex['sgci']} → {ex['median']} F), sans devenir le plus cher.",
+            f"Réaligner sur la médiane marché les 3 plus gros écarts tarifaires (ex. « {ex['libelle']} » : {_fr(ex['sgci'])} → {_fr(ex['median'])} F), sans devenir le plus cher.",
             f"Récupération de commissions sur des services déjà rendus ≈ <b>+1 à +3 Mds de PNB</b> (selon volumes).",
             f"SGCI est sous la médiane sur {rp.get('n')} services comparables (CB). Réajustement compatible avec la transparence tarifaire BCEAO ; les gratuités obligatoires ne sont pas touchées.",
             ["CB", "EF", "REGL"]))
@@ -1329,7 +1506,8 @@ def build_roadmap(ev, projection=None):
     a2.append(acte(
         "Industrialiser le dispositif risque : revue trimestrielle du portefeuille, provisionnement proactif, recouvrement amiable précoce sur les secteurs les plus sinistrés.",
         f"Coût du risque → {_pct(cr_an2_v)}% (−{_pct(delta_an2)} pt supplémentaire) ≈ <b>+{rn_an2_txt} de RN cumulé</b>.",
-        "La baisse devient structurelle (process, pas one-shot). Convergence progressive vers le plancher des meilleurs (~12%).",
+        "La baisse devient structurelle (process, pas one-shot). Convergence progressive vers la cible du panel"
+        + (f" ({_pct(cible_cr)}%, moyenne des 3 meilleures banques)." if cible_cr is not None else "."),
         ["EF"]))
     a2.append(acte(
         f"Pousser les commissions (monétique, change, services digitaux CONNECT) : porter le mix commissions de {mix}% à 30% du PNB." if mix is not None
@@ -1345,7 +1523,10 @@ def build_roadmap(ev, projection=None):
     a3 = []
     a3.append(acte(
         "Lancer l'offensive croissance : offre dédiée diaspora & corporate adossée au réseau international Société Générale, reconquête des comptes entreprises.",
-        f"Croissance du RN portée d'environ +{_pct(ef.get('sgci_growth'))}% (cumulée AN1→AN3) vers une cible annuelle de 8–10% ; ROE de {_pct(roe)}% vers ~26%.",
+        f"Croissance du RN portée d'environ +{_pct(ef.get('sgci_growth'))}% (historique) vers la cible du panel"
+        + (f" ({_pct(rn_proj['cible'])} Mds, moyenne des 3 meilleures banques)" if rn_proj and rn_proj.get('cible') is not None else "")
+        + f" ; ROE de {_pct(roe)}%"
+        + (f" vers {_pct(cible_roe)}% (cible du panel)." if cible_roe is not None else "."),
         f"La bancarisation en CI reste faible ({banc}) — gisement d'acquisition — et SGCI est le 1ᵉʳ collecteur de dépôts de l'UMOA (base pour prêter sainement). Terrain à défendre face à BICICI.",
         ["EF", "WEB"]))
     a3.append(acte(
@@ -1363,9 +1544,9 @@ def build_roadmap(ev, projection=None):
     objectif = {
         "titre": "Cap à 3 ans",
         "lignes": [
-            f"Coût du risque : {_pct(cr)}% → {_pct(cr_an3) if cr_an3 is not None else '~12'}% du PNB (niveau des meilleurs)" if cr else None,
+            f"Coût du risque : {_pct(cr)}% → {_pct(cr_an3) if cr_an3 is not None else _pct(cible_cr)}% du PNB (cible du panel)" if cr else None,
             f"Résultat net : effet cumulé ≈ +{_md1(rn_gain_an3)} à 3 ans vs statu quo (scénario central)" if rn_gain_an3 is not None else None,
-            f"ROE : {_pct(roe)}% → ~26% (SGCI rejoindrait le peloton de tête)" if roe else None,
+            f"ROE : {_pct(roe)}% → {_pct(cible_roe)}% (cible du panel)" if roe and cible_roe is not None else None,
             f"Mix commissions : {mix}% → 30% (résilience accrue)" if mix is not None else None,
         ],
     }
@@ -1401,7 +1582,7 @@ def detect_advantages(ev):
         ex = at["cheaper"][0]
         add("Tarifs attractifs sur services clés",
             f"SGCI nettement moins chère que le marché sur {at['n_cheaper']} services. Ex. « {ex['libelle']} » : "
-            f"{ex['sgci']} F vs médiane {ex['median']} F.",
+            f"{_fr(ex['sgci'])} F vs médiane {_fr(ex['median'])} F.",
             "CB", "Argument prix en communication grand public.")
     if cb.get("rang_prix") and cb["rang_prix"] <= 3:
         add("Parmi les banques les moins chères",
@@ -1415,7 +1596,7 @@ def detect_advantages(ev):
         ex = rp["services"][0]
         add("Services clés moins chers que le marché — levier marketing",
             f"SGCI est SOUS la médiane marché sur {rp.get('n')} services comparables. "
-            f"Ex. « {ex['libelle']} » : {ex['sgci']} F vs médiane {ex['median']} F (−{ex.get('ecart_pct')}%).",
+            f"Ex. « {ex['libelle']} » : {_fr(ex['sgci'])} F vs médiane {_fr(ex['median'])} F (−{ex.get('ecart_pct')}%).",
             "CB", "Communiquer ces prix avantageux pour capter les clients sensibles au tarif (acquisition ciblée, pas guerre des prix).")
     if (not (cb.get("rang_prix") and cb["rang_prix"] <= 3)) and wsg.get("winrate"):
         add("Prix ≤ marché sur une majorité de services",

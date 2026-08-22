@@ -3553,8 +3553,7 @@ def _resume_facts_strategie(segment):
 
     ph = d.get("projection_hypotheses") or {}
     proj_f = "\n".join(
-        f"  - {s.get('nom')} ({s.get('pct_effet')}% de l'effet du plan, {s.get('certitude_pct')}% de "
-        f"certitude) : {s.get('formulation')}"
+        f"  - {s.get('nom')} ({s.get('pct_effet')}% de l'écart-cible réalisé) : {s.get('formulation')}"
         for s in (ph.get("scenarios") or [])
     )
     proj_metrics = d.get("projection") or []

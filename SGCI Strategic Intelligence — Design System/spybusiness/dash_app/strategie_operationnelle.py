@@ -741,13 +741,21 @@ def objectif_global(segment="Particuliers"):
     if not pnb or not pnb.get("central") or not pnb.get("actuel"):
         return None
     central, naturel = pnb["central"][-1], pnb["actuel"][-1]
+    ecart = round(central - naturel, 1)
+    # 2026-08-21 : depuis que la cible PNB est mesurée (moyenne des 3 meilleures banques du
+    # panel), la SGCI la dépasse déjà — écart nul. Ce n'est pas une absence de résultat : c'est
+    # le résultat. On le dit explicitement plutôt que d'afficher « 0 Mds à aller chercher »
+    # comme si le calcul avait échoué, et on n'invente PAS un écart de substitution pour que
+    # la ligne de couverture sectorielle continue d'afficher un pourcentage — elle a besoin
+    # d'un indicateur sectoriel homogène dédié, pas encore construit (cf. remarque du 2026-08-21).
     return {
         "metrique": "PNB",
         "unite": pnb.get("unite", "Mds"),
         "depart": pnb["central"][0],
         "cible_centrale": central,
         "trajectoire_naturelle": naturel,
-        "ecart_a_combler": round(central - naturel, 1),
+        "ecart_a_combler": ecart,
+        "aucun_ecart_concurrentiel": ecart <= 0,
         "horizon_ans": max(1, len(pnb["central"]) - 1),
         "hypothese": (pnb.get("hypothese") or "")[:180],
     }

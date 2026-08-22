@@ -2766,8 +2766,8 @@ function _renderStrategie(d){
           </div>`).join('')}
         </div>
         <div style="display:flex;align-items:center;gap:11px;padding:11px 0;margin-bottom:16px;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)">
-          <div style="font:900 21px var(--display);color:${col}">${s.certitude_pct}%</div>
-          <div style="font:500 10px/1.4 var(--sans);color:var(--muted)">de certitude — Risque : ${s.certitude_risque}</div>
+          <div style="font:900 21px var(--display);color:${col}">${s.niveau_execution_pct ?? s.pct_effet}%</div>
+          <div style="font:500 10px/1.4 var(--sans);color:var(--muted)">niveau d'exécution simulé de l'écart-cible${s.plausibilite ? ' — ' + s.plausibilite : ''}</div>
         </div>
 
         <div style="font:800 12px var(--sans);color:var(--ink);margin-bottom:10px">🗺️ Plan ${s.nom} — chaque acte, son résultat à ce niveau d'exécution, sa justification</div>
@@ -2835,7 +2835,7 @@ function _renderStrategie(d){
     <div class="chead"><div><div class="tt">Graphiques de projection — les 3 scénarios en image</div>
     <div class="ts">Ligne grise = <b style="color:#94A3B8">sans rien changer</b> · ligne verte = <b style="color:#12895C">scénario central (plan tenu)</b> · zone verte = <b style="color:#12895C">fourchette prudent → optimiste</b> · modèle déterministe dérivé des chiffres réels</div></div></div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px">
-      ${[["Prudent","exécution partielle du plan (~55% de l'effet)","#94A3B8"],["Central","plan tenu (100% de l'effet)","#12895C"],["Optimiste","plan + macro porteuse (~135%)","#1650b0"]].map(s=>`<div style="font:600 9.5px var(--sans);color:var(--muted);background:var(--bg-raise);border:1px solid var(--line);border-left:3px solid ${s[2]};border-radius:5px;padding:4px 9px"><b style="color:${s[2]}">${s[0]}</b> — ${s[1]}</div>`).join("")}
+      ${[["Prudent","60% de l'écart-cible réalisé","#94A3B8"],["Central","100% — la cible du panel est atteinte","#12895C"],["Optimiste","120% — la cible est dépassée","#1650b0"]].map(s=>`<div style="font:600 9.5px var(--sans);color:var(--muted);background:var(--bg-raise);border:1px solid var(--line);border-left:3px solid ${s[2]};border-radius:5px;padding:4px 9px"><b style="color:${s[2]}">${s[0]}</b> — ${s[1]}</div>`).join("")}
     </div>
     ${projBilan}
     <div class="bento" style="gap:14px">
@@ -3340,9 +3340,9 @@ function setConcTab(t){
   ['conc','porter'].forEach(k=>{const b=document.getElementById('ctab-'+k);if(b)b.classList.toggle('on',k===t);});
 }
 
-// ── Projection 3 ans — dashboard filtrable par scénario (2026-07-24, version A) —
-// canevas repris tel quel : Formulation chiffrée / Justification / Indicateurs chiffrés /
-// Niveau de certitude, + plan An1→An2→An3 propre à chaque scénario. ─────────────────────────
+// ── Projection 3 ans — dashboard filtrable par scénario (2026-08-20, cible = moyenne des 3
+// meilleures banques du panel) — canevas : Formulation chiffrée / Justification / Indicateurs
+// chiffrés / Niveau d'exécution simulé + contrôle de plausibilité, + plan An1→An2→An3. ───────
 const _PROJ_SC_COL = {prudent:'#94A3B8', central:'#12895C', optimiste:'#1650b0'};
 // Un seul scénario affiché à la fois (cohérent avec le mode onglets utilisé partout ailleurs
 // dans l'app) — bascule le bloc complet + redimensionne son graphique Plotly (rendu à taille 0
@@ -3594,7 +3594,9 @@ function _stratCharts(d){
     const u=p.unite||"";
     const G="#12895C";                       // scénario central (vert)
     const fmt = v => (u==="%") ? (String(v).replace(".",",")+"%") : (String(v).replace(".",",")+" "+u);
-    const lab = arr => arr.map((v,k)=> (k===0||k===arr.length-1) ? fmt(v) : "");
+    // Seul le départ est étiqueté sur le tracé : l'arrivée est déjà portée par l'annotation
+    // « cible » ci-dessous — les deux au même point, à 26px d'écart, se chevauchaient sinon.
+    const lab = arr => arr.map((v,k)=> (k===0) ? fmt(v) : "");
     const pru=p.prudent||p.avec_actions, cen=p.central||p.avec_actions, opt=p.optimiste||p.avec_actions;
     // bornes de la bande (haute/basse), indépendamment du sens
     const up = x.map((_,k)=>Math.max(pru[k],opt[k]));
@@ -3617,14 +3619,20 @@ function _stratCharts(d){
        line:{color:G,width:3.5},marker:{size:7,color:G},
        hovertemplate:"Central<br>%{x} : %{y}"+(u==="%"?"%":" "+u)+"<extra></extra>"}
     ],{
-      margin:{t:8,b:42,l:42,r:14},showlegend:true,
+      margin:{t:34,b:56,l:42,r:24},showlegend:true,
       legend:{orientation:"h",y:-0.24,x:0,font:{size:9}},
       font:{family:"Inter,sans-serif"},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",
       xaxis:{tickfont:{size:9.5},gridcolor:"rgba(150,150,150,.10)",fixedrange:true},
       yaxis:{tickfont:{size:9},gridcolor:"rgba(150,150,150,.15)",range:[lo-pad,hi+pad],
              ticksuffix:(u==="%"?"%":""),fixedrange:true,zeroline:false},
       annotations:[{
-        x:x[3],y:cen[3],ax:0,ay:p.sens==="bas"?26:-26,
+        // xanchor:"right" fait pousser le texte VERS LA GAUCHE depuis le point : au dernier
+        // point (bord droit du graphique), un centrage par défaut le faisait déborder à droite.
+        // Marge du haut élargie (8→34) : le texte débordait au-dessus, invisible/coupé.
+        // Cas "bas" (coût du risque) : le point final est PRÈS DE L'AXE X, dans le coin
+        // bas-droite — ay seul ne suffisait pas (chevauchait encore le repère "An 3"), un
+        // décalage horizontal (ax) supplémentaire écarte le texte du coin.
+        x:x[3],y:cen[3],ax:p.sens==="bas"?-16:0,ay:p.sens==="bas"?44:-30,xanchor:"right",
         text:"<b>cible "+fmt(cen[3])+"</b>",font:{size:9.5,color:G},
         showarrow:true,arrowhead:3,arrowcolor:G,arrowwidth:1.3,bgcolor:"rgba(255,255,255,.04)"
       }]
@@ -8461,7 +8469,13 @@ function _soRender(){
   // décisions qui suivent prennent leur sens. Sans lui, l'onglet propose des actions sans dire
   // à quel objectif elles servent.
   const og = d.objectif_global;
-  const bandeau = og ? `<div class="tile c12 tpad" style="border-left:4px solid var(--accent-2);margin-bottom:4px">
+  const bandeau = !og ? "" : og.aucun_ecart_concurrentiel ? `<div class="tile c12 tpad" style="border-left:4px solid var(--accent-2);margin-bottom:4px">
+      <div style="font:700 10.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--accent-2);margin-bottom:5px">Objectif de la stratégie globale</div>
+      <div style="font:500 13.5px/1.65 var(--sans);color:var(--ink)">
+        Le PNB de la SGCI (<b>${String(og.trajectoire_naturelle).replace(".",",")} ${og.unite} FCFA</b> en ${og.horizon_ans} ans, trajectoire naturelle)
+        dépasse déjà la cible du panel (moyenne des 3 meilleures banques concurrentes) : <b>aucun écart concurrentiel à combler sur cet indicateur</b>.
+        Les leviers de croissance sectorielle ci-dessous restent pertinents pour amplifier l'avance, pas pour rattraper un retard.</div>
+    </div>` : `<div class="tile c12 tpad" style="border-left:4px solid var(--accent-2);margin-bottom:4px">
       <div style="font:700 10.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--accent-2);margin-bottom:5px">Objectif de la stratégie globale</div>
       <div style="font:500 13.5px/1.65 var(--sans);color:var(--ink)">
         Porter le PNB à <b>${String(og.cible_centrale).replace(".",",")} ${og.unite} FCFA</b> en ${og.horizon_ans} ans (scénario central),
@@ -8472,7 +8486,7 @@ function _soRender(){
         soit <b style="color:${og.couverture_pct<10?'#E53935':'#12895C'}">${String(og.couverture_pct).replace(".",",")} %</b> de l'écart.
         Le reste vient du portefeuille existant — structure du PNB, tarification, volumes, coût du risque — et se lit
         dans le bouclage du plan ci-dessous.</div>`:""}
-    </div>` : "";
+    </div>`;
 
   // ORDRE DE LECTURE (2026-08-07) : l'objectif global, puis CE QUE CHAQUE DIRECTION DOIT
   // FAIRE, puis seulement ensuite l'arbitrage sectoriel et les dossiers qui l'étayent.
