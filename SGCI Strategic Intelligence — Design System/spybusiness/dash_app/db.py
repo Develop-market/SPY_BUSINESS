@@ -924,15 +924,42 @@ def ef_roe_series():
 
 
 def ef_coeff_series():
-    """Série coefficient d'exploitation (Charges générales / PNB) par banque et année.
-    Méthode 1 (directe) : libellé Charges générales ou Frais Généraux.
-    Méthode 2 (fallback) : PNB − RBE (Résultat Brut d'Exploitation) quand les charges
-    ne sont pas libellées explicitement (cas ECOBANK 2025).
+    """Série coefficient d'exploitation (Charges / PNB) par banque et année.
+    Méthode 1 (prioritaire) : PNB − RBE (Résultat Brut d'Exploitation) — MÊME formule que le
+    bloc de classement de kpis_vue_ensemble (coeff_expl_data), pour que les deux blocs de
+    l'onglet Efficience racontent toujours le même chiffre.
+    Méthode 2 (repli) : libellé direct Charges générales/Frais Généraux, seulement quand le
+    RBE manque pour cette banque/année.
+
+    BUG CORRIGÉ le 2026-08-22 (repéré par le directeur : le classement affichait 38,8 % pour
+    SGCI/2025 quand cette courbe affichait 37,2 % pour la MÊME banque, MÊME année). Cause :
+    l'ancienne méthode 1 interrogeait EN MÊME TEMPS deux libellés qui désignent des périmètres
+    différents — « Charges générales d'exploitation » (94 052 pour SGCI/2025) et « Frais
+    Généraux » (106 974, qui coïncide avec PNB−RBE) — puis en faisait la MOYENNE par
+    AVG(montant) groupé, ce qui produisait un chiffre ne correspondant à aucune réalité
+    comptable. Le RBE est une ligne non ambiguë : il devient la source prioritaire, comme
+    dans le bloc de classement.
     """
     pnb_s = ef_pnb_series()
 
-    # Méthode 1 — charges libellées directement
-    chg_sql = """SELECT banque, annee_donnee, AVG(montant) AS val
+    rbe_sql = """SELECT banque, annee_donnee, MAX(montant) AS val
+                 FROM ef_indicateurs
+                 WHERE is_primary=%s AND montant IS NOT NULL AND montant > 0
+                   AND libelle ILIKE %s
+                 GROUP BY banque, annee_donnee"""
+    # Motif sur « brut » + « exploitation » seuls (jamais « resultat », qui porte l'accent
+    # de « Résultat » sur certaines banques et pas d'autres — ex. NSIA écrit « Résultat Brut
+    # d'Exploitation » quand SGCI écrit « RESULTAT BRUTD'EXPLOITATION » tout en capitales sans
+    # accent). Un motif exigeant « resultat » ratait NSIA et la faisait retomber, à tort, sur
+    # le libellé direct des charges — cause du second volet du bug ci-dessus.
+    rbe_pat = "%brut%exploitation%"
+    rbe_s = {}
+    for r in query(rbe_sql, (True, rbe_pat)):
+        rbe_s.setdefault(r["banque"], {})[int(r["annee_donnee"])] = float(r["val"])
+
+    # Repli — libellé direct des charges, uniquement pour les banques/années sans RBE.
+    # MAX (jamais AVG) : deux libellés différents ne doivent jamais être moyennés ensemble.
+    chg_sql = """SELECT banque, annee_donnee, MAX(montant) AS val
                  FROM ef_indicateurs
                  WHERE is_primary=%s AND montant IS NOT NULL AND montant > 0
                    AND (libelle ILIKE %s OR libelle ILIKE %s)
@@ -947,30 +974,18 @@ def ef_coeff_series():
         if b not in chg_s or yr not in chg_s[b]:
             chg_s.setdefault(b, {})[yr] = float(r["val"])
 
-    # Méthode 2 — fallback PNB − RBE pour les banque/année manquantes
-    rbe_sql = """SELECT banque, annee_donnee, MAX(montant) AS val
-                 FROM ef_indicateurs
-                 WHERE is_primary=%s AND montant IS NOT NULL AND montant > 0
-                   AND libelle ILIKE %s
-                 GROUP BY banque, annee_donnee"""
-    rbe_pat = "%resultat%brut%exploitation%"
-    rbe_s = {}
-    for r in query(rbe_sql, (True, rbe_pat)):
-        rbe_s.setdefault(r["banque"], {})[int(r["annee_donnee"])] = float(r["val"])
+    series = {}
     for bank, p_yrs in pnb_s.items():
         for yr, pnb in p_yrs.items():
-            if bank not in chg_s or yr not in chg_s[bank]:
-                rbe = rbe_s.get(bank, {}).get(yr)
-                if rbe and pnb and pnb > 0 and rbe < pnb:
-                    chg_s.setdefault(bank, {})[yr] = pnb - rbe
-
-    series = {}
-    for bank in set(list(pnb_s.keys()) + list(chg_s.keys())):
-        p_yrs = pnb_s.get(bank, {})
-        c_yrs = chg_s.get(bank, {})
-        for yr in sorted(set(p_yrs) & set(c_yrs)):
-            if p_yrs[yr] and p_yrs[yr] > 0:
-                series.setdefault(bank, {})[yr] = round(c_yrs[yr] / p_yrs[yr] * 100, 1)
+            if not pnb or pnb <= 0:
+                continue
+            rbe = rbe_s.get(bank, {}).get(yr)
+            if rbe and rbe < pnb:
+                charges = pnb - rbe
+            else:
+                charges = chg_s.get(bank, {}).get(yr)
+            if charges is not None:
+                series.setdefault(bank, {})[yr] = round(charges / pnb * 100, 1)
     return {b: dict(list(sorted(yv.items()))[-3:]) for b, yv in series.items()}
 
 
