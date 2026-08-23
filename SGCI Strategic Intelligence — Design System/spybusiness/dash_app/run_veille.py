@@ -194,8 +194,9 @@ def _extract(libelle, snippets):
     for k in keys:
         try:
             r = Groq(api_key=k, timeout=30, max_retries=0).chat.completions.create(
-                model="llama-3.3-70b-versatile", messages=[{"role": "user", "content": prompt}],
-                max_tokens=250, temperature=0.0, response_format={"type": "json_object"})
+                model="openai/gpt-oss-120b", messages=[{"role": "user", "content": prompt}],
+                max_tokens=400, temperature=0.0, response_format={"type": "json_object"},
+                reasoning_effort="low")
             return json.loads(r.choices[0].message.content)
         except Exception:
             continue
@@ -411,9 +412,9 @@ def _extract_evenements(domaine, snippets):
         try:
             from groq import Groq as _G
             r = _G(api_key=k).chat.completions.create(
-                model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+                model=os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=900, temperature=0.2)
+                max_tokens=900, temperature=0.2, reasoning_effort="low")
             txt = (r.choices[0].message.content or "").strip()
             deb, fin = txt.find("["), txt.rfind("]")
             if deb < 0 or fin < 0:

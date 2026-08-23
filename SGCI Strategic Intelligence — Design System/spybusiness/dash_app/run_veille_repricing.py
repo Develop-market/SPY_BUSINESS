@@ -86,8 +86,9 @@ def _classify(item, snips):
     for k in keys:
         try:
             r = Groq(api_key=k, timeout=30, max_retries=0).chat.completions.create(
-                model="llama-3.3-70b-versatile", messages=[{"role": "user", "content": prompt}],
-                max_tokens=300, temperature=0.1, response_format={"type": "json_object"})
+                model="openai/gpt-oss-120b", messages=[{"role": "user", "content": prompt}],
+                max_tokens=450, temperature=0.1, response_format={"type": "json_object"},
+                reasoning_effort="low")
             return json.loads(r.choices[0].message.content)
         except Exception:
             continue

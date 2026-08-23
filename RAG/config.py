@@ -55,7 +55,12 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 #     https://generativelanguage.googleapis.com/v1beta/models?key=$GEMINI_API_KEY
 GEMINI_MODEL   = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 
-GROQ_MODEL   = "llama-3.3-70b-versatile"  # remis au modèle prévu le 2026-07-22 (le "demain" annoncé dans ce commentaire n'a jamais été fait — le chat tournait sur le petit 8b depuis)
+GROQ_MODEL   = "openai/gpt-oss-120b"  # remplace llama-3.3-70b-versatile le 2026-08-23 : Groq a
+# retiré toute la famille Llama 3.x de son catalogue ("model_not_found" sur toutes les clés).
+# gpt-oss est un modèle DE RAISONNEMENT : il consomme des jetons de "réflexion" cachée avant de
+# répondre (52 jetons pour "OK" en reasoning_effort par défaut) — chaque appel doit donc fixer
+# reasoning_effort="low" (voir ChatGroq(...) ci-dessous), sous peine de voir max_tokens entier
+# absorbé par le raisonnement, comme observé avec Gemini avant que thinking_budget=0 soit posé.
 
 # Toutes les clés Groq — rotation automatique sur quota épuisé (journalier OU budget par
 # minute plein). Seules 4 clés sur les 12 disponibles dans .env étaient utilisées ici,

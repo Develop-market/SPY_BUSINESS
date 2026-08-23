@@ -97,6 +97,7 @@ def _creer_llm(temperature: float = None):
                 groq_api_key = config.GROQ_API_KEY,
                 temperature  = temp,
                 max_tokens   = config.LLM_MAX_TOKENS,
+                reasoning_effort = "low",
             )
         except ImportError:
             print("[WARN] langchain-groq non installé — bascule sur Gemini")
@@ -268,7 +269,8 @@ def _creer_llm_autre(temp: float):
         # sortie RÉSERVÉE autant que l'entrée. Lui demander les 4 000 jetons permis à Gemini
         # ferait échouer la bascule pour requête trop grosse, au moment précis où elle sert.
         return ChatGroq(model=config.GROQ_MODEL, groq_api_key=cle,
-                        temperature=temp, max_tokens=config.LLM_MAX_TOKENS_GROQ)
+                        temperature=temp, max_tokens=config.LLM_MAX_TOKENS_GROQ,
+                        reasoning_effort="low")
     except Exception as e:
         print(f"  [BASCULE] impossible — {type(e).__name__} {str(e)[:80]}")
         return None
@@ -339,7 +341,8 @@ def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
                 from langchain_groq import ChatGroq
                 temp = getattr(current_llm, 'temperature', 0.1)
                 current_llm = ChatGroq(model=config.GROQ_MODEL, groq_api_key=new_key,
-                                       temperature=temp, max_tokens=config.LLM_MAX_TOKENS)
+                                       temperature=temp, max_tokens=config.LLM_MAX_TOKENS,
+                                       reasoning_effort="low")
                 # Même contexte/taille qui réussit pour une question et échoue pour une
                 # autre juste après (observé le 2026-07-11) : ce n'est pas la taille de LA
                 # requête qui pose problème mais le budget PAR MINUTE, partagé entre tous
@@ -1456,7 +1459,8 @@ def _executer_comparaison_cb_exhaustive(chain: dict, question: str, spec: dict, 
 def _agent_llm_pour_cle(groq_key: str):
     from langchain_groq import ChatGroq
     return ChatGroq(model=config.GROQ_MODEL, groq_api_key=groq_key,
-                     temperature=0, max_tokens=600).bind_tools(agent_tools.ALL_TOOLS)
+                     temperature=0, max_tokens=600,
+                     reasoning_effort="low").bind_tools(agent_tools.ALL_TOOLS)
 
 
 def _agent_llm_gemini():

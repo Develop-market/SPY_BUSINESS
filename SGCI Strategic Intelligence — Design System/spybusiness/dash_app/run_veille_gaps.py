@@ -184,8 +184,9 @@ def _classify(libelle, banque, snips_role, snips_sgci):
     for k in keys:
         try:
             r = Groq(api_key=k, timeout=30, max_retries=0).chat.completions.create(
-                model="llama-3.3-70b-versatile", messages=[{"role": "user", "content": prompt}],
-                max_tokens=320, temperature=0.1, response_format={"type": "json_object"})
+                model="openai/gpt-oss-120b", messages=[{"role": "user", "content": prompt}],
+                max_tokens=470, temperature=0.1, response_format={"type": "json_object"},
+                reasoning_effort="low")
             v = json.loads(r.choices[0].message.content)
             v["_source_llm"] = "groq (secours)"
             return v

@@ -52,9 +52,9 @@ def groq_call(prompt, cache_key, cache, max_tokens=1000):
         try:
             client = Groq(api_key=key)
             resp = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=max_tokens, temperature=0.3,
+                max_tokens=max_tokens, temperature=0.3, reasoning_effort="low",
             )
             result = resp.choices[0].message.content.strip()
             cache[cache_key] = result

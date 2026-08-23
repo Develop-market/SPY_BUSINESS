@@ -1101,10 +1101,10 @@ def _repondre_strategie_chat(question: str, segment: str = "Particuliers") -> st
         try:
             client = _Groq(api_key=key)
             resp = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[{"role": "system", "content": system_prompt},
                           {"role": "user", "content": user_prompt}],
-                temperature=0.3, max_tokens=1200,
+                temperature=0.3, max_tokens=1200, reasoning_effort="low",
             )
             return resp.choices[0].message.content.strip()
         except Exception:
@@ -1388,7 +1388,7 @@ def api_approfondir():
         try:
             client = _Groq(api_key=key)
             resp = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user",   "content": user_prompt},
@@ -1396,6 +1396,10 @@ def api_approfondir():
                 temperature=0.3,
                 max_tokens=2000,   # 1200 -> 2000 : suffisait au plafond de 350 mots retiré ci-dessus,
                                    # tronquait sinon une réponse plus développée en pleine phrase.
+                # reasoning_effort="medium" (pas "low" comme les autres appels) : c'est le bouton
+                # "Analyser en PROFONDEUR" — laisser le modèle réfléchir davantage avant d'écrire
+                # sert justement l'objectif, contrairement aux appels de lookup/formatage ailleurs.
+                reasoning_effort="medium",
             )
             answer = resp.choices[0].message.content.strip()
             _bridge_vers_memoire_chat(conv_id, question, answer)
@@ -2210,9 +2214,9 @@ def _rp_llm_json(prompt, max_tokens=1500, temperature=0.4, prefer_claude=False):
             try:
                 c = _Groq(api_key=key, timeout=60.0, max_retries=0)
                 resp = c.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="openai/gpt-oss-120b",
                     messages=[{"role": "user", "content": prompt}],
-                    max_tokens=max_tokens, temperature=temperature,
+                    max_tokens=max_tokens, temperature=temperature, reasoning_effort="low",
                 )
                 _llm_mark_up()
                 return resp.choices[0].message.content, "groq"
@@ -3350,12 +3354,12 @@ def _analyse_llm_cached(ckey, prompt):
     keys = [k for k in ([os.getenv("GROQ_API_KEY", "")]
                         + [os.getenv(f"GROQ_API_KEY_{i}", "") for i in range(2, 13)]) if k]
     analyse, src = "", None
-    for _model in ("llama-3.3-70b-versatile", "llama-3.1-8b-instant"):
+    for _model in ("openai/gpt-oss-120b", "openai/gpt-oss-20b"):
         for _key in keys:
             try:
                 _resp = _Groq(api_key=_key, timeout=40, max_retries=0).chat.completions.create(
                     model=_model, messages=[{"role": "user", "content": prompt}],
-                    max_tokens=800, temperature=0.4)
+                    max_tokens=800, temperature=0.4, reasoning_effort="low")
                 _cand = _trim_incomplete((_resp.choices[0].message.content or "").strip())
                 # GARDE-FOU (2026-07-22) : rejette un candidat avec un chiffre inventé, essaie la
                 # clé/le modèle suivant plutôt que d'accepter un texte halluciné.
@@ -4468,13 +4472,14 @@ def api_analyse_strategique():
         try:
             client = _Groq(api_key=key)
             resp   = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": SYSTEM},
                     {"role": "user",   "content": user_msg},
                 ],
                 temperature=0.3,
                 max_tokens=2048,
+                reasoning_effort="low",
             )
             answer = _trim_incomplete(resp.choices[0].message.content.strip())
             return jsonify({
@@ -4798,10 +4803,11 @@ def _groq_call_cb(prompt: str, cache_key: str, max_tokens: int = 220, temperatur
         try:
             client = _Groq(api_key=key, timeout=45.0, max_retries=0)
             resp = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=max_tokens,
                 temperature=temperature,
+                reasoning_effort="low",
             )
             analyse = _trim_incomplete(resp.choices[0].message.content.strip())
             # GARDE-FOU (2026-07-22) : même vérification qu'au-dessus — un chiffre inventé par
