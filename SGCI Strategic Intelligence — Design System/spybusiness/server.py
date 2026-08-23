@@ -1283,13 +1283,32 @@ def api_approfondir():
         ctx_lines.append(f"Croissance AN1→AN3 (%) : " +
             ", ".join(f"{b}={v:+.1f}%" for b,v in sorted(kpis["growths"].items(), key=lambda x:-x[1])))
 
+    # LIGNE DYNAMIQUE (2026-08-23, bug trouvé : « Coût du risque de SGCI : 17% » dans le chat,
+    # sans préciser « /PNB » — en convention bancaire standard, « coût du risque » seul désigne
+    # d'ordinaire les provisions rapportées à l'ENCOURS de crédit (en points de base), une mesure
+    # différente déjà calculée ailleurs dans l'app. Le « 17% » ici est un chiffre figé en dur, qui
+    # ne se recalcule jamais et laissait le LLM le recopier tel quel, sans qualificatif). Le
+    # chiffre est désormais tiré des KPIs live plutôt que codé en dur, et le qualificatif est
+    # imposé explicitement pour que le LLM ne puisse pas l'omettre.
+    _cr = kpis.get("cout_risque") or {}
+    _cr_sgci = _cr.get("SGCI")
+    _cr_best = min(((b, v) for b, v in _cr.items() if b != "SGCI"), key=lambda x: x[1], default=None)
+    _cr_sgci_txt = f"{_cr_sgci}%" if _cr_sgci is not None else "(valeur non transmise ici, voir la ligne « Coût du risque/PNB » ci-dessus)"
+    _cr_best_txt = f"{_cr_best[0]} ({_cr_best[1]}% de coût du risque rapporté au PNB)" if _cr_best else "non disponible"
     ctx_lines += [
         "",
         "=== CONTEXTE SGCI ===",
         "SGCI est la plus grande banque du marché ivoirien.",
-        "Paradoxe identifié : #1 en PNB et en maîtrise des charges, mais dernière en marge nette à cause du coût du risque crédit le plus élevé du marché (17%).",
-        "Concurrent à surveiller : BICICI (+119% en 3 ans, coût du risque 1.9%).",
-        "Formules : Marge nette = RN/PNB×100 | Coût du risque = |Provisions|/PNB×100 | ROE = RN/Capitaux propres×100",
+        f"Paradoxe identifié : #1 en PNB et en maîtrise des charges, mais dernière en marge nette "
+        f"à cause du coût du risque RAPPORTÉ AU PNB le plus élevé du marché ({_cr_sgci_txt}).",
+        f"Concurrent à surveiller sur ce point : {_cr_best_txt}.",
+        "Formules : Marge nette = RN/PNB×100 | Coût du risque rapporté au PNB = |Provisions|/PNB×100 "
+        "(à ne jamais confondre avec le coût du risque rapporté à l'encours de crédit, une "
+        "convention différente) | ROE = RN/Capitaux propres×100",
+        "IMPÉRATIF DE FORMULATION : chaque fois que tu cites le « coût du risque », précise "
+        "TOUJOURS « rapporté au PNB » (ou « /PNB ») à côté du chiffre — ne dis jamais « coût du "
+        "risque : X% » seul, qui se confondrait avec la convention bancaire standard (provisions "
+        "rapportées à l'encours de crédit, en points de base, une mesure différente).",
     ]
 
     # GARDE-FOU (2026-07-22, bug trouvé : un clic « Approfondir » sur la Projection avait fait
@@ -1323,16 +1342,25 @@ def api_approfondir():
         # obtenait un paragraphe d'introduction générique avant d'arriver à la réponse, puis les
         # mêmes chiffres répétés dans trois sections. Un dirigeant veut la réponse en premier.
         # Le nombre de sections s'adapte désormais à la question, et la 1ʳᵉ phrase répond.
+        # PROFONDEUR REVUE le 2026-08-23 (le directeur : le bouton s'appelle « Analyser en
+        # profondeur », la réponse doit tenir cette promesse) : le plafond de 350 mots et les
+        # puces à un seul fait, sans droit à une phrase d'explication, produisaient des réponses
+        # correctes mais superficielles pour ce niveau de détail attendu — un chiffre juxtaposé à
+        # un autre, sans le mécanisme qui les relie. Le premier réflexe (répondre d'abord, pas de
+        # remplissage) reste ; la limite basse a été retirée pour laisser la place au « pourquoi ».
         "FORME DE LA RÉPONSE :\n"
         "1. Commence par LA RÉPONSE en une ou deux phrases — jamais de préambule, jamais de "
         "rappel de la question, jamais « il est essentiel de considérer plusieurs facteurs ».\n"
-        "2. Puis les chiffres qui la justifient, en liste à puces courtes (« - »), un fait par "
-        "puce, le chiffre en gras.\n"
-        "3. Termine par « ### Ce que ça implique » : 2 à 4 phrases actionnables.\n"
+        "2. Puis les chiffres qui la justifient, en liste à puces (« - »), un fait par puce, le "
+        "chiffre en gras — chaque puce peut comporter une ou deux phrases si cela aide à "
+        "expliquer le MÉCANISME derrière le chiffre (pas seulement l'énoncer).\n"
+        "3. Termine par « ### Ce que ça implique » : une analyse actionnable, aussi développée "
+        "que le sujet l'exige.\n"
         "N'ajoute une section « ### » que si la réponse en a réellement besoin : 2 sections "
         "valent mieux que 4 sections à moitié vides. Titres en « ### » uniquement (jamais « # » "
         "ni « ## »), courts, sans numérotation. Pas de conclusion qui répète l'introduction. "
-        "350 mots maximum. "
+        "Pas de longueur minimale ni maximale imposée : assez long pour que le lecteur comprenne "
+        "le mécanisme, jamais plus. "
         + ("GARDE-FOU ABSOLU : la section « DONNÉES RÉELLES DE LA SECTION PRÉCISE DEMANDÉE » ci-dessous "
            "est la SEULE source pour tout chiffre de projection/scénario/cible future — si tu dois "
            "chiffrer un objectif à 3 ans, une cible de réduction, ou tout calcul dérivé, utilise "
@@ -1366,7 +1394,8 @@ def api_approfondir():
                     {"role": "user",   "content": user_prompt},
                 ],
                 temperature=0.3,
-                max_tokens=1200,
+                max_tokens=2000,   # 1200 -> 2000 : suffisait au plafond de 350 mots retiré ci-dessus,
+                                   # tronquait sinon une réponse plus développée en pleine phrase.
             )
             answer = resp.choices[0].message.content.strip()
             _bridge_vers_memoire_chat(conv_id, question, answer)
