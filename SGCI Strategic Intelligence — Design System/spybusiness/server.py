@@ -1250,38 +1250,44 @@ def api_approfondir():
     if not question:
         return jsonify({"error": "question manquante"}), 400
 
+    # RANGS EXPLICITES (2026-08-25, bug trouvé : sur cette même question, le LLM avait désigné
+    # BICICI « leader » en marge nette — en réalité SIB, BICICI n'étant que 3ᵉ — et NSIA
+    # « 2ᵉ plus élevé » en coût du risque — en réalité BACI). Cause : une liste triée mais SANS
+    # rang affiché force le LLM à recompter lui-même qui est 1er/2ᵉ, et il s'y trompe. Le rang
+    # est désormais écrit en toutes lettres devant chaque valeur ("#1", "#2"...) : le LLM n'a
+    # plus qu'à le recopier, jamais à le déduire.
+    def _ranked(d, reverse=True, unit="%"):
+        items = sorted(d.items(), key=lambda x: x[1], reverse=reverse)
+        return ", ".join(f"#{i+1} {b}={v}{unit}" for i, (b, v) in enumerate(items))
+
     # ── Construire le contexte chiffré depuis les données live ────────────
-    ctx_lines = ["=== DONNÉES RÉELLES DU MARCHÉ BANCAIRE IVOIRIEN (7 banques) ==="]
+    ctx_lines = ["=== DONNÉES RÉELLES DU MARCHÉ BANCAIRE IVOIRIEN (7 banques) — #1 = premier rang ==="]
 
     if kpis.get("pnb"):
-        pnb = kpis["pnb"]
-        ctx_lines.append(f"PNB (Produit Net Bancaire, AN3) : " +
-            ", ".join(f"{b}={round(v/1000,1)} Mds FCFA" for b,v in sorted(pnb.items(), key=lambda x:-x[1])))
+        pnb = {b: round(v/1000, 1) for b, v in kpis["pnb"].items()}
+        ctx_lines.append("PNB (Produit Net Bancaire, AN3, Mds FCFA) : " + _ranked(pnb, unit=""))
 
     if kpis.get("rn"):
-        rn = kpis["rn"]
-        ctx_lines.append(f"Résultat Net (AN3) : " +
-            ", ".join(f"{b}={round(v/1000,1)} Mds FCFA" for b,v in sorted(rn.items(), key=lambda x:-x[1])))
+        rn = {b: round(v/1000, 1) for b, v in kpis["rn"].items()}
+        ctx_lines.append("Résultat Net (AN3, Mds FCFA) : " + _ranked(rn, unit=""))
 
     if kpis.get("marge"):
-        ctx_lines.append(f"Marge nette = RN/PNB (%) : " +
-            ", ".join(f"{b}={v}%" for b,v in sorted(kpis["marge"].items(), key=lambda x:-x[1])))
+        ctx_lines.append("Marge nette = RN/PNB (%) : " + _ranked(kpis["marge"]))
 
     if kpis.get("cout_risque"):
-        ctx_lines.append(f"Coût du risque/PNB (%) : " +
-            ", ".join(f"{b}={v}%" for b,v in sorted(kpis["cout_risque"].items(), key=lambda x:x[1])))
+        # reverse=False : #1 = le PLUS BAS (le meilleur) — plus bas coût du risque = plus sain.
+        ctx_lines.append("Coût du risque/PNB (%, #1 = le plus bas = le plus sain) : "
+                          + _ranked(kpis["cout_risque"], reverse=False))
 
     if kpis.get("coeff"):
-        ctx_lines.append(f"Coefficient d'exploitation (%) : " +
-            ", ".join(f"{b}={v}%" for b,v in sorted(kpis["coeff"].items(), key=lambda x:x[1])))
+        ctx_lines.append("Coefficient d'exploitation (%, #1 = le plus bas = le plus efficient) : "
+                          + _ranked(kpis["coeff"], reverse=False))
 
     if kpis.get("roe"):
-        ctx_lines.append(f"ROE - Return on Equity (%) : " +
-            ", ".join(f"{b}={v}%" for b,v in sorted(kpis["roe"].items(), key=lambda x:-x[1])))
+        ctx_lines.append("ROE - Return on Equity (%) : " + _ranked(kpis["roe"]))
 
     if kpis.get("growths"):
-        ctx_lines.append(f"Croissance AN1→AN3 (%) : " +
-            ", ".join(f"{b}={v:+.1f}%" for b,v in sorted(kpis["growths"].items(), key=lambda x:-x[1])))
+        ctx_lines.append("Croissance AN1→AN3 (%) : " + _ranked(kpis["growths"]))
 
     # LIGNE DYNAMIQUE (2026-08-23, bug trouvé : « Coût du risque de SGCI : 17% » dans le chat,
     # sans préciser « /PNB » — en convention bancaire standard, « coût du risque » seul désigne
