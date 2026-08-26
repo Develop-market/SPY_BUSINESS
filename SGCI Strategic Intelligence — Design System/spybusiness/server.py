@@ -1289,6 +1289,39 @@ def api_approfondir():
     if kpis.get("growths"):
         ctx_lines.append("Croissance AN1→AN3 (%) : " + _ranked(kpis["growths"]))
 
+    # CLASSEMENTS PRÉ-ÉCRITS (2026-08-25, le rang affiché ci-dessus n'a pas suffi : sur cette
+    # même question, le LLM a de nouveau désigné le mauvais « leader »/« 2e » ailleurs dans sa
+    # réponse, sans même reprendre le rang qu'on lui donnait juste au-dessus. Un LLM ne
+    # "vérifie" jamais un classement : il complète du texte plausible, et une liste de chiffres
+    # laisse encore trop de place à une reformulation inventée. Ici, la PHRASE elle-même est
+    # écrite en Python, jamais laissée à la charge du modèle — il ne lui reste plus qu'à la
+    # recopier, ce qui ne laisse plus de geste où se tromper.
+    def _faits_rang(nom, d, reverse=True, unit="%"):
+        if not d or len(d) < 2:
+            return None
+        items = sorted(d.items(), key=lambda x: x[1], reverse=reverse)
+        rang_sgci = next((i + 1 for i, (b, _) in enumerate(items) if b == "SGCI"), None)
+        f = [f"{nom} — leader (rang #1) : {items[0][0]} ({items[0][1]}{unit}) ; "
+             f"rang #2 : {items[1][0]} ({items[1][1]}{unit})"]
+        if rang_sgci and rang_sgci > 2:
+            f.append(f"SGCI est rang #{rang_sgci}/{len(items)} en {nom} ({items[rang_sgci-1][1]}{unit})")
+        return " ; ".join(f) + "."
+
+    faits_rangs = [f for f in [
+        _faits_rang("marge nette", kpis.get("marge") or {}),
+        _faits_rang("coût du risque/PNB", kpis.get("cout_risque") or {}, reverse=False),
+        _faits_rang("coefficient d'exploitation", kpis.get("coeff") or {}, reverse=False),
+        _faits_rang("ROE", kpis.get("roe") or {}),
+        _faits_rang("PNB", {b: round(v/1000, 1) for b, v in (kpis.get("pnb") or {}).items()}, unit=" Mds FCFA"),
+        _faits_rang("Résultat Net", {b: round(v/1000, 1) for b, v in (kpis.get("rn") or {}).items()}, unit=" Mds FCFA"),
+    ] if f]
+    if faits_rangs:
+        ctx_lines += [
+            "",
+            "=== CLASSEMENTS (phrases toutes faites, À RECOPIER MOT POUR MOT — n'en formule "
+            "JAMAIS d'autres, n'en déduis aucun toi-même à partir des listes ci-dessus) ===",
+        ] + faits_rangs
+
     # LIGNE DYNAMIQUE (2026-08-23, bug trouvé : « Coût du risque de SGCI : 17% » dans le chat,
     # sans préciser « /PNB » — en convention bancaire standard, « coût du risque » seul désigne
     # d'ordinaire les provisions rapportées à l'ENCOURS de crédit (en points de base), une mesure
@@ -1315,6 +1348,12 @@ def api_approfondir():
         "TOUJOURS « rapporté au PNB » (ou « /PNB ») à côté du chiffre — ne dis jamais « coût du "
         "risque : X% » seul, qui se confondrait avec la convention bancaire standard (provisions "
         "rapportées à l'encours de crédit, en points de base, une mesure différente).",
+        "IMPÉRATIF ABSOLU SUR LES CLASSEMENTS : toute mention de « leader », « premier », "
+        "« dernier », « meilleur », « pire », ou d'un rang (« 2e », « 3e »...) DOIT reprendre "
+        "MOT POUR MOT une phrase de la section « === CLASSEMENTS === » ci-dessous — jamais une "
+        "banque ou un rang que tu aurais toi-même déduit d'une liste de chiffres triée. Si le "
+        "classement demandé n'y figure pas, dis explicitement que tu ne peux pas l'établir avec "
+        "les données fournies, plutôt que d'en proposer un.",
     ]
 
     # GARDE-FOU (2026-07-22, bug trouvé : un clic « Approfondir » sur la Projection avait fait
