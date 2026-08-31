@@ -377,12 +377,13 @@ async function exportDeck(title){
 // Archivo/IBM Plex Mono de la maquette (Google Fonts web) n'existent pas sur un poste Windows
 // classique : remplacées par leurs plus proches équivalents systèmes (Georgia/Segoe UI/Consolas)
 // pour que le rendu soit fidèle même sans connexion internet côté lecteur.
-const _DK_DARK = "17231E", _DK_CREAM = "F6F3EC", _DK_GOLD = "9A5F2C",
-      _DK_INK = "17231E", _DK_GREEN2 = "2E4A40", _DK_GREEN3 = "4C665C";
-const _DK_MUTED_CREAM_45 = "92958F", _DK_MUTED_CREAM_55 = "7B817B", _DK_MUTED_CREAM_78 = "48514B";
-const _DK_BORDER_CREAM_12 = "DBDAD3", _DK_BORDER_CREAM_18 = "CECEC7";
-const _DK_MUTED_DARK_55 = "92958F", _DK_MUTED_DARK_62 = "A1A49E", _DK_MUTED_DARK_75 = "BEBFB9";
-const _DK_BORDER_DARK_20 = "444D47";
+const _DK_DARK = "231F20", _DK_CREAM = "F7F5F3", _DK_GOLD = "EB1F40",
+      _DK_INK = "231F20", _DK_GREEN2 = "2E4A40", _DK_GREEN3 = "4C665C";
+const _DK_MUTED_CREAM_45 = "989594", _DK_MUTED_CREAM_55 = "827F7F", _DK_MUTED_CREAM_78 = "524E4E";
+const _DK_BORDER_CREAM_12 = "DEDBDA", _DK_BORDER_CREAM_18 = "D1CECD";
+const _DK_MUTED_DARK_55 = "989594", _DK_MUTED_DARK_62 = "A6A4A3", _DK_MUTED_DARK_75 = "C2C0BE";
+const _DK_BORDER_DARK_20 = "4D4A4A";
+const _DK_LOGO = "assets/logos/SGCI.png";
 const _F_SERIF = "Georgia", _F_SANS = "Segoe UI", _F_MONO = "Consolas";
 
 async function _pptxRender(resumeRaw, deckData, title, segment, date){
@@ -394,6 +395,29 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
   const W = 13.33, H = 7.5, M = 0.833, T = 0.55, BOT = 0.42;
   let step = 0;
   const stepNum = () => { step += 1; return String(step).padStart(2, "0"); };
+
+  // jsPDF avait un bug de troncature ; PowerPoint a le SIEN, plus vicieux : {fit:"shrink"}
+  // réduit bien la police, mais seulement quand PowerPoint RECALCULE l'auto-fit à l'ouverture
+  // interactive du fichier — pas quand on ouvre le .pptx par automatisation (COM, ou n'importe
+  // quel lecteur qui ne redessine pas la zone de texte). Résultat : un paragraphe trop long
+  // pour sa boîte déborde par-dessus le pied de page, invisible tant qu'on n'a pas vérifié avec
+  // un vrai PowerPoint. On calcule donc nous-mêmes la taille qui tient, AVANT de dessiner —
+  // {fit:"shrink"} reste en secours si jamais un lecteur le recalcule, mais n'est plus la seule
+  // ligne de défense.
+  const _fitSize = (text, boxW, boxH, opts) => {
+    opts = opts || {};
+    const max = opts.max || 22, min = opts.min || 11, cw = opts.cw || 0.54, lh = opts.lh || 1.34;
+    const wPt = boxW * 72, hPt = boxH * 72 * 0.92;   // marge de sécurité de 8%
+    const text2 = text || "";
+    const explicitBreaks = (text2.split("\n").length - 1);
+    const len = text2.length;
+    for(let f = max; f >= min; f -= 0.5){
+      const perLine = Math.max(1, Math.floor(wPt / (f * cw)));
+      const lines = Math.ceil(len / perLine) + explicitBreaks;
+      if(lines * f * lh <= hPt) return f;
+    }
+    return min;
+  };
 
   const _bg = (slide, color) => slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color}, line:{type:"none"}});
   const _rule = (slide, y, color, w) => slide.addShape(P.ShapeType.line, {x:M, y, w: w||(W-2*M), h:0, line:{color, width:0.75}});
@@ -415,7 +439,8 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
   const _footer = (slide, dark) => {
     _rule(slide, H-BOT, dark ? _DK_BORDER_DARK_20 : _DK_BORDER_CREAM_18);
     const c = dark ? _DK_MUTED_DARK_55 : _DK_MUTED_CREAM_45;
-    slide.addText("SpyBusiness · Intelligence bancaire SGCI", {x:M, y:H-BOT+0.06, w:6, h:0.3,
+    try{ slide.addImage({path:_DK_LOGO, x:M, y:H-BOT+0.04, w:0.18, h:0.18}); }catch(e){}
+    slide.addText("SpyBusiness · Intelligence bancaire SGCI", {x:M+0.3, y:H-BOT+0.06, w:5.7, h:0.3,
       fontFace:_F_MONO, fontSize:10, color:c, charSpacing:1});
     slide.addText(date, {x:W-M-3, y:H-BOT+0.06, w:3, h:0.3, fontFace:_F_MONO, fontSize:10,
       color:c, align:"right", charSpacing:1});
@@ -425,12 +450,12 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
   {
     const slide = P.addSlide();
     _bg(slide, _DK_DARK);
-    slide.addText("SGCI", {x:M, y:0.611, w:4, h:0.4, fontFace:_F_MONO, fontSize:12, color:_DK_MUTED_DARK_55,
-      charSpacing:3});
-    if(segment){
-      slide.addText(`Segment ${segment}`, {x:W-M-4, y:0.611, w:4, h:0.4, fontFace:_F_MONO, fontSize:12,
+    try{ slide.addImage({path:_DK_LOGO, x:M, y:0.611, w:0.5, h:0.5}); }catch(e){}
+    // Pas de segment → "Intelligence bancaire" (tagline neutre) plutôt qu'un "Segment X" qui
+    // n'existerait pas pour cette section (ex. Santé financière).
+    slide.addText(segment ? `Segment ${segment}` : "Intelligence bancaire",
+      {x:W-M-4, y:0.75, w:4, h:0.4, fontFace:_F_MONO, fontSize:12,
         color:_DK_MUTED_DARK_55, align:"right", charSpacing:3});
-    }
     slide.addShape(P.ShapeType.rect, {x:M, y:2.75, w:0.667, h:0.03, fill:{color:_DK_GOLD}, line:{type:"none"}});
     slide.addText(resume.titre || title, {x:M, y:3.0, w:W-2*M, h:1.9, fontFace:_F_SERIF, fontSize:54,
       color:"FFFFFF", valign:"top", fit:"shrink", lineSpacingMultiple:1.02});
@@ -492,7 +517,8 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
     const slide = P.addSlide();
     _bg(slide, _DK_CREAM);
     _header(slide, "Résumé exécutif", {rightLabel: (resume.titre || title)});
-    slide.addText(resume.executif || "", {x:M, y:1.85, w:7.1, h:4.6, fontFace:_F_SERIF, fontSize:21,
+    const execFS = _fitSize(resume.executif, 7.1, 4.6, {max:21, min:13, lh:1.35});
+    slide.addText(resume.executif || "", {x:M, y:1.85, w:7.1, h:4.6, fontFace:_F_SERIF, fontSize:execFS,
       color:_DK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.35});
     const stats = (deckData && deckData.stats) ? deckData.stats.slice(0, 4) : [];
     const gx = 8.5, gy = 1.85, gw = W-M-gx, gh = 4.2, cw = gw/2, ch = gh/2;
@@ -502,8 +528,9 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
       slide.addShape(P.ShapeType.rect, {x, y, w:cw-0.03, h:ch-0.03, fill:{color:"FFFFFF"}, line:{type:"none"}});
       slide.addText((s.label||"").toUpperCase(), {x:x+0.22, y:y+0.22, w:cw-0.5, h:0.5, fontFace:_F_MONO,
         fontSize:9.5, color:_DK_MUTED_CREAM_55, charSpacing:1, valign:"top"});
+      const statFS = _fitSize(String(s.value||"—"), cw-0.4, ch-0.9, {max:27, min:16, lh:1.05, cw:0.58});
       slide.addText(_deckClean(String(s.value||"—")), {x:x+0.2, y:y+0.65, w:cw-0.4, h:ch-0.9, fontFace:_F_SERIF,
-        fontSize:27, color: i < 2 ? _DK_GOLD : _DK_INK, valign:"top", fit:"shrink"});
+        fontSize:statFS, color: i < 2 ? _DK_GOLD : _DK_INK, valign:"top", fit:"shrink"});
     });
     _footer(slide);
   }
@@ -520,7 +547,8 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
       const x = M + col*(colW+0.6), y = top + row*rowH;
       slide.addText(String(i+1).padStart(2,"0"), {x, y:y+0.06, w:0.5, h:0.4, fontFace:_F_MONO, fontSize:10,
         color:_DK_GOLD, valign:"top"});
-      slide.addText(p, {x:x+0.55, y, w:colW-0.55, h:rowH-0.1, fontFace:_F_SANS, fontSize:13.5, color:_DK_INK,
+      const ptFS = _fitSize(p, colW-0.55, rowH-0.1, {max:13.5, min:9, lh:1.3, cw:0.5});
+      slide.addText(p, {x:x+0.55, y, w:colW-0.55, h:rowH-0.1, fontFace:_F_SANS, fontSize:ptFS, color:_DK_INK,
         valign:"top", fit:"shrink", lineSpacingMultiple:1.3});
       if(row < 3) slide.addShape(P.ShapeType.line, {x, y:y+rowH-0.06, w:colW, h:0, line:{color:_DK_BORDER_CREAM_12, width:0.5}});
     });
@@ -532,7 +560,18 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
     const slide = P.addSlide();
     _bg(slide, _DK_CREAM);
     _header(slide, "Analyse");
-    slide.addText(resume.analyse || "", {x:M, y:2.0, w:W-2*M, h:4.2, fontFace:_F_SERIF, fontSize:22,
+    const tags = (resume.tags || []).slice(0, 4);
+    const railW = tags.length ? 1.85 : 0, textX = M + (tags.length ? railW + 0.85 : 0);
+    if(tags.length){
+      const railTop = 2.35, railGap = 0.55;
+      tags.forEach((tg, i) => {
+        slide.addText(tg, {x:M, y:railTop + i*railGap, w:railW, h:0.42, fontFace:_F_MONO, fontSize:10.5,
+          color:_DK_MUTED_CREAM_55, charSpacing:1, valign:"top"});
+      });
+    }
+    const analyseW = W-M-textX;
+    const analyseFS = _fitSize(resume.analyse, analyseW, 4.2, {max:22, min:13, lh:1.42});
+    slide.addText(resume.analyse || "", {x:textX, y:2.0, w:analyseW, h:4.2, fontFace:_F_SERIF, fontSize:analyseFS,
       color:_DK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.42});
     _footer(slide);
   }
@@ -548,11 +587,17 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
     // 5 points") — incohérent avec la trajectoire à 3 ans DÉJÀ calculée dans Stratégie. Demande
     // explicite du directeur : la recommandation doit suivre ce que dit Stratégie, pas une
     // estimation du LLM. Quand une cible déterministe existe, elle REMPLACE la phrase du LLM.
+    // Le "Priorité n°1 :" du LLM fait doublon avec le label juste au-dessus — retiré. Le
+    // scénario est nommé EXPLICITEMENT ("scénario central") : la trajectoire à 3 ans en a
+    // trois (pessimiste/central/optimiste), et 2,467 % est précisément celui du milieu — le
+    // dire sans le nommer laissait planer un doute (retour du directeur : « trajectoire
+    // centrale ou quoi ? »).
     const tgt = deckData && deckData.target;
     const conclusionTxt = (tgt && tgt.current && tgt.target)
-      ? `Priorité n°1 : ramener le ${tgt.label||"coût du risque/PNB"} de ${tgt.current} à ${tgt.target} d’ici trois ans, conformément à la trajectoire validée dans Stratégie.`
+      ? `Ramener le ${tgt.label||"coût du risque/PNB"} de ${tgt.current} à ${tgt.target} d’ici trois ans (scénario central), conformément à la trajectoire validée dans Stratégie.`
       : (resume.conclusion || "");
-    slide.addText(conclusionTxt, {x:M, y:2.25, w:W-2*M, h:3.1, fontFace:_F_SERIF, fontSize:31,
+    const conclFS = _fitSize(conclusionTxt, W-2*M, 3.1, {max:31, min:18, lh:1.28});
+    slide.addText(conclusionTxt, {x:M, y:2.25, w:W-2*M, h:3.1, fontFace:_F_SERIF, fontSize:conclFS,
       color:"FFFFFF", valign:"top", fit:"shrink", lineSpacingMultiple:1.28});
     if(tgt && tgt.current && tgt.target){
       const my = 5.55;
@@ -561,8 +606,8 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
       slide.addShape(P.ShapeType.line, {x:M+1.75, y:my+0.2, w:0.9, h:0, line:{color:_DK_MUTED_DARK_75, width:0.75}});
       slide.addText(_deckClean(String(tgt.target)), {x:M+2.8, y:my, w:1.6, h:0.4, fontFace:_F_MONO, fontSize:15,
         color:_DK_GOLD, valign:"middle"});
-      slide.addText("TRAJECTOIRE À 3 ANS · STRATÉGIE", {x:M, y:my+0.42, w:6, h:0.3, fontFace:_F_MONO,
-        fontSize:9, color:_DK_MUTED_DARK_55, charSpacing:1});
+      slide.addText("SCÉNARIO CENTRAL · TRAJECTOIRE À 3 ANS · STRATÉGIE", {x:M+4.6, y:my, w:W-M-4.6, h:0.4,
+        fontFace:_F_MONO, fontSize:9.5, color:_DK_MUTED_DARK_55, charSpacing:1, valign:"middle"});
     }
     if(resume._stale){
       let genTxt = "date inconnue";

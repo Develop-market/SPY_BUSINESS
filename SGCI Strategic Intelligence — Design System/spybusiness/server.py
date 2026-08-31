@@ -3868,7 +3868,7 @@ def api_dashboard_resume():
     # fichier sans aucun glitch. C'est Poppler (pdftotext/pdftoppm) qui mal-interprète le flux
     # PDF généré par jsPDF sur cette machine. Pour vérifier un PDF généré par l'app, utiliser
     # PyMuPDF, pas Poppler.
-    key = f"resume_v12_{section}_{segment}_{_hlr.md5(facts.encode('utf-8')).hexdigest()[:12]}"
+    key = f"resume_v13_{section}_{segment}_{_hlr.md5(facts.encode('utf-8')).hexdigest()[:12]}"
     if cache.get(key):
         return jsonify({"resume": cache[key], "source": "cache"})
 
@@ -3931,6 +3931,10 @@ tour de phrase (interdit : « X Mds FCFA d'apport [gérondif]… » répété en
 sujet-verbe-complément, chiffre en ouverture, ou proposition subordonnée)
 @@analyse@@
 … (analyse en 3 à 5 phrases : le POURQUOI derrière les chiffres, ce qui les relie)
+@@tags@@
+… (EXACTEMENT 4 mots-clés COURTS — un à deux mots chacun, PAS de phrase — qui nomment les 4 grands
+thèmes abordés dans @@analyse@@, DANS L'ORDRE où ils y apparaissent (ex. « Volume », « Rentabilité »,
+« Discipline des coûts », « Commissions »). Un par ligne, sans numéro ni tiret.)
 @@conclusion@@
 … (2 phrases : la priorité n°1 à retenir, chiffrée et actionnable — pas « doit améliorer X »)
 FORMAT : marqueurs @@clé@@ (PAS de JSON)."""
@@ -3938,11 +3942,11 @@ FORMAT : marqueurs @@clé@@ (PAS de JSON)."""
     parsed = {}
     if txt:
         segs = _re_rp.split(r"@@\s*([a-zA-Z0-9_]+)\s*@@", txt)
-        valid = {"titre", "executif", "points", "analyse", "conclusion"}
+        valid = {"titre", "executif", "points", "analyse", "tags", "conclusion"}
         for i in range(1, len(segs) - 1, 2):
             kk, vv = segs[i].strip(), segs[i + 1].strip().strip("`").strip()
             if kk in valid and vv and not vv.startswith("…"):
-                parsed[kk] = _pdf_plaintext(vv) if kk != "points" else vv
+                parsed[kk] = _pdf_plaintext(vv) if kk not in ("points", "tags") else vv
     if not parsed.get("executif"):
         # Échec LLM (quota/panne) → sert le DERNIER résumé connu pour cette section/segment
         # (même préfixe hors hash) plutôt que rien — le PDF reste toujours téléchargeable.
@@ -3955,6 +3959,7 @@ FORMAT : marqueurs @@clé@@ (PAS de JSON)."""
                              "generated_at": _meta.get("generated_at"), "stale": True})
         return jsonify({"resume": None, "source": "none"}), 200
     parsed["points"] = [_pdf_plaintext(p.lstrip("-• ").strip()) for p in (parsed.get("points") or "").split("\n") if p.strip()]
+    parsed["tags"] = [_pdf_plaintext(t.lstrip("-•0123456789. ").strip()) for t in (parsed.get("tags") or "").split("\n") if t.strip()][:4]
     if section == "ef":
         # Filet de sécurité : même sans "segment" dans les faits, le LLM peut encore en glisser
         # un dans son titre par habitude. La Santé financière n'a pas de segment — titre fixe.
