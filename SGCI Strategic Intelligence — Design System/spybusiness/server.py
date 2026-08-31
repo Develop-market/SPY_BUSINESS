@@ -3696,14 +3696,34 @@ def _resume_facts_stratop(segment):
             f"Directives par direction (constat réel + apport estimé) :\n{dirs_f}")
 
 
+def _deck_fmt_m(v):
+    # Séparateur de milliers à la française pour les gros montants — sinon un tableau « pro »
+    # affiche « 101352 » collé, illisible au premier coup d'œil.
+    return f"{v:,.1f}".replace(",", " ").replace(".", ",") if isinstance(v, (int, float)) else v
+
+
+def _deck_target_risque(segment):
+    """Cible RÉELLE du coût du risque (scénario central à 3 ans), lue dans la projection
+    Stratégie DÉJÀ calculée — jamais un chiffre rond inventé par le LLM du résumé. Demande
+    explicite du directeur : « pour la recommandation, suis ce que dit la Stratégie »."""
+    try:
+        d = _strat_get(segment)
+        for p in (d.get("projection") or []):
+            if "risque" in (p.get("nom") or "").lower():
+                return {"label": "Coût du risque", "current": p.get("depart"), "target": p.get("central_an3")}
+    except Exception:
+        pass
+    return None
+
+
 @app.route("/api/deck_data")
 def api_deck_data():
-    """Tableau + graphique DÉTERMINISTES pour le diaporama téléchargeable (PPTX) — jamais du
-    texte de LLM : les mêmes fonctions agent que le dashboard lui-même, pour que le diaporama
-    « reflète parfaitement l'interface ». Un seul tableau et un seul graphique par section,
-    volontairement (le diaporama synthétise, il ne duplique pas tout l'écran)."""
+    """Tableau, graphique et statistiques DÉTERMINISTES pour le diaporama téléchargeable
+    (PPTX) — jamais un chiffre de LLM : les mêmes fonctions agent que le dashboard lui-même,
+    pour que le diaporama « reflète parfaitement l'interface »."""
     section = (request.args.get("section") or "ef").lower()
     segment = request.args.get("segment", "Particuliers")
+    target = None
     try:
         if section == "cb":
             CB = AGENTS["CB"].structured
@@ -3716,6 +3736,20 @@ def api_deck_data():
                                winrate_par_banque.get(r["banque"])] for r in bycat]}
             chart = {"title": "Taille du catalogue par banque", "unit": "services",
                      "labels": [r["banque"] for r in bycat], "values": [r.get("n_services") or 0 for r in bycat]}
+            sgci_q6 = next((r for r in q6 if r["banque"] == "SGCI"), {})
+            n_excl = 0
+            try:
+                excl = CB.cb_analyse_q3(strategie.CB_ANNEE, strategie.CB_SEM, segment) or []
+                n_excl = sum(1 for r in excl if r.get("verdict") in ("differenciant", "non_contredit"))
+            except Exception:
+                pass
+            sgci_cmp = cmp.get("sgci") or {}
+            stats = [
+                {"label": "Services au catalogue", "value": str(sgci_q6.get("n_services") or "—")},
+                {"label": "Services gratuits", "value": f"{sgci_q6.get('pct_gratuit')} %" if sgci_q6.get("pct_gratuit") is not None else "—"},
+                {"label": "Win-rate prix", "value": f"{sgci_cmp.get('winrate')} %" if sgci_cmp.get("winrate") is not None else "—"},
+                {"label": "Exclusivités", "value": str(n_excl)},
+            ]
         elif section == "strategie":
             d = _strat_get(segment)
             proj = d.get("projection") or []
@@ -3730,6 +3764,8 @@ def api_deck_data():
             banks_roe = sorted(roe, key=lambda x: -(roe.get(x) or 0))
             chart = {"title": "ROE par banque", "unit": "%",
                      "labels": banks_roe, "values": [roe.get(b) or 0 for b in banks_roe]}
+            stats = [{"label": p.get("nom"), "value": p.get("depart")} for p in proj[:4]]
+            target = _deck_target_risque(segment)
         elif section == "stratop":
             d_all = _directives_en_cache(segment)
             d = d_all.get("directives") or []
@@ -3740,6 +3776,12 @@ def api_deck_data():
             chart = {"title": "Bilan chiffré du plan", "unit": "Mds FCFA",
                      "labels": ["Apport chiffré", "Écart à combler"],
                      "values": [bilan.get("somme_mds") or 0, bilan.get("ecart_mds") or 0]}
+            stats = [
+                {"label": "Apport chiffré", "value": f"{bilan.get('somme_mds', 0)} Mds"},
+                {"label": "Écart à combler", "value": f"{bilan.get('ecart_mds', 'N/A')} Mds"},
+                {"label": "Couverture", "value": (f"{bilan.get('couverture_pct')} %" if bilan.get("couverture_pct") is not None else "N/D")},
+                {"label": "Directives chiffrées", "value": f"{bilan.get('n_chiffrees', 0)}/{bilan.get('n_total', 20)}"},
+            ]
         else:
             S = AGENTS["EF"].structured
             kp = S.kpis_vue_ensemble(strategie.CB_ANNEE, strategie.CB_SEM, segment, 3) or {}
@@ -3747,19 +3789,22 @@ def api_deck_data():
             banks = sorted(rn, key=lambda x: -(rn.get(x) or 0))
             def _g(d, b):
                 return (kp.get(d) or {}).get(b)
-            # Séparateur de milliers à la française pour les gros montants — sinon un tableau
-            # « pro » affiche « 101352 » collé, illisible au premier coup d'œil.
-            def _fmt_m(v):
-                return f"{v:,.1f}".replace(",", " ").replace(".", ",") if isinstance(v, (int, float)) else v
             table = {"headers": ["Banque", "Résultat net", "PNB", "ROE %", "Marge nette %", "Coeff. %", "Coût risque %"],
-                      "rows": [[b, _fmt_m(_g("rn_data", b)), _fmt_m(_g("pnb_data", b)), _g("roe_data", b),
+                      "rows": [[b, _deck_fmt_m(_g("rn_data", b)), _deck_fmt_m(_g("pnb_data", b)), _g("roe_data", b),
                                 _g("marge_nette_data", b), _g("coeff_expl_data", b), _g("cout_r_pnb_data", b)]
                                for b in banks]}
             chart = {"title": "Résultat net par banque", "unit": "Mds FCFA",
                      "labels": banks, "values": [rn.get(b) or 0 for b in banks]}
+            stats = [
+                {"label": "Résultat net", "value": _deck_fmt_m(_g("rn_data", "SGCI"))},
+                {"label": "PNB", "value": _deck_fmt_m(_g("pnb_data", "SGCI"))},
+                {"label": "ROE", "value": f"{_g('roe_data', 'SGCI')} %"},
+                {"label": "Coût du risque", "value": f"{_g('cout_r_pnb_data', 'SGCI')} %"},
+            ]
+            target = _deck_target_risque(segment)
     except Exception as e:
-        return jsonify({"table": None, "chart": None, "error": str(e)[:200]}), 200
-    return jsonify({"table": table, "chart": chart})
+        return jsonify({"table": None, "chart": None, "stats": None, "target": None, "error": str(e)[:200]}), 200
+    return jsonify({"table": table, "chart": chart, "stats": stats, "target": target})
 
 
 def _pdf_plaintext(s):

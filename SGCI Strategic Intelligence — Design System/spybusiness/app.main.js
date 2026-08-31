@@ -364,154 +364,213 @@ async function exportDeck(title){
   document.body.removeChild(ov);
 }
 
-const _DECK_RED = "E5142B", _DECK_DARK = "1A1A1A", _DECK_MIDGRAY = "6E6E6E", _DECK_GRAY = "B7B7B7",
-      _DECK_LIGHTBG = "FBF4F4", _DECK_INK = "1E1E1E";
+// Palette et polices — calquées sur la maquette de référence fournie par le directeur
+// (fond vert sombre + crème, accent bronze, serif éditoriale + mono). Les polices Newsreader/
+// Archivo/IBM Plex Mono de la maquette (Google Fonts web) n'existent pas sur un poste Windows
+// classique : remplacées par leurs plus proches équivalents systèmes (Georgia/Segoe UI/Consolas)
+// pour que le rendu soit fidèle même sans connexion internet côté lecteur.
+const _DK_DARK = "17231E", _DK_CREAM = "F6F3EC", _DK_GOLD = "9A5F2C",
+      _DK_INK = "17231E", _DK_GREEN2 = "2E4A40", _DK_GREEN3 = "4C665C";
+const _DK_MUTED_CREAM_45 = "92958F", _DK_MUTED_CREAM_55 = "7B817B", _DK_MUTED_CREAM_78 = "48514B";
+const _DK_BORDER_CREAM_12 = "DBDAD3", _DK_BORDER_CREAM_18 = "CECEC7";
+const _DK_MUTED_DARK_55 = "92958F", _DK_MUTED_DARK_62 = "A1A49E", _DK_MUTED_DARK_75 = "BEBFB9";
+const _DK_BORDER_DARK_20 = "444D47";
+const _F_SERIF = "Georgia", _F_SANS = "Segoe UI", _F_MONO = "Consolas";
 
 async function _pptxRender(resumeRaw, deckData, title, segment, date){
   const resume = _deckCleanResume(resumeRaw);
   const P = new PptxGenJS();
-  P.layout = "LAYOUT_WIDE";   // 13.33 × 7.5 pouces, format large, standard des decks pro
+  P.layout = "LAYOUT_WIDE";
   P.author = "SpyBusiness"; P.company = "SGCI"; P.title = resume.titre || title;
 
-  const W = 13.33, H = 7.5, M = 0.55;
+  const W = 13.33, H = 7.5, M = 0.833, T = 0.55, BOT = 0.42;
+  let step = 0;
+  const stepNum = () => { step += 1; return String(step).padStart(2, "0"); };
 
-  const _footer = (slide) => {
-    slide.addShape(P.ShapeType.rect, {x:0, y:H-0.14, w:W, h:0.14, fill:{color:_DECK_RED}, line:{type:"none"}});
-    slide.addText("SpyBusiness · Intelligence bancaire SGCI", {
-      x:M, y:H-0.42, w:6, h:0.26, fontFace:"Calibri", fontSize:8, color:"9A9A9A", align:"left"});
-    slide.addText(date, {x:W-M-3, y:H-0.42, w:3, h:0.26, fontFace:"Calibri", fontSize:8, color:"9A9A9A", align:"right"});
+  const _bg = (slide, color) => slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color}, line:{type:"none"}});
+  const _rule = (slide, y, color, w) => slide.addShape(P.ShapeType.line, {x:M, y, w: w||(W-2*M), h:0, line:{color, width:0.75}});
+
+  // En-tête + pied de page communs à chaque diapositive de contenu (clair ou sombre).
+  const _header = (slide, label, opts) => {
+    opts = opts || {};
+    const dark = !!opts.dark, accent = opts.accent || _DK_GOLD, ink = dark ? _DK_CREAM : _DK_INK;
+    slide.addText(stepNum(), {x:M, y:T, w:0.55, h:0.5, fontFace:_F_MONO, fontSize:11, color:accent,
+      charSpacing:2, valign:"top"});
+    slide.addText(label, {x:M+0.5, y:T-0.08, w: opts.rightLabel ? 8.2 : (W-2*M-0.5), h:0.6,
+      fontFace:_F_SERIF, fontSize:31, color:ink, valign:"top"});
+    if(opts.rightLabel){
+      slide.addText(opts.rightLabel, {x:8.7, y:T, w:W-M-8.7, h:0.5, fontFace:_F_MONO, fontSize:11,
+        color: dark ? _DK_MUTED_DARK_55 : _DK_MUTED_CREAM_55, align:"right", valign:"top"});
+    }
+    _rule(slide, T+0.62, dark ? _DK_BORDER_DARK_20 : _DK_BORDER_CREAM_18);
   };
-  const _header = (slide, label) => {
-    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:0.85, fill:{color:_DECK_RED}, line:{type:"none"}});
-    slide.addText(label.toUpperCase(), {x:M, y:0, w:W-2*M, h:0.85, valign:"middle",
-      fontFace:"Calibri", fontSize:20, bold:true, color:"FFFFFF", fit:"shrink"});
+  const _footer = (slide, dark) => {
+    _rule(slide, H-BOT, dark ? _DK_BORDER_DARK_20 : _DK_BORDER_CREAM_18);
+    const c = dark ? _DK_MUTED_DARK_55 : _DK_MUTED_CREAM_45;
+    slide.addText("SpyBusiness · Intelligence bancaire SGCI", {x:M, y:H-BOT+0.06, w:6, h:0.3,
+      fontFace:_F_MONO, fontSize:10, color:c, charSpacing:1});
+    slide.addText(date, {x:W-M-3, y:H-BOT+0.06, w:3, h:0.3, fontFace:_F_MONO, fontSize:10,
+      color:c, align:"right", charSpacing:1});
   };
 
   /* ── 1 · Couverture ── */
   {
     const slide = P.addSlide();
-    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color:_DECK_DARK}, line:{type:"none"}});
-    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:0.10, fill:{color:_DECK_RED}, line:{type:"none"}});
-    slide.addShape(P.ShapeType.rect, {x:0, y:H-0.10, w:W, h:0.10, fill:{color:_DECK_RED}, line:{type:"none"}});
-    try{ slide.addImage({path:"assets/logos/SGCI.png", x:W/2-0.55, y:1.15, w:1.1, h:1.1}); }catch(e){}
-    slide.addText("SGCI", {x:0, y:2.55, w:W, h:0.5, align:"center", fontFace:"Calibri", fontSize:14,
-      color:"C9C9C9", charSpacing:4, bold:true});
-    slide.addText(resume.titre || title, {x:1, y:3.15, w:W-2, h:1.2, align:"center", fontFace:"Calibri",
-      fontSize:34, bold:true, color:"FFFFFF", fit:"shrink", valign:"middle"});
-    slide.addShape(P.ShapeType.line, {x:W/2-1.1, y:4.55, w:2.2, h:0, line:{color:_DECK_RED, width:2}});
-    slide.addText(`Segment ${segment}`, {x:0, y:4.75, w:W, h:0.4, align:"center", fontFace:"Calibri",
-      fontSize:15, color:"D9D9D9"});
-    slide.addText(`Généré le ${date}`, {x:0, y:5.15, w:W, h:0.35, align:"center", fontFace:"Calibri",
-      fontSize:11, color:"8A8A8A"});
+    _bg(slide, _DK_DARK);
+    slide.addText("SGCI", {x:M, y:0.611, w:4, h:0.4, fontFace:_F_MONO, fontSize:12, color:_DK_MUTED_DARK_55,
+      charSpacing:3});
+    slide.addText(`Segment ${segment}`, {x:W-M-4, y:0.611, w:4, h:0.4, fontFace:_F_MONO, fontSize:12,
+      color:_DK_MUTED_DARK_55, align:"right", charSpacing:3});
+    slide.addShape(P.ShapeType.rect, {x:M, y:2.75, w:0.667, h:0.03, fill:{color:_DK_GOLD}, line:{type:"none"}});
+    slide.addText(resume.titre || title, {x:M, y:3.0, w:W-2*M, h:1.9, fontFace:_F_SERIF, fontSize:54,
+      color:"FFFFFF", valign:"top", fit:"shrink", lineSpacingMultiple:1.02});
+    slide.addText(`Généré le ${date}`, {x:M, y:4.75, w:8, h:0.4, fontFace:_F_MONO, fontSize:14,
+      color:_DK_GOLD, charSpacing:1});
     slide.addText("Rédigé par l'agent IA à partir des données réellement stockées — chaque chiffre est vérifiable dans le dashboard SpyBusiness.",
-      {x:1.5, y:H-0.75, w:W-3, h:0.4, align:"center", fontFace:"Calibri", fontSize:8.5, color:"6A6A6A", italic:true});
+      {x:M, y:H-0.95, w:9.5, h:0.6, fontFace:_F_SANS, fontSize:13, color:_DK_MUTED_DARK_62, lineSpacingMultiple:1.3});
   }
 
-  /* ── 2 · Données clés — tableau + graphique, mêmes chiffres que le dashboard ── */
-  if(deckData && (deckData.table || deckData.chart)){
+  /* ── 2 · Données clés (tableau) ── */
+  if(deckData && deckData.table && deckData.table.rows && deckData.table.rows.length){
     const slide = P.addSlide();
-    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color:"FFFFFF"}, line:{type:"none"}});
+    _bg(slide, _DK_CREAM);
     _header(slide, "Données clés");
-
-    if(deckData.table && deckData.table.rows && deckData.table.rows.length){
-      const t = deckData.table;
-      const headerRow = t.headers.map(h => ({text:String(h), options:{fill:{color:_DECK_INK}, color:"FFFFFF",
-        bold:true, fontSize:10.5, align:"center", valign:"middle"}}));
-      const dataRows = t.rows.map(row => row.map((cell, ci) => {
-        const isBankCol = ci === 0;
-        const txt = (cell === null || cell === undefined) ? "—" : String(cell);
-        const isSGCI = isBankCol && txt === "SGCI";
-        return {text: txt, options:{fontSize:10, align: isBankCol ? "left" : "center", valign:"middle",
-          bold: isSGCI, color: isSGCI ? _DECK_RED : _DECK_INK,
-          fill: isSGCI ? {color:_DECK_LIGHTBG} : {color:"FFFFFF"}}};
-      }));
-      slide.addTable([headerRow, ...dataRows], {
-        x:M, y:1.1, w:deckData.chart ? 7.1 : W-2*M, h:5.4,
-        border:{type:"solid", pt:0.5, color:"E5E5E5"}, autoPage:false, valign:"middle",
-        rowH: 5.4 / (dataRows.length + 1),
-      });
-    }
-
-    if(deckData.chart && deckData.chart.labels && deckData.chart.labels.length){
-      const c = deckData.chart;
-      const isBankChart = c.labels.includes("SGCI");
-      const colors = c.labels.map(l => l === "SGCI" ? _DECK_RED : "C9C9C9");
-      const chartX = deckData.table ? 8.35 : M, chartW = deckData.table ? W-8.35-M : W-2*M;
-      slide.addText(c.title + (c.unit ? ` (${c.unit})` : ""), {x:chartX, y:1.05, w:chartW, h:0.35,
-        fontFace:"Calibri", fontSize:11, bold:true, color:_DECK_MIDGRAY});
-      slide.addChart(P.ChartType.bar, [{name:c.title, labels:c.labels, values:c.values}], {
-        x:chartX, y:1.45, w:chartW, h:5.05, barDir:"col",
-        chartColors: isBankChart ? colors : [_DECK_RED],
-        showLegend:false, showValue:false, showTitle:false,
-        catAxisLabelFontSize:9, valAxisLabelFontSize:8, dataLabelFontSize:9,
-        catAxisLabelColor:_DECK_MIDGRAY, valAxisLabelColor:_DECK_MIDGRAY,
-        catAxisLineColor:"E0E0E0", valAxisLineColor:"E0E0E0", valGridLine:{color:"F0F0F0"},
-      });
-    }
-    _footer(slide);
-  }
-
-  /* ── 3 · Résumé exécutif + points clés ── */
-  {
-    const slide = P.addSlide();
-    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color:"FFFFFF"}, line:{type:"none"}});
-    _header(slide, resume.titre || title);
-
-    slide.addText("RÉSUMÉ EXÉCUTIF", {x:M, y:1.15, w:5.9, h:0.35, fontFace:"Calibri", fontSize:12,
-      bold:true, color:_DECK_RED});
-    slide.addShape(P.ShapeType.rect, {x:M, y:1.55, w:5.9, h:5.15, fill:{color:_DECK_LIGHTBG}, line:{type:"none"},
-      rectRadius:0.08});
-    slide.addShape(P.ShapeType.rect, {x:M, y:1.55, w:0.06, h:5.15, fill:{color:_DECK_RED}, line:{type:"none"}});
-    slide.addText(resume.executif || "", {x:M+0.3, y:1.75, w:5.3, h:4.75, fontFace:"Calibri", fontSize:13,
-      color:_DECK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.25});
-
-    slide.addText("POINTS CLÉS", {x:6.85, y:1.15, w:5.9, h:0.35, fontFace:"Calibri", fontSize:12,
-      bold:true, color:_DECK_MIDGRAY});
-    const pts = (resume.points || []).slice(0, 8).map(p => ({
-      text: p, options:{bullet:{code:"25CF", indent:18}, color:_DECK_INK, breakLine:true}
+    const t = deckData.table;
+    const headerRow = t.headers.map(h => ({text:String(h).toUpperCase(), options:{fontFace:_F_MONO, fontSize:10.5,
+      color:_DK_MUTED_CREAM_55, align:"left", valign:"bottom", border:[{type:"none"},{type:"none"},
+      {type:"solid", pt:0.75, color:_DK_BORDER_CREAM_18},{type:"none"}], fill:{color:_DK_CREAM}}}));
+    const dataRows = t.rows.map(row => row.map((cell, ci) => {
+      const txt = (cell === null || cell === undefined) ? "—" : String(cell);
+      const isSGCI = ci === 0 && txt === "SGCI";
+      return {text: txt, options:{fontFace: ci === 0 ? _F_SANS : _F_MONO, fontSize:15,
+        align: ci === 0 ? "left" : "right", valign:"middle", bold: isSGCI && ci === 0,
+        color: isSGCI ? _DK_GOLD : (ci === 0 ? _DK_INK : _DK_MUTED_CREAM_78),
+        fill:{color:_DK_CREAM}, border:[{type:"solid", pt:0.5, color:_DK_BORDER_CREAM_12},
+          {type:"none"},{type:"none"},{type:"none"}]}};
     }));
-    slide.addText(pts.length ? pts : [{text:"—"}], {x:6.85, y:1.6, w:5.9, h:5.1, fontFace:"Calibri",
-      fontSize:12.5, valign:"top", fit:"shrink", lineSpacingMultiple:1.35, paraSpaceAfter:8});
-
+    slide.addTable([headerRow, ...dataRows], {x:M, y:1.55, w:W-2*M, h:4.9,
+      autoPage:false, valign:"middle", rowH: 4.9/(dataRows.length+1), margin:[4,10,4,0]});
     _footer(slide);
   }
 
-  /* ── 4 · Analyse ── */
-  {
+  /* ── 3 · Graphique en barres (dessiné, pas un chart natif — même esprit que la maquette) ── */
+  if(deckData && deckData.chart && deckData.chart.labels && deckData.chart.labels.length){
     const slide = P.addSlide();
-    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color:"FFFFFF"}, line:{type:"none"}});
-    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:0.14, h:H, fill:{color:_DECK_RED}, line:{type:"none"}});
-    slide.addText("ANALYSE", {x:0.75, y:0.6, w:W-1.5, h:0.5, fontFace:"Calibri", fontSize:22, bold:true,
-      color:_DECK_INK});
-    slide.addShape(P.ShapeType.line, {x:0.75, y:1.25, w:2, h:0, line:{color:_DECK_RED, width:2.5}});
-    slide.addText(resume.analyse || "", {x:0.75, y:1.6, w:W-1.5, h:4.9, fontFace:"Calibri", fontSize:16,
-      color:_DECK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.4});
+    _bg(slide, _DK_CREAM);
+    const c = deckData.chart;
+    _header(slide, c.title, {rightLabel: c.unit ? c.unit.toUpperCase() : ""});
+    const rows = c.labels.slice(0, 8), vals = c.values.slice(0, 8);
+    const max = Math.max(...vals, 1);
+    const top = 1.75, rowH = 0.62, nameW = 1.5, valW = 1.5, barX = M+nameW+0.15, barW = W-2*M-nameW-valW-0.3;
+    rows.forEach((name, i) => {
+      const y = top + i*rowH, v = vals[i] || 0, isSGCI = name === "SGCI";
+      const tier = isSGCI ? _DK_GOLD : (i <= 2 ? _DK_GREEN2 : _DK_GREEN3);
+      slide.addText(name, {x:M, y, w:nameW, h:rowH-0.12, fontFace:_F_SANS, fontSize:15,
+        bold:isSGCI, color: isSGCI ? _DK_GOLD : _DK_INK, valign:"middle"});
+      slide.addShape(P.ShapeType.rect, {x:barX, y:y+0.06, w:barW, h:rowH-0.24,
+        fill:{color:"EDEAE1"}, line:{type:"none"}});
+      const w = Math.max(barW * (v/max), 0.04);
+      slide.addShape(P.ShapeType.rect, {x:barX, y:y+0.06, w, h:rowH-0.24, fill:{color:tier}, line:{type:"none"}});
+      slide.addText(_deckClean(_deckFmtNum(v)), {x:W-M-valW, y, w:valW, h:rowH-0.12, fontFace:_F_MONO, fontSize:15,
+        align:"right", color: isSGCI ? _DK_GOLD : _DK_MUTED_CREAM_78, valign:"middle"});
+    });
     _footer(slide);
   }
 
-  /* ── 5 · À retenir ── */
+  /* ── 4 · Résumé exécutif (paragraphe + grille de statistiques) ── */
   {
     const slide = P.addSlide();
-    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color:_DECK_INK}, line:{type:"none"}});
-    slide.addShape(P.ShapeType.ellipse, {x:W-3.5, y:-2, w:6, h:6, fill:{color:"2A2A2A"}, line:{type:"none"}});
-    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:0.14, h:H, fill:{color:_DECK_RED}, line:{type:"none"}});
-    slide.addText("À RETENIR", {x:0.9, y:0.9, w:W-1.8, h:0.5, fontFace:"Calibri", fontSize:14, bold:true,
-      color:_DECK_RED, charSpacing:2});
-    slide.addText(resume.conclusion || "", {x:0.9, y:1.6, w:W-1.9, h:4.6, fontFace:"Calibri", fontSize:22,
-      bold:true, color:"FFFFFF", valign:"top", fit:"shrink", lineSpacingMultiple:1.3});
+    _bg(slide, _DK_CREAM);
+    _header(slide, "Résumé exécutif", {rightLabel: (resume.titre || title)});
+    slide.addText(resume.executif || "", {x:M, y:1.85, w:7.1, h:4.6, fontFace:_F_SERIF, fontSize:21,
+      color:_DK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.35});
+    const stats = (deckData && deckData.stats) ? deckData.stats.slice(0, 4) : [];
+    const gx = 8.5, gy = 1.85, gw = W-M-gx, gh = 4.2, cw = gw/2, ch = gh/2;
+    stats.forEach((s, i) => {
+      const col = i % 2, row = Math.floor(i/2);
+      const x = gx + col*cw, y = gy + row*ch;
+      slide.addShape(P.ShapeType.rect, {x, y, w:cw-0.03, h:ch-0.03, fill:{color:"FFFFFF"}, line:{type:"none"}});
+      slide.addText((s.label||"").toUpperCase(), {x:x+0.22, y:y+0.22, w:cw-0.5, h:0.5, fontFace:_F_MONO,
+        fontSize:9.5, color:_DK_MUTED_CREAM_55, charSpacing:1, valign:"top"});
+      slide.addText(_deckClean(String(s.value||"—")), {x:x+0.2, y:y+0.65, w:cw-0.4, h:ch-0.9, fontFace:_F_SERIF,
+        fontSize:27, color: i < 2 ? _DK_GOLD : _DK_INK, valign:"top", fit:"shrink"});
+    });
+    _footer(slide);
+  }
+
+  /* ── 5 · Points clés ── */
+  {
+    const slide = P.addSlide();
+    _bg(slide, _DK_CREAM);
+    _header(slide, "Points clés");
+    const pts = (resume.points || []).slice(0, 8);
+    const colW = (W-2*M-0.6)/2, top = 1.75, rowH = (H-top-BOT-0.1)/4;
+    pts.forEach((p, i) => {
+      const col = i < 4 ? 0 : 1, row = i % 4;
+      const x = M + col*(colW+0.6), y = top + row*rowH;
+      slide.addText(String(i+1).padStart(2,"0"), {x, y:y+0.06, w:0.5, h:0.4, fontFace:_F_MONO, fontSize:10,
+        color:_DK_GOLD, valign:"top"});
+      slide.addText(p, {x:x+0.55, y, w:colW-0.55, h:rowH-0.1, fontFace:_F_SANS, fontSize:13.5, color:_DK_INK,
+        valign:"top", fit:"shrink", lineSpacingMultiple:1.3});
+      if(row < 3) slide.addShape(P.ShapeType.line, {x, y:y+rowH-0.06, w:colW, h:0, line:{color:_DK_BORDER_CREAM_12, width:0.5}});
+    });
+    _footer(slide);
+  }
+
+  /* ── 6 · Analyse ── */
+  {
+    const slide = P.addSlide();
+    _bg(slide, _DK_CREAM);
+    _header(slide, "Analyse");
+    slide.addText(resume.analyse || "", {x:M, y:2.0, w:W-2*M, h:4.2, fontFace:_F_SERIF, fontSize:22,
+      color:_DK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.42});
+    _footer(slide);
+  }
+
+  /* ── 7 · À retenir ── */
+  {
+    const slide = P.addSlide();
+    _bg(slide, _DK_DARK);
+    _header(slide, "À retenir", {dark:true});
+    slide.addText("PRIORITÉ N°1", {x:M, y:1.75, w:8, h:0.4, fontFace:_F_MONO, fontSize:12, color:_DK_GOLD,
+      charSpacing:2});
+    // La conclusion du LLM peut citer un objectif chiffré qui lui est propre (ex. "baisse de
+    // 5 points") — incohérent avec la trajectoire à 3 ans DÉJÀ calculée dans Stratégie. Demande
+    // explicite du directeur : la recommandation doit suivre ce que dit Stratégie, pas une
+    // estimation du LLM. Quand une cible déterministe existe, elle REMPLACE la phrase du LLM.
+    const tgt = deckData && deckData.target;
+    const conclusionTxt = (tgt && tgt.current && tgt.target)
+      ? `Priorité n°1 : ramener le ${(tgt.label||"coût du risque").toLowerCase()} de ${tgt.current} à ${tgt.target} d’ici trois ans, conformément à la trajectoire validée dans Stratégie.`
+      : (resume.conclusion || "");
+    slide.addText(conclusionTxt, {x:M, y:2.25, w:W-2*M, h:3.1, fontFace:_F_SERIF, fontSize:31,
+      color:"FFFFFF", valign:"top", fit:"shrink", lineSpacingMultiple:1.28});
+    if(tgt && tgt.current && tgt.target){
+      const my = 5.55;
+      slide.addText(_deckClean(String(tgt.current)), {x:M, y:my, w:1.6, h:0.4, fontFace:_F_MONO, fontSize:15,
+        color:_DK_MUTED_DARK_75, valign:"middle"});
+      slide.addShape(P.ShapeType.line, {x:M+1.75, y:my+0.2, w:0.9, h:0, line:{color:_DK_MUTED_DARK_75, width:0.75}});
+      slide.addText(_deckClean(String(tgt.target)), {x:M+2.8, y:my, w:1.6, h:0.4, fontFace:_F_MONO, fontSize:15,
+        color:_DK_GOLD, valign:"middle"});
+      slide.addText("TRAJECTOIRE À 3 ANS · STRATÉGIE", {x:M, y:my+0.42, w:6, h:0.3, fontFace:_F_MONO,
+        fontSize:9, color:_DK_MUTED_DARK_55, charSpacing:1});
+    }
     if(resume._stale){
       let genTxt = "date inconnue";
       if(resume._generatedAt){
         try{ genTxt = new Date(resume._generatedAt).toLocaleDateString("fr-FR", {day:"2-digit",month:"long",year:"numeric"}); }catch(e){}
       }
       slide.addText(`⚠ Analyse de secours — dernière génération réussie le ${genTxt}.`, {
-        x:0.9, y:H-1.1, w:W-1.8, h:0.4, fontFace:"Calibri", fontSize:10, color:"E8B84B"});
+        x:M, y:6.15, w:W-2*M, h:0.4, fontFace:_F_SANS, fontSize:10, color:"E8B84B"});
     }
-    slide.addText("Rédigé par l'agent IA à partir des données réellement stockées — chaque chiffre est vérifiable dans le dashboard SpyBusiness.",
-      {x:0.9, y:H-0.6, w:W-1.8, h:0.35, fontFace:"Calibri", fontSize:8.5, color:"7A7A7A", italic:true});
+    _footer(slide, true);
   }
 
   await P.writeFile({fileName: `SpyBusiness — ${resume.titre || title} — ${date}.pptx`});
+}
+
+function _deckFmtNum(v){
+  if(typeof v !== "number") return String(v);
+  return v.toLocaleString("fr-FR", {maximumFractionDigits: v % 1 === 0 ? 0 : 1});
 }
 
 /* ── Glossaire Santé Financière ─────────────────────────────────────────── */
