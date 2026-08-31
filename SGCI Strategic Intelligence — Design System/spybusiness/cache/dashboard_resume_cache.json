@@ -933,5 +933,115 @@
   "resume_v13_stratop_Particuliers_f94d65b3601f@meta": {
     "generated_at": "2026-08-31T16:18:54",
     "stale": false
+  },
+  "resume_v14_ef_Particuliers_2d3503cd0fd3": {
+    "titre": "Santé financière",
+    "executif": "SGCI consolide sa position de leader du marché ivoirien en affichant le résultat net le plus élevé, tout en maintenant une rentabilité solide malgré un coût du risque supérieur à celui de ses principaux concurrents. La dynamique de croissance modérée contraste avec la forte progression observée chez plusieurs rivaux, soulignant la nécessité d’accélérer l’expansion. Le mix de commissions, légèrement inférieur à la moyenne du podium, représente une opportunité d’optimisation. Le résultat net record constitue le levier principal de la performance globale.",
+    "points": [
+      "RN de SGCI s’établit à 101 352,0, dépassant largement celui d’Ecobank (63 482,0) et de SIB (55 623,0).",
+      "PNB de SGCI atteint 276 048,0, soit plus du double du PNB d’Ecobank (132 725,0).",
+      "ROE de SGCI s’élève à 20,5 % tandis que BICICI affiche 30,3 % et Ecobank 29,0 %.",
+      "Marge nette de SGCI s’établit à 36,7 % contre 47,8 % pour Ecobank et 51,2 % pour SIB.",
+      "Coefficient d’exploitation de SGCI est de 38,8 % alors que le plus élevé se trouve chez BICICI à 50,8 %.",
+      "Coût du risque de SGCI s’élève à 17,0 % alors que le plus bas est enregistré par BICICI à 1,9 %.",
+      "Croissance de SGCI s’établit à 4,2 % alors que BICICI progresse de 118,8 %.",
+      "Mix commissions de SGCI représente 24 % du revenu total, légèrement inférieur à celui de BICICI (33 %)."
+    ],
+    "analyse": "Le résultat net record reflète la capacité de SGCI à mobiliser un volume d’affaires supérieur, comme en témoigne son PNB qui dépasse largement celui de ses concurrents. Toutefois, la marge nette plus modeste indique une pression sur la rentabilité opérationnelle, accentuée par un coefficient d’exploitation raisonnable mais un coût du risque élevé, qui grève les profits. La croissance modérée contraste avec la dynamique explosive de BICICI, suggérant que l’expansion du portefeuille client reste un levier sous‑exploité. Enfin, la part du mix commissions, bien que respectable, laisse entrevoir un potentiel d’augmentation des revenus non‑intérêts.",
+    "tags": [
+      "Volume",
+      "Rentabilité",
+      "Coût du risque",
+      "Commissions"
+    ],
+    "conclusion": "Priorité n°1 : réduire le coût du risque de 5 points de pourcentage d’ici deux ans en renforçant les contrôles de crédit. Cette amélioration devrait permettre d’accroître la marge nette de plusieurs points et soutenir une croissance plus soutenue.",
+    "section": "Santé financière",
+    "segment": "Particuliers"
+  },
+  "resume_v14_ef_Particuliers_2d3503cd0fd3@meta": {
+    "generated_at": "2026-08-31T17:00:26",
+    "stale": false
+  },
+  "resume_v14_cb_Particuliers_3afe847cd5dc": {
+    "titre": "Bilan des conditions bancaires – S1 2026",
+    "executif": "SGCI se situe à mi‑parcours du marché tant sur le plan de l’offre que de la compétitivité tarifaire. La banque excelle dans la capacité à convertir ses services en gains tarifaires, notamment auprès des entreprises, tandis que son catalogue reste en retrait face aux leaders du secteur. Les exclusivités confirment un positionnement différencié, mais des lacunes notables persistent face à plusieurs concurrents. Le contraste le plus marquant réside dans le taux de succès tarifaire qui surpasse largement celui des pairs dans le segment entreprises.",
+    "points": [
+      "184 services proposés aux particuliers, dont 19,7 % gratuits.",
+      "178 services proposés aux entreprises, dont 16,8 % gratuits.",
+      "Win‑rate tarifaire de 60,5 % sur 38 services comparables pour les particuliers.",
+      "Win‑rate tarifaire de 74,1 % sur 27 services comparables pour les entreprises.",
+      "15 exclusivités confirmées dans le segment particulier.",
+      "16 exclusivités confirmées dans le segment entreprise.",
+      "10 manques identifiés face à trois concurrents ou plus chez les particuliers.",
+      "5 manques identifiés face à trois concurrents ou plus chez les entreprises."
+    ],
+    "analyse": "Le volume de services offerts aux particuliers reste inférieur aux trois premiers acteurs, limitant ainsi la part de marché potentielle malgré un taux de gratuité modéré. En revanche, la performance tarifaire des services entreprises, soutenue par un win‑rate élevé, reflète une capacité à proposer des conditions attractives sur une offre plus restreinte. Les exclusivités, plus nombreuses dans le segment entreprises, renforcent la différenciation mais ne compensent pas les lacunes identifiées, notamment les dix manques critiques chez les particuliers. Cette asymétrie indique que la compétitivité tarifaire ne suffit pas à compenser un catalogue moins complet, surtout dans le segment grand public.",
+    "tags": [
+      "Catalogue",
+      "Prix",
+      "Exclusivités",
+      "Manques"
+    ],
+    "conclusion": "Priorité : enrichir le catalogue des particuliers d’au moins 20 services supplémentaires d’ici la fin de l’année afin de réduire l’écart avec les leaders. Cette expansion doit s’accompagner d’une hausse ciblée du pourcentage de services gratuits pour renforcer l’attractivité globale.",
+    "section": "Conditions bancaires",
+    "segment": "Particuliers"
+  },
+  "resume_v14_cb_Particuliers_3afe847cd5dc@meta": {
+    "generated_at": "2026-08-31T17:01:39",
+    "stale": false
+  },
+  "resume_v14_strategie_Particuliers_fb3719ab1d19": {
+    "titre": "Stratégie globale SGCI 2024‑2027",
+    "executif": "SGCI domine le résultat net mais voit son avance érodée par un coût du risque qui grimpe et une offre de services restreinte, tandis que la concurrence, notamment BICICI, accélère grâce à une discipline opérationnelle. La combinaison d’un risque croissant et d’une profondeur de catalogue insuffisante freine la croissance tant sur le segment des particuliers que des entreprises. Le plan triennal vise à désengorger le risque, à élargir l’offre et à convertir l’avance en résultat net en une dynamique de croissance soutenue. Le scénario central projette une hausse du résultat net de 42,5 % en trois ans, illustrant l’enjeu crucial de l’exécution.",
+    "points": [
+      "Coût du risque représente 13,9 % du PNB en moyenne sur trois ans, bien au‑delà de la médiane du marché qui n’est que 5 %.",
+      "Le résultat net actuel s’élève à 101,352 Mds FCFA, avec une progression prévue à 144,4 Mds FCFA sous le scénario central.",
+      "Le ROE actuel de 20,5 % devrait atteindre 28,833 % dans le scénario central, dépassant largement la moyenne sectorielle.",
+      "Le catalogue de services passe de 184 aujourd’hui à 536 dans trois ans, soit une augmentation de plus de 250 % pour les particuliers.",
+      "Le PNB actuel de 276,048 Mds FCFA est projeté à 314,083 Mds FCFA sous le scénario central, soit une hausse de 13,8 %.",
+      "Le coût du risque/PNB devrait chuter de 17,0 % à 2,467 % d’ici trois ans, libérant ainsi 36,569 Mds FCFA de résultat net supplémentaire.",
+      "La rivalité entre les banques est évaluée comme très élevée, tandis que le pouvoir de négociation des clients reste élevé, accentuant la pression sur les marges.",
+      "Le profil VRIST attribue à SGCI une valeur de 7/10, une rareté de 10/10, une inimitabilité de 8/10, une durabilité de 5/10 et un caractère transformateur de 5/10."
+    ],
+    "analyse": "Le coût du risque, qui absorbe 13,9 % du PNB, constitue le principal frein à la rentabilité, expliquant la position la plus basse en croissance du résultat net. La concurrence, notamment BICICI, exploite une discipline de gestion du risque et une offre plus diversifiée, ce qui accentue la perte de parts de marché. L’élargissement du catalogue de services, prévu à plus de 500 offres, vise à répondre aux attentes de volume et de prix, contrebalançant la faiblesse actuelle du portefeuille de produits. La combinaison d’une réduction drastique du coût du risque et d’une expansion de l’offre devrait permettre de convertir l’avance en résultat net en une trajectoire de croissance robuste, comme le montre le scénario central.",
+    "tags": [
+      "Risque",
+      "Croissance",
+      "Offre",
+      "Performance"
+    ],
+    "conclusion": "Priorité n°1 : réduire le coût du risque à moins de 3 % du PNB d’ici trois ans, ce qui libérera plus de 36 Mds FCFA de résultat net supplémentaire. Cette réduction, couplée à l’extension du catalogue à plus de 500 services, constitue le levier essentiel pour reconquérir les parts de marché et atteindre le résultat net projeté de 144,4 Mds FCFA.",
+    "section": "Stratégie",
+    "segment": "Particuliers"
+  },
+  "resume_v14_strategie_Particuliers_fb3719ab1d19@meta": {
+    "generated_at": "2026-08-31T17:01:46",
+    "stale": false
+  },
+  "resume_v14_stratop_Particuliers_128343248859": {
+    "titre": "Stratégie Opérationnelle SGCI 2026-2029",
+    "executif": "SGCI bénéficie d’un avantage tarifaire déjà consolidé sur plusieurs services clés, mais la visibilité de ces atouts reste insuffisante auprès de la clientèle. La marge d’intermédiation, pilier de la rentabilité, recèle le potentiel le plus important, avec une marge d’intérêt exploitable de plus de deux cent milliards de FCFA. La maîtrise du coefficient d’exploitation et l’optimisation des commissions constituent les leviers critiques pour combler l’écart de performance face aux leaders du marché. Le gain le plus marquant provient de la réduction du coût des ressources, estimé à 2,0 Mds FCFA par an.",
+    "points": [
+      "2,0 Mds FCFA d’apport annuel estimé en améliorant la marge d’intermédiation grâce à un gain de 1 % sur une marge d’intérêt de 203,4 Mds.",
+      "1,1 Mds FCFA de commissions supplémentaires attendues en équipant 30 320 clients professionnels d’un socle de services de flux, avec une hausse de 30 % de la commission moyenne.",
+      "0,6 Mds FCFA d’économies annuelles en alignant le coefficient d’exploitation sur le meilleur concurrent, soit une amélioration de 0,2 point.",
+      "8,6 Mds FCFA de revenu supplémentaire par an en portant la part des commissions au niveau du leader du marché.",
+      "3,6 Mds FCFA d’apport annuel en réduisant le délai et le coût d’entrée en relation, en attirant 30 320 nouveaux clients.",
+      "0,1 Mds FCFA d’apport annuel attendu en ouvrant la conquête du secteur agro‑industrie, segment à plus forte opportunité."
+    ],
+    "analyse": "Les écarts tarifaires déjà favorables, notamment sur les services de port lettre et de timbre, offrent un argumentaire de vente non exploité qui ne génère pas de revenu direct mais soutient les actions de conquête. La capacité à convertir ces avantages en volume repose sur l’extension du portefeuille de services aux clients professionnels, d’où provient la majeure partie des commissions additionnelles. La marge d’intermédiation, fonction de la différence entre le taux de refinancement BCEAO et le taux débiteur moyen, représente la source la plus lourde de création de valeur, justifiant la priorité donnée à son optimisation. Enfin, la réduction du coefficient d’exploitation et l’augmentation de la part des commissions renforcent la rentabilité globale, tandis que la pénétration du secteur agro‑industrie, bien que modeste, valide la pertinence de la stratégie sectorielle.",
+    "tags": [
+      "Marge",
+      "Commissions",
+      "Coût",
+      "Sectoriel"
+    ],
+    "conclusion": "Consolider la marge d’intermédiation en capturant 1 % supplémentaire sur les 203,4 Mds FCFA de marge d’intérêt, soit 2,0 Mds FCFA de PNB annuel, constitue la priorité absolue. Cette action, couplée à l’équipement ciblé de la clientèle professionnelle, permettra de transformer les avantages tarifaires en revenus durables.",
+    "section": "Stratégie opérationnelle",
+    "segment": "Particuliers"
+  },
+  "resume_v14_stratop_Particuliers_128343248859@meta": {
+    "generated_at": "2026-08-31T17:06:35",
+    "stale": false
   }
 }

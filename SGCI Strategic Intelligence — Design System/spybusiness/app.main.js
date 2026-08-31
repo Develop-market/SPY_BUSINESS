@@ -355,16 +355,13 @@ async function exportDeck(title){
     return;
   }
 
-  // Santé financière n'a PAS de notion de segment Particuliers/Entreprises dans son propre
-  // écran (résultat net, PNB, ROE... sont des chiffres banque entière, sans ventilation par
-  // segment) — contrairement à Conditions bancaires ou Stratégie, où le segment change
-  // vraiment les chiffres. Afficher « Segment Particuliers » dessus laissait croire à un choix
-  // de l'utilisateur qui n'existe pas sur cet écran (retour du directeur : « DEPUIS QUAND SF A
-  // UN SEGMENT ? »). On continue d'interroger l'API avec une valeur stable, mais on ne
-  // l'affiche plus sur ce diaporama précis.
-  const displaySegment = (section === "ef") ? null : segment;
+  // Santé financière n'a jamais eu de segment (chiffres banque entière). Conditions bancaires,
+  // Stratégie et Stratégie opérationnelle EN ONT un, mais le diaporama résume désormais LES
+  // DEUX à la fois (retour du directeur : « il n'y a pas CB Entreprises à part et Stratégie à
+  // part, le LLM reçoit toutes les données et résume ») — donc plus aucune section n'affiche
+  // « Segment Particuliers » en couverture, ce serait trompeur puisqu'aucune n'est filtrée.
   try{
-    await _pptxRender(resume, deckData, title, displaySegment, date);
+    await _pptxRender(resume, deckData, title, null, date);
   }catch(e){
     console.error("pptx error", e);
     alert("Erreur lors de la génération du diaporama : " + e.message);
@@ -471,44 +468,82 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
     _bg(slide, _DK_CREAM);
     _header(slide, "Données clés");
     const t = deckData.table;
-    const headerRow = t.headers.map(h => ({text:String(h).toUpperCase(), options:{fontFace:_F_MONO, fontSize:10.5,
+    // Les tableaux qui couvrent les deux segments (CB, Stratégie) ont beaucoup plus de lignes
+    // (jusqu'à 14) qu'un tableau à un seul segment (7) — police et marges réduites en
+    // conséquence, sinon le texte déborde des cellules sur les tableaux longs.
+    const nRows = t.rows.length;
+    const cellFS = nRows > 10 ? 10.5 : nRows > 8 ? 12.5 : 15;
+    const headFS = nRows > 10 ? 8.5 : 10.5;
+    const tableH = Math.min(5.15, nRows * (cellFS/72*2.1) + 0.4);
+    const headerRow = t.headers.map(h => ({text:String(h).toUpperCase(), options:{fontFace:_F_MONO, fontSize:headFS,
       color:_DK_MUTED_CREAM_55, align:"left", valign:"bottom", border:[{type:"none"},{type:"none"},
       {type:"solid", pt:0.75, color:_DK_BORDER_CREAM_18},{type:"none"}], fill:{color:_DK_CREAM}}}));
     const dataRows = t.rows.map(row => row.map((cell, ci) => {
       const txt = (cell === null || cell === undefined) ? "—" : String(cell);
-      const isSGCI = ci === 0 && txt === "SGCI";
-      return {text: txt, options:{fontFace: ci === 0 ? _F_SANS : _F_MONO, fontSize:15,
-        align: ci === 0 ? "left" : "right", valign:"middle", bold: isSGCI && ci === 0,
+      const isSGCI = row[0] === "SGCI";
+      return {text: txt, options:{fontFace: ci === 0 ? _F_SANS : _F_MONO, fontSize:cellFS,
+        align: (ci === 0 || (typeof cell === "string" && isNaN(Number(cell)))) ? "left" : "right",
+        valign:"middle", bold: isSGCI && ci === 0,
         color: isSGCI ? _DK_GOLD : (ci === 0 ? _DK_INK : _DK_MUTED_CREAM_78),
         fill:{color:_DK_CREAM}, border:[{type:"solid", pt:0.5, color:_DK_BORDER_CREAM_12},
           {type:"none"},{type:"none"},{type:"none"}]}};
     }));
-    slide.addTable([headerRow, ...dataRows], {x:M, y:1.55, w:W-2*M, h:4.9,
-      autoPage:false, valign:"middle", rowH: 4.9/(dataRows.length+1), margin:[4,10,4,0]});
+    slide.addTable([headerRow, ...dataRows], {x:M, y:1.55, w:W-2*M, h:tableH,
+      autoPage:false, valign:"middle", rowH: tableH/(dataRows.length+1), margin:[4,10,4,0]});
     _footer(slide);
   }
 
-  /* ── 3 · Graphique en barres (dessiné, pas un chart natif — même esprit que la maquette) ── */
+  /* ── 3 · Graphique en barres (dessiné, pas un chart natif — même esprit que la maquette) ──
+     deckData.chart.series (2 segments) → deux barres groupées par banque, une couleur par
+     segment + légende. deckData.chart.values (sections sans segment) → une seule barre. */
   if(deckData && deckData.chart && deckData.chart.labels && deckData.chart.labels.length){
     const slide = P.addSlide();
     _bg(slide, _DK_CREAM);
     const c = deckData.chart;
     _header(slide, c.title, {rightLabel: c.unit ? c.unit.toUpperCase() : ""});
-    const rows = c.labels.slice(0, 8), vals = c.values.slice(0, 8);
-    const max = Math.max(...vals, 1);
-    const top = 1.75, rowH = 0.62, nameW = 1.5, valW = 1.5, barX = M+nameW+0.15, barW = W-2*M-nameW-valW-0.3;
-    rows.forEach((name, i) => {
-      const y = top + i*rowH, v = vals[i] || 0, isSGCI = name === "SGCI";
-      const tier = isSGCI ? _DK_GOLD : (i <= 2 ? _DK_GREEN2 : _DK_GREEN3);
-      slide.addText(name, {x:M, y, w:nameW, h:rowH-0.12, fontFace:_F_SANS, fontSize:15,
-        bold:isSGCI, color: isSGCI ? _DK_GOLD : _DK_INK, valign:"middle"});
-      slide.addShape(P.ShapeType.rect, {x:barX, y:y+0.06, w:barW, h:rowH-0.24,
-        fill:{color:"EDEAE1"}, line:{type:"none"}});
-      const w = Math.max(barW * (v/max), 0.04);
-      slide.addShape(P.ShapeType.rect, {x:barX, y:y+0.06, w, h:rowH-0.24, fill:{color:tier}, line:{type:"none"}});
-      slide.addText(_deckClean(_deckFmtNum(v)), {x:W-M-valW, y, w:valW, h:rowH-0.12, fontFace:_F_MONO, fontSize:15,
-        align:"right", color: isSGCI ? _DK_GOLD : _DK_MUTED_CREAM_78, valign:"middle"});
-    });
+    const rows = c.labels.slice(0, 8);
+    const top = 1.75, nameW = 1.5, valW = 1.9, barX = M+nameW+0.15, barW = W-2*M-nameW-valW-0.3;
+
+    if(Array.isArray(c.series) && c.series.length){
+      const segColors = [_DK_GOLD, "2F4E7A"];   // Particuliers / Entreprises
+      const legendY = top - 0.55;
+      c.series.forEach((s, si) => {
+        const lx = M + si*2.6;
+        slide.addShape(P.ShapeType.rect, {x:lx, y:legendY+0.06, w:0.16, h:0.16, fill:{color:segColors[si%2]}, line:{type:"none"}});
+        slide.addText(s.name, {x:lx+0.24, y:legendY, w:2.3, h:0.3, fontFace:_F_MONO, fontSize:10, color:_DK_MUTED_CREAM_55, valign:"middle"});
+      });
+      const max = Math.max(...c.series.flatMap(s => s.values), 1);
+      const rowH = (H - top - BOT - 0.1) / rows.length, subH = (rowH - 0.22) / 2;
+      rows.forEach((name, i) => {
+        const y = top + i*rowH, isSGCI = name === "SGCI";
+        slide.addText(name, {x:M, y:y+rowH/2-0.2, w:nameW, h:0.4, fontFace:_F_SANS, fontSize:14,
+          bold:isSGCI, color: isSGCI ? _DK_GOLD : _DK_INK, valign:"middle"});
+        c.series.forEach((s, si) => {
+          const v = s.values[i] || 0, sy = y + si*(subH+0.06);
+          slide.addShape(P.ShapeType.rect, {x:barX, y:sy, w:barW, h:subH, fill:{color:"EDEAE1"}, line:{type:"none"}});
+          const w = Math.max(barW * (v/max), 0.03);
+          slide.addShape(P.ShapeType.rect, {x:barX, y:sy, w, h:subH, fill:{color:segColors[si%2]}, line:{type:"none"}});
+          slide.addText(_deckClean(_deckFmtNum(v)), {x:W-M-valW, y:sy-0.03, w:valW, h:subH+0.06, fontFace:_F_MONO,
+            fontSize:11, align:"right", color:_DK_MUTED_CREAM_78, valign:"middle"});
+        });
+      });
+    } else {
+      const vals = (c.values || []).slice(0, 8);
+      const max = Math.max(...vals, 1);
+      const rowH = 0.62;
+      rows.forEach((name, i) => {
+        const y = top + i*rowH, v = vals[i] || 0, isSGCI = name === "SGCI";
+        const tier = isSGCI ? _DK_GOLD : (i <= 2 ? _DK_GREEN2 : _DK_GREEN3);
+        slide.addText(name, {x:M, y, w:nameW, h:rowH-0.12, fontFace:_F_SANS, fontSize:15,
+          bold:isSGCI, color: isSGCI ? _DK_GOLD : _DK_INK, valign:"middle"});
+        slide.addShape(P.ShapeType.rect, {x:barX, y:y+0.06, w:barW, h:rowH-0.24,
+          fill:{color:"EDEAE1"}, line:{type:"none"}});
+        const w = Math.max(barW * (v/max), 0.04);
+        slide.addShape(P.ShapeType.rect, {x:barX, y:y+0.06, w, h:rowH-0.24, fill:{color:tier}, line:{type:"none"}});
+        slide.addText(_deckClean(_deckFmtNum(v)), {x:W-M-valW, y, w:valW, h:rowH-0.12, fontFace:_F_MONO, fontSize:15,
+          align:"right", color: isSGCI ? _DK_GOLD : _DK_MUTED_CREAM_78, valign:"middle"});
+      });
+    }
     _footer(slide);
   }
 

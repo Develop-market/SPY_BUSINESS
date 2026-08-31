@@ -3576,128 +3576,150 @@ def _resume_facts_ef(segment):
             "Détail par banque (toutes les métriques du dashboard) :\n" + "\n".join(rows))
 
 
-def _resume_facts_cb(segment):
-    # Couvre TOUTES les sections du dashboard Conditions bancaires : catalogue, prix (win-rate),
-    # exclusivités (Q3) et manques/gaps (Q5) — pas seulement le catalogue et le prix.
+def _resume_facts_cb(segment=None):
+    # Le PDF/PPTX doit résumer TOUT — pas un seul segment (retour du directeur : « il n'y a pas
+    # CB Entreprises à part et Stratégie à part, le LLM reçoit toutes les données et résume »).
+    # On construit donc un bloc par segment et on les concatène, quel que soit le segment
+    # actuellement sélectionné dans le dashboard au moment du clic.
     CB = AGENTS["CB"].structured
-    q6 = CB.cb_analyse_q6(strategie.CB_ANNEE, strategie.CB_SEM, segment) or []
-    cmp = CB.cb_prix_competitivite(strategie.CB_ANNEE, strategie.CB_SEM, segment) or {}
-    bycat = sorted([r for r in q6 if (r.get("n_services") or 0) > 0], key=lambda r: -(r.get("n_services") or 0))
-    rang_cat = next((i + 1 for i, r in enumerate(bycat) if r["banque"] == "SGCI"), None)
-    sgci_q6 = next((r for r in q6 if r["banque"] == "SGCI"), {})
-    classes = cmp.get("classement") or []
-    rows_cat = "\n".join(f"  #{i+1} {r['banque']}: {r.get('n_services')} services, {r.get('pct_gratuit')}% gratuits"
-                          for i, r in enumerate(bycat))
-    rows_prix = "\n".join(f"  #{i+1} {c['banque']}: win-rate {c['winrate']}% (sur {c['n']} services comparables)"
-                           for i, c in enumerate(classes))
-    try:
-        excl = CB.cb_analyse_q3(strategie.CB_ANNEE, strategie.CB_SEM, segment) or []
-    except Exception:
-        excl = []
-    n_excl = sum(1 for r in excl if r.get("verdict") in ("differenciant", "non_contredit"))
-    try:
-        gaps = CB.cb_analyse_q5(strategie.CB_ANNEE, strategie.CB_SEM, segment) or []
-    except Exception:
-        gaps = []
-    gaps_reels = [g for g in gaps if (g.get("nb_banques") or 0) >= 3]
+    blocs = []
+    for seg in ("Particuliers", "Entreprises"):
+        q6 = CB.cb_analyse_q6(strategie.CB_ANNEE, strategie.CB_SEM, seg) or []
+        cmp = CB.cb_prix_competitivite(strategie.CB_ANNEE, strategie.CB_SEM, seg) or {}
+        bycat = sorted([r for r in q6 if (r.get("n_services") or 0) > 0], key=lambda r: -(r.get("n_services") or 0))
+        rang_cat = next((i + 1 for i, r in enumerate(bycat) if r["banque"] == "SGCI"), None)
+        sgci_q6 = next((r for r in q6 if r["banque"] == "SGCI"), {})
+        classes = cmp.get("classement") or []
+        rows_cat = "\n".join(f"    #{i+1} {r['banque']}: {r.get('n_services')} services, {r.get('pct_gratuit')}% gratuits"
+                              for i, r in enumerate(bycat))
+        rows_prix = "\n".join(f"    #{i+1} {c['banque']}: win-rate {c['winrate']}% (sur {c['n']} services comparables)"
+                               for i, c in enumerate(classes))
+        try:
+            excl = CB.cb_analyse_q3(strategie.CB_ANNEE, strategie.CB_SEM, seg) or []
+        except Exception:
+            excl = []
+        n_excl = sum(1 for r in excl if r.get("verdict") in ("differenciant", "non_contredit"))
+        try:
+            gaps = CB.cb_analyse_q5(strategie.CB_ANNEE, strategie.CB_SEM, seg) or []
+        except Exception:
+            gaps = []
+        gaps_reels = [g for g in gaps if (g.get("nb_banques") or 0) >= 3]
+        blocs.append(
+            f"  SEGMENT {seg.upper()} :\n"
+            f"  SGCI : catalogue #{rang_cat}/{len(bycat)} ({sgci_q6.get('n_services')} services, "
+            f"{sgci_q6.get('pct_gratuit')}% gratuits) ; prix #{cmp.get('rang_sgci')} en win-rate "
+            f"({(cmp.get('sgci') or {}).get('winrate')}%).\n"
+            f"  Exclusivités confirmées de SGCI : {n_excl}. Manques de SGCI face à ≥3 concurrents : {len(gaps_reels)}.\n"
+            f"  Classement catalogue :\n{rows_cat}\n  Classement prix (win-rate) :\n{rows_prix}")
     # PAS d'exemple isolé injecté ici (« ex. X ») — juste le chiffre. Un exemple arbitraire
     # (le premier trouvé, pas forcément le plus pertinent) ne fait qu'ajouter du bruit au résumé
     # (retour utilisateur : « comme le service pour... / dont le rejet de chèque... c'est pas utile »).
-    return (f"CONDITIONS BANCAIRES — segment {segment}, {strategie.CB_ANNEE} {strategie.CB_SEM} (dashboard complet : "
-            f"catalogue, positionnement prix, exclusivités, manques face à la concurrence).\n"
-            f"SGCI : catalogue #{rang_cat}/{len(bycat)} ({sgci_q6.get('n_services')} services, "
-            f"{sgci_q6.get('pct_gratuit')}% gratuits) ; prix #{cmp.get('rang_sgci')} en win-rate "
-            f"({(cmp.get('sgci') or {}).get('winrate')}%).\n"
-            f"Exclusivités confirmées de SGCI : {n_excl}.\n"
-            f"Manques de SGCI face à ≥3 concurrents : {len(gaps_reels)}.\n"
-            f"Classement catalogue :\n{rows_cat}\nClassement prix (win-rate) :\n{rows_prix}")
+    return (f"CONDITIONS BANCAIRES — LES DEUX SEGMENTS (Particuliers ET Entreprises), {strategie.CB_ANNEE} "
+            f"{strategie.CB_SEM} (dashboard complet : catalogue, positionnement prix, exclusivités, manques "
+            f"face à la concurrence — À RÉSUMER ENSEMBLE, PAS un seul segment).\n\n" + "\n\n".join(blocs))
 
 
-def _resume_facts_strategie(segment):
+def _resume_facts_strategie(segment=None):
     # Couvre TOUTES les sections du dashboard Stratégie : diagnostic, SWOT, Porter, VRIST,
     # révélations, plan 3 ans, projection à 3 scénarios — pas seulement diagnostic + 1 force/
     # faiblesse. 2026-07-24 : la Projection (section ⑧, la plus travaillée) manquait entièrement
     # du PDF — demande explicite du directeur (« le PDF doit être cohérent avec le dashboard »).
-    d = _strat_get(segment)
-    probs = (d.get("problemes") or [])[:5]
-    diag_f = "\n".join(f"  - [{p.get('gravite')}] {p.get('titre')}" for p in probs)
-    sw = d.get("swot") or {}
-    sw_f = "\n".join(f"  {q.upper()}: " + " | ".join(str(it.get('txt'))[:100] for it in (sw.get(q) or [])[:2])
-                      for q in ("forces", "faiblesses", "opportunites", "menaces") if sw.get(q))
-    porter = ((d.get("porter") or {}).get("forces")) or []
-    porter_f = "\n".join(f"  {f.get('force')}: intensité {f.get('intensite')}" for f in porter)
-    vr = ((d.get("vrist") or {}).get("banques") or {}).get("SGCI") or {}
-    vr_f = " · ".join(f"{x.get('nom') or x.get('cle')} {x.get('score')}/10" for x in (vr.get("dimensions") or []))
-    revs = (d.get("revelations") or [])[:4]
-    rev_f = "\n".join(f"  - {r.get('titre')}" for r in revs)
-    pl = d.get("roadmap") or {}
-    plan_f = "\n".join(f"  - {h.get('horizon')}: {h.get('theme')}" for h in (pl.get("horizons") or []))
+    # 2026-08-31 : les DEUX segments, pas un seul (même demande que pour Conditions bancaires).
+    blocs = []
+    for seg in ("Particuliers", "Entreprises"):
+        d = _strat_get(seg)
+        probs = (d.get("problemes") or [])[:5]
+        diag_f = "\n".join(f"    - [{p.get('gravite')}] {p.get('titre')}" for p in probs)
+        sw = d.get("swot") or {}
+        sw_f = "\n".join(f"    {q.upper()}: " + " | ".join(str(it.get('txt'))[:100] for it in (sw.get(q) or [])[:2])
+                          for q in ("forces", "faiblesses", "opportunites", "menaces") if sw.get(q))
+        porter = ((d.get("porter") or {}).get("forces")) or []
+        porter_f = "\n".join(f"    {f.get('force')}: intensité {f.get('intensite')}" for f in porter)
+        vr = ((d.get("vrist") or {}).get("banques") or {}).get("SGCI") or {}
+        vr_f = " · ".join(f"{x.get('nom') or x.get('cle')} {x.get('score')}/10" for x in (vr.get("dimensions") or []))
+        revs = (d.get("revelations") or [])[:4]
+        rev_f = "\n".join(f"    - {r.get('titre')}" for r in revs)
+        pl = d.get("roadmap") or {}
+        plan_f = "\n".join(f"    - {h.get('horizon')}: {h.get('theme')}" for h in (pl.get("horizons") or []))
 
-    ph = d.get("projection_hypotheses") or {}
-    proj_f = "\n".join(
-        f"  - {s.get('nom')} ({s.get('pct_effet')}% de l'écart-cible réalisé) : {s.get('formulation')}"
-        for s in (ph.get("scenarios") or [])
-    )
-    proj_metrics = d.get("projection") or []
-    metr_f = "\n".join(
-        f"  - {p.get('nom')} : {p.get('depart')} aujourd'hui → {p.get('central_an3')} à 3 ans "
-        f"(scénario central), fourchette {p.get('fourchette_an3')}"
-        for p in proj_metrics
-    )
-    concl = _re_rp.sub(r"<[^>]+>", "", ph.get("conclusion_strategique") or "")
+        ph = d.get("projection_hypotheses") or {}
+        proj_f = "\n".join(
+            f"    - {s.get('nom')} ({s.get('pct_effet')}% de l'écart-cible réalisé) : {s.get('formulation')}"
+            for s in (ph.get("scenarios") or [])
+        )
+        proj_metrics = d.get("projection") or []
+        metr_f = "\n".join(
+            f"    - {p.get('nom')} : {p.get('depart')} aujourd'hui → {p.get('central_an3')} à 3 ans "
+            f"(scénario central), fourchette {p.get('fourchette_an3')}"
+            for p in proj_metrics
+        )
+        concl = _re_rp.sub(r"<[^>]+>", "", ph.get("conclusion_strategique") or "")
+        blocs.append(
+            f"  SEGMENT {seg.upper()} :\n"
+            f"  Problèmes prioritaires :\n{diag_f}\n"
+            f"  SWOT :\n{sw_f}\n"
+            f"  Forces de Porter (intensité concurrentielle) :\n{porter_f}\n"
+            f"  Profil VRIST de SGCI (avantage concurrentiel /10) : {vr_f}\n"
+            f"  Révélations clés :\n{rev_f}\n"
+            f"  Plan 3 ans :\n{plan_f}\n"
+            f"  Projection 3 ans — 3 scénarios (même plan, niveaux d'exécution différents) :\n{proj_f}\n"
+            f"  Métriques projetées à 3 ans :\n{metr_f}\n"
+            f"  Conclusion stratégique de la projection : {concl}")
 
-    return (f"STRATÉGIE — segment {segment} (dashboard complet : diagnostic, SWOT, forces de Porter, "
-            f"profil VRIST, révélations, plan d'action 3 ans, projection à 3 scénarios).\n"
-            f"Problèmes prioritaires :\n{diag_f}\n\n"
-            f"SWOT :\n{sw_f}\n\n"
-            f"Forces de Porter (intensité concurrentielle) :\n{porter_f}\n\n"
-            f"Profil VRIST de SGCI (avantage concurrentiel /10) : {vr_f}\n\n"
-            f"Révélations clés :\n{rev_f}\n\n"
-            f"Plan 3 ans :\n{plan_f}\n\n"
-            f"Projection 3 ans — 3 scénarios (même plan, niveaux d'exécution différents) :\n{proj_f}\n\n"
-            f"Métriques projetées à 3 ans :\n{metr_f}\n\n"
-            f"Conclusion stratégique de la projection : {concl}")
+    return (f"STRATÉGIE — LES DEUX SEGMENTS (Particuliers ET Entreprises) — À RÉSUMER ENSEMBLE, PAS un seul "
+            f"segment (dashboard complet : diagnostic, SWOT, forces de Porter, profil VRIST, révélations, "
+            f"plan d'action 3 ans, projection à 3 scénarios).\n"
+            f"ATTENTION : PNB, résultat net, ROE et coût du risque viennent des états financiers, qui n'ont "
+            f"PAS de notion de segment — leurs chiffres sont IDENTIQUES dans les deux blocs ci-dessous. "
+            f"Mentionne-les UNE SEULE fois dans ton résumé, jamais « X chez les Particuliers et X chez les "
+            f"Entreprises » pour un chiffre qui est en réalité le même. Seuls le catalogue de services et "
+            f"le win-rate (Conditions bancaires) diffèrent vraiment par segment.\n\n" + "\n\n".join(blocs))
 
 
-def _resume_facts_stratop(segment):
-    """Couvre les vingt directives opérationnelles (quatre par direction), déjà calculées par
-    dash_app/directives.py — SANS modèle de langage. On les résume ici pour le LLM du PDF, on
-    ne les recalcule jamais : mêmes chiffres que la page Stratégie opérationnelle.
+def _resume_facts_stratop(segment=None):
+    """Couvre les vingt directives opérationnelles (quatre par direction) DE CHAQUE SEGMENT,
+    déjà calculées par dash_app/directives.py — SANS modèle de langage. On les résume ici pour
+    le LLM du PDF, on ne les recalcule jamais : mêmes chiffres que la page Stratégie
+    opérationnelle. 2026-08-31 : les DEUX segments (Particuliers ET Entreprises), pas un seul —
+    même demande que pour Conditions bancaires et Stratégie.
 
     REVU le 2026-08-31 (résumé jugé « mécanique et sale » : chaque point ne portait qu'un
     titre et un montant, jamais le CONSTAT qui le justifie — le LLM n'avait donc que des
     étiquettes à énumérer, pas un fait à raconter). On lui donne désormais le constat réel
     de chaque directive, déjà rédigé en français par le compositeur déterministe, ainsi que
     le bilan chiffré d'ensemble — de quoi construire une vraie synthèse plutôt qu'une liste."""
-    try:
-        d_all = _directives_en_cache(segment)
-        d = d_all.get("directives") or []
-        bilan = d_all.get("bilan") or {}
-    except Exception as e:
-        d, bilan = [], {}
-        print("[resume_facts_stratop]", str(e)[:120])
-    par_direction = {}
-    for x in d:
-        par_direction.setdefault(x.get("direction") or "Autre", []).append(x)
-    blocs = []
-    for nom, lot in sorted(par_direction.items()):
-        lignes = "\n".join(
-            f"    - {x.get('titre')}. Constat : {x.get('constat') or 'non disponible'} "
-            f"Apport estimé : {x.get('contribution') or 'non chiffré'}"
-            for x in sorted(lot, key=lambda x: x.get("rang") or 99))
-        blocs.append(f"  {nom} :\n{lignes}")
-    dirs_f = "\n".join(blocs) or "  (aucune directive disponible pour ce segment)"
-    bilan_f = (
-        f"Sur les {bilan.get('n_total', 20)} directives, {bilan.get('n_chiffrees', 0)} portent un "
-        f"apport chiffré, pour un total de {bilan.get('somme_mds', 0)} Mds FCFA de {bilan.get('unite','PNB')} — "
-        f"soit {bilan.get('couverture_pct', 'N/A')}% de l'écart à combler ({bilan.get('ecart_mds','N/A')} Mds)."
-        if bilan else "Bilan chiffré non disponible."
-    )
-    return (f"STRATÉGIE OPÉRATIONNELLE — segment {segment} (vingt directives, quatre par "
-            f"direction, chacune chiffrée à partir des grilles tarifaires publiées et des "
-            f"états financiers réels — jamais rédigées par un modèle de langage).\n"
-            f"Bilan d'ensemble : {bilan_f}\n\n"
-            f"Directives par direction (constat réel + apport estimé) :\n{dirs_f}")
+    segs_f = []
+    for seg in ("Particuliers", "Entreprises"):
+        try:
+            d_all = _directives_en_cache(seg)
+            d = d_all.get("directives") or []
+            bilan = d_all.get("bilan") or {}
+        except Exception as e:
+            d, bilan = [], {}
+            print("[resume_facts_stratop]", str(e)[:120])
+        par_direction = {}
+        for x in d:
+            par_direction.setdefault(x.get("direction") or "Autre", []).append(x)
+        blocs = []
+        for nom, lot in sorted(par_direction.items()):
+            lignes = "\n".join(
+                f"      - {x.get('titre')}. Constat : {x.get('constat') or 'non disponible'} "
+                f"Apport estimé : {x.get('contribution') or 'non chiffré'}"
+                for x in sorted(lot, key=lambda x: x.get("rang") or 99))
+            blocs.append(f"    {nom} :\n{lignes}")
+        dirs_f = "\n".join(blocs) or "    (aucune directive disponible pour ce segment)"
+        bilan_f = (
+            f"Sur les {bilan.get('n_total', 20)} directives, {bilan.get('n_chiffrees', 0)} portent un "
+            f"apport chiffré, pour un total de {bilan.get('somme_mds', 0)} Mds FCFA de {bilan.get('unite','PNB')} — "
+            f"soit {bilan.get('couverture_pct', 'N/A')}% de l'écart à combler ({bilan.get('ecart_mds','N/A')} Mds)."
+            if bilan else "Bilan chiffré non disponible."
+        )
+        segs_f.append(f"  SEGMENT {seg.upper()} :\n  Bilan d'ensemble : {bilan_f}\n"
+                       f"  Directives par direction (constat réel + apport estimé) :\n{dirs_f}")
+    return (f"STRATÉGIE OPÉRATIONNELLE — LES DEUX SEGMENTS (Particuliers ET Entreprises) — À RÉSUMER "
+            f"ENSEMBLE, PAS un seul segment (vingt directives par segment, quatre par direction, chacune "
+            f"chiffrée à partir des grilles tarifaires publiées et des états financiers réels — jamais "
+            f"rédigées par un modèle de langage).\n\n" + "\n\n".join(segs_f))
 
 
 def _deck_fmt_m(v):
@@ -3710,10 +3732,12 @@ def _deck_fmt_m(v):
     return f"{v:{fmt}}".replace(",", " ").replace(".", ",")
 
 
-def _deck_target_risque(segment):
+def _deck_target_risque(segment="Particuliers"):
     """Cible RÉELLE du coût du risque (scénario central à 3 ans), lue dans la projection
     Stratégie DÉJÀ calculée — jamais un chiffre rond inventé par le LLM du résumé. Demande
-    explicite du directeur : « pour la recommandation, suis ce que dit la Stratégie »."""
+    explicite du directeur : « pour la recommandation, suis ce que dit la Stratégie ». Le
+    diaporama couvre les deux segments, mais la recommandation « à retenir » ne peut porter
+    qu'UN chiffre cible — on ancre sur Particuliers (segment de référence du dashboard)."""
     try:
         d = _strat_get(segment)
         for p in (d.get("projection") or []):
@@ -3728,68 +3752,96 @@ def _deck_target_risque(segment):
 def api_deck_data():
     """Tableau, graphique et statistiques DÉTERMINISTES pour le diaporama téléchargeable
     (PPTX) — jamais un chiffre de LLM : les mêmes fonctions agent que le dashboard lui-même,
-    pour que le diaporama « reflète parfaitement l'interface »."""
+    pour que le diaporama « reflète parfaitement l'interface ». CB, Stratégie et Stratégie
+    opérationnelle couvrent LES DEUX SEGMENTS (Particuliers ET Entreprises) — demande explicite
+    du directeur : « il n'y a pas CB Entreprises à part et Stratégie à part »."""
     section = (request.args.get("section") or "ef").lower()
     segment = request.args.get("segment", "Particuliers")
     target = None
     try:
         if section == "cb":
             CB = AGENTS["CB"].structured
-            q6 = CB.cb_analyse_q6(strategie.CB_ANNEE, strategie.CB_SEM, segment) or []
-            cmp = CB.cb_prix_competitivite(strategie.CB_ANNEE, strategie.CB_SEM, segment) or {}
-            winrate_par_banque = {c["banque"]: c.get("winrate") for c in (cmp.get("classement") or [])}
-            bycat = sorted([r for r in q6 if (r.get("n_services") or 0) > 0], key=lambda r: -(r.get("n_services") or 0))
-            table = {"headers": ["Banque", "Services", "% gratuits", "Win-rate prix"],
-                     "rows": [[r["banque"], r.get("n_services"), r.get("pct_gratuit"),
-                               winrate_par_banque.get(r["banque"])] for r in bycat]}
-            chart = {"title": "Taille du catalogue par banque", "unit": "services",
-                     "labels": [r["banque"] for r in bycat], "values": [r.get("n_services") or 0 for r in bycat]}
-            sgci_q6 = next((r for r in q6 if r["banque"] == "SGCI"), {})
-            n_excl = 0
-            try:
-                excl = CB.cb_analyse_q3(strategie.CB_ANNEE, strategie.CB_SEM, segment) or []
-                n_excl = sum(1 for r in excl if r.get("verdict") in ("differenciant", "non_contredit"))
-            except Exception:
-                pass
-            sgci_cmp = cmp.get("sgci") or {}
-            stats = [
-                {"label": "Services au catalogue", "value": str(sgci_q6.get("n_services") or "—")},
-                {"label": "Services gratuits", "value": f"{sgci_q6.get('pct_gratuit')} %" if sgci_q6.get("pct_gratuit") is not None else "—"},
-                {"label": "Win-rate prix", "value": f"{sgci_cmp.get('winrate')} %" if sgci_cmp.get("winrate") is not None else "—"},
-                {"label": "Exclusivités", "value": str(n_excl)},
-            ]
+            rows, chart_labels, chart_series = [], [], {"Particuliers": {}, "Entreprises": {}}
+            stats = []
+            for seg in ("Particuliers", "Entreprises"):
+                q6 = CB.cb_analyse_q6(strategie.CB_ANNEE, strategie.CB_SEM, seg) or []
+                cmp = CB.cb_prix_competitivite(strategie.CB_ANNEE, strategie.CB_SEM, seg) or {}
+                winrate_par_banque = {c["banque"]: c.get("winrate") for c in (cmp.get("classement") or [])}
+                bycat = sorted([r for r in q6 if (r.get("n_services") or 0) > 0], key=lambda r: -(r.get("n_services") or 0))
+                for r in bycat:
+                    rows.append([r["banque"], seg, r.get("n_services"), r.get("pct_gratuit"),
+                                 winrate_par_banque.get(r["banque"])])
+                    chart_series[seg][r["banque"]] = r.get("n_services") or 0
+                    if r["banque"] not in chart_labels:
+                        chart_labels.append(r["banque"])
+                sgci_q6 = next((r for r in q6 if r["banque"] == "SGCI"), {})
+                sgci_cmp = cmp.get("sgci") or {}
+                stats.append({"label": f"Catalogue {seg}", "value": str(sgci_q6.get("n_services") or "—")})
+                stats.append({"label": f"Win-rate {seg}",
+                               "value": f"{sgci_cmp.get('winrate')} %" if sgci_cmp.get("winrate") is not None else "—"})
+            table = {"headers": ["Banque", "Segment", "Services", "% gratuits", "Win-rate prix"], "rows": rows}
+            chart_labels.sort(key=lambda b: -(chart_series["Particuliers"].get(b, 0) + chart_series["Entreprises"].get(b, 0)))
+            chart = {"title": "Taille du catalogue par banque", "unit": "services", "labels": chart_labels,
+                     "series": [{"name": seg, "values": [chart_series[seg].get(b, 0) for b in chart_labels]}
+                                for seg in ("Particuliers", "Entreprises")]}
         elif section == "strategie":
-            d = _strat_get(segment)
-            proj = d.get("projection") or []
+            # Certaines métriques de la projection viennent des États financiers, qui n'ont pas
+            # de notion de segment (mêmes chiffres partout) — les doubler avec un suffixe
+            # « (Particuliers) »/« (Entreprises) » identique des deux côtés serait trompeur (ça
+            # donnerait l'impression d'un vrai écart qui n'existe pas). On ne garde le détail par
+            # segment QUE pour les métriques qui diffèrent réellement (ex. le catalogue CB).
+            by_metric = {}
+            roe_combo = {}
+            for seg in ("Particuliers", "Entreprises"):
+                d = _strat_get(seg)
+                proj = d.get("projection") or []
+                for p in proj:
+                    by_metric.setdefault(p.get("nom"), {})[seg] = (p.get("depart"), p.get("central_an3"))
+                S = AGENTS["EF"].structured
+                kp = S.kpis_vue_ensemble(strategie.CB_ANNEE, strategie.CB_SEM, seg, 3) or {}
+                roe_combo[seg] = kp.get("roe_data") or {}
+            table_rows, stats = [], []
+            for nom, par_seg in by_metric.items():
+                vals = list(par_seg.values())
+                if len(vals) == 2 and vals[0] == vals[1]:
+                    table_rows.append([nom, vals[0][0], vals[0][1]])
+                    if len(stats) < 4:
+                        stats.append({"label": nom, "value": vals[0][0]})
+                else:
+                    for seg, (depart, cible) in par_seg.items():
+                        table_rows.append([f"{nom} ({seg})", depart, cible])
+                        if len(stats) < 4:
+                            stats.append({"label": f"{nom} ({seg})", "value": depart})
             table = {"headers": ["Indicateur", "Aujourd'hui", "Cible à 3 ans (scénario central)"],
-                      "rows": [[p.get("nom"), p.get("depart"), p.get("central_an3")] for p in proj]}
-            # Porter n'a que des intensités TEXTUELLES ("Élevée", "Modérée"...), pas de valeur
-            # numérique — inexploitable pour un graphique. Le ROE par banque (même source que
-            # le dashboard Santé financière) illustre directement le diagnostic concurrentiel.
-            S = AGENTS["EF"].structured
-            kp = S.kpis_vue_ensemble(strategie.CB_ANNEE, strategie.CB_SEM, segment, 3) or {}
-            roe = kp.get("roe_data") or {}
+                      "rows": table_rows}
+            # Le ROE (Santé financière) n'a PAS de notion de segment — un seul graphique suffit,
+            # il illustre déjà le diagnostic concurrentiel pour l'ensemble de la banque.
+            roe = roe_combo.get("Particuliers") or {}
             banks_roe = sorted(roe, key=lambda x: -(roe.get(x) or 0))
             chart = {"title": "ROE par banque", "unit": "%",
                      "labels": banks_roe, "values": [roe.get(b) or 0 for b in banks_roe]}
-            stats = [{"label": p.get("nom"), "value": p.get("depart")} for p in proj[:4]]
-            target = _deck_target_risque(segment)
+            stats = stats[:4]
+            target = _deck_target_risque("Particuliers")
         elif section == "stratop":
-            d_all = _directives_en_cache(segment)
-            d = d_all.get("directives") or []
-            bilan = d_all.get("bilan") or {}
-            top = sorted(d, key=lambda x: x.get("rang") or 99)[:8]
-            table = {"headers": ["Direction", "Directive", "Rang"],
-                      "rows": [[x.get("direction"), x.get("titre"), x.get("rang")] for x in top]}
+            table_rows, stats, bilans = [], [], {}
+            for seg in ("Particuliers", "Entreprises"):
+                d_all = _directives_en_cache(seg)
+                d = d_all.get("directives") or []
+                bilan = d_all.get("bilan") or {}
+                bilans[seg] = bilan
+                top = sorted(d, key=lambda x: x.get("rang") or 99)[:4]
+                for x in top:
+                    table_rows.append([seg, x.get("direction"), x.get("titre"), x.get("rang")])
+                stats.append({"label": f"Apport chiffré {seg}", "value": f"{bilan.get('somme_mds', 0)} Mds"})
+            table = {"headers": ["Segment", "Direction", "Directive", "Rang"], "rows": table_rows}
             chart = {"title": "Bilan chiffré du plan", "unit": "Mds FCFA",
-                     "labels": ["Apport chiffré", "Écart à combler"],
-                     "values": [bilan.get("somme_mds") or 0, bilan.get("ecart_mds") or 0]}
-            stats = [
-                {"label": "Apport chiffré", "value": f"{bilan.get('somme_mds', 0)} Mds"},
-                {"label": "Écart à combler", "value": f"{bilan.get('ecart_mds', 'N/A')} Mds"},
-                {"label": "Couverture", "value": (f"{bilan.get('couverture_pct')} %" if bilan.get("couverture_pct") is not None else "N/D")},
-                {"label": "Directives chiffrées", "value": f"{bilan.get('n_chiffrees', 0)}/{bilan.get('n_total', 20)}"},
-            ]
+                     "labels": ["Apport Particuliers", "Apport Entreprises"],
+                     "values": [bilans.get("Particuliers", {}).get("somme_mds") or 0,
+                                bilans.get("Entreprises", {}).get("somme_mds") or 0]}
+            b_p = bilans.get("Particuliers", {})
+            stats.append({"label": "Couverture Particuliers",
+                           "value": (f"{b_p.get('couverture_pct')} %" if b_p.get("couverture_pct") is not None else "N/D")})
+            stats.append({"label": "Directives chiffrées", "value": f"{b_p.get('n_chiffrees', 0)}/{b_p.get('n_total', 20)} (Particuliers)"})
         else:
             S = AGENTS["EF"].structured
             kp = S.kpis_vue_ensemble(strategie.CB_ANNEE, strategie.CB_SEM, segment, 3) or {}
@@ -3868,7 +3920,7 @@ def api_dashboard_resume():
     # fichier sans aucun glitch. C'est Poppler (pdftotext/pdftoppm) qui mal-interprète le flux
     # PDF généré par jsPDF sur cette machine. Pour vérifier un PDF généré par l'app, utiliser
     # PyMuPDF, pas Poppler.
-    key = f"resume_v13_{section}_{segment}_{_hlr.md5(facts.encode('utf-8')).hexdigest()[:12]}"
+    key = f"resume_v14_{section}_{segment}_{_hlr.md5(facts.encode('utf-8')).hexdigest()[:12]}"
     if cache.get(key):
         return jsonify({"resume": cache[key], "source": "cache"})
 
