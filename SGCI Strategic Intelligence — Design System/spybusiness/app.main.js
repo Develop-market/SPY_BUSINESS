@@ -466,7 +466,7 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
   if(deckData && deckData.table && deckData.table.rows && deckData.table.rows.length){
     const slide = P.addSlide();
     _bg(slide, _DK_CREAM);
-    _header(slide, "Données clés");
+    _header(slide, "Données clés", {rightLabel: deckData.period || ""});
     const t = deckData.table;
     // Les tableaux qui couvrent les deux segments (CB, Stratégie) ont beaucoup plus de lignes
     // (jusqu'à 14) qu'un tableau à un seul segment (7) — police et marges réduites en
@@ -500,7 +500,8 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
     const slide = P.addSlide();
     _bg(slide, _DK_CREAM);
     const c = deckData.chart;
-    _header(slide, c.title, {rightLabel: c.unit ? c.unit.toUpperCase() : ""});
+    const chartRight = [c.unit ? c.unit.toUpperCase() : "", deckData.period || ""].filter(Boolean).join(" · ");
+    _header(slide, c.title, {rightLabel: chartRight});
     const rows = c.labels.slice(0, 8);
     const top = 1.75, nameW = 1.5, valW = 1.9, barX = M+nameW+0.15, barW = W-2*M-nameW-valW-0.3;
 

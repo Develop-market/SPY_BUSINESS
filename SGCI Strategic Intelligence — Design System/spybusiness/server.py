@@ -3864,7 +3864,10 @@ def api_deck_data():
             target = _deck_target_risque(segment)
     except Exception as e:
         return jsonify({"table": None, "chart": None, "stats": None, "target": None, "error": str(e)[:200]}), 200
-    return jsonify({"table": table, "chart": chart, "stats": stats, "target": target})
+    # Période de référence des données affichées — sans elle, un tableau/graphique de banques
+    # est daté d'aucune façon visible (retour du directeur : « quelle période ??? »).
+    period = f"{strategie.CB_SEM} {strategie.CB_ANNEE}"
+    return jsonify({"table": table, "chart": chart, "stats": stats, "target": target, "period": period})
 
 
 def _pdf_plaintext(s):
