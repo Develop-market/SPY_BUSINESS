@@ -3702,8 +3702,12 @@ def _resume_facts_stratop(segment):
 
 def _deck_fmt_m(v):
     # Séparateur de milliers à la française pour les gros montants — sinon un tableau « pro »
-    # affiche « 101352 » collé, illisible au premier coup d'œil.
-    return f"{v:,.1f}".replace(",", " ").replace(".", ",") if isinstance(v, (int, float)) else v
+    # affiche « 101352 » collé, illisible au premier coup d'œil. Pas de ",0" décoratif quand
+    # le montant est un nombre entier (retour direct : « ces ,0 là, évite-les »).
+    if not isinstance(v, (int, float)):
+        return v
+    fmt = ",.0f" if float(v).is_integer() else ",.1f"
+    return f"{v:{fmt}}".replace(",", " ").replace(".", ",")
 
 
 def _deck_target_risque(segment):
@@ -3714,7 +3718,7 @@ def _deck_target_risque(segment):
         d = _strat_get(segment)
         for p in (d.get("projection") or []):
             if "risque" in (p.get("nom") or "").lower():
-                return {"label": "Coût du risque", "current": p.get("depart"), "target": p.get("central_an3")}
+                return {"label": "coût du risque/PNB", "current": p.get("depart"), "target": p.get("central_an3")}
     except Exception:
         pass
     return None
@@ -3793,7 +3797,7 @@ def api_deck_data():
             banks = sorted(rn, key=lambda x: -(rn.get(x) or 0))
             def _g(d, b):
                 return (kp.get(d) or {}).get(b)
-            table = {"headers": ["Banque", "Résultat net", "PNB", "ROE %", "Marge nette %", "Coeff. %", "Coût risque %"],
+            table = {"headers": ["Banque", "Résultat net", "PNB", "ROE %", "Marge nette %", "Coeff. %", "Coût risque/PNB %"],
                       "rows": [[b, _deck_fmt_m(_g("rn_data", b)), _deck_fmt_m(_g("pnb_data", b)), _g("roe_data", b),
                                 _g("marge_nette_data", b), _g("coeff_expl_data", b), _g("cout_r_pnb_data", b)]
                                for b in banks]}
@@ -3803,7 +3807,7 @@ def api_deck_data():
                 {"label": "Résultat net", "value": _deck_fmt_m(_g("rn_data", "SGCI"))},
                 {"label": "PNB", "value": _deck_fmt_m(_g("pnb_data", "SGCI"))},
                 {"label": "ROE", "value": f"{_g('roe_data', 'SGCI')} %"},
-                {"label": "Coût du risque", "value": f"{_g('cout_r_pnb_data', 'SGCI')} %"},
+                {"label": "coût du risque/PNB", "value": f"{_g('cout_r_pnb_data', 'SGCI')} %"},
             ]
             target = _deck_target_risque(segment)
     except Exception as e:

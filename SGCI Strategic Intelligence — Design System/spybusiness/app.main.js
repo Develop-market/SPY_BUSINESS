@@ -550,7 +550,7 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
     // estimation du LLM. Quand une cible déterministe existe, elle REMPLACE la phrase du LLM.
     const tgt = deckData && deckData.target;
     const conclusionTxt = (tgt && tgt.current && tgt.target)
-      ? `Priorité n°1 : ramener le ${(tgt.label||"coût du risque").toLowerCase()} de ${tgt.current} à ${tgt.target} d’ici trois ans, conformément à la trajectoire validée dans Stratégie.`
+      ? `Priorité n°1 : ramener le ${tgt.label||"coût du risque/PNB"} de ${tgt.current} à ${tgt.target} d’ici trois ans, conformément à la trajectoire validée dans Stratégie.`
       : (resume.conclusion || "");
     slide.addText(conclusionTxt, {x:M, y:2.25, w:W-2*M, h:3.1, fontFace:_F_SERIF, fontSize:31,
       color:"FFFFFF", valign:"top", fit:"shrink", lineSpacingMultiple:1.28});
