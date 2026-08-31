@@ -123,6 +123,19 @@ message. Mettre `sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-
 **`innerText` respecte `text-transform`.** Un libellé stylé en majuscules revient en
 CAPITALES : comparer sans tenir compte de la casse, sinon le test échoue à tort.
 
+**Poppler (`pdftotext`/`pdftoppm`) ment sur les PDF générés par jsPDF, sur cette machine.**
+Une nuit entière (2026-08-30/31) passée à chercher pourquoi le PDF « Rapport complet »
+affichait un « / » parasite juste avant chaque `%`/`:`/`Mds` (« 20,5 /% ») — vérifié
+« visuellement » via `pdftoppm`, et via `pdftotext` dans les deux modes. Tous les correctifs
+côté données (nettoyage de l'espace fine insécable U+202F, regex anti-« / », upgrade jsPDF
+2.3.1→4.0.0, désactivation du filigrane) n'ont RIEN changé — la preuve décisive : **PyMuPDF
+(`import fitz`) rend le MÊME fichier PDF sans le moindre glitch.** Poppler mal-interprète le
+flux de contenu que jsPDF génère sur ce poste ; ce n'est pas un défaut du PDF. Pour vérifier
+un PDF produit par l'app, utiliser PyMuPDF (`fitz.open(path).get_text()` /
+`page.get_pixmap()`), jamais Poppler. Les deux correctifs de nettoyage restent en place
+(l'espace U+202F n'a de toute façon pas de glyphe dans Helvetica/WinAnsi — un vrai problème
+séparé, juste pas celui qu'on croyait chasser).
+
 ---
 
 ## 6. Performance — ce qui a été mesuré
