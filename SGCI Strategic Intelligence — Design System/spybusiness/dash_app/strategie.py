@@ -1083,11 +1083,21 @@ def build_projection(ev):
         s["unite"] = unite
         plaus = plausibilite(rythmes, taux_hist, mode)
         unite_txt = "" if unite == "%" else f" {unite}"
-        hyp = (f"Cible : moyenne des 3 meilleures banques du panel sur {libelle_cible} "
-               f"({round(cb,1)}{unite_txt}{'%' if unite=='%' else ''}). "
-               f"Écart mesuré avec la SGCI : {round(abs(ecart),1)}{' pt' if unite=='%' else unite_txt}, "
-               f"réparti sur 3 ans selon le niveau d'exécution du scénario (aucun plafond : "
-               f"l'optimiste peut dépasser la cible).")
+        if ecart <= 0:
+            # ecart brut (cible - actuel, ou l'inverse si "baisse") negatif ou nul : la SGCI
+            # egale ou depasse deja la moyenne des 3 meilleures banques. Ne JAMAIS afficher
+            # abs(ecart) ici (ex. 157,9 Mds) : ca annoncerait un rattrapage a repartir sur 3 ans
+            # qui n'existe pas — les trois scenarios sont alors identiques (ecart applique = 0).
+            hyp = (f"Cible : moyenne des 3 meilleures banques du panel sur {libelle_cible} "
+                   f"({round(cb,1)}{unite_txt}{'%' if unite=='%' else ''}). "
+                   f"Aucun écart : la SGCI est déjà à ce niveau ou au-delà ({round(b,1)}{unite_txt}"
+                   f"{'%' if unite=='%' else ''}), aucun rattrapage n'est donc simulé.")
+        else:
+            hyp = (f"Cible : moyenne des 3 meilleures banques du panel sur {libelle_cible} "
+                   f"({round(cb,1)}{unite_txt}{'%' if unite=='%' else ''}). "
+                   f"Écart mesuré avec la SGCI : {round(ecart,1)}{' pt' if unite=='%' else unite_txt}, "
+                   f"réparti sur 3 ans selon le niveau d'exécution du scénario (aucun plafond : "
+                   f"l'optimiste peut dépasser la cible).")
         out.append({"nom": nom, **s, "cible": round(cb, 2),
                     "rythme_requis": {k: (round(v, 2) if v is not None else None) for k, v in rythmes.items()},
                     "plausibilite": plaus, "hypothese": hyp})

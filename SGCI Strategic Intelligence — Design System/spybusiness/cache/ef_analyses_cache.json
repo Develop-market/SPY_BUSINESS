@@ -343,5 +343,34 @@
   "ef_v38_Particuliers_3_f90cd32f79@meta": {
     "generated_at": "2026-07-30T07:54:42",
     "stale": false
+  },
+  "ef_v38_Particuliers_3_3c0430b9cd": {
+    "signal": "SGCI occupe le <b>#1</b> du classement du résultat net avec <b>101 Mds FCFA</b>, ce qui représente <b>34 %</b> du total sectoriel ; il conserve ainsi la première place sur la période 2023‑2025.<br>Reste à déterminer si ce leadership en profit repose sur les revenus les plus élevés du marché.",
+    "podium": "Podium du résultat net : <b>SGCI 101,4 Mds</b>, <b>ECOBANK 63,5 Mds</b>, <b>SIB 55,6 Mds</b> ; ces trois établissements concentrent <b>74 %</b> des bénéfices du secteur, SGCI seul en détient <b>34 %</b>.",
+    "growth": "SGCI n’a progressé que de <b>4 %</b> sur la période, ce qui reflète l’effet de base d’un socle déjà très élevé ; en revanche, BICICI, parti de <b>17 Mds</b> en 2023, a atteint <b>37 Mds</b> en 2025, soit un multiple de <b>2,2×</b> et la plus forte accélération du segment.<br>Cette dynamique de BICICI, bien que partant d’un volume modeste, constitue le principal signal de changement à surveiller sur les deux prochaines années.",
+    "bump": "Sur la trajectoire des rangs, BNI passe de la <b>#5</b> à la <b>#4</b>, NSIA monte de <b>#6</b> à <b>#5</b>, et BICICI progresse de <b>#7</b> à <b>#6</b> ; ces trois banques gagnent chacune une place, BNI étant le plus dynamique avec une hausse d’une position.",
+    "line": "Le résultat net de SGCI reste stable autour de <b>101 Mds</b> (97 → 101 → 101), tandis que le second, ECOBANK, progresse de <b>48 Mds</b> à <b>63 Mds</b>, réduisant l’écart de <b>53 Mds</b> à <b>38 Mds</b>.<br>Cette réduction indique que l’avance de SGCI se creuse modestement, mais demeure confortable à moyen terme.",
+    "tree": "SGCI pèse <b>1,6×</b> plus que ECOBANK (101 vs 63 Mds) et <b>2,8×</b> plus que BICICI (101 vs 37 Mds), soulignant une domination en volume largement supérieure aux concurrents.",
+    "share": "Aligner la marge nette de SGCI (36,7 %) sur celle de SIB (51,2 %) générerait un gain potentiel de <b>≈ 40 Mds FCFA</b> de résultat net, sans aucun crédit additionnel.",
+    "pnb": "Le PNB de SGCI atteint <b>276 Mds FCFA<b> en 2025</b>, le plaçant en tête du segment ; toutefois, la conversion de ce volume en profit reste limitée, comme le montre la marge nette de 36,7 %.",
+    "cd": "Le ratio crédits/dépôts de SGCI s’établit à <b>88 %</b>, bien dans la zone cible BCEAO (80‑100 %); le meilleur du groupe, SIB, opère à <b>82 %</b>, tandis qu’ECOBANK reste en retrait à <b>69 %</b>.",
+    "mix": "SGCI tire <b>70 %</b> de son PNB des intérêts et <b>22 %</b> des commissions, ce qui indique une dépendance notable au crédit ; les banques plus équilibrées comme BICICI (65 %/32 %) diversifient davantage leurs sources de revenu.",
+    "cascade": "Sur 276 Mds de PNB, SGCI conserve <b>169 Mds</b> après charges d’exploitation (61 %), <b>122 Mds</b> après coût du risque (44 %), pour arriver à <b>101 Mds</b> de résultat net (37 %); la perte la plus importante survient entre le RBE et le RE, où le coût du risque absorbe <b>47 Mds</b>.",
+    "marge": "La marge nette de SGCI (36,7 %) se situe <b>14,5 points</b> en dessous de la meilleure du marché, SIB (51,2 %); cet écart traduit une capacité de profit non exploitée malgré le plus grand PNB.",
+    "coeff": "Le coefficient d’exploitation de SGCI est de <b>38,8 %</b> (2025), parmi les plus bas du secteur, ce qui montre une maîtrise efficace des charges ; la faiblesse de la marge résulte donc principalement du coût du risque, et non des dépenses opérationnelles.",
+    "roe": "Le ROE de SGCI a baissé de <b>24,1 %</b> à <b>20,5 %</b> entre 2023 et 2025, se situant derrière les leaders (ECOBANK 29 %).<br>Ce ROE plus modeste s’explique par une base de capitaux propres nettement plus élevée, ce qui dilue la rentabilité pour les actionnaires.",
+    "cnr": "SGCI provisionne <b>17,0 %</b> du PNB, soit <b>≈ 47 Mds FCFA</b> en provisions, soit <b>9×</b> plus que BICICI (1,9 %).<br>Réduire ce taux au niveau de BICICI ajouterait <b>≈ 42 Mds FCFA</b> de résultat net, sans accorder de crédit supplémentaire.",
+    "coeff_line": "Le coefficient d’exploitation de SGCI est passé de <b>41,7 %</b> (2023) à <b>38,8 %</b> (2025), soit une amélioration de <b>2,9 pts</b>, maintenant le rang <b>#2/7</b> et restant sous la barre BCEAO de 40 %.<br>ECOBANK a enregistré la plus forte baisse, de <b>85,3 %</b> à <b>42,9 %</b> (‑42,4 pts), resserrant son écart avec SGCI.<br>Cette progression d’ECOBANK montre que l’avance opérationnelle de SGCI n’est plus acquise et pourrait être remise en cause.",
+    "cnr_line": "Le coût du risque de SGCI a progressé de <b>116 pb</b> (2023) à <b>184 pb</b> (2025), soit une hausse de <b>+68 pb</b>, maintenant le rang <b>#7/7</b> face à une médiane sectorielle de <b>47 pb</b>.<br>SIB constitue le contre‑exemple, passant de <b>77 pb</b> à <b>29 pb</b> (÷ 2,6), prouvant qu’une réduction drastique est réalisable.<br>Si SGCI franchit la zone de surveillance BCEAO (>200 pb), il s’exposerait à des contraintes de supervision renforcées.",
+    "s1": "SGCI se maintient à la première place du résultat net avec <b>101 Mds FCFA</b>, soit <b>34 %</b> du total sectoriel, consolidant son statut de leader absolu.<br>Reste à savoir si ce leadership en profit s’appuie sur les revenus les plus élevés.",
+    "s2": "SGCI génère le plus important PNB du groupe, <b>276 Mds FCFA</b>, avec une répartition 70 % intérêts / 22 % commissions, ce qui confirme son poids commercial.<br>Mais le plus gros revenu devient-il le plus gros profit?",
+    "s3": "SGCI affiche un coefficient d’exploitation de <b>38,8 %</b>, l’un des plus bas, mais sa marge nette plafonne à <b>36,7 %</b>, indiquant que le frein ne provient pas des charges opérationnelles.<br>Alors, où le profit s’évapore‑t‑il?",
+    "s4": "Le coût du risque absorbe <b>≈ 47 Mds FCFA</b> de provisions, soit le principal frein à la rentabilité de SGCI.<br>Réduire ce taux au niveau de BICICI libérerait <b>≈ 42 Mds FCFA</b> de résultat net supplémentaire, renforçant la création de valeur.",
+    "line_roe": "Le ROE de SGCI a reculé de <b>24,1 %</b> à <b>20,5 %</b> entre 2023 et 2025, se plaçant derrière le leader ECOBANK (29 %).<br>Cette baisse reflète la dilution du rendement actionnarial due à une base de capitaux propres élevée.",
+    "line_pnb": "Le PNB de SGCI est passé de <b>253 Mds</b> (2023) à <b>276 Mds</b> (2025), soit une croissance de <b>9 %</b>, le maintenant en tête du segment ; BICICI, parti de <b>56 Mds</b> en 2023, a progressé à <b>80 Mds</b> en 2025 (+43 %), affichant la plus forte accélération."
+  },
+  "ef_v38_Particuliers_3_3c0430b9cd@meta": {
+    "generated_at": "2026-08-30T23:52:26",
+    "stale": false
   }
 }

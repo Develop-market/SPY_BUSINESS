@@ -3655,6 +3655,47 @@ def _resume_facts_strategie(segment):
             f"Conclusion stratégique de la projection : {concl}")
 
 
+def _resume_facts_stratop(segment):
+    """Couvre les vingt directives opérationnelles (quatre par direction), déjà calculées par
+    dash_app/directives.py — SANS modèle de langage. On les résume ici pour le LLM du PDF, on
+    ne les recalcule jamais : mêmes chiffres que la page Stratégie opérationnelle.
+
+    REVU le 2026-08-31 (résumé jugé « mécanique et sale » : chaque point ne portait qu'un
+    titre et un montant, jamais le CONSTAT qui le justifie — le LLM n'avait donc que des
+    étiquettes à énumérer, pas un fait à raconter). On lui donne désormais le constat réel
+    de chaque directive, déjà rédigé en français par le compositeur déterministe, ainsi que
+    le bilan chiffré d'ensemble — de quoi construire une vraie synthèse plutôt qu'une liste."""
+    try:
+        d_all = _directives_en_cache(segment)
+        d = d_all.get("directives") or []
+        bilan = d_all.get("bilan") or {}
+    except Exception as e:
+        d, bilan = [], {}
+        print("[resume_facts_stratop]", str(e)[:120])
+    par_direction = {}
+    for x in d:
+        par_direction.setdefault(x.get("direction") or "Autre", []).append(x)
+    blocs = []
+    for nom, lot in sorted(par_direction.items()):
+        lignes = "\n".join(
+            f"    - {x.get('titre')}. Constat : {x.get('constat') or 'non disponible'} "
+            f"Apport estimé : {x.get('contribution') or 'non chiffré'}"
+            for x in sorted(lot, key=lambda x: x.get("rang") or 99))
+        blocs.append(f"  {nom} :\n{lignes}")
+    dirs_f = "\n".join(blocs) or "  (aucune directive disponible pour ce segment)"
+    bilan_f = (
+        f"Sur les {bilan.get('n_total', 20)} directives, {bilan.get('n_chiffrees', 0)} portent un "
+        f"apport chiffré, pour un total de {bilan.get('somme_mds', 0)} Mds FCFA de {bilan.get('unite','PNB')} — "
+        f"soit {bilan.get('couverture_pct', 'N/A')}% de l'écart à combler ({bilan.get('ecart_mds','N/A')} Mds)."
+        if bilan else "Bilan chiffré non disponible."
+    )
+    return (f"STRATÉGIE OPÉRATIONNELLE — segment {segment} (vingt directives, quatre par "
+            f"direction, chacune chiffrée à partir des grilles tarifaires publiées et des "
+            f"états financiers réels — jamais rédigées par un modèle de langage).\n"
+            f"Bilan d'ensemble : {bilan_f}\n\n"
+            f"Directives par direction (constat réel + apport estimé) :\n{dirs_f}")
+
+
 def _pdf_plaintext(s):
     """Nettoyage TEXTE BRUT pour le résumé PDF (jsPDF dessine du texte, PAS du HTML) : contrairement
     aux autres endpoints LLM de l'app, ici un <br> ou <b> qui fuit s'affiche LITTÉRALEMENT dans le
@@ -3664,6 +3705,12 @@ def _pdf_plaintext(s):
     if not t:
         return t
     t = _re_rp.sub(r"</?(?:br|b|i|em|strong)\s*/?>", " ", t, flags=_re_rp.I)
+    # Tic récurrent du modèle Groq (openai/gpt-oss-120b) : un « / » parasite précédé d'une espace,
+    # juste avant une unité/ponctuation (« 20,5 /% », « Priorité n°1 /: », « 34,5 /Mds FCFA »),
+    # qui résiste même à une consigne de prompt explicite. On ne retire QUE le « / » précédé d'une
+    # espace — « coût du risque/PNB » (ratio légitime, collé sans espace) reste intact. Le
+    # déterministe corrige ce que le prompt n'arrive pas à garantir.
+    t = _re_rp.sub(r"\s+/(?=[%:]|Mds\b|[A-ZÉÈÀÂÊÎÔÛ])", " ", t)
     t = _re_rp.sub(r"\s{2,}", " ", t).strip()
     t = _re_rp.sub(r",\s*([.!?])", r"\1", t)   # « ,. » ou « , . » → « . »
     t = _re_rp.sub(r"([.!?]){2,}", r"\1", t)   # ponctuation dupliquée
@@ -3684,6 +3731,9 @@ def api_dashboard_resume():
         elif section == "strategie":
             facts = _resume_facts_strategie(segment)
             titre_dash = "Stratégie"
+        elif section == "stratop":
+            facts = _resume_facts_stratop(segment)
+            titre_dash = "Stratégie opérationnelle"
         else:
             facts = _resume_facts_ef(segment)
             titre_dash = "Santé financière"
@@ -3691,7 +3741,15 @@ def api_dashboard_resume():
         return jsonify({"resume": None, "error": str(e)}), 200
 
     cache = _resume_cache()
-    key = f"resume_v8_{section}_{segment}_{_hlr.md5(facts.encode('utf-8')).hexdigest()[:12]}"
+    # v8 -> v12 (2026-08-31) : le hash des faits seul ne détecte pas qu'on a changé le PROMPT
+    # (constat+bilan pour stratop, interdiction du « / » collé, variété de construction) — il
+    # faut donc monter la version à chaque changement de prompt pour forcer la régénération.
+    # NOTE pour la prochaine session : le « / » parasite avant %/:/Mds observé cette nuit dans
+    # les PDF (« 20,5 /% ») n'était PAS réel — vérifié avec PyMuPDF (fitz) qui rend le même
+    # fichier sans aucun glitch. C'est Poppler (pdftotext/pdftoppm) qui mal-interprète le flux
+    # PDF généré par jsPDF sur cette machine. Pour vérifier un PDF généré par l'app, utiliser
+    # PyMuPDF, pas Poppler.
+    key = f"resume_v12_{section}_{segment}_{_hlr.md5(facts.encode('utf-8')).hexdigest()[:12]}"
     if cache.get(key):
         return jsonify({"resume": cache[key], "source": "cache"})
 
@@ -3710,6 +3768,12 @@ conclusion creuse ou générique qui ne s'appuie sur aucun chiffre. INTERDIT ABS
 HTML (<br>, <b>, etc.) — ce texte va dans un PDF en TEXTE BRUT, sépare tes phrases par un simple
 point, jamais par une balise. Les grands nombres sont DÉJÀ formatés dans les faits ci-dessus
 (espace tous les 3 chiffres, virgule décimale) — RECOPIE-les à l'identique, ne les reformate pas.
+INTERDIT ABSOLU : le caractère « / » N'IMPORTE OÙ dans ta réponse, SAUF collé dans les DEUX
+expressions exactes « coût du risque/PNB » et « J/N » si elles apparaissent DÉJÀ ainsi dans les
+faits ci-dessus. En particulier JAMAIS de « / » avant un « % » (interdit : « 20,5 /% », correct :
+« 20,5 % »), JAMAIS avant « Mds » (interdit : « 3,6/Mds », correct : « 3,6 Mds FCFA »), JAMAIS
+avant « : » (interdit : « Priorité n°1 /: », correct : « Priorité n°1 : »). N'écris JAMAIS un « / »
+juste avant un espace ou une ponctuation — si un doute existe, n'écris PAS de « / » du tout.
 INTERDIT AUSSI : accrocher un exemple isolé et arbitraire en fin de phrase avec « comme… » ou
 « dont… » (ex. « 8 exclusivités, comme le service X » ou « 10 manques, dont le rejet de chèque »)
 — cite le CHIFFRE seul, sans exemple d'illustration, sauf si CET exemple précis est explicitement
@@ -3742,7 +3806,10 @@ liste de faits redondants avec @@points@@. Termine sur le fait le plus significa
 … (6 à 8 points clés, UN PAR LIGNE commençant par « - », chacun un chiffre réel DIFFÉRENT à l'appui
 (deux points ne portent JAMAIS le même chiffre) — couvre CHAQUE section listée ci-dessus, pas
 seulement la première ; chaque point est un FAIT CHIFFRÉ, jamais une recommandation ou un point sans
-chiffre propre (interdit : « SGCI doit renforcer son offre » — un point sans chiffre n'a pas sa place ici))
+chiffre propre (interdit : « SGCI doit renforcer son offre » — un point sans chiffre n'a pas sa place ici).
+VARIE la construction d'un point à l'autre — n'ouvre JAMAIS plus de deux points de suite par le même
+tour de phrase (interdit : « X Mds FCFA d'apport [gérondif]… » répété en tête de chaque point) ; alterne
+sujet-verbe-complément, chiffre en ouverture, ou proposition subordonnée)
 @@analyse@@
 … (analyse en 3 à 5 phrases : le POURQUOI derrière les chiffres, ce qui les relie)
 @@conclusion@@

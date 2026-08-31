@@ -272,10 +272,12 @@ const _PDF_SECTION_MAP = {
   "Analyse Concurrentielle": "cb",
   "Benchmark Concurrentiel": "cb",
   "Stratégie SGCI": "strategie",
+  "Stratégie Opérationnelle": "stratop",
   "Rapports SGCI": "strategie",
 };
 function _pdfSegment(section){
   if(section === "strategie") return (typeof STRAT_SEG !== "undefined" && STRAT_SEG) || "Particuliers";
+  if(section === "stratop") return (typeof CB_SEG !== "undefined" && CB_SEG) || "Particuliers";
   const f = (typeof APERCU_FILTERS !== "undefined") ? APERCU_FILTERS : {};
   return f.frais_seg || "Particuliers";
 }
@@ -303,7 +305,8 @@ async function exportPDF(title){
 
   let resume = null;
   try{
-    const r = await fetch(`/api/dashboard_resume?section=${section}&segment=${encodeURIComponent(segment)}`);
+    const r = await fetch(`/api/dashboard_resume?section=${section}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`,
+                          {cache: "no-store"});
     const j = await r.json();
     resume = j && j.resume;
     if(resume) resume._stale = j.stale, resume._generatedAt = j.generated_at;
@@ -333,9 +336,28 @@ async function exportPDF(title){
   document.body.removeChild(ov);
 }
 
+// La police de base de jsPDF (Helvetica/WinAnsi) n'a pas le glyphe de l'espace fine insécable
+// (U+202F) que le français utilise avant %, avant : et comme séparateur de milliers — jsPDF le
+// rend alors par un caractère parasite ("20,5 /%" au lieu de "20,5 %"). On le remplace par une
+// espace normale avant tout dessin ; découvert le 30/08/2026 sur le PDF global (résumés stratop).
+function _pdfClean(s){
+  return typeof s === "string" ? s.replace(/[    ⁠]/g, " ") : s;
+}
+function _pdfCleanResume(r){
+  if(!r) return r;
+  const c = Object.assign({}, r);
+  c.titre = _pdfClean(c.titre);
+  c.executif = _pdfClean(c.executif);
+  c.conclusion = _pdfClean(c.conclusion);
+  if(Array.isArray(c.points)) c.points = c.points.map(_pdfClean);
+  return c;
+}
+
 // Rendu PDF NATIF (jsPDF texte/formes directement, AUCUNE capture DOM/html2canvas) — fini les PDF
 // vides ou tronqués selon l'état de la page : ici on dessine nous-mêmes, donc c'est déterministe.
 async function _pdfRenderNative(resume, title, date){
+  resume = _pdfCleanResume(resume);
+  date = _pdfClean(date);
   const RED = [229, 20, 43], DARKGRAY = [40, 40, 40], MIDGRAY = [110, 110, 110], LIGHTBG = [251, 244, 244], BLUEBG = [243, 245, 248];
   const M = 16;                      // marge (mm)
   // Source unique du logo : le PDF n'affiche QUE le logo SGCI, jamais d'autre marque/monogramme.
@@ -476,7 +498,226 @@ async function _pdfRenderNative(resume, title, date){
   pdf.text("Résumé rédigé par l'agent IA à partir des données réellement stockées — chaque chiffre est vérifiable dans le dashboard SpyBusiness.",
             pageW / 2, pageH - 10, {align: "center", maxWidth: contentW});
 
+  _pdfNumeroterPages(pdf, pageW, pageH, M);
   pdf.save(`SpyBusiness — ${resume.titre || title} — ${date}.pdf`);
+}
+
+// Numéros de page "N / total" — posés en dernier, une fois le nombre total de pages connu
+// (impossible de le savoir avant, jsPDF ne pagine qu'au fil des ensure()/addPage()).
+function _pdfNumeroterPages(pdf, pageW, pageH, M){
+  const n = pdf.internal.getNumberOfPages();
+  if(n < 2) return;   // 1 page : le numéro n'apporte rien, on ne l'affiche pas.
+  for(let p = 1; p <= n; p++){
+    pdf.setPage(p);
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.setTextColor(170, 170, 170);
+    pdf.text(`${p} / ${n}`, pageW - M, pageH - 10, {align: "right"});
+  }
+}
+
+/* ── PDF global — un seul document, toutes les sections en chapitres ─────────────────────
+   Demande explicite : « un PDF global qui contient absolument tout... un vrai document chic
+   à lire ». Réutilise le même rendu natif que chaque section (jamais de capture d'écran, pour
+   les mêmes raisons de fiabilité), mais dans UN SEUL pdf : page de couverture + sommaire, puis
+   un chapitre par section, numérotation posée à la toute fin. */
+const _PDF_GLOBAL_SECTIONS = [
+  ["ef", "Santé financière"],
+  ["cb", "Conditions bancaires"],
+  ["strategie", "Stratégie"],
+  ["stratop", "Stratégie opérationnelle"],
+];
+
+async function exportPDFGlobal(){
+  const date = new Date().toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"});
+  const segment = _pdfSegment("cb");   // segment commun à toutes les sections du rapport
+
+  const ov = document.createElement("div");
+  ov.id = "_pdf_ov";
+  ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:system-ui;backdrop-filter:blur(10px)";
+  ov.innerHTML = '<div style="text-align:center;color:#fff"><div style="font-size:40px">📘</div><div style="font:700 17px/1.4 system-ui;margin-top:14px">Génération du rapport complet…</div><div style="font:400 11px system-ui;color:rgba(255,255,255,.45);margin-top:6px">Quatre sections à rassembler — jusqu\'à une minute la 1<sup>re</sup> fois</div></div>';
+  document.body.appendChild(ov);
+
+  const resumes = [];
+  for(const [key, label] of _PDF_GLOBAL_SECTIONS){
+    try{
+      const r = await fetch(`/api/dashboard_resume?section=${key}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`,
+                            {cache: "no-store"});
+      const j = await r.json();
+      if(j && j.resume && j.resume.executif){
+        if(j.resume) j.resume._stale = j.stale, j.resume._generatedAt = j.generated_at;
+        resumes.push([label, j.resume]);
+      }
+    }catch(e){ /* section indisponible → simplement absente du rapport, pas d'échec global */ }
+  }
+
+  if(!resumes.length){
+    document.body.removeChild(ov);
+    alert("Aucun résumé n'est disponible pour le moment (quota ou service IA indisponible).\n\n"+
+          "Réessayez dans quelques minutes, ou utilisez « Rafraîchir les analyses » puis réessayez.");
+    return;
+  }
+
+  const ok = await _pdfLoadLib();
+  if(!ok){
+    document.body.removeChild(ov);
+    alert("La librairie PDF n'a pas pu être chargée (connexion internet requise la 1ʳᵉ fois).");
+    return;
+  }
+
+  try{
+    await _pdfRenderGlobal(resumes, segment, date);
+  }catch(e){
+    console.error("pdf global error", e);
+    alert("Erreur lors de la génération du rapport : " + e.message);
+  }
+  document.body.removeChild(ov);
+}
+
+async function _pdfRenderGlobal(resumes, segment, date){
+  resumes = resumes.map(([lbl, r]) => [lbl, _pdfCleanResume(r)]);
+  date = _pdfClean(date);
+  const RED = [229, 20, 43], DARKGRAY = [40, 40, 40], MIDGRAY = [110, 110, 110], LIGHTBG = [251, 244, 244], BLUEBG = [243, 245, 248];
+  const M = 16;
+  const logo = await _pdfLoadImg("assets/logos/SGCI.png").catch(() => null);
+
+  const src = document.createElement("div");
+  const pdf = await html2pdf().set({jsPDF: {unit: "mm", format: "a4", orientation: "portrait"}})
+                                .from(src).toPdf().get("pdf");
+  const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
+  const contentW = pageW - 2 * M;
+  let y = M;
+
+  const _wmStamp = new Date().toLocaleString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  const _addWatermark = () => {
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(24);
+    pdf.setTextColor(238, 238, 238);
+    pdf.text("DIRECTION INNOVATION SGCI", pageW / 2, pageH / 2 - 6, {angle: 40, align: "center"});
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
+    pdf.text(_wmStamp, pageW / 2, pageH / 2 + 10, {angle: 40, align: "center"});
+  };
+  const ensure = (needed) => { if(y + needed > pageH - 14){ pdf.addPage(); _addWatermark(); y = M; } };
+  const wrapped = (text, x, w, size, style, color, lh) => {
+    pdf.setFont("helvetica", style || "normal"); pdf.setFontSize(size);
+    pdf.setTextColor(color[0], color[1], color[2]);
+    const lines = pdf.splitTextToSize(text || "", w);
+    const lineH = lh || size * 0.42;
+    for(const ln of lines){ ensure(lineH); pdf.text(ln, x, y); y += lineH; }
+    return y;
+  };
+  const label = (text, color) => {
+    ensure(6);
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(8.5);
+    pdf.setTextColor(color[0], color[1], color[2]);
+    pdf.text(text.toUpperCase(), M, y);
+    y += 5.5;
+  };
+
+  /* ── Couverture ── */
+  _addWatermark();
+  if(logo){ try{ pdf.addImage(logo, "PNG", pageW / 2 - 12, 44, 24, 24); }catch(e){} }
+  pdf.setFont("helvetica", "bold"); pdf.setFontSize(22); pdf.setTextColor(20, 20, 20);
+  pdf.text("Rapport de veille stratégique", pageW / 2, 82, {align: "center"});
+  pdf.setFont("helvetica", "normal"); pdf.setFontSize(12); pdf.setTextColor(MIDGRAY[0], MIDGRAY[1], MIDGRAY[2]);
+  pdf.text(`SGCI · Segment ${segment}`, pageW / 2, 90, {align: "center"});
+  pdf.setDrawColor(RED[0], RED[1], RED[2]); pdf.setLineWidth(0.8);
+  pdf.line(pageW / 2 - 28, 96, pageW / 2 + 28, 96);
+  pdf.setFont("helvetica", "normal"); pdf.setFontSize(10); pdf.setTextColor(150, 150, 150);
+  pdf.text(`Généré le ${date}`, pageW / 2, 104, {align: "center"});
+
+  let ty = 128;
+  pdf.setFont("helvetica", "bold"); pdf.setFontSize(9.5); pdf.setTextColor(RED[0], RED[1], RED[2]);
+  pdf.text("SOMMAIRE", M, ty); ty += 9;
+  resumes.forEach(([lbl, r], i) => {
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(11.5); pdf.setTextColor(30, 30, 30);
+    pdf.text(`${i + 1}.`, M + 2, ty);
+    pdf.text(r.titre || lbl, M + 10, ty);
+    ty += 8.5;
+  });
+  pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(170, 170, 170);
+  pdf.text("Chaque section est rédigée par l'agent IA à partir des données réellement stockées — "
+          + "chaque chiffre est vérifiable dans le dashboard SpyBusiness.",
+            pageW / 2, pageH - 16, {align: "center", maxWidth: contentW});
+
+  /* ── Un chapitre par section ── */
+  for(let i = 0; i < resumes.length; i++){
+    const [lbl, resume] = resumes[i];
+    pdf.addPage(); _addWatermark(); y = M;
+
+    pdf.setFillColor(RED[0], RED[1], RED[2]);
+    pdf.rect(M, y, 3, 12, "F");
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(8); pdf.setTextColor(MIDGRAY[0], MIDGRAY[1], MIDGRAY[2]);
+    pdf.text(`SECTION ${i + 1} / ${resumes.length} · ${lbl.toUpperCase()}`, M + 7, y + 4);
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(16); pdf.setTextColor(20, 20, 20);
+    pdf.text(resume.titre || lbl, M + 7, y + 11);
+    y += 18;
+    pdf.setDrawColor(220, 220, 220); pdf.setLineWidth(0.4);
+    pdf.line(M, y, pageW - M, y);
+    y += 8;
+
+    if(resume._stale){
+      let genTxt = 'date inconnue';
+      if(resume._generatedAt){
+        try{ genTxt = new Date(resume._generatedAt).toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'}); }catch(e){}
+      }
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(9);
+      const warnLines = pdf.splitTextToSize(
+        `⚠ ANALYSE DE SECOURS — dernière génération réussie le ${genTxt}.`, contentW - 10);
+      const warnH = warnLines.length * 4.6 + 6;
+      ensure(warnH);
+      pdf.setFillColor(254, 243, 199);
+      pdf.rect(M, y - 4, contentW, warnH, "F");
+      pdf.setTextColor(146, 64, 14);
+      let wy = y + 1;
+      for(const ln of warnLines){ pdf.text(ln, M + 5, wy); wy += 4.6; }
+      y += warnH + 8;
+    }
+
+    label("Résumé exécutif", RED);
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10.5);
+    const execLines = pdf.splitTextToSize(resume.executif || "", contentW - 10);
+    const execH = execLines.length * 5.2 + 6;
+    ensure(execH);
+    pdf.setFillColor(LIGHTBG[0], LIGHTBG[1], LIGHTBG[2]);
+    pdf.setDrawColor(RED[0], RED[1], RED[2]); pdf.setLineWidth(1.2);
+    pdf.rect(M, y - 4, contentW, execH, "F");
+    pdf.line(M, y - 4, M, y - 4 + execH);
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10.5); pdf.setTextColor(30, 30, 30);
+    let yy = y + 1;
+    for(const ln of execLines){ pdf.text(ln, M + 5, yy); yy += 5.2; }
+    y += execH + 8;
+
+    label("Points clés", MIDGRAY);
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5);
+    for(const p of (resume.points || [])){
+      const lines = pdf.splitTextToSize(p, contentW - 10);
+      ensure(lines.length * 4.6 + 3);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(10.5); pdf.setTextColor(RED[0], RED[1], RED[2]);
+      pdf.text("•", M, y);
+      pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5); pdf.setTextColor(35, 35, 35);
+      for(let li = 0; li < lines.length; li++){ pdf.text(lines[li], M + 5, y); y += 4.6; }
+      y += 1.5;
+    }
+    y += 4;
+
+    label("Analyse", MIDGRAY);
+    wrapped(resume.analyse || "", M, contentW - 2, 9.8, "normal", DARKGRAY, 4.8);
+    y += 6;
+
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(10);
+    const conclLines = pdf.splitTextToSize(resume.conclusion || "", contentW - 10);
+    const conclH = conclLines.length * 5 + 6;
+    ensure(conclH + 6);
+    pdf.setFillColor(BLUEBG[0], BLUEBG[1], BLUEBG[2]);
+    pdf.rect(M, y - 4, contentW, conclH, "F");
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(8.5); pdf.setTextColor(22, 80, 176);
+    pdf.text("À RETENIR", M + 5, y);
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(10); pdf.setTextColor(20, 20, 20);
+    yy = y + 5.5;
+    for(const ln of conclLines){ pdf.text(ln, M + 5, yy); yy += 5; }
+    y += conclH + 10;
+  }
+
+  _pdfNumeroterPages(pdf, pageW, pageH, M);
+  pdf.save(`SpyBusiness — Rapport complet — ${segment} — ${date}.pdf`);
 }
 
 async function _pdfLoadLib(){
@@ -1240,7 +1481,6 @@ function pageApercu(){
       <span style="font:700 9px var(--sans);color:#38D1F0;letter-spacing:.1em;text-transform:uppercase">📈 États Financiers</span>
       <div class="seg" style="margin:0">${btnAnx(1,"Année 1")}${btnAnx(2,"Année 2")}${btnAnx(3,"Année 3")}</div>
       <div class="seg" style="margin:0">${[["①","Position"],["②","Revenus"],["③","Efficience"],["④","Risque"]].map(([n,l],i)=>`<button class="sec-nav-btn" data-sec="s${i+1}" onclick="_paneShow('ef','s${i+1}')">${n} ${l}</button>`).join("")}</div>
-      ${btnPDF("Santé Financière")}
     </div>
   </div>
   <div id="ef-stale-badge" style="display:none"></div>
@@ -1985,7 +2225,6 @@ function analyseTarifs(seg){
     <div class="kicker">Combien ça coûte vraiment ?</div>
     <h1>${cheapest[0]} est <span class="hl">${factor}× moins chère que ${dearest[0]}</span> pour tenir un compte au quotidien.</h1>
     <p>Sur les frais de tenue de compte particuliers S1 2026, l'écart va de <span class="num">à partir de ${cheapest[1].toLocaleString("fr-FR")} F</span> à <span class="num">à partir de ${dearest[1].toLocaleString("fr-FR")} F</span> par mois. En passant de ${dearest[0]} à ${cheapest[0]}, un particulier économise <b>${savAn} FCFA par an</b>.</p>
-    ${btnPDF("Analyse Tarifaire")}
   </div>${seg}
   <div class="bento">
     <div class="tile c8 tpad" style="animation-delay:.05s">
@@ -2140,7 +2379,6 @@ function analysePerf(seg){
     <div class="kicker">À qui faire confiance ?</div>
     <h1>${top0[0]} domine le marché avec <span class="hl">${top0[1].toLocaleString("fr-FR")} M FCFA</span> de bénéfice.</h1>
     <p>Le trio de tête concentre <span class="num">${top3pct}%</span> des bénéfices des 7 banques ivoiriennes.</p>
-    ${btnPDF("Analyse Concurrentielle")}
   </div>${seg}
   <div class="bento">
 
@@ -2482,7 +2720,6 @@ function _stratStickyBar(segment){
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span style="font:700 9px var(--sans);color:var(--accent-2);letter-spacing:.1em;text-transform:uppercase">🎯 Stratégie SGCI</span>
       <div class="seg" style="margin:0">${nav}</div>
-      ${btnPDF("Stratégie SGCI")}
     </div>
   </div>`;
 }
@@ -3630,9 +3867,10 @@ function _stratCharts(d){
         // point (bord droit du graphique), un centrage par défaut le faisait déborder à droite.
         // Marge du haut élargie (8→34) : le texte débordait au-dessus, invisible/coupé.
         // Cas "bas" (coût du risque) : le point final est PRÈS DE L'AXE X, dans le coin
-        // bas-droite — ay seul ne suffisait pas (chevauchait encore le repère "An 3"), un
-        // décalage horizontal (ax) supplémentaire écarte le texte du coin.
-        x:x[3],y:cen[3],ax:p.sens==="bas"?-16:0,ay:p.sens==="bas"?44:-30,xanchor:"right",
+        // bas-droite. ay POSITIF pousse le texte VERS LE BAS (convention pixel Plotly, l'axe y
+        // pixel croît vers le bas) : ça l'envoyait tout droit sur le repère "An 3", superposés.
+        // Il faut au contraire remonter le texte (ay négatif), vers l'espace libre du graphique.
+        x:x[3],y:cen[3],ax:p.sens==="bas"?-16:0,ay:p.sens==="bas"?-34:-30,xanchor:"right",
         text:"<b>cible "+fmt(cen[3])+"</b>",font:{size:9.5,color:G},
         showarrow:true,arrowhead:3,arrowcolor:G,arrowwidth:1.3,bgcolor:"rgba(255,255,255,.04)"
       }]
@@ -3684,7 +3922,6 @@ function pageRapports(){
     <div class="kicker">Décider, puis partager</div>
     <h1>Quatre rapports prêts à <span class="hl">télécharger et présenter</span> en comité.</h1>
     <p>Chaque rapport compile automatiquement les données et l'analyse de l'agence — formaté pour la Direction Générale.</p>
-    ${btnPDF("Rapports SGCI")}
   </div>
   <div class="reports" style="margin-bottom:var(--s8)">
     ${REPORTS.map(r=>`<div class="report">
@@ -7416,7 +7653,6 @@ function _cbStickyBar(){
       <div class="seg" style="margin:0">${CB_ANNEES.map(String).map(y=>`<button class="${CB_YEAR===y?'on':''}" onclick="setCBYear('${y}')">${y}</button>`).join("")}</div>
       <div class="seg" style="margin:0">${_cbSemsDispo(CB_YEAR).map(sm=>`<button class="${CB_SEM===sm?'on':''}" onclick="setCBSem('${sm}')">${sm}</button>`).join("")}</div>
       <div class="seg" style="margin:0">${_cbNav}</div>
-      ${btnPDF("Benchmark Concurrentiel")}
     </div>
   </div>`;
 }
