@@ -260,9 +260,15 @@ function setLineMetric(m){
   _lineMetaUpdate(m);
 }
 
-/* ── PDF Export v6 — document STRUCTURÉ à partir du résumé LLM (plus de capture d'écran) ─── */
-function btnPDF(title){
-  return `<button class="btn-pdf" onclick="exportPDF('${title}')">⬇ Télécharger PDF</button>`;
+/* ── Export PowerPoint — un deck de diapositives par section ─────────────────────────────
+   Remplace l'export PDF natif (jsPDF) du 2026-08-30 : jugé « plat, austère, pas chic » — du
+   texte dessiné pixel par pixel dans des rectangles, sans vraie mise en page. PowerPoint
+   donne de vraies diapositives (fond plein, formes, tableaux, graphiques natifs) sans qu'on
+   ait à recalculer nous-mêmes chaque position. Le tableau et le graphique viennent d'un
+   endpoint dédié (/api/deck_data) qui réutilise les MÊMES fonctions agent que le dashboard —
+   jamais de chiffre inventé ou reformulé par le LLM, exactement le principe du projet. */
+function btnDeck(title){
+  return `<button class="btn-pdf" onclick="exportDeck('${title}')">⬇ Télécharger (PPTX)</button>`;
 }
 
 // Titre affiché sur le bouton → section de résumé backend + segment courant à interroger.
@@ -282,17 +288,36 @@ function _pdfSegment(section){
   return f.frais_seg || "Particuliers";
 }
 
-// Charge une image en HTMLImageElement (nécessaire pour pdf.addImage) — attend le chargement réel.
-function _pdfLoadImg(src){
-  return new Promise((res, rej) => {
-    const img = new Image();
-    img.onload = () => res(img);
-    img.onerror = rej;
-    img.src = src;
+// La police de base des lecteurs PPTX n'a pas forcément le glyphe de l'espace fine insécable
+// (U+202F) que le français utilise avant %, avant : et comme séparateur de milliers. On la
+// remplace par une espace normale avant tout dessin (même correctif que l'ancien export PDF).
+function _deckClean(s){
+  return typeof s === "string"
+    ? s.replace(/[ \xa0  ⁠]/g, " ")
+    : s;
+}
+function _deckCleanResume(r){
+  if(!r) return r;
+  const c = Object.assign({}, r);
+  c.titre = _deckClean(c.titre);
+  c.executif = _deckClean(c.executif);
+  c.analyse = _deckClean(c.analyse);
+  c.conclusion = _deckClean(c.conclusion);
+  if(Array.isArray(c.points)) c.points = c.points.map(_deckClean);
+  return c;
+}
+
+async function _pptxLoadLib(){
+  if(window.PptxGenJS) return true;
+  return new Promise(res=>{
+    const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.bundle.js";
+    s.onload=()=>res(true); s.onerror=()=>res(false);
+    document.head.appendChild(s);
   });
 }
 
-async function exportPDF(title){
+async function exportDeck(title){
   const date = new Date().toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"});
   const section = _PDF_SECTION_MAP[title] || "strategie";
   const segment = _pdfSegment(section);
@@ -300,434 +325,193 @@ async function exportPDF(title){
   const ov = document.createElement("div");
   ov.id = "_pdf_ov";
   ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:system-ui;backdrop-filter:blur(10px)";
-  ov.innerHTML = '<div style="text-align:center;color:#fff"><div style="font-size:40px">⏳</div><div style="font:700 17px/1.4 system-ui;margin-top:14px">Génération du résumé…</div><div style="font:400 11px system-ui;color:rgba(255,255,255,.45);margin-top:6px">Rédaction par l\'IA — peut prendre jusqu\'à 20 s la 1ʳᵉ fois</div></div>';
+  ov.innerHTML = '<div style="text-align:center;color:#fff"><div style="font-size:40px">⏳</div><div style="font:700 17px/1.4 system-ui;margin-top:14px">Génération du diaporama…</div><div style="font:400 11px system-ui;color:rgba(255,255,255,.45);margin-top:6px">Rédaction par l\'IA — peut prendre jusqu\'à 20 s la 1ʳᵉ fois</div></div>';
   document.body.appendChild(ov);
 
-  let resume = null;
+  let resume = null, deckData = null;
   try{
-    const r = await fetch(`/api/dashboard_resume?section=${section}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`,
-                          {cache: "no-store"});
-    const j = await r.json();
-    resume = j && j.resume;
-    if(resume) resume._stale = j.stale, resume._generatedAt = j.generated_at;
+    const [r1, r2] = await Promise.all([
+      fetch(`/api/dashboard_resume?section=${section}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`, {cache:"no-store"}),
+      fetch(`/api/deck_data?section=${section}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`, {cache:"no-store"}),
+    ]);
+    const j1 = await r1.json();
+    resume = j1 && j1.resume;
+    if(resume) resume._stale = j1.stale, resume._generatedAt = j1.generated_at;
+    deckData = await r2.json().catch(() => null);
   }catch(e){ /* resume reste null → message d'échec ci-dessous */ }
 
   if(!resume || !resume.executif){
     document.body.removeChild(ov);
     alert("Résumé indisponible pour le moment (quota ou service IA indisponible).\n\n"+
-          "Le PDF est rédigé par l'IA à partir des données actuelles — réessayez dans quelques minutes,\n"+
+          "Le diaporama est rédigé par l'IA à partir des données actuelles — réessayez dans quelques minutes,\n"+
           "ou utilisez « Rafraîchir les analyses » puis réessayez.");
     return;
   }
 
-  const ok = await _pdfLoadLib();
+  const ok = await _pptxLoadLib();
   if(!ok){
     document.body.removeChild(ov);
-    alert("La librairie PDF n'a pas pu être chargée (connexion internet requise la 1ʳᵉ fois).");
+    alert("La librairie de diaporama n'a pas pu être chargée (connexion internet requise la 1ʳᵉ fois).");
     return;
   }
 
   try{
-    await _pdfRenderNative(resume, title, date);
+    await _pptxRender(resume, deckData, title, segment, date);
   }catch(e){
-    console.error("pdf error", e);
-    alert("Erreur lors de la génération du PDF : " + e.message);
+    console.error("pptx error", e);
+    alert("Erreur lors de la génération du diaporama : " + e.message);
   }
   document.body.removeChild(ov);
 }
 
-// La police de base de jsPDF (Helvetica/WinAnsi) n'a pas le glyphe de l'espace fine insécable
-// (U+202F) que le français utilise avant %, avant : et comme séparateur de milliers — jsPDF le
-// rend alors par un caractère parasite ("20,5 /%" au lieu de "20,5 %"). On le remplace par une
-// espace normale avant tout dessin ; découvert le 30/08/2026 sur le PDF global (résumés stratop).
-function _pdfClean(s){
-  return typeof s === "string" ? s.replace(/[    ⁠]/g, " ") : s;
-}
-function _pdfCleanResume(r){
-  if(!r) return r;
-  const c = Object.assign({}, r);
-  c.titre = _pdfClean(c.titre);
-  c.executif = _pdfClean(c.executif);
-  c.conclusion = _pdfClean(c.conclusion);
-  if(Array.isArray(c.points)) c.points = c.points.map(_pdfClean);
-  return c;
-}
+const _DECK_RED = "E5142B", _DECK_DARK = "1A1A1A", _DECK_MIDGRAY = "6E6E6E", _DECK_GRAY = "B7B7B7",
+      _DECK_LIGHTBG = "FBF4F4", _DECK_INK = "1E1E1E";
 
-// Rendu PDF NATIF (jsPDF texte/formes directement, AUCUNE capture DOM/html2canvas) — fini les PDF
-// vides ou tronqués selon l'état de la page : ici on dessine nous-mêmes, donc c'est déterministe.
-async function _pdfRenderNative(resume, title, date){
-  resume = _pdfCleanResume(resume);
-  date = _pdfClean(date);
-  const RED = [229, 20, 43], DARKGRAY = [40, 40, 40], MIDGRAY = [110, 110, 110], LIGHTBG = [251, 244, 244], BLUEBG = [243, 245, 248];
-  const M = 16;                      // marge (mm)
-  // Source unique du logo : le PDF n'affiche QUE le logo SGCI, jamais d'autre marque/monogramme.
-  const logo = await _pdfLoadImg("assets/logos/SGCI.png").catch(() => null);
+async function _pptxRender(resumeRaw, deckData, title, segment, date){
+  const resume = _deckCleanResume(resumeRaw);
+  const P = new PptxGenJS();
+  P.layout = "LAYOUT_WIDE";   // 13.33 × 7.5 pouces, format large, standard des decks pro
+  P.author = "SpyBusiness"; P.company = "SGCI"; P.title = resume.titre || title;
 
-  const src = document.createElement("div");   // requis par html2pdf pour initialiser le worker
-  const pdf = await html2pdf().set({jsPDF: {unit: "mm", format: "a4", orientation: "portrait"}})
-                                .from(src).toPdf().get("pdf");
-  const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
-  const contentW = pageW - 2 * M;
-  let y = M;
+  const W = 13.33, H = 7.5, M = 0.55;
 
-  // ── Filigrane discret — traçabilité si le PDF circule hors de l'app ──
-  // Gris très clair, diagonal, sous le contenu : lisible en y regardant de près, jamais gênant
-  // pour lire le rapport. Pas de nom d'utilisateur (l'app n'a qu'un identifiant partagé, pas de
-  // comptes individuels) — mais la date/heure exacte de génération est une trace suffisante.
-  const _wmStamp = new Date().toLocaleString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
-  // 2026-07-28 : aligné sur le filigrane écran, rendu plus discret (gris 235 → 244, corps
-  // 26 → 22). 2026-07-29 : remonté un peu (244 → 238, 22 → 24) suite au même réglage côté écran.
-  const _addWatermark = () => {
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(24);
-    pdf.setTextColor(238, 238, 238);
-    pdf.text("DIRECTION INNOVATION SGCI", pageW / 2, pageH / 2 - 6, {angle: 40, align: "center"});
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
-    pdf.text(_wmStamp, pageW / 2, pageH / 2 + 10, {angle: 40, align: "center"});
+  const _footer = (slide) => {
+    slide.addShape(P.ShapeType.rect, {x:0, y:H-0.14, w:W, h:0.14, fill:{color:_DECK_RED}, line:{type:"none"}});
+    slide.addText("SpyBusiness · Intelligence bancaire SGCI", {
+      x:M, y:H-0.42, w:6, h:0.26, fontFace:"Arial", fontSize:8, color:"9A9A9A", align:"left"});
+    slide.addText(date, {x:W-M-3, y:H-0.42, w:3, h:0.26, fontFace:"Arial", fontSize:8, color:"9A9A9A", align:"right"});
   };
-  _addWatermark();
-
-  const ensure = (needed) => { if(y + needed > pageH - 14){ pdf.addPage(); _addWatermark(); y = M; } };
-  const wrapped = (text, x, w, size, style, color, lh) => {
-    pdf.setFont("helvetica", style || "normal"); pdf.setFontSize(size);
-    pdf.setTextColor(color[0], color[1], color[2]);
-    const lines = pdf.splitTextToSize(text || "", w);
-    const lineH = lh || size * 0.42;
-    for(const ln of lines){ ensure(lineH); pdf.text(ln, x, y); y += lineH; }
-    return y;
-  };
-  const label = (text, color) => {
-    ensure(6);
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(8.5);
-    pdf.setTextColor(color[0], color[1], color[2]);
-    pdf.text(text.toUpperCase(), M, y);
-    y += 5.5;
+  const _header = (slide, label) => {
+    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:0.85, fill:{color:_DECK_RED}, line:{type:"none"}});
+    slide.addText(label.toUpperCase(), {x:M, y:0, w:W-2*M, h:0.85, valign:"middle",
+      fontFace:"Arial", fontSize:20, bold:true, color:"FFFFFF", fit:"shrink"});
   };
 
-  /* ── En-tête : logo SGCI (et LUI SEUL) + titre + date ── */
-  if(logo){ try{ pdf.addImage(logo, "PNG", M, y - 2, 14, 14); }catch(e){} }
-  pdf.setFont("helvetica", "bold"); pdf.setFontSize(15);
-  pdf.setTextColor(20, 20, 20);
-  pdf.text(resume.titre || resume.section || title, M + (logo ? 18 : 0), y + 4);
-  pdf.setFont("helvetica", "normal"); pdf.setFontSize(8.5);
-  pdf.setTextColor(MIDGRAY[0], MIDGRAY[1], MIDGRAY[2]);
-  pdf.text(`${(resume.section||"").toUpperCase()} · SEGMENT ${(resume.segment||"").toUpperCase()}`, M + (logo ? 18 : 0), y + 9);
-  pdf.setFont("helvetica", "normal"); pdf.setFontSize(8.5);
-  pdf.text(`Généré le ${date}`, pageW - M, y + 4, {align: "right"});
-  pdf.setTextColor(160, 160, 160);
-  pdf.text("SpyBusiness · Confidentiel", pageW - M, y + 9, {align: "right"});
-  y += 16;
-  pdf.setDrawColor(RED[0], RED[1], RED[2]); pdf.setLineWidth(0.8);
-  pdf.line(M, y, pageW - M, y);
-  y += 9;
+  /* ── 1 · Couverture ── */
+  {
+    const slide = P.addSlide();
+    slide.background = {color: _DECK_DARK};
+    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:0.10, fill:{color:_DECK_RED}, line:{type:"none"}});
+    slide.addShape(P.ShapeType.rect, {x:0, y:H-0.10, w:W, h:0.10, fill:{color:_DECK_RED}, line:{type:"none"}});
+    try{ slide.addImage({path:"assets/logos/SGCI.png", x:W/2-0.55, y:1.15, w:1.1, h:1.1}); }catch(e){}
+    slide.addText("SGCI", {x:0, y:2.55, w:W, h:0.5, align:"center", fontFace:"Arial", fontSize:14,
+      color:"C9C9C9", charSpacing:4, bold:true});
+    slide.addText(resume.titre || title, {x:1, y:3.15, w:W-2, h:1.2, align:"center", fontFace:"Arial",
+      fontSize:34, bold:true, color:"FFFFFF", fit:"shrink", valign:"middle"});
+    slide.addShape(P.ShapeType.line, {x:W/2-1.1, y:4.55, w:2.2, h:0, line:{color:_DECK_RED, width:2}});
+    slide.addText(`Segment ${segment}`, {x:0, y:4.75, w:W, h:0.4, align:"center", fontFace:"Arial",
+      fontSize:15, color:"D9D9D9"});
+    slide.addText(`Généré le ${date}`, {x:0, y:5.15, w:W, h:0.35, align:"center", fontFace:"Arial",
+      fontSize:11, color:"8A8A8A"});
+    slide.addText("Rédigé par l'agent IA à partir des données réellement stockées — chaque chiffre est vérifiable dans le dashboard SpyBusiness.",
+      {x:1.5, y:H-0.75, w:W-3, h:0.4, align:"center", fontFace:"Arial", fontSize:8.5, color:"6A6A6A", italic:true});
+  }
 
-  /* ── Avertissement si ce résumé est une version de secours (dernier rafraîchissement échoué) ──
-     Visible même après téléchargement — sans ça, un PDF ouvert plus tard ne dit rien de son âge réel. */
-  if(resume._stale){
-    let genTxt = 'date inconnue';
-    if(resume._generatedAt){
-      try{ genTxt = new Date(resume._generatedAt).toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'}); }catch(e){}
+  /* ── 2 · Données clés — tableau + graphique, mêmes chiffres que le dashboard ── */
+  if(deckData && (deckData.table || deckData.chart)){
+    const slide = P.addSlide();
+    slide.background = {color:"FFFFFF"};
+    _header(slide, "Données clés");
+
+    if(deckData.table && deckData.table.rows && deckData.table.rows.length){
+      const t = deckData.table;
+      const headerRow = t.headers.map(h => ({text:String(h), options:{fill:{color:_DECK_INK}, color:"FFFFFF",
+        bold:true, fontSize:10.5, align:"center", valign:"middle"}}));
+      const dataRows = t.rows.map(row => row.map((cell, ci) => {
+        const isBankCol = ci === 0;
+        const txt = (cell === null || cell === undefined) ? "—" : String(cell);
+        const isSGCI = isBankCol && txt === "SGCI";
+        return {text: txt, options:{fontSize:10, align: isBankCol ? "left" : "center", valign:"middle",
+          bold: isSGCI, color: isSGCI ? _DECK_RED : _DECK_INK,
+          fill: isSGCI ? {color:_DECK_LIGHTBG} : {color:"FFFFFF"}}};
+      }));
+      slide.addTable([headerRow, ...dataRows], {
+        x:M, y:1.1, w:deckData.chart ? 7.1 : W-2*M, h:5.4,
+        border:{type:"solid", pt:0.5, color:"E5E5E5"}, autoPage:false, valign:"middle",
+        rowH: 5.4 / (dataRows.length + 1),
+      });
     }
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(9);
-    const warnLines = pdf.splitTextToSize(
-      `⚠ ANALYSE DE SECOURS — dernière génération réussie le ${genTxt} (le dernier rafraîchissement a échoué, ce résumé n'est pas le plus récent).`,
-      contentW - 10);
-    const warnH = warnLines.length * 4.6 + 6;
-    ensure(warnH);
-    pdf.setFillColor(254, 243, 199); // #FEF3C7
-    pdf.rect(M, y - 4, contentW, warnH, "F");
-    pdf.setTextColor(146, 64, 14); // #92400E
-    let wy = y + 1;
-    for(const ln of warnLines){ pdf.text(ln, M + 5, wy); wy += 4.6; }
-    y += warnH + 8;
+
+    if(deckData.chart && deckData.chart.labels && deckData.chart.labels.length){
+      const c = deckData.chart;
+      const isBankChart = c.labels.includes("SGCI");
+      const colors = c.labels.map(l => l === "SGCI" ? _DECK_RED : "C9C9C9");
+      const chartX = deckData.table ? 8.35 : M, chartW = deckData.table ? W-8.35-M : W-2*M;
+      slide.addText(c.title + (c.unit ? ` (${c.unit})` : ""), {x:chartX, y:1.05, w:chartW, h:0.35,
+        fontFace:"Arial", fontSize:11, bold:true, color:_DECK_MIDGRAY});
+      slide.addChart(P.ChartType.bar, [{name:c.title, labels:c.labels, values:c.values}], {
+        x:chartX, y:1.45, w:chartW, h:5.05, barDir:"col",
+        chartColors: isBankChart ? colors : [_DECK_RED],
+        showLegend:false, showValue:false, showTitle:false,
+        catAxisLabelFontSize:9, valAxisLabelFontSize:8, dataLabelFontSize:9,
+        catAxisLabelColor:_DECK_MIDGRAY, valAxisLabelColor:_DECK_MIDGRAY,
+        catAxisLineColor:"E0E0E0", valAxisLineColor:"E0E0E0", valGridLine:{color:"F0F0F0"},
+      });
+    }
+    _footer(slide);
   }
 
-  /* ── Résumé exécutif (bloc coloré) ── */
-  label("Résumé exécutif", RED);
-  // IMPORTANT : la police DOIT être fixée AVANT splitTextToSize — jsPDF mesure le texte avec la
-  // police ACTIVE au moment de l'appel, pas celle utilisée plus tard pour dessiner. Sinon les
-  // lignes sont découpées pour une police plus petite que celle rendue → débordement (bug vérifié).
-  pdf.setFont("helvetica", "normal"); pdf.setFontSize(10.5);
-  const execLines = pdf.splitTextToSize(resume.executif || "", contentW - 10);
-  const execH = execLines.length * 5.2 + 6;
-  ensure(execH);
-  pdf.setFillColor(LIGHTBG[0], LIGHTBG[1], LIGHTBG[2]);
-  pdf.setDrawColor(RED[0], RED[1], RED[2]); pdf.setLineWidth(1.2);
-  pdf.rect(M, y - 4, contentW, execH, "F");
-  pdf.line(M, y - 4, M, y - 4 + execH);
-  pdf.setFont("helvetica", "normal"); pdf.setFontSize(10.5); pdf.setTextColor(30, 30, 30);
-  let yy = y + 1;
-  for(const ln of execLines){ pdf.text(ln, M + 5, yy); yy += 5.2; }
-  y += execH + 8;
+  /* ── 3 · Résumé exécutif + points clés ── */
+  {
+    const slide = P.addSlide();
+    slide.background = {color:"FFFFFF"};
+    _header(slide, resume.titre || title);
 
-  /* ── Points clés ── */
-  label("Points clés", MIDGRAY);
-  pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5);   // fixé AVANT le splitTextToSize de la boucle
-  for(const p of (resume.points || [])){
-    const lines = pdf.splitTextToSize(p, contentW - 10);
-    ensure(lines.length * 4.6 + 3);
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(10.5); pdf.setTextColor(RED[0], RED[1], RED[2]);
-    pdf.text("•", M, y);
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5); pdf.setTextColor(35, 35, 35);
-    for(let i = 0; i < lines.length; i++){ pdf.text(lines[i], M + 5, y); y += 4.6; }
-    y += 1.5;
-  }
-  y += 4;
+    slide.addText("RÉSUMÉ EXÉCUTIF", {x:M, y:1.15, w:5.9, h:0.35, fontFace:"Arial", fontSize:12,
+      bold:true, color:_DECK_RED});
+    slide.addShape(P.ShapeType.rect, {x:M, y:1.55, w:5.9, h:5.15, fill:{color:_DECK_LIGHTBG}, line:{type:"none"},
+      rectRadius:0.08});
+    slide.addShape(P.ShapeType.rect, {x:M, y:1.55, w:0.06, h:5.15, fill:{color:_DECK_RED}, line:{type:"none"}});
+    slide.addText(resume.executif || "", {x:M+0.3, y:1.75, w:5.3, h:4.75, fontFace:"Arial", fontSize:13,
+      color:_DECK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.25});
 
-  /* ── Analyse ── */
-  label("Analyse", MIDGRAY);
-  wrapped(resume.analyse || "", M, contentW - 2, 9.8, "normal", DARKGRAY, 4.8);
-  y += 6;
+    slide.addText("POINTS CLÉS", {x:6.85, y:1.15, w:5.9, h:0.35, fontFace:"Arial", fontSize:12,
+      bold:true, color:_DECK_MIDGRAY});
+    const pts = (resume.points || []).slice(0, 8).map(p => ({
+      text: p, options:{bullet:{code:"25CF", indent:18}, color:_DECK_INK, breakLine:true}
+    }));
+    slide.addText(pts.length ? pts : [{text:"—"}], {x:6.85, y:1.6, w:5.9, h:5.1, fontFace:"Arial",
+      fontSize:12.5, valign:"top", fit:"shrink", lineSpacingMultiple:1.35, paraSpaceAfter:8});
 
-  /* ── À retenir (bloc conclusion) ── */
-  pdf.setFont("helvetica", "bold"); pdf.setFontSize(10);   // fixé AVANT le splitTextToSize
-  const conclLines = pdf.splitTextToSize(resume.conclusion || "", contentW - 10);
-  const conclH = conclLines.length * 5 + 6;
-  ensure(conclH + 6);
-  pdf.setFillColor(BLUEBG[0], BLUEBG[1], BLUEBG[2]);
-  pdf.rect(M, y - 4, contentW, conclH, "F");
-  pdf.setFont("helvetica", "bold"); pdf.setFontSize(8.5); pdf.setTextColor(22, 80, 176);
-  pdf.text("À RETENIR", M + 5, y);
-  pdf.setFont("helvetica", "bold"); pdf.setFontSize(10); pdf.setTextColor(20, 20, 20);
-  yy = y + 5.5;
-  for(const ln of conclLines){ pdf.text(ln, M + 5, yy); yy += 5; }
-  y += conclH + 10;
-
-  /* ── Pied de page ── */
-  ensure(8);
-  pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(170, 170, 170);
-  pdf.text("Résumé rédigé par l'agent IA à partir des données réellement stockées — chaque chiffre est vérifiable dans le dashboard SpyBusiness.",
-            pageW / 2, pageH - 10, {align: "center", maxWidth: contentW});
-
-  _pdfNumeroterPages(pdf, pageW, pageH, M);
-  pdf.save(`SpyBusiness — ${resume.titre || title} — ${date}.pdf`);
-}
-
-// Numéros de page "N / total" — posés en dernier, une fois le nombre total de pages connu
-// (impossible de le savoir avant, jsPDF ne pagine qu'au fil des ensure()/addPage()).
-function _pdfNumeroterPages(pdf, pageW, pageH, M){
-  const n = pdf.internal.getNumberOfPages();
-  if(n < 2) return;   // 1 page : le numéro n'apporte rien, on ne l'affiche pas.
-  for(let p = 1; p <= n; p++){
-    pdf.setPage(p);
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(8); pdf.setTextColor(170, 170, 170);
-    pdf.text(`${p} / ${n}`, pageW - M, pageH - 10, {align: "right"});
-  }
-}
-
-/* ── PDF global — un seul document, toutes les sections en chapitres ─────────────────────
-   Demande explicite : « un PDF global qui contient absolument tout... un vrai document chic
-   à lire ». Réutilise le même rendu natif que chaque section (jamais de capture d'écran, pour
-   les mêmes raisons de fiabilité), mais dans UN SEUL pdf : page de couverture + sommaire, puis
-   un chapitre par section, numérotation posée à la toute fin. */
-const _PDF_GLOBAL_SECTIONS = [
-  ["ef", "Santé financière"],
-  ["cb", "Conditions bancaires"],
-  ["strategie", "Stratégie"],
-  ["stratop", "Stratégie opérationnelle"],
-];
-
-async function exportPDFGlobal(){
-  const date = new Date().toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"});
-  const segment = _pdfSegment("cb");   // segment commun à toutes les sections du rapport
-
-  const ov = document.createElement("div");
-  ov.id = "_pdf_ov";
-  ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:system-ui;backdrop-filter:blur(10px)";
-  ov.innerHTML = '<div style="text-align:center;color:#fff"><div style="font-size:40px">📘</div><div style="font:700 17px/1.4 system-ui;margin-top:14px">Génération du rapport complet…</div><div style="font:400 11px system-ui;color:rgba(255,255,255,.45);margin-top:6px">Quatre sections à rassembler — jusqu\'à une minute la 1<sup>re</sup> fois</div></div>';
-  document.body.appendChild(ov);
-
-  const resumes = [];
-  for(const [key, label] of _PDF_GLOBAL_SECTIONS){
-    try{
-      const r = await fetch(`/api/dashboard_resume?section=${key}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`,
-                            {cache: "no-store"});
-      const j = await r.json();
-      if(j && j.resume && j.resume.executif){
-        if(j.resume) j.resume._stale = j.stale, j.resume._generatedAt = j.generated_at;
-        resumes.push([label, j.resume]);
-      }
-    }catch(e){ /* section indisponible → simplement absente du rapport, pas d'échec global */ }
+    _footer(slide);
   }
 
-  if(!resumes.length){
-    document.body.removeChild(ov);
-    alert("Aucun résumé n'est disponible pour le moment (quota ou service IA indisponible).\n\n"+
-          "Réessayez dans quelques minutes, ou utilisez « Rafraîchir les analyses » puis réessayez.");
-    return;
+  /* ── 4 · Analyse ── */
+  {
+    const slide = P.addSlide();
+    slide.background = {color:"FFFFFF"};
+    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:0.14, h:H, fill:{color:_DECK_RED}, line:{type:"none"}});
+    slide.addText("ANALYSE", {x:0.75, y:0.6, w:W-1.5, h:0.5, fontFace:"Arial", fontSize:22, bold:true,
+      color:_DECK_INK});
+    slide.addShape(P.ShapeType.line, {x:0.75, y:1.25, w:2, h:0, line:{color:_DECK_RED, width:2.5}});
+    slide.addText(resume.analyse || "", {x:0.75, y:1.6, w:W-1.5, h:4.9, fontFace:"Arial", fontSize:16,
+      color:_DECK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.4});
+    _footer(slide);
   }
 
-  const ok = await _pdfLoadLib();
-  if(!ok){
-    document.body.removeChild(ov);
-    alert("La librairie PDF n'a pas pu être chargée (connexion internet requise la 1ʳᵉ fois).");
-    return;
-  }
-
-  try{
-    await _pdfRenderGlobal(resumes, segment, date);
-  }catch(e){
-    console.error("pdf global error", e);
-    alert("Erreur lors de la génération du rapport : " + e.message);
-  }
-  document.body.removeChild(ov);
-}
-
-async function _pdfRenderGlobal(resumes, segment, date){
-  resumes = resumes.map(([lbl, r]) => [lbl, _pdfCleanResume(r)]);
-  date = _pdfClean(date);
-  const RED = [229, 20, 43], DARKGRAY = [40, 40, 40], MIDGRAY = [110, 110, 110], LIGHTBG = [251, 244, 244], BLUEBG = [243, 245, 248];
-  const M = 16;
-  const logo = await _pdfLoadImg("assets/logos/SGCI.png").catch(() => null);
-
-  const src = document.createElement("div");
-  const pdf = await html2pdf().set({jsPDF: {unit: "mm", format: "a4", orientation: "portrait"}})
-                                .from(src).toPdf().get("pdf");
-  const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
-  const contentW = pageW - 2 * M;
-  let y = M;
-
-  const _wmStamp = new Date().toLocaleString('fr-FR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
-  const _addWatermark = () => {
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(24);
-    pdf.setTextColor(238, 238, 238);
-    pdf.text("DIRECTION INNOVATION SGCI", pageW / 2, pageH / 2 - 6, {angle: 40, align: "center"});
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
-    pdf.text(_wmStamp, pageW / 2, pageH / 2 + 10, {angle: 40, align: "center"});
-  };
-  const ensure = (needed) => { if(y + needed > pageH - 14){ pdf.addPage(); _addWatermark(); y = M; } };
-  const wrapped = (text, x, w, size, style, color, lh) => {
-    pdf.setFont("helvetica", style || "normal"); pdf.setFontSize(size);
-    pdf.setTextColor(color[0], color[1], color[2]);
-    const lines = pdf.splitTextToSize(text || "", w);
-    const lineH = lh || size * 0.42;
-    for(const ln of lines){ ensure(lineH); pdf.text(ln, x, y); y += lineH; }
-    return y;
-  };
-  const label = (text, color) => {
-    ensure(6);
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(8.5);
-    pdf.setTextColor(color[0], color[1], color[2]);
-    pdf.text(text.toUpperCase(), M, y);
-    y += 5.5;
-  };
-
-  /* ── Couverture ── */
-  _addWatermark();
-  if(logo){ try{ pdf.addImage(logo, "PNG", pageW / 2 - 12, 44, 24, 24); }catch(e){} }
-  pdf.setFont("helvetica", "bold"); pdf.setFontSize(22); pdf.setTextColor(20, 20, 20);
-  pdf.text("Rapport de veille stratégique", pageW / 2, 82, {align: "center"});
-  pdf.setFont("helvetica", "normal"); pdf.setFontSize(12); pdf.setTextColor(MIDGRAY[0], MIDGRAY[1], MIDGRAY[2]);
-  pdf.text(`SGCI · Segment ${segment}`, pageW / 2, 90, {align: "center"});
-  pdf.setDrawColor(RED[0], RED[1], RED[2]); pdf.setLineWidth(0.8);
-  pdf.line(pageW / 2 - 28, 96, pageW / 2 + 28, 96);
-  pdf.setFont("helvetica", "normal"); pdf.setFontSize(10); pdf.setTextColor(150, 150, 150);
-  pdf.text(`Généré le ${date}`, pageW / 2, 104, {align: "center"});
-
-  let ty = 128;
-  pdf.setFont("helvetica", "bold"); pdf.setFontSize(9.5); pdf.setTextColor(RED[0], RED[1], RED[2]);
-  pdf.text("SOMMAIRE", M, ty); ty += 9;
-  resumes.forEach(([lbl, r], i) => {
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(11.5); pdf.setTextColor(30, 30, 30);
-    pdf.text(`${i + 1}.`, M + 2, ty);
-    pdf.text(r.titre || lbl, M + 10, ty);
-    ty += 8.5;
-  });
-  pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(170, 170, 170);
-  pdf.text("Chaque section est rédigée par l'agent IA à partir des données réellement stockées — "
-          + "chaque chiffre est vérifiable dans le dashboard SpyBusiness.",
-            pageW / 2, pageH - 16, {align: "center", maxWidth: contentW});
-
-  /* ── Un chapitre par section ── */
-  for(let i = 0; i < resumes.length; i++){
-    const [lbl, resume] = resumes[i];
-    pdf.addPage(); _addWatermark(); y = M;
-
-    pdf.setFillColor(RED[0], RED[1], RED[2]);
-    pdf.rect(M, y, 3, 12, "F");
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(8); pdf.setTextColor(MIDGRAY[0], MIDGRAY[1], MIDGRAY[2]);
-    pdf.text(`SECTION ${i + 1} / ${resumes.length} · ${lbl.toUpperCase()}`, M + 7, y + 4);
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(16); pdf.setTextColor(20, 20, 20);
-    pdf.text(resume.titre || lbl, M + 7, y + 11);
-    y += 18;
-    pdf.setDrawColor(220, 220, 220); pdf.setLineWidth(0.4);
-    pdf.line(M, y, pageW - M, y);
-    y += 8;
-
+  /* ── 5 · À retenir ── */
+  {
+    const slide = P.addSlide();
+    slide.background = {color:_DECK_INK};
+    slide.addShape(P.ShapeType.ellipse, {x:W-3.5, y:-2, w:6, h:6, fill:{color:"2A2A2A"}, line:{type:"none"}});
+    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:0.14, h:H, fill:{color:_DECK_RED}, line:{type:"none"}});
+    slide.addText("À RETENIR", {x:0.9, y:0.9, w:W-1.8, h:0.5, fontFace:"Arial", fontSize:14, bold:true,
+      color:_DECK_RED, charSpacing:2});
+    slide.addText(resume.conclusion || "", {x:0.9, y:1.6, w:W-1.9, h:4.6, fontFace:"Arial", fontSize:22,
+      bold:true, color:"FFFFFF", valign:"top", fit:"shrink", lineSpacingMultiple:1.3});
     if(resume._stale){
-      let genTxt = 'date inconnue';
+      let genTxt = "date inconnue";
       if(resume._generatedAt){
-        try{ genTxt = new Date(resume._generatedAt).toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'}); }catch(e){}
+        try{ genTxt = new Date(resume._generatedAt).toLocaleDateString("fr-FR", {day:"2-digit",month:"long",year:"numeric"}); }catch(e){}
       }
-      pdf.setFont("helvetica", "bold"); pdf.setFontSize(9);
-      const warnLines = pdf.splitTextToSize(
-        `⚠ ANALYSE DE SECOURS — dernière génération réussie le ${genTxt}.`, contentW - 10);
-      const warnH = warnLines.length * 4.6 + 6;
-      ensure(warnH);
-      pdf.setFillColor(254, 243, 199);
-      pdf.rect(M, y - 4, contentW, warnH, "F");
-      pdf.setTextColor(146, 64, 14);
-      let wy = y + 1;
-      for(const ln of warnLines){ pdf.text(ln, M + 5, wy); wy += 4.6; }
-      y += warnH + 8;
+      slide.addText(`⚠ Analyse de secours — dernière génération réussie le ${genTxt}.`, {
+        x:0.9, y:H-1.1, w:W-1.8, h:0.4, fontFace:"Arial", fontSize:10, color:"E8B84B"});
     }
-
-    label("Résumé exécutif", RED);
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10.5);
-    const execLines = pdf.splitTextToSize(resume.executif || "", contentW - 10);
-    const execH = execLines.length * 5.2 + 6;
-    ensure(execH);
-    pdf.setFillColor(LIGHTBG[0], LIGHTBG[1], LIGHTBG[2]);
-    pdf.setDrawColor(RED[0], RED[1], RED[2]); pdf.setLineWidth(1.2);
-    pdf.rect(M, y - 4, contentW, execH, "F");
-    pdf.line(M, y - 4, M, y - 4 + execH);
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10.5); pdf.setTextColor(30, 30, 30);
-    let yy = y + 1;
-    for(const ln of execLines){ pdf.text(ln, M + 5, yy); yy += 5.2; }
-    y += execH + 8;
-
-    label("Points clés", MIDGRAY);
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5);
-    for(const p of (resume.points || [])){
-      const lines = pdf.splitTextToSize(p, contentW - 10);
-      ensure(lines.length * 4.6 + 3);
-      pdf.setFont("helvetica", "bold"); pdf.setFontSize(10.5); pdf.setTextColor(RED[0], RED[1], RED[2]);
-      pdf.text("•", M, y);
-      pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5); pdf.setTextColor(35, 35, 35);
-      for(let li = 0; li < lines.length; li++){ pdf.text(lines[li], M + 5, y); y += 4.6; }
-      y += 1.5;
-    }
-    y += 4;
-
-    label("Analyse", MIDGRAY);
-    wrapped(resume.analyse || "", M, contentW - 2, 9.8, "normal", DARKGRAY, 4.8);
-    y += 6;
-
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(10);
-    const conclLines = pdf.splitTextToSize(resume.conclusion || "", contentW - 10);
-    const conclH = conclLines.length * 5 + 6;
-    ensure(conclH + 6);
-    pdf.setFillColor(BLUEBG[0], BLUEBG[1], BLUEBG[2]);
-    pdf.rect(M, y - 4, contentW, conclH, "F");
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(8.5); pdf.setTextColor(22, 80, 176);
-    pdf.text("À RETENIR", M + 5, y);
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(10); pdf.setTextColor(20, 20, 20);
-    yy = y + 5.5;
-    for(const ln of conclLines){ pdf.text(ln, M + 5, yy); yy += 5; }
-    y += conclH + 10;
+    slide.addText("Rédigé par l'agent IA à partir des données réellement stockées — chaque chiffre est vérifiable dans le dashboard SpyBusiness.",
+      {x:0.9, y:H-0.6, w:W-1.8, h:0.35, fontFace:"Arial", fontSize:8.5, color:"7A7A7A", italic:true});
   }
 
-  _pdfNumeroterPages(pdf, pageW, pageH, M);
-  pdf.save(`SpyBusiness — Rapport complet — ${segment} — ${date}.pdf`);
-}
-
-async function _pdfLoadLib(){
-  if(window.html2pdf) return true;
-  return new Promise(res=>{
-    const s=document.createElement("script");
-    s.src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-    s.onload=()=>res(true); s.onerror=()=>res(false);
-    document.head.appendChild(s);
-  });
+  await P.writeFile({fileName: `SpyBusiness — ${resume.titre || title} — ${date}.pptx`});
 }
 
 /* ── Glossaire Santé Financière ─────────────────────────────────────────── */
@@ -1481,6 +1265,7 @@ function pageApercu(){
       <span style="font:700 9px var(--sans);color:#38D1F0;letter-spacing:.1em;text-transform:uppercase">📈 États Financiers</span>
       <div class="seg" style="margin:0">${btnAnx(1,"Année 1")}${btnAnx(2,"Année 2")}${btnAnx(3,"Année 3")}</div>
       <div class="seg" style="margin:0">${[["①","Position"],["②","Revenus"],["③","Efficience"],["④","Risque"]].map(([n,l],i)=>`<button class="sec-nav-btn" data-sec="s${i+1}" onclick="_paneShow('ef','s${i+1}')">${n} ${l}</button>`).join("")}</div>
+      ${btnDeck("Santé Financière")}
     </div>
   </div>
   <div id="ef-stale-badge" style="display:none"></div>
@@ -2225,6 +2010,7 @@ function analyseTarifs(seg){
     <div class="kicker">Combien ça coûte vraiment ?</div>
     <h1>${cheapest[0]} est <span class="hl">${factor}× moins chère que ${dearest[0]}</span> pour tenir un compte au quotidien.</h1>
     <p>Sur les frais de tenue de compte particuliers S1 2026, l'écart va de <span class="num">à partir de ${cheapest[1].toLocaleString("fr-FR")} F</span> à <span class="num">à partir de ${dearest[1].toLocaleString("fr-FR")} F</span> par mois. En passant de ${dearest[0]} à ${cheapest[0]}, un particulier économise <b>${savAn} FCFA par an</b>.</p>
+    ${btnDeck("Analyse Tarifaire")}
   </div>${seg}
   <div class="bento">
     <div class="tile c8 tpad" style="animation-delay:.05s">
@@ -2379,6 +2165,7 @@ function analysePerf(seg){
     <div class="kicker">À qui faire confiance ?</div>
     <h1>${top0[0]} domine le marché avec <span class="hl">${top0[1].toLocaleString("fr-FR")} M FCFA</span> de bénéfice.</h1>
     <p>Le trio de tête concentre <span class="num">${top3pct}%</span> des bénéfices des 7 banques ivoiriennes.</p>
+    ${btnDeck("Analyse Concurrentielle")}
   </div>${seg}
   <div class="bento">
 
@@ -2720,6 +2507,7 @@ function _stratStickyBar(segment){
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span style="font:700 9px var(--sans);color:var(--accent-2);letter-spacing:.1em;text-transform:uppercase">🎯 Stratégie SGCI</span>
       <div class="seg" style="margin:0">${nav}</div>
+      ${btnDeck("Stratégie SGCI")}
     </div>
   </div>`;
 }
@@ -7653,6 +7441,7 @@ function _cbStickyBar(){
       <div class="seg" style="margin:0">${CB_ANNEES.map(String).map(y=>`<button class="${CB_YEAR===y?'on':''}" onclick="setCBYear('${y}')">${y}</button>`).join("")}</div>
       <div class="seg" style="margin:0">${_cbSemsDispo(CB_YEAR).map(sm=>`<button class="${CB_SEM===sm?'on':''}" onclick="setCBSem('${sm}')">${sm}</button>`).join("")}</div>
       <div class="seg" style="margin:0">${_cbNav}</div>
+      ${btnDeck("Benchmark Concurrentiel")}
     </div>
   </div>`;
 }
@@ -8284,6 +8073,7 @@ function pageStratOp(){
       et rattachées à un <b>signal de marché</b> — indicateur sectoriel, politique ou réglementaire, ou
       événement relevé par la veille.
       <span id="so-periode" style="color:var(--faint)"></span></p>
+    <div style="margin-top:12px">${btnDeck("Stratégie Opérationnelle")}</div>
   </div>
   <div id="so-body"><div style="font:500 13px var(--sans);color:var(--muted);padding:22px 0;display:flex;gap:10px;align-items:center">
     <span class="spin"></span> Analyse des signaux de marché…</div></div>`;

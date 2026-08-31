@@ -783,5 +783,25 @@
   "resume_v12_stratop_Particuliers_f94d65b3601f@meta": {
     "generated_at": "2026-08-31T00:13:51",
     "stale": false
+  },
+  "resume_v12_cb_Particuliers_8783ba96c64d": {
+    "titre": "État des conditions bancaires – Particuliers S1 2026",
+    "executif": "Le portefeuille de services de SGCI se situe en retrait face aux principaux concurrents, tant en termes de diversité que de gratuité. La compétitivité tarifaire, bien que respectable, reste inférieure aux meilleures performances du marché. Cette dualité crée une tension entre l’offre limitée et la perception de valeur par la clientèle. Le facteur décisif réside dans la nécessité d’élargir l’éventail gratuit tout en consolidant les atouts exclusifs.",
+    "points": [
+      "Le catalogue de SGCI comprend 184 services, dont 19,7 % sont gratuits.",
+      "Le taux de victoire tarifaire de SGCI s’établit à 60,5 % sur 38 services comparables.",
+      "Quinze exclusivités sont actuellement détenues par SGCI.",
+      "Dix lacunes sont identifiées face à au moins trois concurrents.",
+      "Le leader du catalogue, NSIA, propose 445 services avec 28,3 % gratuits.",
+      "ECOBANK affiche le meilleur win‑rate avec 87,0 % sur 23 services comparables."
+    ],
+    "analyse": "La taille du catalogue place SGCI derrière les trois premiers acteurs, limitant ainsi les opportunités de cross‑selling. Un taux de gratuité inférieur à la moyenne du segment réduit l’attractivité pour les clients sensibles aux frais. Malgré un win‑rate supérieur à la moitié des comparables, l’écart avec les leaders tarifaires indique une marge de progression tarifaire. Les quinze exclusivités offrent un levier différenciateur, mais les dix manques relevés contre plusieurs concurrents exposent des faiblesses structurelles.",
+    "conclusion": "Priorité n° 1 : enrichir le catalogue de services gratuits d’au moins 10 % d’ici la fin de l’année afin de réduire l’écart de gratuité et d’accroître la compétitivité tarifaire.",
+    "section": "Conditions bancaires",
+    "segment": "Particuliers"
+  },
+  "resume_v12_cb_Particuliers_8783ba96c64d@meta": {
+    "generated_at": "2026-08-31T12:06:53",
+    "stale": false
   }
 }

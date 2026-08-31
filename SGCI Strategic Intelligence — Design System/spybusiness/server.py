@@ -3581,7 +3581,7 @@ def _resume_facts_cb(segment):
     bycat = sorted([r for r in q6 if (r.get("n_services") or 0) > 0], key=lambda r: -(r.get("n_services") or 0))
     rang_cat = next((i + 1 for i, r in enumerate(bycat) if r["banque"] == "SGCI"), None)
     sgci_q6 = next((r for r in q6 if r["banque"] == "SGCI"), {})
-    classes = cmp.get("classes") or []
+    classes = cmp.get("classement") or []
     rows_cat = "\n".join(f"  #{i+1} {r['banque']}: {r.get('n_services')} services, {r.get('pct_gratuit')}% gratuits"
                           for i, r in enumerate(bycat))
     rows_prix = "\n".join(f"  #{i+1} {c['banque']}: win-rate {c['winrate']}% (sur {c['n']} services comparables)"
@@ -3694,6 +3694,68 @@ def _resume_facts_stratop(segment):
             f"états financiers réels — jamais rédigées par un modèle de langage).\n"
             f"Bilan d'ensemble : {bilan_f}\n\n"
             f"Directives par direction (constat réel + apport estimé) :\n{dirs_f}")
+
+
+@app.route("/api/deck_data")
+def api_deck_data():
+    """Tableau + graphique DÉTERMINISTES pour le diaporama téléchargeable (PPTX) — jamais du
+    texte de LLM : les mêmes fonctions agent que le dashboard lui-même, pour que le diaporama
+    « reflète parfaitement l'interface ». Un seul tableau et un seul graphique par section,
+    volontairement (le diaporama synthétise, il ne duplique pas tout l'écran)."""
+    section = (request.args.get("section") or "ef").lower()
+    segment = request.args.get("segment", "Particuliers")
+    try:
+        if section == "cb":
+            CB = AGENTS["CB"].structured
+            q6 = CB.cb_analyse_q6(strategie.CB_ANNEE, strategie.CB_SEM, segment) or []
+            cmp = CB.cb_prix_competitivite(strategie.CB_ANNEE, strategie.CB_SEM, segment) or {}
+            winrate_par_banque = {c["banque"]: c.get("winrate") for c in (cmp.get("classement") or [])}
+            bycat = sorted([r for r in q6 if (r.get("n_services") or 0) > 0], key=lambda r: -(r.get("n_services") or 0))
+            table = {"headers": ["Banque", "Services", "% gratuits", "Win-rate prix"],
+                     "rows": [[r["banque"], r.get("n_services"), r.get("pct_gratuit"),
+                               winrate_par_banque.get(r["banque"])] for r in bycat]}
+            chart = {"title": "Taille du catalogue par banque", "unit": "services",
+                     "labels": [r["banque"] for r in bycat], "values": [r.get("n_services") or 0 for r in bycat]}
+        elif section == "strategie":
+            d = _strat_get(segment)
+            proj = d.get("projection") or []
+            table = {"headers": ["Indicateur", "Aujourd'hui", "Cible à 3 ans (scénario central)"],
+                      "rows": [[p.get("nom"), p.get("depart"), p.get("central_an3")] for p in proj]}
+            # Porter n'a que des intensités TEXTUELLES ("Élevée", "Modérée"...), pas de valeur
+            # numérique — inexploitable pour un graphique. Le ROE par banque (même source que
+            # le dashboard Santé financière) illustre directement le diagnostic concurrentiel.
+            S = AGENTS["EF"].structured
+            kp = S.kpis_vue_ensemble(strategie.CB_ANNEE, strategie.CB_SEM, segment, 3) or {}
+            roe = kp.get("roe_data") or {}
+            banks_roe = sorted(roe, key=lambda x: -(roe.get(x) or 0))
+            chart = {"title": "ROE par banque", "unit": "%",
+                     "labels": banks_roe, "values": [roe.get(b) or 0 for b in banks_roe]}
+        elif section == "stratop":
+            d_all = _directives_en_cache(segment)
+            d = d_all.get("directives") or []
+            bilan = d_all.get("bilan") or {}
+            top = sorted(d, key=lambda x: x.get("rang") or 99)[:8]
+            table = {"headers": ["Direction", "Directive", "Rang"],
+                      "rows": [[x.get("direction"), x.get("titre"), x.get("rang")] for x in top]}
+            chart = {"title": "Bilan chiffré du plan", "unit": "Mds FCFA",
+                     "labels": ["Apport chiffré", "Écart à combler"],
+                     "values": [bilan.get("somme_mds") or 0, bilan.get("ecart_mds") or 0]}
+        else:
+            S = AGENTS["EF"].structured
+            kp = S.kpis_vue_ensemble(strategie.CB_ANNEE, strategie.CB_SEM, segment, 3) or {}
+            rn = kp.get("rn_data") or {}
+            banks = sorted(rn, key=lambda x: -(rn.get(x) or 0))
+            def _g(d, b):
+                return (kp.get(d) or {}).get(b)
+            table = {"headers": ["Banque", "Résultat net", "PNB", "ROE %", "Marge nette %", "Coeff. %", "Coût risque %"],
+                      "rows": [[b, _g("rn_data", b), _g("pnb_data", b), _g("roe_data", b),
+                                _g("marge_nette_data", b), _g("coeff_expl_data", b), _g("cout_r_pnb_data", b)]
+                               for b in banks]}
+            chart = {"title": "Résultat net par banque", "unit": "Mds FCFA",
+                     "labels": banks, "values": [rn.get(b) or 0 for b in banks]}
+    except Exception as e:
+        return jsonify({"table": None, "chart": None, "error": str(e)[:200]}), 200
+    return jsonify({"table": table, "chart": chart})
 
 
 def _pdf_plaintext(s):
