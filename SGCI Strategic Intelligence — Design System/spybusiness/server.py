@@ -3565,7 +3565,11 @@ def _resume_facts_ef(segment):
                     + (f" · mix commissions {mix}%" if mix is not None else ""))
     podium = sorted(rn.items(), key=lambda x: -(x[1] or 0))[:3]
     podium_txt = ", ".join(f"{b} ({_fmt_m(v)})" for b, v in podium if v is not None)
-    return (f"SANTÉ FINANCIÈRE — segment {segment}, dernier exercice (dashboard complet : résultat net, PNB, "
+    # Pas de "segment {segment}" ici : la Santé financière n'a AUCUNE notion de segment
+    # Particuliers/Entreprises (résultat net, PNB, ROE... sont des chiffres banque entière,
+    # aucune colonne ni filtre de segment dans la requête SQL) — l'écrire dans les faits
+    # amenait le LLM à en faire un titre trompeur ("... du segment Particuliers").
+    return (f"SANTÉ FINANCIÈRE — dernier exercice (dashboard complet : résultat net, PNB, "
             f"ROE, marge nette, coefficient d'exploitation, coût du risque, croissance, mix revenus).\n"
             f"Rang SGCI en résultat net : #{kp.get('sgci_rang_rn')}. Part de marché : {kp.get('sgci_part_marche')}%.\n"
             f"Podium résultat net : {podium_txt}.\n"
@@ -3947,6 +3951,10 @@ FORMAT : marqueurs @@clé@@ (PAS de JSON)."""
                              "generated_at": _meta.get("generated_at"), "stale": True})
         return jsonify({"resume": None, "source": "none"}), 200
     parsed["points"] = [_pdf_plaintext(p.lstrip("-• ").strip()) for p in (parsed.get("points") or "").split("\n") if p.strip()]
+    if section == "ef":
+        # Filet de sécurité : même sans "segment" dans les faits, le LLM peut encore en glisser
+        # un dans son titre par habitude. La Santé financière n'a pas de segment — titre fixe.
+        parsed["titre"] = "Santé financière"
     parsed["section"] = titre_dash
     parsed["segment"] = segment
     cache[key] = parsed

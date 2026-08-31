@@ -355,8 +355,16 @@ async function exportDeck(title){
     return;
   }
 
+  // Santé financière n'a PAS de notion de segment Particuliers/Entreprises dans son propre
+  // écran (résultat net, PNB, ROE... sont des chiffres banque entière, sans ventilation par
+  // segment) — contrairement à Conditions bancaires ou Stratégie, où le segment change
+  // vraiment les chiffres. Afficher « Segment Particuliers » dessus laissait croire à un choix
+  // de l'utilisateur qui n'existe pas sur cet écran (retour du directeur : « DEPUIS QUAND SF A
+  // UN SEGMENT ? »). On continue d'interroger l'API avec une valeur stable, mais on ne
+  // l'affiche plus sur ce diaporama précis.
+  const displaySegment = (section === "ef") ? null : segment;
   try{
-    await _pptxRender(resume, deckData, title, segment, date);
+    await _pptxRender(resume, deckData, title, displaySegment, date);
   }catch(e){
     console.error("pptx error", e);
     alert("Erreur lors de la génération du diaporama : " + e.message);
@@ -419,8 +427,10 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
     _bg(slide, _DK_DARK);
     slide.addText("SGCI", {x:M, y:0.611, w:4, h:0.4, fontFace:_F_MONO, fontSize:12, color:_DK_MUTED_DARK_55,
       charSpacing:3});
-    slide.addText(`Segment ${segment}`, {x:W-M-4, y:0.611, w:4, h:0.4, fontFace:_F_MONO, fontSize:12,
-      color:_DK_MUTED_DARK_55, align:"right", charSpacing:3});
+    if(segment){
+      slide.addText(`Segment ${segment}`, {x:W-M-4, y:0.611, w:4, h:0.4, fontFace:_F_MONO, fontSize:12,
+        color:_DK_MUTED_DARK_55, align:"right", charSpacing:3});
+    }
     slide.addShape(P.ShapeType.rect, {x:M, y:2.75, w:0.667, h:0.03, fill:{color:_DK_GOLD}, line:{type:"none"}});
     slide.addText(resume.titre || title, {x:M, y:3.0, w:W-2*M, h:1.9, fontFace:_F_SERIF, fontSize:54,
       color:"FFFFFF", valign:"top", fit:"shrink", lineSpacingMultiple:1.02});

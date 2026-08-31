@@ -803,5 +803,27 @@
   "resume_v12_cb_Particuliers_8783ba96c64d@meta": {
     "generated_at": "2026-08-31T12:06:53",
     "stale": false
+  },
+  "resume_v12_ef_Particuliers_2d3503cd0fd3": {
+    "titre": "Santé financière",
+    "executif": "SGCI consolide sa position de leader du secteur bancaire ivoirien en affichant le résultat net le plus élevé, tout en maintenant une rentabilité solide malgré un coût du risque supérieur à celui de ses principaux concurrents. La dynamique de croissance, bien que modérée, s’appuie sur une part de commissions stable, contrastant avec la forte expansion observée chez d’autres établissements. La combinaison d’une marge nette robuste et d’un coefficient d’exploitation maîtrisé souligne l’efficacité opérationnelle de la banque. Le principal enjeu réside désormais dans la maîtrise du coût du risque afin de préserver la performance globale.",
+    "points": [
+      "Le résultat net de SGCI s’établit à 101 352,0, dépassant de 37 870,0 celui d’Ecobank.",
+      "Le produit net bancaire de SGCI atteint 276 048,0, soit plus du double du PNB d’Ecobank (132 725,0).",
+      "Le ROE de SGCI s’élève à 20,5 %, inférieur au ROE de BICICI (30,3 %).",
+      "La marge nette de SGCI est de 36,7 %, légèrement inférieure à celle de BICICI (45,9 %).",
+      "Le coefficient d’exploitation de SGCI s’établit à 38,8 %, comparable au meilleur coefficient du podium (38,6 % de SIB).",
+      "Le coût du risque de SGCI s’élève à 17,0 %, nettement supérieur à celui d’Ecobank (2,2 %).",
+      "La croissance du PNB de SGCI est de 4,2 %, bien en deçà de la progression de BICICI (118,8 %).",
+      "Le mix commissions de SGCI représente 24 % du revenu total, marginalement supérieur à celui d’Ecobank (23 %)."
+    ],
+    "analyse": "La suprématie de SGCI en résultat net découle d’un volume d’affaires largement supérieur, comme en témoigne son PNB qui dépasse de façon significative celui de ses rivaux. Toutefois, la rentabilité nette (ROE) et la marge nette restent modestes face à des concurrents plus spécialisés, reflétant l’impact du coût du risque élevé qui grève les performances. La maîtrise du coefficient d’exploitation indique une bonne discipline des coûts, mais la croissance du PNB reste timide, suggérant une capacité limitée à capter les dynamiques de marché rapides affichées par BICICI. Enfin, la part des commissions, bien que stable, ne compense pas la pression du risque sur les marges.",
+    "conclusion": "Priorité n°1 : réduire le coût du risque de SGCI d’au moins 5 points de pourcentage d’ici l’exercice suivant, en renforçant les critères de crédit et les provisions. Cette action permettra d’améliorer la rentabilité nette tout en soutenant la croissance du PNB.",
+    "section": "Santé financière",
+    "segment": "Particuliers"
+  },
+  "resume_v12_ef_Particuliers_2d3503cd0fd3@meta": {
+    "generated_at": "2026-08-31T14:48:39",
+    "stale": false
   }
 }
