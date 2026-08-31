@@ -3747,8 +3747,12 @@ def api_deck_data():
             banks = sorted(rn, key=lambda x: -(rn.get(x) or 0))
             def _g(d, b):
                 return (kp.get(d) or {}).get(b)
+            # Séparateur de milliers à la française pour les gros montants — sinon un tableau
+            # « pro » affiche « 101352 » collé, illisible au premier coup d'œil.
+            def _fmt_m(v):
+                return f"{v:,.1f}".replace(",", " ").replace(".", ",") if isinstance(v, (int, float)) else v
             table = {"headers": ["Banque", "Résultat net", "PNB", "ROE %", "Marge nette %", "Coeff. %", "Coût risque %"],
-                      "rows": [[b, _g("rn_data", b), _g("pnb_data", b), _g("roe_data", b),
+                      "rows": [[b, _fmt_m(_g("rn_data", b)), _fmt_m(_g("pnb_data", b)), _g("roe_data", b),
                                 _g("marge_nette_data", b), _g("coeff_expl_data", b), _g("cout_r_pnb_data", b)]
                                for b in banks]}
             chart = {"title": "Résultat net par banque", "unit": "Mds FCFA",

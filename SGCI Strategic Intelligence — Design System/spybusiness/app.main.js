@@ -378,39 +378,39 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
   const _footer = (slide) => {
     slide.addShape(P.ShapeType.rect, {x:0, y:H-0.14, w:W, h:0.14, fill:{color:_DECK_RED}, line:{type:"none"}});
     slide.addText("SpyBusiness · Intelligence bancaire SGCI", {
-      x:M, y:H-0.42, w:6, h:0.26, fontFace:"Arial", fontSize:8, color:"9A9A9A", align:"left"});
-    slide.addText(date, {x:W-M-3, y:H-0.42, w:3, h:0.26, fontFace:"Arial", fontSize:8, color:"9A9A9A", align:"right"});
+      x:M, y:H-0.42, w:6, h:0.26, fontFace:"Calibri", fontSize:8, color:"9A9A9A", align:"left"});
+    slide.addText(date, {x:W-M-3, y:H-0.42, w:3, h:0.26, fontFace:"Calibri", fontSize:8, color:"9A9A9A", align:"right"});
   };
   const _header = (slide, label) => {
     slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:0.85, fill:{color:_DECK_RED}, line:{type:"none"}});
     slide.addText(label.toUpperCase(), {x:M, y:0, w:W-2*M, h:0.85, valign:"middle",
-      fontFace:"Arial", fontSize:20, bold:true, color:"FFFFFF", fit:"shrink"});
+      fontFace:"Calibri", fontSize:20, bold:true, color:"FFFFFF", fit:"shrink"});
   };
 
   /* ── 1 · Couverture ── */
   {
     const slide = P.addSlide();
-    slide.background = {color: _DECK_DARK};
+    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color:_DECK_DARK}, line:{type:"none"}});
     slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:0.10, fill:{color:_DECK_RED}, line:{type:"none"}});
     slide.addShape(P.ShapeType.rect, {x:0, y:H-0.10, w:W, h:0.10, fill:{color:_DECK_RED}, line:{type:"none"}});
     try{ slide.addImage({path:"assets/logos/SGCI.png", x:W/2-0.55, y:1.15, w:1.1, h:1.1}); }catch(e){}
-    slide.addText("SGCI", {x:0, y:2.55, w:W, h:0.5, align:"center", fontFace:"Arial", fontSize:14,
+    slide.addText("SGCI", {x:0, y:2.55, w:W, h:0.5, align:"center", fontFace:"Calibri", fontSize:14,
       color:"C9C9C9", charSpacing:4, bold:true});
-    slide.addText(resume.titre || title, {x:1, y:3.15, w:W-2, h:1.2, align:"center", fontFace:"Arial",
+    slide.addText(resume.titre || title, {x:1, y:3.15, w:W-2, h:1.2, align:"center", fontFace:"Calibri",
       fontSize:34, bold:true, color:"FFFFFF", fit:"shrink", valign:"middle"});
     slide.addShape(P.ShapeType.line, {x:W/2-1.1, y:4.55, w:2.2, h:0, line:{color:_DECK_RED, width:2}});
-    slide.addText(`Segment ${segment}`, {x:0, y:4.75, w:W, h:0.4, align:"center", fontFace:"Arial",
+    slide.addText(`Segment ${segment}`, {x:0, y:4.75, w:W, h:0.4, align:"center", fontFace:"Calibri",
       fontSize:15, color:"D9D9D9"});
-    slide.addText(`Généré le ${date}`, {x:0, y:5.15, w:W, h:0.35, align:"center", fontFace:"Arial",
+    slide.addText(`Généré le ${date}`, {x:0, y:5.15, w:W, h:0.35, align:"center", fontFace:"Calibri",
       fontSize:11, color:"8A8A8A"});
     slide.addText("Rédigé par l'agent IA à partir des données réellement stockées — chaque chiffre est vérifiable dans le dashboard SpyBusiness.",
-      {x:1.5, y:H-0.75, w:W-3, h:0.4, align:"center", fontFace:"Arial", fontSize:8.5, color:"6A6A6A", italic:true});
+      {x:1.5, y:H-0.75, w:W-3, h:0.4, align:"center", fontFace:"Calibri", fontSize:8.5, color:"6A6A6A", italic:true});
   }
 
   /* ── 2 · Données clés — tableau + graphique, mêmes chiffres que le dashboard ── */
   if(deckData && (deckData.table || deckData.chart)){
     const slide = P.addSlide();
-    slide.background = {color:"FFFFFF"};
+    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color:"FFFFFF"}, line:{type:"none"}});
     _header(slide, "Données clés");
 
     if(deckData.table && deckData.table.rows && deckData.table.rows.length){
@@ -438,7 +438,7 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
       const colors = c.labels.map(l => l === "SGCI" ? _DECK_RED : "C9C9C9");
       const chartX = deckData.table ? 8.35 : M, chartW = deckData.table ? W-8.35-M : W-2*M;
       slide.addText(c.title + (c.unit ? ` (${c.unit})` : ""), {x:chartX, y:1.05, w:chartW, h:0.35,
-        fontFace:"Arial", fontSize:11, bold:true, color:_DECK_MIDGRAY});
+        fontFace:"Calibri", fontSize:11, bold:true, color:_DECK_MIDGRAY});
       slide.addChart(P.ChartType.bar, [{name:c.title, labels:c.labels, values:c.values}], {
         x:chartX, y:1.45, w:chartW, h:5.05, barDir:"col",
         chartColors: isBankChart ? colors : [_DECK_RED],
@@ -454,23 +454,23 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
   /* ── 3 · Résumé exécutif + points clés ── */
   {
     const slide = P.addSlide();
-    slide.background = {color:"FFFFFF"};
+    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color:"FFFFFF"}, line:{type:"none"}});
     _header(slide, resume.titre || title);
 
-    slide.addText("RÉSUMÉ EXÉCUTIF", {x:M, y:1.15, w:5.9, h:0.35, fontFace:"Arial", fontSize:12,
+    slide.addText("RÉSUMÉ EXÉCUTIF", {x:M, y:1.15, w:5.9, h:0.35, fontFace:"Calibri", fontSize:12,
       bold:true, color:_DECK_RED});
     slide.addShape(P.ShapeType.rect, {x:M, y:1.55, w:5.9, h:5.15, fill:{color:_DECK_LIGHTBG}, line:{type:"none"},
       rectRadius:0.08});
     slide.addShape(P.ShapeType.rect, {x:M, y:1.55, w:0.06, h:5.15, fill:{color:_DECK_RED}, line:{type:"none"}});
-    slide.addText(resume.executif || "", {x:M+0.3, y:1.75, w:5.3, h:4.75, fontFace:"Arial", fontSize:13,
+    slide.addText(resume.executif || "", {x:M+0.3, y:1.75, w:5.3, h:4.75, fontFace:"Calibri", fontSize:13,
       color:_DECK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.25});
 
-    slide.addText("POINTS CLÉS", {x:6.85, y:1.15, w:5.9, h:0.35, fontFace:"Arial", fontSize:12,
+    slide.addText("POINTS CLÉS", {x:6.85, y:1.15, w:5.9, h:0.35, fontFace:"Calibri", fontSize:12,
       bold:true, color:_DECK_MIDGRAY});
     const pts = (resume.points || []).slice(0, 8).map(p => ({
       text: p, options:{bullet:{code:"25CF", indent:18}, color:_DECK_INK, breakLine:true}
     }));
-    slide.addText(pts.length ? pts : [{text:"—"}], {x:6.85, y:1.6, w:5.9, h:5.1, fontFace:"Arial",
+    slide.addText(pts.length ? pts : [{text:"—"}], {x:6.85, y:1.6, w:5.9, h:5.1, fontFace:"Calibri",
       fontSize:12.5, valign:"top", fit:"shrink", lineSpacingMultiple:1.35, paraSpaceAfter:8});
 
     _footer(slide);
@@ -479,12 +479,12 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
   /* ── 4 · Analyse ── */
   {
     const slide = P.addSlide();
-    slide.background = {color:"FFFFFF"};
+    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color:"FFFFFF"}, line:{type:"none"}});
     slide.addShape(P.ShapeType.rect, {x:0, y:0, w:0.14, h:H, fill:{color:_DECK_RED}, line:{type:"none"}});
-    slide.addText("ANALYSE", {x:0.75, y:0.6, w:W-1.5, h:0.5, fontFace:"Arial", fontSize:22, bold:true,
+    slide.addText("ANALYSE", {x:0.75, y:0.6, w:W-1.5, h:0.5, fontFace:"Calibri", fontSize:22, bold:true,
       color:_DECK_INK});
     slide.addShape(P.ShapeType.line, {x:0.75, y:1.25, w:2, h:0, line:{color:_DECK_RED, width:2.5}});
-    slide.addText(resume.analyse || "", {x:0.75, y:1.6, w:W-1.5, h:4.9, fontFace:"Arial", fontSize:16,
+    slide.addText(resume.analyse || "", {x:0.75, y:1.6, w:W-1.5, h:4.9, fontFace:"Calibri", fontSize:16,
       color:_DECK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.4});
     _footer(slide);
   }
@@ -492,12 +492,12 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
   /* ── 5 · À retenir ── */
   {
     const slide = P.addSlide();
-    slide.background = {color:_DECK_INK};
+    slide.addShape(P.ShapeType.rect, {x:0, y:0, w:W, h:H, fill:{color:_DECK_INK}, line:{type:"none"}});
     slide.addShape(P.ShapeType.ellipse, {x:W-3.5, y:-2, w:6, h:6, fill:{color:"2A2A2A"}, line:{type:"none"}});
     slide.addShape(P.ShapeType.rect, {x:0, y:0, w:0.14, h:H, fill:{color:_DECK_RED}, line:{type:"none"}});
-    slide.addText("À RETENIR", {x:0.9, y:0.9, w:W-1.8, h:0.5, fontFace:"Arial", fontSize:14, bold:true,
+    slide.addText("À RETENIR", {x:0.9, y:0.9, w:W-1.8, h:0.5, fontFace:"Calibri", fontSize:14, bold:true,
       color:_DECK_RED, charSpacing:2});
-    slide.addText(resume.conclusion || "", {x:0.9, y:1.6, w:W-1.9, h:4.6, fontFace:"Arial", fontSize:22,
+    slide.addText(resume.conclusion || "", {x:0.9, y:1.6, w:W-1.9, h:4.6, fontFace:"Calibri", fontSize:22,
       bold:true, color:"FFFFFF", valign:"top", fit:"shrink", lineSpacingMultiple:1.3});
     if(resume._stale){
       let genTxt = "date inconnue";
@@ -505,10 +505,10 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
         try{ genTxt = new Date(resume._generatedAt).toLocaleDateString("fr-FR", {day:"2-digit",month:"long",year:"numeric"}); }catch(e){}
       }
       slide.addText(`⚠ Analyse de secours — dernière génération réussie le ${genTxt}.`, {
-        x:0.9, y:H-1.1, w:W-1.8, h:0.4, fontFace:"Arial", fontSize:10, color:"E8B84B"});
+        x:0.9, y:H-1.1, w:W-1.8, h:0.4, fontFace:"Calibri", fontSize:10, color:"E8B84B"});
     }
     slide.addText("Rédigé par l'agent IA à partir des données réellement stockées — chaque chiffre est vérifiable dans le dashboard SpyBusiness.",
-      {x:0.9, y:H-0.6, w:W-1.8, h:0.35, fontFace:"Arial", fontSize:8.5, color:"7A7A7A", italic:true});
+      {x:0.9, y:H-0.6, w:W-1.8, h:0.35, fontFace:"Calibri", fontSize:8.5, color:"7A7A7A", italic:true});
   }
 
   await P.writeFile({fileName: `SpyBusiness — ${resume.titre || title} — ${date}.pptx`});
