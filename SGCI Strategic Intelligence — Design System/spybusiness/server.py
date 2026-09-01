@@ -3636,6 +3636,13 @@ def _resume_facts_strategie(segment=None):
                           for q in ("forces", "faiblesses", "opportunites", "menaces") if sw.get(q))
         porter = ((d.get("porter") or {}).get("forces")) or []
         porter_f = "\n".join(f"    {f.get('force')}: intensité {f.get('intensite')}" for f in porter)
+        # PESTEL manquait ENTIÈREMENT du résumé — pas un problème de qualité du LLM, il ne peut
+        # résumer que ce qu'on lui donne (retour du directeur : « le LLM ne sait pas faire de
+        # résumé ???? » — non, c'est cette fonction qui ne lui transmettait pas la section).
+        pestel = d.get("pestel") or {}
+        pestel_f = "\n".join(
+            f"    {ax.get('nom')} : {ax.get('resume')}"
+            for ax in (pestel.get("axes") or []) if ax.get("nom"))
         vr = ((d.get("vrist") or {}).get("banques") or {}).get("SGCI") or {}
         vr_f = " · ".join(f"{x.get('nom') or x.get('cle')} {x.get('score')}/10" for x in (vr.get("dimensions") or []))
         revs = (d.get("revelations") or [])[:4]
@@ -3660,6 +3667,7 @@ def _resume_facts_strategie(segment=None):
             f"  Problèmes prioritaires :\n{diag_f}\n"
             f"  SWOT :\n{sw_f}\n"
             f"  Forces de Porter (intensité concurrentielle) :\n{porter_f}\n"
+            f"  PESTEL (environnement macro, données fraîches sourcées par l'agent web) :\n{pestel_f}\n"
             f"  Profil VRIST de SGCI (avantage concurrentiel /10) : {vr_f}\n"
             f"  Révélations clés :\n{rev_f}\n"
             f"  Plan 3 ans :\n{plan_f}\n"
@@ -3668,8 +3676,8 @@ def _resume_facts_strategie(segment=None):
             f"  Conclusion stratégique de la projection : {concl}")
 
     return (f"STRATÉGIE — LES DEUX SEGMENTS (Particuliers ET Entreprises) — À RÉSUMER ENSEMBLE, PAS un seul "
-            f"segment (dashboard complet : diagnostic, SWOT, forces de Porter, profil VRIST, révélations, "
-            f"plan d'action 3 ans, projection à 3 scénarios).\n"
+            f"segment (dashboard complet : diagnostic, SWOT, forces de Porter, PESTEL, profil VRIST, "
+            f"révélations, plan d'action 3 ans, projection à 3 scénarios).\n"
             f"ATTENTION : PNB, résultat net, ROE et coût du risque viennent des états financiers, qui n'ont "
             f"PAS de notion de segment — leurs chiffres sont IDENTIQUES dans les deux blocs ci-dessous. "
             f"Mentionne-les UNE SEULE fois dans ton résumé, jamais « X chez les Particuliers et X chez les "
@@ -3936,7 +3944,7 @@ def api_dashboard_resume():
     # fichier sans aucun glitch. C'est Poppler (pdftotext/pdftoppm) qui mal-interprète le flux
     # PDF généré par jsPDF sur cette machine. Pour vérifier un PDF généré par l'app, utiliser
     # PyMuPDF, pas Poppler.
-    key = f"resume_v15_{section}_{segment}_{_hlr.md5(facts.encode('utf-8')).hexdigest()[:12]}"
+    key = f"resume_v16_{section}_{segment}_{_hlr.md5(facts.encode('utf-8')).hexdigest()[:12]}"
     if cache.get(key):
         return jsonify({"resume": cache[key], "source": "cache"})
 
@@ -3953,9 +3961,12 @@ def api_dashboard_resume():
             "@@points@@ DOIVENT couvrir CHACUNE de ces dimensions au moins une fois (pas seulement "
             "coût du risque et résultat net répétés) : (1) un problème prioritaire du diagnostic, "
             "(2) au moins un élément du SWOT (force OU faiblesse OU opportunité OU menace, nommé "
-            "précisément), (3) au moins une force de Porter et son intensité, (4) le profil VRIST de "
-            "SGCI, (5) au moins une révélation clé, (6) au moins un horizon du plan à 3 ans, (7) la "
-            "projection à 3 ans. Si un point sur deux parle de coût du risque ou de résultat net, tu "
+            "précisément), (3) au moins une force de Porter et son intensité, (4) au moins un axe "
+            "PESTEL (politique/économique/socioculturel/technologique/écologique/légal — nomme l'axe "
+            "et le fait, il vient de la veille web fraîche, ne le passe JAMAIS sous silence), (5) le "
+            "profil VRIST de SGCI, (6) au moins une révélation clé, (7) au moins un horizon du plan à "
+            "3 ans, (8) la projection à 3 ans. Si un point sur deux parle de coût du risque ou de "
+            "résultat net, tu "
             "as échoué — chaque point doit apporter une INFORMATION NOUVELLE, pas reformuler la "
             "même.\n")
     elif section == "stratop":

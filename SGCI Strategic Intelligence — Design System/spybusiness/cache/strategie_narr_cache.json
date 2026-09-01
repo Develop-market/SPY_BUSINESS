@@ -88,5 +88,15 @@
   "strat_diag_v1_Particuliers_4629d4cd93@meta": {
     "generated_at": "2026-08-31T18:37:49",
     "stale": false
+  },
+  "strat_switch_v2_Particuliers_6fdaee46a9": "Le portefeuille d’atouts prix compte <b>14 services</b> pour un gain maximal de <b>210 000 FCFA</b>/an, alors que les risques prix regroupent <b>29 services</b> avec un écart maximal de <b>110 000 FCFA</b>/an, ce déséquilibre en nombre de services et en montant révèle que SGCI est globalement plus exposée aux menaces de perte de clientèle que ses avantages tarifaires. <br>Le service le plus attractif est le <b>« Pack Infinite »</b> où un client quitte NSIA pour économiser <b>210 000 FCFA</b>, tandis que le point de friction le plus critique est la <b>« Première carte (VISA PLATINUM) »</b> face à SIB, où un client économise <b>110 000 FCFA</b>, incitant SGCI à capitaliser sur le Pack Infinite dans ses campagnes et à réviser le tarif de la Visa Platinum pour réduire cet écart. <br>Il faut lancer immédiatement une offre « Upgrade Visa Platinum » à prix SGCI, incluant une remise ciblée de <b>65 000 FCFA</b> (nouveau tarif aligné sur SIB) pour les clients existants, afin de neutraliser le risque de départ vers SIB tout en conservant le positionnement prix avantageux sur les packs de comptes.",
+  "strat_switch_v2_Particuliers_6fdaee46a9@meta": {
+    "generated_at": "2026-09-01T11:29:08",
+    "stale": false
+  },
+  "strat_proj_v1_Particuliers_ca58428eac": "La réduction du coût du risque de <b>26,15 %</b> à <b>2,467 %</b> combinée à l’augmentation du PNB à <b>314,083 Mds</b> crée un effet additionnel de <b>36,569 Mds</b> qui propulse le résultat net à <b>107,865 Mds</b>. <br>Le prix de l’inaction se mesure à <b>0 Mds</b> d’écart entre le scénario « sans rien changer » et le scénario central à AN3, soit aucune création de valeur supplémentaire. <br>La condition la plus fragile est la réalisation du glissement de <b>14,5 pts</b> du coût du risque sur trois ans ; tout manquement à cet objectif fait retomber le ROE bien en dessous de la cible de <b>28,833 %</b>. <br>Sans ce gain de <b>36,569 Mds</b> de provision évitée, la SGCI ne pourra jamais atteindre son ROE de <b>28,833 %</b>.",
+  "strat_proj_v1_Particuliers_ca58428eac@meta": {
+    "generated_at": "2026-09-01T11:29:09",
+    "stale": false
   }
 }

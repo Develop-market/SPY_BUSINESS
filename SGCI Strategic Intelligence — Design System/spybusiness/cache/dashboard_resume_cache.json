@@ -1135,5 +1135,95 @@
   "resume_v15_stratop_Particuliers_eef1ee6c76dd@meta": {
     "generated_at": "2026-09-01T10:52:14",
     "stale": false
+  },
+  "resume_v16_strategie_Particuliers_a12adbef2227": {
+    "titre": "Stratégie globale SGCI 2024‑2027",
+    "executif": "SGCI domine le résultat net mais voit son potentiel freiné par un coût du risque qui explose et un catalogue de services nettement inférieur à celui de ses rivaux. La rivalité intense, conjuguée à la montée fulgurante de BICICI et à la politique tarifaire agressive d’ECOBANK, rend indispensable une transformation accélérée de l’offre et une maîtrise rigoureuse du risque. Le plan triennal propose de désengorger le risque, d’élargir le portefeuille de services et de convertir l’avance en résultat net en relance de la croissance. Le scénario central projette un résultat net de 144,4 Mds FCFA, soit une hausse de 42,5 % en trois ans.",
+    "points": [
+      "13,9 % du PNB représente le coût du risque moyen sur trois ans, bien au‑delà de la médiane de 5 % du marché.",
+      "101,352 Mds FCFA constitue le résultat net actuel, positionnant SGCI en tête du classement des bénéfices.",
+      "20,5 % de ROE aujourd’hui place la banque sous la moyenne sectorielle, révélant une rentabilité des fonds propres insuffisante.",
+      "Le catalogue de services s’élève à 184 items, contre 536 prévus dans trois ans, illustrant une profondeur d’offre très limitée.",
+      "La rivalité entre les banques est évaluée comme « Très élevée » dans le modèle de Porter, soulignant une pression concurrentielle maximale.",
+      "Le facteur politique indique trois signaux récents d’une union monétaire stable et d’un régulateur actif.",
+      "Le profil VRIST attribue à SGCI une rareté de 10 /10, confirmant l’unicité de ses atouts stratégiques.",
+      "Une des révélations clés souligne que la diversification des revenus compte deux fois plus pour SGCI que pour ses concurrents.",
+      "L’horizon de l’an 2 du plan vise à rendre la réduction du risque structurelle, condition sine qua non de la diversification.",
+      "Le scénario prudent prévoit un résultat net de 129,8 Mds FCFA, soit +28,1 % par rapport à aujourd’hui."
+    ],
+    "analyse": "Le coût du risque, largement supérieur à la moyenne du secteur, grève la rentabilité et explique le ROE en retrait. La faiblesse du catalogue de services, combinée à une intensité concurrentielle très élevée, expose SGCI à la perte de parts de marché au profit de BICICI, qui bénéficie d’une discipline opérationnelle exemplaire, et d’ECOBANK, championne du prix. Le contexte macro‑économique, marqué par une croissance forte et une bancarisation encore faible, offre toutefois un gisement de clients potentiels que la digitalisation et la diversification des offres pourraient capter. Le plan triennal, en ciblant d’abord la maîtrise du risque puis l’expansion du portefeuille, crée les conditions d’une conversion de l’avance en résultat net en croissance durable.",
+    "tags": [
+      "Risque",
+      "Offre",
+      "Concurrence",
+      "Croissance"
+    ],
+    "conclusion": "Priorité n°1 : réduire le coût du risque à moins de 5 % du PNB d’ici l’an 2, en mobilisant les ressources de contrôle et d’automatisation. Cette action libérera plus de 36 Mds FCFA de résultat net supplémentaire, ouvrant la voie à l’expansion du catalogue de services.",
+    "section": "Stratégie",
+    "segment": "Particuliers"
+  },
+  "resume_v16_strategie_Particuliers_a12adbef2227@meta": {
+    "generated_at": "2026-09-01T11:44:15",
+    "stale": false
+  },
+  "resume_v16_cb_Particuliers_3afe847cd5dc": {
+    "titre": "Bilan des conditions bancaires – SGCI 2026 S1",
+    "executif": "Le positionnement de SGCI se caractérise par une offre de services intermédiaire, tant pour les particuliers que pour les entreprises, tout en affichant une compétitivité tarifaire notable dans le segment professionnel. La performance tarifaire supérieure aux pairs en entreprise contraste avec une visibilité moindre du catalogue dans les deux segments. Cette dualité crée une tension entre la capacité à attirer les entreprises grâce à des prix attractifs et la nécessité d’enrichir l’éventail de services pour les particuliers. Le point culminant réside dans le taux de win‑rate de 74,1 % sur 27 services comparables en entreprise, le plus élevé du marché.",
+    "points": [
+      "184 services proposés aux particuliers, dont 19,7 % gratuits.",
+      "178 services proposés aux entreprises, dont 16,8 % gratuits.",
+      "15 exclusivités confirmées pour les particuliers.",
+      "16 exclusivités confirmées pour les entreprises.",
+      "10 manques identifiés face à trois concurrents ou plus chez les particuliers.",
+      "5 manques identifiés face à trois concurrents ou plus chez les entreprises.",
+      "60,5 % de win‑rate sur 38 services comparables pour les particuliers.",
+      "74,1 % de win‑rate sur 27 services comparables pour les entreprises."
+    ],
+    "analyse": "Le nombre de services offerts place SGCI en quatrième position, reflétant un catalogue moins dense que celui des leaders du marché. La proportion de services gratuits, plus faible que chez plusieurs concurrents, limite l’attractivité tarifaire, surtout pour les particuliers. Les exclusivités, bien que présentes, restent modestes et ne compensent pas les lacunes identifiées face à trois concurrents ou plus. En revanche, la politique tarifaire en entreprise, illustrée par le win‑rate de 74,1 %, démontre une capacité à gagner des parts grâce à des prix compétitifs, ce qui explique la première place dans ce critère.",
+    "tags": [
+      "Catalogue",
+      "Tarification",
+      "Exclusivités",
+      "Compétitivité"
+    ],
+    "conclusion": "Priorité n°1 : enrichir le catalogue des services gratuits afin d’atteindre au moins 30 % de l’offre pour les particuliers d’ici la fin 2026. Cette action, couplée à la valorisation des exclusivités existantes, renforcera la compétitivité globale de SGCI sur les deux segments.",
+    "section": "Conditions bancaires",
+    "segment": "Particuliers"
+  },
+  "resume_v16_cb_Particuliers_3afe847cd5dc@meta": {
+    "generated_at": "2026-09-01T11:49:33",
+    "stale": false
+  },
+  "resume_v16_stratop_Particuliers_eef1ee6c76dd": {
+    "titre": "Stratégie Opérationnelle SGCI 2026",
+    "executif": "Le tableau de bord révèle que les deux segments atteignent déjà l’objectif de 16,0 Mds FCFA de PNB, éliminant ainsi tout écart à combler. La compétitivité tarifaire se traduit par des avantages de prix substantiels, tandis que la maîtrise du coût du risque génère un surplus de 2,0 Mds FCFA annuels. L’enjeu majeur réside désormais dans la conversion de ces leviers en volumes additionnels, notamment via l’innovation digitale. Le facteur décisif sera la capacité à exploiter les marges d’intermédiation.",
+    "points": [
+      "16,0 Mds FCFA de PNB totalise l’apport chiffré des 20 directives, couvrant intégralement l’écart visé.",
+      "314,083 Mds FCFA de PNB sur trois ans place SGCI au‑dessus de la moyenne des trois meilleures banques concurrentes.",
+      "2,0 Mds FCFA d’économie annuelle découlent d’une amélioration de 1 % de la marge d’intérêt, sur une base de 203,4 Mds FCFA.",
+      "38 services comparés en segment Particuliers, SGCI se montre la moins chère sur 23 d’entre eux.",
+      "27 services comparés en segment Entreprises, l’avantage tarifaire s’étend à 20 cas.",
+      "5 250 FCFA de frais de dossier sont supprimés pour trois services, alors que la médiane du marché les facture.",
+      "48 % de pénétration du paiement mobile crée un flux hors bilan exploitable.",
+      "32 % de bancarisation indique un potentiel de conversion des utilisateurs mobiles en clients bancaires.",
+      "3 % du catalogue (4 services sur 116) relève déjà de la banque à distance, offrant une base d’expansion digitale.",
+      "6 lignes tarifaires incohérentes sur 252 (2 %) exposent SGCI à un risque réglementaire.",
+      "12 lignes tarifaires incohérentes sur 274 (4 %) renforcent ce risque dans le segment Entreprises.",
+      "Le seuil de déclaration d’opérations en espèces fixé à 15 M FCFA demeure une contrainte pour la conquête professionnelle."
+    ],
+    "analyse": "La supériorité de SGCI sur le plan tarifaire, illustrée par les 23 et 20 services où elle est la moins chère, crée un avantage concurrentiel exploitable par les équipes commerciales. La marge d’intermédiation, renforcée par un différentiel de taux de 3,93 % (3,00 % vs 6,93 %), se traduit en économies substantielles, consolidant la rentabilité. L’innovation digitale, soutenue par la forte pénétration du paiement mobile, ouvre la voie à de nouveaux volumes hors bilan, tandis que la digitalisation des services à distance reste marginale mais prometteuse. Enfin, les incohérences tarifaires, bien que limitées en pourcentage, représentent un risque de conformité qui pourrait entraver la mise en œuvre des stratégies tarifaires.",
+    "tags": [
+      "Tarification",
+      "Marge",
+      "Digitalisation",
+      "Conformité"
+    ],
+    "conclusion": "Priorité n°1 : exploiter les 2,0 Mds FCFA d’économies annuelles en réinvestissant dans les solutions d’acceptation de paiement pour augmenter le volume des transactions hors bilan. Cette action doit être pilotée dès le prochain trimestre pour transformer le gain de marge en croissance durable.",
+    "section": "Stratégie opérationnelle",
+    "segment": "Particuliers"
+  },
+  "resume_v16_stratop_Particuliers_eef1ee6c76dd@meta": {
+    "generated_at": "2026-09-01T11:52:02",
+    "stale": false
   }
 }
