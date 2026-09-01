@@ -540,11 +540,11 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date, tab, secti
       slide.addShape(P.ShapeType.rect, {x, y, w:0.06, h:ch, fill:{color:q.color}, line:{type:"none"}});
       slide.addText(q.label.toUpperCase(), {x:x+0.25, y:y+0.15, w:cw-0.4, h:0.35, fontFace:_F_MONO,
         fontSize:11, bold:true, color:q.color, charSpacing:1});
-      const items = (table[q.key] || []).slice(0, 3);
+      const items = (table[q.key] || []).slice(0, 2);
       const itemH = (ch-0.65) / Math.max(items.length, 1);
       items.forEach((it, i) => {
         const iy = y+0.6+i*itemH;
-        const fs = _fitSize(it, cw-0.5, itemH-0.08, {max:10.5, min:7.5, lh:1.2, cw:0.5});
+        const fs = _fitSize(it, cw-0.5, itemH-0.1, {max:11.5, min:8, lh:1.22, cw:0.52});
         slide.addText(_deckClean(String(it)), {x:x+0.25, y:iy, w:cw-0.5, h:itemH-0.08, fontFace:_F_SANS,
           fontSize:fs, color:_DK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.2});
       });

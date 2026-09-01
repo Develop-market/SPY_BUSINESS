@@ -3985,16 +3985,32 @@ def _strat_section_data(section, segment):
                  "labels": [x.get("nom") or x.get("cle") for x in dims], "values": [x.get("score") or 0 for x in dims]}
     elif section == "swot":
         sw = d.get("swot") or {}
-        table = {q: [str(it.get("txt")) for it in (sw.get(q) or [])] for q in
+        # Un quadrant SWOT est une petite boîte (4 par diapositive) — les items du dashboard sont
+        # des phrases complètes, parfois longues (« Conformité BCEAO stricte... ») qui débordaient
+        # de la boîte même réduites au minimum. Deux items max par quadrant, tronqués à la première
+        # clause (avant le premier tiret cadratin, qui sépare toujours le fait de son développement
+        # dans ces données) — le détail complet reste consultable dans le dashboard lui-même.
+        def _swot_trim(txt):
+            t = str(txt).split(" — ")[0].strip()
+            return t if len(t) <= 130 else t[:127].rsplit(" ", 1)[0] + "…"
+        table = {q: [_swot_trim(it.get("txt")) for it in (sw.get(q) or [])[:2]] for q in
                  ("forces", "faiblesses", "opportunites", "menaces")}
     elif section == "pestel":
         axes = (d.get("pestel") or {}).get("axes") or []
         items = [f"{ax.get('nom')} : {ax.get('resume')}" for ax in axes if ax.get("nom")]
     elif section == "revelations":
-        # Le récit est déjà rédigé mais porte des balises <b> (mise en forme HTML de l'écran) —
-        # à retirer ici, sinon elles s'affichent littéralement dans le PPTX (texte brut, pas HTML).
-        items = [_re_rp.sub(r"<[^>]+>", "", f"{r.get('titre')} — {r.get('recit') or r.get('resume') or ''}")
-                 for r in (d.get("revelations") or [])[:6]]
+        # Le récit complet fait plusieurs centaines de caractères (c'est un vrai paragraphe
+        # d'analyse, pas une puce) — dans la grille de 6 cases de la diapositive liste, il
+        # débordait d'une case sur la suivante. On garde le titre (déjà percutant) + la
+        # première phrase du récit, le détail complet restant dans le dashboard lui-même.
+        def _revel_trim(r):
+            titre = _re_rp.sub(r"<[^>]+>", "", str(r.get("titre") or ""))
+            recit = _re_rp.sub(r"<[^>]+>", "", str(r.get("recit") or r.get("resume") or ""))
+            premiere = recit.split(" — ", 1)[0].split(". ")[0].strip()
+            if len(premiere) > 160:
+                return f"{titre} — {premiere[:157].rsplit(' ', 1)[0]}…"
+            return f"{titre} — {premiere}." if premiere else titre
+        items = [_revel_trim(r) for r in (d.get("revelations") or [])[:6]]
     else:  # essentiel
         items = [f"[{p.get('gravite')}] {p.get('titre')}" for p in (d.get("problemes") or [])[:6]]
     return chart, table, [i for i in (items or []) if i]
