@@ -3850,16 +3850,22 @@ def api_deck_data():
                     table_rows.append([seg, x.get("direction"), x.get("titre"), x.get("rang")])
                 stats.append({"label": f"Apport chiffré {seg}", "value": f"{bilan.get('somme_mds', 0)} Mds"})
             table = {"headers": ["Segment", "Direction", "Directive", "Rang"], "rows": table_rows}
-            # Un donut se prête mieux à « quelle part de l'écart est couverte » qu'une barre —
-            # écart nul (SGCI déjà au niveau visé) = couverture 100%, pas "N/D" (division par
-            # zéro côté directives.py, mais la lecture correcte est bien "totalement couvert").
+            # La couverture de l'écart vaut 100% pour les deux segments (SGCI a déjà atteint
+            # l'objectif) : un donut qui affiche deux cercles pleins identiques ne raconte rien
+            # (retour du directeur : « ça là c'est pertinent ????? »). La part des VINGT
+            # directives qui portent réellement un chiffre varie, elle, d'un segment à l'autre —
+            # c'est une vraie proportion à lire en anneau.
             def _couv(b):
                 pct = b.get("couverture_pct")
                 if pct is not None:
                     return round(pct)
                 return 100 if (b.get("ecart_mds") or 0) <= 0 else 0
-            chart = {"type": "donut", "title": "Couverture de l'écart à combler par le plan", "unit": "%",
-                     "donuts": [{"label": seg, "pct": _couv(bilans.get(seg, {}))} for seg in ("Particuliers", "Entreprises")]}
+            def _pct_chiffrees(b):
+                total = b.get("n_total") or 20
+                return round(100 * (b.get("n_chiffrees") or 0) / total) if total else 0
+            chart = {"type": "donut", "title": "Part des directives chiffrées sur le total du plan", "unit": "%",
+                     "donuts": [{"label": f"{seg} ({bilans.get(seg, {}).get('n_chiffrees', 0)}/{bilans.get(seg, {}).get('n_total', 20)})",
+                                 "pct": _pct_chiffrees(bilans.get(seg, {}))} for seg in ("Particuliers", "Entreprises")]}
             b_p = bilans.get("Particuliers", {})
             stats.append({"label": "Couverture Particuliers", "value": f"{_couv(b_p)} %"})
             stats.append({"label": "Directives chiffrées", "value": f"{b_p.get('n_chiffrees', 0)}/{b_p.get('n_total', 20)} (Particuliers)"})

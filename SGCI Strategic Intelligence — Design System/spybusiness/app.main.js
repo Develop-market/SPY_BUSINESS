@@ -514,8 +514,9 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
         showLegend:false, showTitle:false, showValue:false, showPercent:false, holeSize:68});
       slide.addText(`${pct}%`, {x, y:dY+dH/2-0.5, w:dW, h:1, align:"center", valign:"middle",
         fontFace:_F_SERIF, fontSize:40, bold:true, color:_DK_GOLD});
+      const dLabelFS = _fitSize(d.label, dW-0.2, 0.4, {max:12, min:8, lh:1.1, cw:0.62});
       slide.addText(d.label, {x, y:dY+dH+0.1, w:dW, h:0.4, align:"center", fontFace:_F_MONO,
-        fontSize:12, color:_DK_MUTED_CREAM_55, charSpacing:1});
+        fontSize:dLabelFS, color:_DK_MUTED_CREAM_55, charSpacing:1});
     });
     _footer(slide);
   } else if(deckData && deckData.chart && deckData.chart.labels && deckData.chart.labels.length){
