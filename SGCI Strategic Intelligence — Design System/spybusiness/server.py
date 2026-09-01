@@ -3897,6 +3897,129 @@ def api_deck_data():
     return jsonify({"table": table, "chart": chart, "stats": stats, "target": target, "period": period})
 
 
+def _ef_section_data(section, segment):
+    """Une section du dashboard Santé Financière (①Position ②Revenus ③Efficience ④Risque) —
+    100% déterministe (aucun appel LLM) : tous les chiffres sortent déjà tout faits de
+    kpis_vue_ensemble (rangs, écarts, croissance déjà calculés côté agent, pas recalculés ici).
+    Demande du directeur : « ça doit retracer chaque section de chaque onglet, sans rien
+    sauter » — plutôt qu'un résumé générique de tout l'onglet."""
+    S = AGENTS["EF"].structured
+    kp = S.kpis_vue_ensemble(strategie.CB_ANNEE, strategie.CB_SEM, segment, 3) or {}
+    fm = _deck_fmt_m
+
+    if section == "revenus":
+        pnb = kp.get("pnb_data") or {}
+        banks = sorted(pnb, key=lambda b: -(pnb.get(b) or 0))
+        chart = {"title": "PNB par banque", "unit": "Mds FCFA", "labels": banks,
+                 "values": [pnb.get(b) or 0 for b in banks]}
+        cred, dep = (kp.get("credits_data") or {}).get("SGCI"), (kp.get("depots_data") or {}).get("SGCI")
+        inte, comm = (kp.get("interets_data") or {}).get("SGCI"), (kp.get("commissions_data") or {}).get("SGCI")
+        autres = (kp.get("autres_prod_data") or {}).get("SGCI")
+        rbe, re_, rn = ((kp.get("rbe_data") or {}).get("SGCI"), (kp.get("re_data") or {}).get("SGCI"),
+                        (kp.get("rn_data") or {}).get("SGCI"))
+        facts = [f"Crédits SGCI : {fm(cred)} Mds FCFA — Dépôts : {fm(dep)} Mds FCFA."] if (cred and dep) else []
+        if inte and comm:
+            facts.append(f"Intérêts : {fm(inte)} Mds FCFA — Commissions : {fm(comm)} Mds FCFA"
+                         + (f" — Autres produits : {fm(autres)} Mds FCFA." if autres else "."))
+        if rbe and re_ and rn:
+            facts.append(f"Cascade du résultat : PNB {fm(pnb.get('SGCI'))} Mds → RBE {fm(rbe)} Mds → "
+                         f"résultat d'exploitation {fm(re_)} Mds → résultat net {fm(rn)} Mds FCFA.")
+    elif section == "efficience":
+        coeff = kp.get("coeff_expl_data") or {}
+        banks = sorted(coeff, key=lambda b: (coeff.get(b) if coeff.get(b) is not None else 999))
+        chart = {"title": "Coefficient d'exploitation par banque (plus bas = meilleur)", "unit": "%",
+                 "labels": banks, "values": [coeff.get(b) or 0 for b in banks]}
+        marge = (kp.get("marge_nette_data") or {}).get("SGCI")
+        rang = banks.index("SGCI") + 1 if "SGCI" in banks else None
+        facts = []
+        if rang:
+            facts.append(f"Coefficient d'exploitation de SGCI : {coeff.get('SGCI')}%, rang #{rang}/{len(banks)} "
+                         f"(un coefficient plus bas est meilleur).")
+        if marge is not None:
+            facts.append(f"Marge nette de SGCI : {marge}%.")
+    elif section == "risque":
+        cr = kp.get("cout_r_pnb_data") or {}
+        banks = sorted(cr, key=lambda b: (cr.get(b) if cr.get(b) is not None else 999))
+        chart = {"title": "Coût du risque/PNB par banque (plus bas = meilleur)", "unit": "%",
+                 "labels": banks, "values": [cr.get(b) or 0 for b in banks]}
+        roe = (kp.get("roe_data") or {}).get("SGCI")
+        rang = banks.index("SGCI") + 1 if "SGCI" in banks else None
+        facts = []
+        if rang:
+            facts.append(f"Coût du risque/PNB de SGCI : {cr.get('SGCI')}%, rang #{rang}/{len(banks)} "
+                         f"(un taux plus bas est meilleur).")
+        if roe is not None:
+            facts.append(f"ROE de SGCI : {roe}% — la maîtrise du risque conditionne directement ce niveau de rentabilité.")
+    else:  # position
+        rn = kp.get("rn_data") or {}
+        banks = sorted(rn, key=lambda b: -(rn.get(b) or 0))
+        chart = {"title": "Résultat net par banque", "unit": "Mds FCFA", "labels": banks,
+                 "values": [rn.get(b) or 0 for b in banks]}
+        facts = []
+        if kp.get("sgci_rang_rn"):
+            facts.append(f"SGCI se classe #{kp.get('sgci_rang_rn')}/{len(banks)} en résultat net, avec "
+                         f"{kp.get('sgci_part_marche')}% de part de marché des bénéfices du secteur.")
+        if kp.get("banque_2_nom"):
+            facts.append(f"SGCI devance {kp.get('banque_2_nom')} de {kp.get('ecart_pct_vs_2')}%.")
+        if kp.get("fastest_b"):
+            facts.append(f"Croissance du résultat net de SGCI : {kp.get('sgci_growth_pct')}%, contre "
+                         f"{kp.get('fastest_pct')}% pour {kp.get('fastest_b')}, la banque la plus dynamique.")
+    return chart, [f for f in facts if f]
+
+
+def _strat_section_data(section, segment):
+    """Une section du dashboard Stratégie (Porter, VRIST, SWOT, PESTEL, Révélations, L'essentiel)
+    — texte et scores DÉJÀ rédigés/calculés par strategie.build() (mêmes champs que ceux qui
+    alimentent le dashboard lui-même), jamais reformulés par un LLM ici : citation directe."""
+    d = _strat_get(segment)
+    chart, table, items = None, None, None
+    if section == "porter":
+        forces = (d.get("porter") or {}).get("forces") or []
+        chart = {"title": "Intensité des forces de Porter", "unit": "/5",
+                 "labels": [f.get("force") for f in forces], "values": [f.get("note") or 0 for f in forces]}
+        items = [f"{f.get('force')} ({f.get('intensite')}) : {f.get('resume') or ''}" for f in forces]
+    elif section == "vrist":
+        vr = ((d.get("vrist") or {}).get("banques") or {}).get("SGCI") or {}
+        dims = vr.get("dimensions") or []
+        chart = {"title": "Profil VRIST de SGCI", "unit": "/10",
+                 "labels": [x.get("nom") or x.get("cle") for x in dims], "values": [x.get("score") or 0 for x in dims]}
+    elif section == "swot":
+        sw = d.get("swot") or {}
+        table = {q: [str(it.get("txt")) for it in (sw.get(q) or [])] for q in
+                 ("forces", "faiblesses", "opportunites", "menaces")}
+    elif section == "pestel":
+        axes = (d.get("pestel") or {}).get("axes") or []
+        items = [f"{ax.get('nom')} : {ax.get('resume')}" for ax in axes if ax.get("nom")]
+    elif section == "revelations":
+        # Le récit est déjà rédigé mais porte des balises <b> (mise en forme HTML de l'écran) —
+        # à retirer ici, sinon elles s'affichent littéralement dans le PPTX (texte brut, pas HTML).
+        items = [_re_rp.sub(r"<[^>]+>", "", f"{r.get('titre')} — {r.get('recit') or r.get('resume') or ''}")
+                 for r in (d.get("revelations") or [])[:6]]
+    else:  # essentiel
+        items = [f"[{p.get('gravite')}] {p.get('titre')}" for p in (d.get("problemes") or [])[:6]]
+    return chart, table, [i for i in (items or []) if i]
+
+
+@app.route("/api/deck_section_data")
+def api_deck_section_data():
+    """Une SECTION précise d'un onglet (pas tout l'onglet résumé) — table/chart/liste
+    déterministes, mêmes fonctions agent que le dashboard. Alimente le diaporama PPTX complet
+    (demande du directeur : chaque section doit ressortir, pas juste un résumé condensé)."""
+    tab = (request.args.get("tab") or "ef").lower()
+    section = (request.args.get("section") or "").lower()
+    segment = request.args.get("segment", "Particuliers")
+    try:
+        chart = table = items = None
+        if tab == "ef":
+            chart, items = _ef_section_data(section, segment)
+        elif tab == "strategie":
+            chart, table, items = _strat_section_data(section, segment)
+    except Exception as e:
+        return jsonify({"chart": None, "table": None, "items": None, "error": str(e)[:200]}), 200
+    return jsonify({"chart": chart, "table": table, "items": items,
+                     "period": f"{strategie.CB_SEM} {strategie.CB_ANNEE}"})
+
+
 def _pdf_plaintext(s):
     """Nettoyage TEXTE BRUT pour le résumé PDF (jsPDF dessine du texte, PAS du HTML) : contrairement
     aux autres endpoints LLM de l'app, ici un <br> ou <b> qui fuit s'affiche LITTÉRALEMENT dans le

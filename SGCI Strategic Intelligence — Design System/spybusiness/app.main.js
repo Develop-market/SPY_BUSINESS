@@ -328,16 +328,28 @@ async function exportDeck(title){
   ov.innerHTML = '<div style="text-align:center;color:#fff"><div style="font-size:40px">⏳</div><div style="font:700 17px/1.4 system-ui;margin-top:14px">Génération du diaporama…</div><div style="font:400 11px system-ui;color:rgba(255,255,255,.45);margin-top:6px">Rédaction par l\'IA — peut prendre jusqu\'à 20 s la 1ʳᵉ fois</div></div>';
   document.body.appendChild(ov);
 
-  let resume = null, deckData = null;
+  // Sous-sections réelles du dashboard à retracer (demande du directeur : rien sauter) — vide
+  // pour cb/stratop tant que leurs endpoints section par section ne sont pas encore branchés.
+  const _SECTION_LISTS = {
+    ef: ["position", "revenus", "efficience", "risque"],
+    strategie: ["essentiel", "revelations", "porter", "vrist", "swot", "pestel"],
+  };
+  const subSections = _SECTION_LISTS[section] || [];
+
+  let resume = null, deckData = null, sectionData = {};
   try{
-    const [r1, r2] = await Promise.all([
+    const [r1, r2, ...rSubs] = await Promise.all([
       fetch(`/api/dashboard_resume?section=${section}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`, {cache:"no-store"}),
       fetch(`/api/deck_data?section=${section}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`, {cache:"no-store"}),
+      ...subSections.map(s => fetch(`/api/deck_section_data?tab=${section}&section=${s}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`, {cache:"no-store"})),
     ]);
     const j1 = await r1.json();
     resume = j1 && j1.resume;
     if(resume) resume._stale = j1.stale, resume._generatedAt = j1.generated_at;
     deckData = await r2.json().catch(() => null);
+    for(let i = 0; i < subSections.length; i++){
+      sectionData[subSections[i]] = await rSubs[i].json().catch(() => null);
+    }
   }catch(e){ /* resume reste null → message d'échec ci-dessous */ }
 
   if(!resume || !resume.executif){
@@ -361,7 +373,7 @@ async function exportDeck(title){
   // part, le LLM reçoit toutes les données et résume ») — donc plus aucune section n'affiche
   // « Segment Particuliers » en couverture, ce serait trompeur puisqu'aucune n'est filtrée.
   try{
-    await _pptxRender(resume, deckData, title, null, date);
+    await _pptxRender(resume, deckData, title, null, date, section, sectionData);
   }catch(e){
     console.error("pptx error", e);
     alert("Erreur lors de la génération du diaporama : " + e.message);
@@ -383,7 +395,8 @@ const _DK_BORDER_DARK_20 = "4D4A4A";
 const _DK_LOGO = "assets/logos/SGCI.png";
 const _F_SERIF = "Georgia", _F_SANS = "Segoe UI", _F_MONO = "Consolas";
 
-async function _pptxRender(resumeRaw, deckData, title, segment, date){
+async function _pptxRender(resumeRaw, deckData, title, segment, date, tab, sectionData){
+  sectionData = sectionData || {};
   const resume = _deckCleanResume(resumeRaw);
   const P = new PptxGenJS();
   P.layout = "LAYOUT_WIDE";
@@ -443,6 +456,102 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
       color:c, align:"right", charSpacing:1});
   };
 
+  // ── Diapositives "section" réutilisables — une par section réelle du dashboard, pas un
+  // résumé condensé de tout l'onglet (demande du directeur : « ça doit retracer chaque section,
+  // rien sauter »). Toujours le même style barres/donut/liste déjà vérifié ce soir — un
+  // graphique seulement quand il y a une vraie comparaison à montrer (retour du directeur :
+  // « des graphiques qui parlent quand c'est utile », pas partout par réflexe).
+  const _sectionBarSlide = (title, chart, facts) => {
+    if(!chart || !chart.labels || !chart.labels.length) return;
+    const slide = P.addSlide();
+    _bg(slide, _DK_CREAM);
+    const right = [chart.unit ? chart.unit.toUpperCase() : "", deckData.period || ""].filter(Boolean).join(" · ");
+    _header(slide, title, {rightLabel: right});
+    const rows = chart.labels.slice(0, 7), vals = (chart.values || []).slice(0, 7);
+    const hasFacts = Array.isArray(facts) && facts.length > 0;
+    const chartW = hasFacts ? 6.6 : (W - 2*M);
+    const top = 1.85, nameW = 1.4, valW = 1.5, barX = M+nameW+0.12, barW = chartW-nameW-valW-0.2;
+    const max = Math.max(...vals, 1), rowH = (H-top-BOT-0.2) / rows.length;
+    rows.forEach((name, i) => {
+      const y = top + i*rowH, v = vals[i] || 0, isSGCI = name === "SGCI";
+      const tier = isSGCI ? _DK_GOLD : (i <= 2 ? _DK_GREEN2 : _DK_GREEN3);
+      slide.addText(name, {x:M, y, w:nameW, h:rowH-0.1, fontFace:_F_SANS, fontSize:12.5,
+        bold:isSGCI, color: isSGCI ? _DK_GOLD : _DK_INK, valign:"middle"});
+      slide.addShape(P.ShapeType.rect, {x:barX, y:y+0.05, w:barW, h:rowH-0.2, fill:{color:"EDEAE1"}, line:{type:"none"}});
+      const w = Math.max(barW * (v/max), 0.03);
+      slide.addShape(P.ShapeType.rect, {x:barX, y:y+0.05, w, h:rowH-0.2, fill:{color:tier}, line:{type:"none"}});
+      slide.addText(_deckClean(_deckFmtNum(v)), {x:M+nameW+chartW-nameW-valW+0.15, y, w:valW, h:rowH-0.1,
+        fontFace:_F_MONO, fontSize:11.5, align:"right", color: isSGCI ? _DK_GOLD : _DK_MUTED_CREAM_78, valign:"middle"});
+    });
+    if(hasFacts){
+      const fx = M + chartW + 0.5, fw = W - M - fx;
+      slide.addShape(P.ShapeType.line, {x:fx-0.25, y:top, w:0, h:H-top-BOT-0.2, line:{color:_DK_BORDER_CREAM_18, width:0.75}});
+      const rowFH = (H-top-BOT-0.2) / facts.length;
+      facts.slice(0, 5).forEach((f, i) => {
+        const fy = top + i*rowFH;
+        const ffs = _fitSize(f, fw, rowFH-0.15, {max:12.5, min:8.5, lh:1.28, cw:0.5});
+        slide.addText(f, {x:fx, y:fy, w:fw, h:rowFH-0.15, fontFace:_F_SANS, fontSize:ffs,
+          color:_DK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.28});
+      });
+    }
+    _footer(slide);
+  };
+
+  const _sectionListSlide = (title, items) => {
+    if(!Array.isArray(items) || !items.length) return;
+    const slide = P.addSlide();
+    _bg(slide, _DK_CREAM);
+    _header(slide, title);
+    const list = items.slice(0, 10);
+    const twoCol = list.length > 4;
+    const colW = twoCol ? (W-2*M-0.6)/2 : (W-2*M);
+    const nRowsPerCol = twoCol ? Math.ceil(list.length/2) : list.length;
+    const top = 1.75, rowH = (H-top-BOT-0.1) / nRowsPerCol;
+    list.forEach((it, i) => {
+      const col = twoCol ? (i < nRowsPerCol ? 0 : 1) : 0, row = twoCol ? i % nRowsPerCol : i;
+      const x = M + col*(colW+0.6), y = top + row*rowH;
+      slide.addText(String(i+1).padStart(2,"0"), {x, y:y+0.05, w:0.5, h:0.4, fontFace:_F_MONO, fontSize:10,
+        color:_DK_GOLD, valign:"top"});
+      const fs = _fitSize(it, colW-0.55, rowH-0.12, {max:12.5, min:8, lh:1.25, cw:0.5});
+      slide.addText(it, {x:x+0.55, y, w:colW-0.55, h:rowH-0.12, fontFace:_F_SANS, fontSize:fs, color:_DK_INK,
+        valign:"top", fit:"shrink", lineSpacingMultiple:1.25});
+      if(row < nRowsPerCol-1) slide.addShape(P.ShapeType.line, {x, y:y+rowH-0.06, w:colW, h:0, line:{color:_DK_BORDER_CREAM_12, width:0.5}});
+    });
+    _footer(slide);
+  };
+
+  const _sectionSwotSlide = (table) => {
+    if(!table) return;
+    const quads = [
+      {key:"forces", label:"Forces", color:"1F5C4B"},
+      {key:"faiblesses", label:"Faiblesses", color:"8C2F39"},
+      {key:"opportunites", label:"Opportunités", color:"2F4E7A"},
+      {key:"menaces", label:"Menaces", color:_DK_GOLD},
+    ];
+    if(!quads.some(q => (table[q.key] || []).length)) return;
+    const slide = P.addSlide();
+    _bg(slide, _DK_CREAM);
+    _header(slide, "SWOT");
+    const gx = M, gy = 1.75, gw = W-2*M, gh = H-gy-BOT-0.1, cw = (gw-0.3)/2, ch = (gh-0.3)/2;
+    quads.forEach((q, qi) => {
+      const col = qi % 2, row = Math.floor(qi/2);
+      const x = gx + col*(cw+0.3), y = gy + row*(ch+0.3);
+      slide.addShape(P.ShapeType.rect, {x, y, w:cw, h:ch, fill:{color:"FFFFFF"}, line:{type:"none"}});
+      slide.addShape(P.ShapeType.rect, {x, y, w:0.06, h:ch, fill:{color:q.color}, line:{type:"none"}});
+      slide.addText(q.label.toUpperCase(), {x:x+0.25, y:y+0.15, w:cw-0.4, h:0.35, fontFace:_F_MONO,
+        fontSize:11, bold:true, color:q.color, charSpacing:1});
+      const items = (table[q.key] || []).slice(0, 3);
+      const itemH = (ch-0.65) / Math.max(items.length, 1);
+      items.forEach((it, i) => {
+        const iy = y+0.6+i*itemH;
+        const fs = _fitSize(it, cw-0.5, itemH-0.08, {max:10.5, min:7.5, lh:1.2, cw:0.5});
+        slide.addText(_deckClean(String(it)), {x:x+0.25, y:iy, w:cw-0.5, h:itemH-0.08, fontFace:_F_SANS,
+          fontSize:fs, color:_DK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.2});
+      });
+    });
+    _footer(slide);
+  };
+
   /* ── 1 · Couverture ── */
   {
     const slide = P.addSlide();
@@ -491,6 +600,25 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
     slide.addTable([headerRow, ...dataRows], {x:M, y:1.55, w:W-2*M, h:tableH,
       autoPage:false, valign:"middle", rowH: tableH/(dataRows.length+1), margin:[4,10,4,0]});
     _footer(slide);
+  }
+
+  // ── Diapositives par section réelle du dashboard (①②③④ pour Santé financière ; L'essentiel/
+  // Révélations/Porter/VRIST/SWOT/PESTEL pour Stratégie) — chacune sa propre diapositive, dans
+  // l'ordre où l'utilisateur les voit à l'écran. Rien n'est encore branché pour CB/StratOp
+  // (backend pas encore construit pour ces deux onglets).
+  if(tab === "ef"){
+    const titles = {position:"① Position", revenus:"② Revenus", efficience:"③ Efficience", risque:"④ Risque"};
+    for(const key of ["position", "revenus", "efficience", "risque"]){
+      const d = sectionData[key];
+      if(d && d.chart) _sectionBarSlide(titles[key], d.chart, d.items);
+    }
+  } else if(tab === "strategie"){
+    const dEss = sectionData.essentiel; if(dEss) _sectionListSlide("L'essentiel", dEss.items);
+    const dRev = sectionData.revelations; if(dRev) _sectionListSlide("Révélations", dRev.items);
+    const dPor = sectionData.porter; if(dPor && dPor.chart) _sectionBarSlide("Porter — 5 forces", dPor.chart, dPor.items);
+    const dVr = sectionData.vrist; if(dVr && dVr.chart) _sectionBarSlide("Profil VRIST de SGCI", dVr.chart, null);
+    const dSw = sectionData.swot; if(dSw && dSw.table) _sectionSwotSlide(dSw.table);
+    const dPe = sectionData.pestel; if(dPe) _sectionListSlide("PESTEL", dPe.items);
   }
 
   /* ── 3 · Graphique — barres dessinées (même esprit que la maquette) ou donut NATIF quand la
