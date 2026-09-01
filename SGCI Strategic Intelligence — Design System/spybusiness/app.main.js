@@ -493,10 +493,32 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
     _footer(slide);
   }
 
-  /* ── 3 · Graphique en barres (dessiné, pas un chart natif — même esprit que la maquette) ──
-     deckData.chart.series (2 segments) → deux barres groupées par banque, une couleur par
-     segment + légende. deckData.chart.values (sections sans segment) → une seule barre. */
-  if(deckData && deckData.chart && deckData.chart.labels && deckData.chart.labels.length){
+  /* ── 3 · Graphique — barres dessinées (même esprit que la maquette) ou donut NATIF quand la
+     donnée est une proportion (ex. couverture de l'écart par le plan Stratop) : une part d'un
+     tout se lit mieux en anneau qu'en barre, et ça évite que « que des barres » (retour du
+     directeur, il en demandait un peu partout). deckData.chart.series (2 segments) → deux
+     barres groupées par banque. deckData.chart.values (sections sans segment) → une barre. */
+  if(deckData && deckData.chart && deckData.chart.type === "donut" && Array.isArray(deckData.chart.donuts) && deckData.chart.donuts.length){
+    const slide = P.addSlide();
+    _bg(slide, _DK_CREAM);
+    const c = deckData.chart;
+    const chartRight = [c.unit ? c.unit.toUpperCase() : "", deckData.period || ""].filter(Boolean).join(" · ");
+    _header(slide, c.title, {rightLabel: chartRight});
+    const n = c.donuts.length, dW = Math.min(4.0, (W - 2*M - (n-1)*0.8) / n), dH = 3.9,
+          rowW = n*dW + (n-1)*0.8, startX = M + (W-2*M-rowW)/2, dY = 2.0;
+    c.donuts.forEach((d, i) => {
+      const x = startX + i*(dW+0.8);
+      const pct = Math.max(0, Math.min(100, Math.round(d.pct || 0)));
+      slide.addChart(P.ChartType.doughnut, [{name: d.label, labels: ["Couvert", "Restant"], values: [pct, 100-pct]}], {
+        x, y:dY, w:dW, h:dH, chartColors: [_DK_GOLD, "EDEAE1"], dataBorder: {pt:0, color:_DK_CREAM},
+        showLegend:false, showTitle:false, showValue:false, showPercent:false, holeSize:68});
+      slide.addText(`${pct}%`, {x, y:dY+dH/2-0.5, w:dW, h:1, align:"center", valign:"middle",
+        fontFace:_F_SERIF, fontSize:40, bold:true, color:_DK_GOLD});
+      slide.addText(d.label, {x, y:dY+dH+0.1, w:dW, h:0.4, align:"center", fontFace:_F_MONO,
+        fontSize:12, color:_DK_MUTED_CREAM_55, charSpacing:1});
+    });
+    _footer(slide);
+  } else if(deckData && deckData.chart && deckData.chart.labels && deckData.chart.labels.length){
     const slide = P.addSlide();
     _bg(slide, _DK_CREAM);
     const c = deckData.chart;
@@ -576,17 +598,21 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date){
     const slide = P.addSlide();
     _bg(slide, _DK_CREAM);
     _header(slide, "Points clés");
-    const pts = (resume.points || []).slice(0, 8);
-    const colW = (W-2*M-0.6)/2, top = 1.75, rowH = (H-top-BOT-0.1)/4;
+    // Stratégie/StratOp demandent 10-12 points au LLM (dossier dense, deux segments) — la
+    // grille s'adapte au nombre réel de points plutôt que de plafonner à 8 et en perdre.
+    const pts = (resume.points || []).slice(0, 12);
+    const nRowsPerCol = Math.max(1, Math.ceil(pts.length / 2));
+    const colW = (W-2*M-0.6)/2, top = 1.75, rowH = (H-top-BOT-0.1)/nRowsPerCol;
+    const ptMaxFS = nRowsPerCol > 4 ? 11.5 : 13.5;
     pts.forEach((p, i) => {
-      const col = i < 4 ? 0 : 1, row = i % 4;
+      const col = i < nRowsPerCol ? 0 : 1, row = i % nRowsPerCol;
       const x = M + col*(colW+0.6), y = top + row*rowH;
       slide.addText(String(i+1).padStart(2,"0"), {x, y:y+0.06, w:0.5, h:0.4, fontFace:_F_MONO, fontSize:10,
         color:_DK_GOLD, valign:"top"});
-      const ptFS = _fitSize(p, colW-0.55, rowH-0.1, {max:13.5, min:9, lh:1.3, cw:0.5});
+      const ptFS = _fitSize(p, colW-0.55, rowH-0.1, {max:ptMaxFS, min:8, lh:1.25, cw:0.5});
       slide.addText(p, {x:x+0.55, y, w:colW-0.55, h:rowH-0.1, fontFace:_F_SANS, fontSize:ptFS, color:_DK_INK,
-        valign:"top", fit:"shrink", lineSpacingMultiple:1.3});
-      if(row < 3) slide.addShape(P.ShapeType.line, {x, y:y+rowH-0.06, w:colW, h:0, line:{color:_DK_BORDER_CREAM_12, width:0.5}});
+        valign:"top", fit:"shrink", lineSpacingMultiple:1.25});
+      if(row < nRowsPerCol-1) slide.addShape(P.ShapeType.line, {x, y:y+rowH-0.06, w:colW, h:0, line:{color:_DK_BORDER_CREAM_12, width:0.5}});
     });
     _footer(slide);
   }

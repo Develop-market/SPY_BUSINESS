@@ -76,5 +76,17 @@
   "narr3_v6_Particuliers_6b54b1dc2e@meta": {
     "generated_at": "2026-08-31T11:02:01",
     "stale": false
+  },
+  "strat_diag_v1_Particuliers_4629d4cd93": {
+    "Coût du risque élevé et en hausse": "Le coût du risque a atteint <b>13,9 % du PNB</b> en moyenne sur les trois dernières années, contre une médiane du marché de <b>5,6 %</b>, et suit une trajectoire ascendante de <b>10,9 % → 13,8 % → 17,0 %</b>.  <br>Cette hausse alimente la pression sur la rentabilité des fonds propres, expliquant le <b>ROE de 20,5 %</b> qui classe SGCI <b>#6/7</b>, et impose de réduire les pertes de crédit d’ici <b>12‑24 mois</b> pour contenir le coût du risque.",
+    "Croissance lente → SGCI perd des parts de marché": "SGCI a enregistré une croissance du résultat net de <b>+4,2 %</b> sur trois ans, la plus lente du groupe (<b>#7/7</b>), alors que le leader BICICI progresse de <b>+118,8 %</b>.  <br>Cette lenteur entraîne une érosion progressive de la part de marché, déjà visible dans l’onglet Santé Financière, et nécessite un plan d’accélération de la croissance du RN d’ici <b>12‑24 mois</b>.",
+    "Rentabilité des fonds propres (ROE) sous le marché": "Le ROE de SGCI s’établit à <b>20,5 %</b>, plaçant la banque <b>#6/7</b> parmi les moins performantes du secteur.  <br>Ce sous‑rendement est aggravé par le <b>coût du risque élevé (13,9 % du PNB)</b> qui grève les bénéfices, imposant une amélioration du ratio ROE à <b>≥ 25 %</b> dans les <b>12‑24 mois</b> pour aligner la rémunération du capital.",
+    "Montée en puissance de BICICI": "BICICI affiche une croissance du résultat net de <b>+118,8 %</b>, la plus rapide du marché, réduisant rapidement l’écart avec SGCI.  <br>Cette dynamique concurrentielle accentue la pression sur la croissance de SGCI (<b>+4,2 %</b>), obligeant la banque à lancer une initiative de différenciation produit d’ici <b>12‑24 mois</b> pour freiner le rattrapage.",
+    "Profondeur de catalogue limitée": "SGCI propose <b>285 services distincts</b> (184 Particuliers + 178 Entreprises, comptés une fois les doublons), se classant <b>#4/7</b> en profondeur de catalogue.  <br>Une offre moins riche limite l’attraction de nouveaux clients, ce qui alimente la <b>croissance lente du RN (+4,2 %)</b> et requiert l’ajout de <b>≥ 30 services</b> ciblés d’ici <b>12‑24 mois</b> pour élargir la proposition de valeur.",
+    "Taux de gratuité inférieur au marché": "Seuls <b>18,3 %</b> des services SGCI sont gratuits, contre <b>26,3 %</b> en médiane du marché, plaçant la banque <b>#4/7</b> sur ce critère.  <br>Le manque de gratuités freine l’acquisition client, contribuant à la <b>croissance du RN (+4,2 %)</b> la plus lente, et justifie le lancement d’une campagne de gratuité ciblée sur 10 services à forte valeur ajoutée dans les <b>12‑24 mois</b>."
+  },
+  "strat_diag_v1_Particuliers_4629d4cd93@meta": {
+    "generated_at": "2026-08-31T18:37:49",
+    "stale": false
   }
 }

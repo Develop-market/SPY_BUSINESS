@@ -1043,5 +1043,97 @@
   "resume_v14_stratop_Particuliers_128343248859@meta": {
     "generated_at": "2026-08-31T17:06:35",
     "stale": false
+  },
+  "resume_v15_cb_Particuliers_3afe847cd5dc": {
+    "titre": "Bilan des Conditions Bancaires 2026",
+    "executif": "Sur l’ensemble du marché ivoirien, SGCI se situe dans la moyenne du catalogue de services tout en affichant une compétitivité tarifaire remarquable, notamment dans le segment Entreprises où son taux de succès dépasse celui de tous ses concurrents. La proportion de services gratuits demeure nettement inférieure à celle de la plupart des rivaux, traduisant une offre perçue comme moins généreuse. Les exclusivités restent modestes, alors que les lacunes face à trois concurrents ou plus sont plus prononcées chez les particuliers que chez les entreprises. Le point culminant réside dans le win‑rate de 74,1 % pour les services d’entreprise, qui consolide la position tarifaire de SGCI comme son atout majeur.",
+    "points": [
+      "184 services proposés aux particuliers, plaçant SGCI au quatrième rang du classement.",
+      "19,7 % des services particuliers sont gratuits, bien en dessous du taux moyen du secteur.",
+      "Le win‑rate de 60,5 % sur 38 services comparables place SGCI en quatrième position tarifaire chez les particuliers.",
+      "15 exclusivités confirmées pour le segment particulier, indiquant une différenciation limitée.",
+      "10 manques identifiés face à trois concurrents ou plus chez les particuliers, révélant des zones d’insuffisance.",
+      "178 services offerts aux entreprises, également classés quatrième du marché.",
+      "16,8 % de ces services sont gratuits, le pourcentage le plus bas parmi les banques étudiées.",
+      "Un win‑rate de 74,1 % sur 27 services comparables place SGCI en tête du classement tarifaire entreprises."
+    ],
+    "analyse": "La position intermédiaire du catalogue reflète une stratégie de gamme restreinte, tandis que la faible proportion de services gratuits accentue la perception d’une offre moins attractive que celle de NSIA ou ECOBANK. La supériorité tarifaire en Entreprises découle d’un alignement précis des prix sur les attentes du segment, expliquant le win‑rate record. En revanche, les exclusivités limitées et les manques multiples chez les particuliers traduisent une capacité d’innovation moindre, ce qui freine la différenciation. L’écart entre les performances tarifaires et la richesse de l’offre suggère que la compétitivité de SGCI repose davantage sur le prix que sur la variété ou la gratuité des services.",
+    "tags": [
+      "Catalogue",
+      "Prix",
+      "Exclusivités",
+      "Manques"
+    ],
+    "conclusion": "Réduire les 10 lacunes identifiées chez les particuliers à moins de cinq d’ici la fin de l’année, en développant des services ciblés, constitue la priorité stratégique immédiate. Cette action permettra de renforcer la proposition de valeur et de soutenir la compétitivité tarifaire déjà solide.",
+    "section": "Conditions bancaires",
+    "segment": "Particuliers"
+  },
+  "resume_v15_cb_Particuliers_3afe847cd5dc@meta": {
+    "generated_at": "2026-09-01T10:07:05",
+    "stale": false
+  },
+  "resume_v15_strategie_Particuliers_fb3719ab1d19": {
+    "titre": "Stratégie globale SGCI 2024‑2027",
+    "executif": "SGCI domine le résultat net mais voit son avance érodée par un coût du risque qui grimpe et une offre de services restreinte. La concurrence, notamment BICICI, combine croissance rapide et maîtrise du risque, tandis qu’ECOBANK impose une pression tarifaire sur la quasi‑totalité des produits. Le plan triennal vise à désengorger le risque, élargir le catalogue et convertir l’avantage de rentabilité en relance de la croissance. La réalisation intégrale du plan promet une hausse du résultat net de plus de quarante pour cent d’ici trois ans.",
+    "points": [
+      "13,9 % du PNB représente le coût du risque moyen sur trois ans, bien au‑dessus de la médiane du marché (5 %).",
+      "101,352 Mds FCFA constitue le résultat net actuel, le plus élevé du secteur (rang 1/7).",
+      "20,5 % indique le ROE actuel, inférieur à la moyenne du marché.",
+      "184 services composent le catalogue actuel pour les particuliers, contre 178 pour les entreprises.",
+      "55 services sont déjà exploités par des concurrents, offrant une opportunité de rattrapage.",
+      "L’intensité de la rivalité entre les banques est évaluée comme très élevée.",
+      "Le profil VRIST attribue à SGCI une valeur de 7 /10, une rareté de 10 /10, une inimitabilité de 8 /10, une durabilité de 5 /10 et un caractère transformateur de 5 /10.",
+      "Le plan d’action prévoit, à l’an 1, la réduction du verrou du risque pour libérer le revenu latent.",
+      "En scénario central, le PNB passe de 276,048 Mds à 314,083 Mds FCFA d’ici trois ans.",
+      "Le coût du risque/PNB devrait chuter à 2,467 % au terme du scénario central.",
+      "Le catalogue de services projeté atteint 536 items, soit une hausse de plus de 250 % par rapport à aujourd’hui.",
+      "Le résultat net projeté sous le scénario central s’élève à 144,4 Mds FCFA, soit +42,5 % du niveau actuel."
+    ],
+    "analyse": "Le coût du risque, à 13,9 % du PNB, grève la rentabilité et explique le ROE sous‑performant malgré le leadership en résultat net. La concurrence intensifie la pression, BICICI affichant une croissance de 118,8 % avec un risque maîtrisé, tandis qu’ECOBANK domine les prix sur 87 % des services, accentuant la faiblesse du catalogue limité. Le plan triennal cible d’abord la désinflation du risque, puis l’expansion du portefeuille de services, afin de convertir l’avantage de rentabilité en dynamique de croissance. Les projections montrent que, si le plan est exécuté pleinement, le résultat net pourrait croître de 42,5 % et le coût du risque être réduit à moins de 3 % du PNB, renforçant ainsi la position concurrentielle.",
+    "tags": [
+      "Risque",
+      "Offre",
+      "Croissance",
+      "Rentabilité"
+    ],
+    "conclusion": "Priorité : réduire le coût du risque à moins de 3 % du PNB d’ici trois ans en libérant 36,6 Mds FCFA de résultat net supplémentaire. Action : lancer immédiatement le programme de désengorgement du risque prévu pour l’an 1.",
+    "section": "Stratégie",
+    "segment": "Particuliers"
+  },
+  "resume_v15_strategie_Particuliers_fb3719ab1d19@meta": {
+    "generated_at": "2026-09-01T10:07:57",
+    "stale": false
+  },
+  "resume_v15_stratop_Particuliers_eef1ee6c76dd": {
+    "titre": "Stratégie Opérationnelle SGCI – Synthèse Globale",
+    "executif": "Le tableau de bord révèle que les deux segments atteignent déjà l’objectif de 16,0 Mds FCFA de PNB, éliminant ainsi tout écart à combler. La dynamique repose sur une position tarifaire favorable, un coût de financement maîtrisé et des initiatives d’innovation qui préparent la conquête de nouveaux flux hors bilan. Le levier le plus impactant demeure la marge d’intermédiation, où un gain de 1 % pourrait générer 2,0 Mds FCFA supplémentaires chaque année. Cette perspective place la maîtrise du coût du risque au cœur de la stratégie.",
+    "points": [
+      "16,0 Mds FCFA de PNB totalise l’apport chiffré des 20 directives, couvrant l’ensemble des écarts à combler.",
+      "314,083 Mds FCFA de PNB réalisé sur trois ans confirme une trajectoire supérieure à la moyenne des trois meilleures banques concurrentes.",
+      "2,0 Mds FCFA d’apport annuel estimé découlent d’une amélioration de 1 % de la marge d’intérêt, soit 74 % du PNB.",
+      "38 services comparés en segment Particuliers montrent que SGCI est la moins chère 23 fois, se classant quatrième sur sept.",
+      "27 services comparés en segment Entreprises indiquent que SGCI est la moins chère 20 fois, occupant la première place sur cinq.",
+      "252 lignes tarifaires publiées comportent 6 incohérences, soit 2 % du total, exposant la banque à un risque réglementaire.",
+      "274 lignes tarifaires publiées comportent 12 incohérences, soit 4 % du total, accentuant le besoin de conformité.",
+      "15 M FCFA constitue le seuil de déclaration des opérations en espèces, critère clé pour la sécurisation du dispositif de déclaration.",
+      "4 services sur 116 (3 %) relèvent de la banque à distance, offrant un levier de réduction des coûts de traitement.",
+      "3 services gratuits dans le panier tarifaire, dont les frais de dossier, permettent d’ouvrir la relation client sans concession de prix.",
+      "48 % de pénétration du paiement mobile contraste avec 32 % de bancarisation, soulignant un potentiel de flux hors bilan.",
+      "6 lignes tarifaires incohérentes dans le segment Particuliers et 12 dans le segment Entreprises illustrent une disparité de conformité interne."
+    ],
+    "analyse": "La supériorité tarifaire constatée sur la majorité des services comparés crée un avantage concurrentiel exploitable par les équipes commerciales. La maîtrise du coût de financement, grâce à un refinancement à 3,00 % contre un taux débiteur moyen de 6,93 %, alimente une marge d’intermédiation qui, si optimisée, pourrait ajouter 2,0 Mds FCFA de PNB annuel. Les initiatives d’innovation, notamment l’acceptation de paiements mobiles, répondent à une forte demande non bancarisée, tandis que la digitalisation des services à distance réduit les coûts opérationnels. Enfin, les incohérences tarifaires exposent la banque à des risques réglementaires, justifiant une action corrective immédiate.",
+    "tags": [
+      "Tarification",
+      "Marge",
+      "Innovation",
+      "Conformité"
+    ],
+    "conclusion": "Priorité n°1 : corriger les 18 incohérences tarifaires identifiées pour sécuriser la conformité et préserver la confiance du marché. Cette action libérera le potentiel de gain de 2,0 Mds FCFA annuel lié à l’optimisation de la marge d’intermédiation.",
+    "section": "Stratégie opérationnelle",
+    "segment": "Particuliers"
+  },
+  "resume_v15_stratop_Particuliers_eef1ee6c76dd@meta": {
+    "generated_at": "2026-09-01T10:52:14",
+    "stale": false
   }
 }

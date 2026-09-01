@@ -2267,6 +2267,7 @@ def _rp_llm_json(prompt, max_tokens=1500, temperature=0.4, prefer_claude=False):
                 return resp.choices[0].message.content, "groq"
             except Exception as e:
                 last_err = str(e)
+                print(f"[_rp_llm_json] echec cle ...{key[-4:] if key else '?'} : {last_err[:200]}")
                 _t.sleep(0.2); continue
         _llm_mark_down(last_err)
     except Exception as e:
@@ -3702,16 +3703,23 @@ def _resume_facts_stratop(segment=None):
             par_direction.setdefault(x.get("direction") or "Autre", []).append(x)
         blocs = []
         for nom, lot in sorted(par_direction.items()):
+            # Les DEUX segments dans un seul prompt ont fait dépasser la limite Groq de jetons
+            # par requête (413 "Request too large" sur TOUTES les clés, testé le 2026-09-01) —
+            # les deux premières directives de chaque direction suffisent au LLM pour synthétiser
+            # (il n'en cite que 10-12 au total), le détail complet reste dans le dashboard lui-même.
+            top2 = sorted(lot, key=lambda x: x.get("rang") or 99)[:2]
             lignes = "\n".join(
-                f"      - {x.get('titre')}. Constat : {x.get('constat') or 'non disponible'} "
+                f"      - {x.get('titre')}. Constat : {(x.get('constat') or 'non disponible')[:160]} "
                 f"Apport estimé : {x.get('contribution') or 'non chiffré'}"
-                for x in sorted(lot, key=lambda x: x.get("rang") or 99))
+                for x in top2)
             blocs.append(f"    {nom} :\n{lignes}")
         dirs_f = "\n".join(blocs) or "    (aucune directive disponible pour ce segment)"
+        couv = bilan.get("couverture_pct")
+        couv_txt = f"{couv}%" if couv is not None else ("100% (déjà au niveau visé)" if (bilan.get("ecart_mds") or 0) <= 0 else "N/D")
         bilan_f = (
             f"Sur les {bilan.get('n_total', 20)} directives, {bilan.get('n_chiffrees', 0)} portent un "
             f"apport chiffré, pour un total de {bilan.get('somme_mds', 0)} Mds FCFA de {bilan.get('unite','PNB')} — "
-            f"soit {bilan.get('couverture_pct', 'N/A')}% de l'écart à combler ({bilan.get('ecart_mds','N/A')} Mds)."
+            f"soit {couv_txt} de l'écart à combler ({bilan.get('ecart_mds','N/A')} Mds)."
             if bilan else "Bilan chiffré non disponible."
         )
         segs_f.append(f"  SEGMENT {seg.upper()} :\n  Bilan d'ensemble : {bilan_f}\n"
@@ -3834,13 +3842,18 @@ def api_deck_data():
                     table_rows.append([seg, x.get("direction"), x.get("titre"), x.get("rang")])
                 stats.append({"label": f"Apport chiffré {seg}", "value": f"{bilan.get('somme_mds', 0)} Mds"})
             table = {"headers": ["Segment", "Direction", "Directive", "Rang"], "rows": table_rows}
-            chart = {"title": "Bilan chiffré du plan", "unit": "Mds FCFA",
-                     "labels": ["Apport Particuliers", "Apport Entreprises"],
-                     "values": [bilans.get("Particuliers", {}).get("somme_mds") or 0,
-                                bilans.get("Entreprises", {}).get("somme_mds") or 0]}
+            # Un donut se prête mieux à « quelle part de l'écart est couverte » qu'une barre —
+            # écart nul (SGCI déjà au niveau visé) = couverture 100%, pas "N/D" (division par
+            # zéro côté directives.py, mais la lecture correcte est bien "totalement couvert").
+            def _couv(b):
+                pct = b.get("couverture_pct")
+                if pct is not None:
+                    return round(pct)
+                return 100 if (b.get("ecart_mds") or 0) <= 0 else 0
+            chart = {"type": "donut", "title": "Couverture de l'écart à combler par le plan", "unit": "%",
+                     "donuts": [{"label": seg, "pct": _couv(bilans.get(seg, {}))} for seg in ("Particuliers", "Entreprises")]}
             b_p = bilans.get("Particuliers", {})
-            stats.append({"label": "Couverture Particuliers",
-                           "value": (f"{b_p.get('couverture_pct')} %" if b_p.get("couverture_pct") is not None else "N/D")})
+            stats.append({"label": "Couverture Particuliers", "value": f"{_couv(b_p)} %"})
             stats.append({"label": "Directives chiffrées", "value": f"{b_p.get('n_chiffrees', 0)}/{b_p.get('n_total', 20)} (Particuliers)"})
         else:
             S = AGENTS["EF"].structured
@@ -3923,9 +3936,40 @@ def api_dashboard_resume():
     # fichier sans aucun glitch. C'est Poppler (pdftotext/pdftoppm) qui mal-interprète le flux
     # PDF généré par jsPDF sur cette machine. Pour vérifier un PDF généré par l'app, utiliser
     # PyMuPDF, pas Poppler.
-    key = f"resume_v14_{section}_{segment}_{_hlr.md5(facts.encode('utf-8')).hexdigest()[:12]}"
+    key = f"resume_v15_{section}_{segment}_{_hlr.md5(facts.encode('utf-8')).hexdigest()[:12]}"
     if cache.get(key):
         return jsonify({"resume": cache[key], "source": "cache"})
+
+    # Stratégie et Stratégie opérationnelle reçoivent des faits BEAUCOUP plus riches que les
+    # autres sections (SWOT, Porter, VRIST, révélations, plan 3 ans, projection — ou 40
+    # directives sur 5 directions × 2 segments) : un même gabarit "6 à 8 points, tous sur la
+    # projection" les aplatit et fait paraître le résumé vague alors que le dossier est dense.
+    # Retour du directeur : « ça ne résume pas du tout, c'est mal vague, les onglets sont
+    # riches ». Plus de points, et une consigne de couverture explicite par dimension.
+    if section == "strategie":
+        n_points = "10 à 12"
+        richesse = (
+            "\nCE DASHBOARD (Stratégie) EST DENSE — NE LE RÉDUIS PAS À LA SEULE PROJECTION. Tes "
+            "@@points@@ DOIVENT couvrir CHACUNE de ces dimensions au moins une fois (pas seulement "
+            "coût du risque et résultat net répétés) : (1) un problème prioritaire du diagnostic, "
+            "(2) au moins un élément du SWOT (force OU faiblesse OU opportunité OU menace, nommé "
+            "précisément), (3) au moins une force de Porter et son intensité, (4) le profil VRIST de "
+            "SGCI, (5) au moins une révélation clé, (6) au moins un horizon du plan à 3 ans, (7) la "
+            "projection à 3 ans. Si un point sur deux parle de coût du risque ou de résultat net, tu "
+            "as échoué — chaque point doit apporter une INFORMATION NOUVELLE, pas reformuler la "
+            "même.\n")
+    elif section == "stratop":
+        n_points = "10 à 12"
+        richesse = (
+            "\nCE DASHBOARD (Stratégie opérationnelle) COUVRE VINGT DIRECTIVES PAR SEGMENT SUR CINQ "
+            "DIRECTIONS — NE TE CONCENTRE PAS SUR UNE SEULE. Tes @@points@@ DOIVENT citer des "
+            "directives d'AU MOINS QUATRE directions différentes parmi Financière/Commerciale/"
+            "Marketing/Innovation/Risques (nomme la direction), ET des DEUX segments Particuliers "
+            "ET Entreprises (au moins deux points par segment) — ne rédige jamais un résumé qui ne "
+            "parle que d'un seul segment ou d'une seule direction.\n")
+    else:
+        n_points = "6 à 8"
+        richesse = ""
 
     prompt = f"""Tu es analyste senior de SGCI (1ʳᵉ banque de Côte d'Ivoire), plume du comité de direction.
 Voici les faits RÉELS calculés (ta SEULE matière — n'invente AUCUN chiffre) pour le dashboard « {titre_dash} » :
@@ -3969,7 +4013,7 @@ INTERDICTION STRICTE ET CONCRÈTE (erreurs déjà commises à ne PAS répéter) 
   - INTERDIT de commenter la donnée elle-même (ex. « n'est pas fourni dans son intégralité », « les
     données sont incomplètes ») — n'utilise QUE ce qui est fourni, sans méta-commentaire dessus.
   Cette synthèse doit être IRRÉPROCHABLE : dense, sans une phrase de trop, chaque mot utile.
-
+{richesse}
 Réponds EXACTEMENT avec ces marqueurs :
 @@titre@@
 … (titre du rapport, 4 à 8 mots, sans point final)
@@ -3977,7 +4021,7 @@ Réponds EXACTEMENT avec ces marqueurs :
 … (SYNTHÈSE DE HAUT NIVEAU en 3 à 4 phrases — le constat d'ensemble et l'enjeu principal, PAS une
 liste de faits redondants avec @@points@@. Termine sur le fait le plus significatif, jamais un vœu pieux)
 @@points@@
-… (6 à 8 points clés, UN PAR LIGNE commençant par « - », chacun un chiffre réel DIFFÉRENT à l'appui
+… ({n_points} points clés, UN PAR LIGNE commençant par « - », chacun un chiffre réel DIFFÉRENT à l'appui
 (deux points ne portent JAMAIS le même chiffre) — couvre CHAQUE section listée ci-dessus, pas
 seulement la première ; chaque point est un FAIT CHIFFRÉ, jamais une recommandation ou un point sans
 chiffre propre (interdit : « SGCI doit renforcer son offre » — un point sans chiffre n'a pas sa place ici).
@@ -3993,7 +4037,10 @@ thèmes abordés dans @@analyse@@, DANS L'ORDRE où ils y apparaissent (ex. « V
 @@conclusion@@
 … (2 phrases : la priorité n°1 à retenir, chiffrée et actionnable — pas « doit améliorer X »)
 FORMAT : marqueurs @@clé@@ (PAS de JSON)."""
-    txt, engine = _rp_llm_json(prompt, max_tokens=1900, temperature=0.3)
+    # Plus de points demandés (10-12 au lieu de 6-8) pour Stratégie/StratOp -> plus de budget
+    # de sortie, sinon la réponse se coupe avant la conclusion.
+    _mt = 2600 if section in ("strategie", "stratop") else 1900
+    txt, engine = _rp_llm_json(prompt, max_tokens=_mt, temperature=0.3)
     parsed = {}
     if txt:
         segs = _re_rp.split(r"@@\s*([a-zA-Z0-9_]+)\s*@@", txt)
