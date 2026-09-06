@@ -217,6 +217,70 @@ def _chiffres_inventes_chat(reponse, contexte):
 
 
 # ═══════════════════════════════════════════════════════════
+#  GARDE-FOU ANTI-INVENTION — CITATIONS (article/instruction/décision/circulaire...)
+#  Ajouté le 2026-09-03, MÊME cause et MÊME mécanisme que le garde-fou chiffres ci-dessus,
+#  trouvé en auditant EVAL_RAG_MEMOIRE (projet séparé de comparaison d'architectures, même
+#  base de données) : un LLM sans article précisément fourni généralise le FORMAT des vraies
+#  citations qu'il a vues (« Instruction N° 004-05-2015 », « Article 53 »...) et en invente
+#  une plausible mais fausse (« Circulaire BCEAO n° 2018/05 », qui n'existe dans AUCUN
+#  document du corpus). Ni la position de production, ni Groq/Gemini (moins petits que le
+#  gpt-oss:20b testé dans l'autre projet) ne mettent cette app à l'abri du même risque —
+#  vérifié en le déclenchant ici. Même politique que pour les chiffres : on retente une
+#  fois, on ne bloque jamais dur, on log si ça persiste plutôt que de vider la réponse.
+# ═══════════════════════════════════════════════════════════
+_RE_CITATION = re.compile(
+    r"\b(?:Article|Art\.?)\s+\d+\b"
+    r"|\b(?:Instruction|D[ée]cision|Circulaire|R[èe]glement|Directive|Loi)\s+"
+    r"(?:[A-ZÀ-Ü][\w]*\s+)?n?°?\s*[\w./-]*\d[\w./-]*",
+    re.IGNORECASE)
+
+
+def _citations_chat(text):
+    """Toutes les références (article/instruction/décision/circulaire/règlement/directive)
+    citées dans un texte, normalisées (espaces réduits, casse ignorée) pour comparaison."""
+    out = set()
+    for m in _RE_CITATION.finditer(text or ""):
+        out.add(re.sub(r"\s+", " ", m.group()).strip().lower())
+    return out
+
+
+def _citations_inventees_chat(reponse, contexte):
+    """Citations présentes dans la réponse mais absentes (mot pour mot) du contexte fourni
+    au LLM — comparaison par limite de mot, pas par sous-chaîne (sinon « Article 5 » matche
+    à tort à l'intérieur de « Article 53 »)."""
+    contexte_norm = re.sub(r"\s+", " ", contexte or "").lower()
+    suspects = set()
+    for ref in _citations_chat(reponse):
+        if not re.search(r"\b" + re.escape(ref) + r"\b", contexte_norm):
+            suspects.add(ref)
+    return suspects
+
+
+def _invoke_avec_garde_fou(llm, messages, contexte: str, tag: str = "GARDE-FOU") -> str:
+    """`_invoke_with_retry` + vérification anti-invention (chiffres/citations absents du
+    contexte), même politique retry-puis-log que la branche chat principale (2026-07-25,
+    étendue 2026-09-03) — sans blocage dur (leçon 2026-07-22 : refuser purement et simplement
+    dégrade plus qu'un chiffre occasionnellement mal repris). Portée ici aux branches
+    structurées (EF/CB/classement) qui appelaient `_invoke_with_retry` nu : elles rédigent
+    aussi de la prose libre autour d'un tableau chiffré, donc exposées au même risque bien
+    que jamais vérifiées jusqu'ici."""
+    reponse = _invoke_with_retry(llm, messages)
+    invente = _chiffres_inventes_chat(reponse, contexte)
+    cit_inventees = _citations_inventees_chat(reponse, contexte)
+    if not (invente or cit_inventees):
+        return reponse
+    print(f"  [{tag}] Chiffre(s) {invente or '{}'} / citation(s) {cit_inventees or '{}'} "
+          f"absent(s) du contexte détecté(s) — nouvelle tentative...")
+    reponse_retry = _invoke_with_retry(llm, messages)
+    if not _chiffres_inventes_chat(reponse_retry, contexte) and not _citations_inventees_chat(reponse_retry, contexte):
+        return reponse_retry
+    print(f"  [{tag}] Persiste après reprise — réponse conservée telle quelle "
+          f"(chiffres : {_chiffres_inventes_chat(reponse_retry, contexte)}, "
+          f"citations : {_citations_inventees_chat(reponse_retry, contexte)}).")
+    return reponse_retry
+
+
+# ═══════════════════════════════════════════════════════════
 #  RETRY AVEC BACKOFF EXPONENTIEL
 # ═══════════════════════════════════════════════════════════
 
@@ -701,10 +765,20 @@ def _fiche_synthese_bancaire(banque: str) -> str:
     for label, d, unite, sens in indicateurs:
         if banque not in d:
             continue
+        # ENTRÉES AMBIGUËS ÉCARTÉES AVANT LE TRI (2026-09-04, crash attrapé par la batterie).
+        # Depuis le correctif anti-devinette, comparer_ef() peut renvoyer {'valeur': None,
+        # 'ambigu': True} quand la base contient des valeurs contradictoires. Le tri comparait
+        # alors None à un float : TypeError, et la question « La BICICI est-elle solide ? »
+        # remontait une exception au lieu d'une réponse. On classe sur les banques mesurables,
+        # et l'on saute l'indicateur si c'est justement CELLE demandée qui est ambiguë —
+        # jamais de rang calculé sur une valeur qu'on s'interdit d'affirmer.
+        mesurables = {k: v for k, v in d.items() if v.get("valeur") is not None}
+        if banque not in mesurables:
+            continue
         trouve = True
-        items = sorted(d.items(), key=lambda kv: kv[1]["valeur"], reverse=(sens == "max"))
+        items = sorted(mesurables.items(), key=lambda kv: kv[1]["valeur"], reverse=(sens == "max"))
         rang  = next(i for i, (k, _) in enumerate(items, 1) if k == banque)
-        val   = d[banque]["valeur"]
+        val   = mesurables[banque]["valeur"]
         val_fmt = f"{val:,.1f}".replace(",", " ") if unite == "%" else f"{val:,.0f}".replace(",", " ")
         # ANNÉE OBLIGATOIRE (2026-07-27) : sans elle, le LLM en invente une. Constaté en test sur
         # « La BICICI est-elle solide ? » → « ROE de 30,3 % en 2022 », alors que ce ROE est celui
@@ -1070,22 +1144,12 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
                  else config.LLM_TEMPERATURE_ANALYTIQUE)
     print(f"  Génération ({config.LLM_PROVIDER} T={temp_used}) — {len(context):,} chars contexte...")
 
-    reponse = _invoke_with_retry(llm, messages)
-
-    # 8c. Garde-fou anti-invention (audit 2026-07-25) : si la réponse cite un grand nombre
-    # absent du contexte fourni, on retente UNE fois une génération fraîche avant d'accepter
-    # tel quel — pas de blocage dur (cf. leçon du 2026-07-22 sur le prompt EF), juste un log
-    # pour garder trace des cas où ça persiste malgré la reprise.
-    _invente = _chiffres_inventes_chat(reponse, context)
-    if _invente:
-        print(f"  [GARDE-FOU CHAT] Chiffre(s) absent(s) du contexte détecté(s) {_invente} — nouvelle tentative...")
-        reponse_retry = _invoke_with_retry(llm, messages)
-        if not _chiffres_inventes_chat(reponse_retry, context):
-            reponse = reponse_retry
-        else:
-            print(f"  [GARDE-FOU CHAT] Persiste après reprise — réponse conservée telle quelle "
-                  f"(chiffres à vérifier : {_chiffres_inventes_chat(reponse_retry, context)}).")
-            reponse = reponse_retry
+    # Garde-fou anti-invention (audit 2026-07-25, étendu 2026-09-03) : si la réponse cite un
+    # grand nombre OU une référence (article/instruction/décision/circulaire...) absente du
+    # contexte fourni, on retente UNE fois une génération fraîche avant d'accepter tel quel —
+    # pas de blocage dur (cf. leçon du 2026-07-22 sur le prompt EF), juste un log pour garder
+    # trace des cas où ça persiste malgré la reprise.
+    reponse = _invoke_avec_garde_fou(llm, messages, context, tag="GARDE-FOU CHAT")
 
     # 9. Mémorisation
     mem.add_user(question)
@@ -1179,7 +1243,7 @@ def _executer_comparatif(chain: dict, question: str, spec: dict, question_memoir
             f"les valeurs telles qu'affichées (ne les réordonne pas, ne les réinterprète pas).")
     userm = f"Question : {question}\n\nComparaison :\n{txt}"
     llm = _get_llm(["etats_financiers"])     # température factuelle
-    rep = _invoke_with_retry(llm, [("system", sysm), ("human", userm)])
+    rep = _invoke_avec_garde_fou(llm, [("system", sysm), ("human", userm)], txt, tag="GARDE-FOU CB/EF")
     mem.add_user(question_memoire or question); mem.add_assistant(rep)
     return rep
 
@@ -1266,6 +1330,14 @@ def _executer_factuel_ef_unique(chain: dict, question: str, spec: dict, question
         info = structured_tools.valeur_ef(banque, spec["indicateur"], spec.get("annee"))
         if not info:
             rep = f"Données insuffisantes dans la base pour « {label} » de {banque}."
+        elif info.get("ambigu"):
+            # « if not info » ne suffit plus : {"valeur": None, "ambigu": True} est un dict
+            # NON VIDE (donc vrai), qui aurait fait planter le formatage de {info['valeur']}
+            # (None) plus bas — corrigé le 2026-09-03 en meme temps que le max() muet.
+            vals = ', '.join(f"{v:,.0f}".replace(',', ' ') for v in info["valeurs_conflictuelles"])
+            rep = (f"Donnée ambiguë en base pour « {label} » de {banque} en {info['annee']} "
+                   f"({vals} — valeurs contradictoires, aucune fiable sans vérification de "
+                   f"la source).")
         else:
             valeur_fmt = f"{info['valeur']:,.0f}".replace(",", " ")
             rep = f"Le {label} de {banque} en {info['annee']} est de {valeur_fmt} millions FCFA."
@@ -1338,6 +1410,67 @@ def _detect_comparaison_cb_service(question: str):
     return None
 
 
+def _detect_factuel_cb_unique(question: str):
+    """« Quel est le tarif de <service> chez <banque> en <année> <semestre> ? » — UNE banque,
+    UN service, une période → lecture SQL exacte plutôt que recherche sémantique.
+
+    Ajouté le 2026-09-04. Mesuré sur « tarif Compte courant chez SIB 2024 S1 » : la bonne
+    ligne ÉTAIT récupérée, mais classée 62ᵉ sur 80 passages ; le modèle ne la voyait pas et
+    répondait « non disponible » alors que la valeur (4 900 FCFA) se lit en une requête. Le
+    RAG reste le filet : si la base ne renvoie rien, l'exécuteur rend None et la question
+    poursuit son chemin normal.
+
+    Garde-fous : pas d'indicateur EF dans la question (sinon c'est une question financière),
+    exactement une banque nommée (au-delà, c'est une comparaison, déjà traitée plus haut)."""
+    q = question.lower()
+    if any(k in q for k in _EF_KEYS):
+        return None
+    banques = retriever.detect_banques(question)
+    if len(banques) != 1:
+        return None
+    # SERVICE CITÉ ENTRE GUILLEMETS, obligatoirement (restriction du 2026-09-04, après une
+    # RÉGRESSION attrapée par test_chat_batterie.py). Avec le repli sur
+    # `_extraire_terme_service`, « Quels sont les frais de tenue de compte SGCI ? » — une
+    # demande VOLONTAIREMENT large — tombait sur cette branche et recevait UN montant (73
+    # caractères) au lieu de l'énumération des offres de la banque (Advantage, Classic,
+    # livret, épargne…) que l'utilisateur attend. Les guillemets marquent une ligne tarifaire
+    # précise ; sans eux, la question reste au chemin exhaustif, plus riche.
+    mserv = re.search(r"[«\"]\s*(.+?)\s*[»\"]", question)
+    if not mserv:
+        return None
+    terme = mserv.group(1)
+    mannee = re.search(r"\b(20\d{2})\b", q)
+    if not mannee:
+        return None
+    msem = re.search(r"\bs([12])\b", q)
+    return {"banque": banques[0], "service": terme, "annee": int(mannee.group(1)),
+            "semestre": ("S" + msem.group(1)) if msem else "S1",
+            "segment": "Entreprises" if "entreprise" in q else "Particuliers"}
+
+
+def _executer_factuel_cb_unique(chain: dict, question: str, spec: dict, question_memoire: str = None):
+    """Lecture SQL directe du tarif. Rend None si la base n'a rien → le RAG prend le relais."""
+    mem = chain["memory"]
+    info = structured_tools.valeur_cb(spec["banque"], spec["service"], spec["annee"],
+                                      spec["semestre"], spec["segment"])
+    if not info:
+        return None
+    periode = f"{spec['semestre']} {spec['annee']} ({spec['segment']})"
+    if info.get("ambigu"):
+        libs = " / ".join(info["libelles_conflictuels"])
+        rep = (f"Plusieurs services distincts correspondent à « {spec['service']} » chez "
+               f"{spec['banque']} en {periode} : {libs}. Précisez lequel vous intéresse — "
+               f"les tarifs diffèrent.")
+    elif info.get("gratuit"):
+        rep = f"« {spec['service']} » est GRATUIT chez {spec['banque']} en {periode}."
+    else:
+        montant = f"{info['montant']:,.0f}".replace(",", " ")
+        rep = (f"Le tarif « {spec['service']} » chez {spec['banque']} en {periode} "
+               f"est de {montant} FCFA.")
+    mem.add_user(question_memoire or question); mem.add_assistant(rep)
+    return rep
+
+
 def _detect_comparaison_ef_banques(question: str):
     """Détecte 'Compare le PNB entre SGCI, ECOBANK et BICICI (en 2024)' : 2+ banques
     nommées + un indicateur EF reconnu, SANS mot superlatif ("meilleur"/"quelle banque"...
@@ -1387,7 +1520,7 @@ def _executer_comparaison_ef_banques(chain: dict, question: str, spec: dict, que
             f"réordonner ni réinterpréter les chiffres.")
     userm = f"Question : {question}\n\nComparaison :\n{txt}"
     llm   = _get_llm(["etats_financiers"])
-    rep   = _invoke_with_retry(llm, [("system", sysm), ("human", userm)])
+    rep   = _invoke_avec_garde_fou(llm, [("system", sysm), ("human", userm)], txt, tag="GARDE-FOU EF MULTI")
     mem.add_user(question_memoire or question); mem.add_assistant(rep)
     return rep
 
@@ -1438,7 +1571,7 @@ def _executer_comparaison_cb_exhaustive(chain: dict, question: str, spec: dict, 
         print(f"  [TABLEAU CB] {len(tableau):,} chars affichés, {MAX_TABLEAU_LLM:,} envoyés au LLM")
     userm = f"Question : {question}\n\nTableau :\n{tableau_llm}"
     llm   = _get_llm(["conditions_banque"])
-    conclusion = _invoke_with_retry(llm, [("system", sysm), ("human", userm)])
+    conclusion = _invoke_avec_garde_fou(llm, [("system", sysm), ("human", userm)], tableau_llm, tag="GARDE-FOU CB EXHAUSTIF")
 
     titre = f"**Comparaison exhaustive — {' / '.join(termes)} ({', '.join(spec['banques'])})**"
     rep = f"{titre}\n{tableau}\n\n**Analyse**\n\n{conclusion}"
@@ -1587,7 +1720,8 @@ def _executer_evolution_ef(chain: dict, question: str, spec: dict, question_memo
             "absente du tableau. Recopie le tableau tel quel, puis ajoute 3 à 5 lignes d'analyse : "
             "tendance générale, année la plus marquante, rythme de croissance.")
     llm = _get_llm(["etats_financiers"])
-    rep = _invoke_with_retry(llm, [("system", sysm), ("human", f"Question : {question}\n\n{tableau}")])
+    rep = _invoke_avec_garde_fou(llm, [("system", sysm), ("human", f"Question : {question}\n\n{tableau}")],
+                                  tableau, tag="GARDE-FOU EVOLUTION EF")
     mem.add_user(question_memoire or question); mem.add_assistant(rep)
     return rep
 
@@ -1662,7 +1796,7 @@ def _executer_meilleure_banque(chain: dict, question: str, question_memoire: str
     )
     userm = f"Question : {question}\n\n{classement}"
     llm = _get_llm(["etats_financiers"])      # température factuelle
-    rep = _invoke_with_retry(llm, [("system", sysm), ("human", userm)])
+    rep = _invoke_avec_garde_fou(llm, [("system", sysm), ("human", userm)], classement, tag="GARDE-FOU MEILLEURE BANQUE")
     mem.add_user(question_memoire or question); mem.add_assistant(rep)
     return rep
 
@@ -1756,6 +1890,12 @@ def ask(chain: dict, question: str) -> str:
         spec_cb_exh = _detect_comparaison_cb_service(q_detect)
         if spec_cb_exh:
             rep = _executer_comparaison_cb_exhaustive(chain, q_detect, spec_cb_exh, question_memoire=q_mem)
+            if rep:
+                return rep
+
+        spec_cb_un = _detect_factuel_cb_unique(q_detect)
+        if spec_cb_un:
+            rep = _executer_factuel_cb_unique(chain, q_detect, spec_cb_un, question_memoire=q_mem)
             if rep:
                 return rep
         return None

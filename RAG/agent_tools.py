@@ -63,6 +63,12 @@ def valeur_indicateur_banque(banque: str, indicateur: str, annee: Optional[int] 
     info = structured_tools.valeur_ef(banque, indicateur, annee)
     if not info:
         return "Donnée non trouvée dans la base pour cette banque/cet indicateur/cette année."
+    if info.get("ambigu"):
+        # « if not info » ne suffit pas : {"valeur": None, "ambigu": True} est un dict NON
+        # VIDE — aurait plante sur {info['valeur']:,.0f} (None) plus bas.
+        vals = ', '.join(f"{v:,.0f}".replace(',', ' ') for v in info["valeurs_conflictuelles"])
+        return (f"Donnée ambiguë en base pour {indicateur} de {banque} en {info['annee']} "
+                f"({vals} — valeurs contradictoires, aucune fiable sans vérification).")
     return f"{indicateur} de {banque} en {info['annee']} : {info['valeur']:,.0f} millions FCFA".replace(",", " ")
 
 

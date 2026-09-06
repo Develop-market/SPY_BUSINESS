@@ -1225,5 +1225,33 @@
   "resume_v16_stratop_Particuliers_eef1ee6c76dd@meta": {
     "generated_at": "2026-09-01T11:52:02",
     "stale": false
+  },
+  "resume_v16_ef_Particuliers_2d3503cd0fd3": {
+    "titre": "Santé financière",
+    "executif": "SGCI confirme sa position dominante en résultat net tout en affichant une rentabilité solide et une maîtrise efficace des coûts. La dynamique de croissance, toutefois plus modeste que celle de certains concurrents, contraste avec un mix de commissions légèrement inférieur à la moyenne du podium. Le coût du risque, relativement élevé, pèse sur la marge nette malgré une part de marché de plus d’un quart. L’enjeu majeur réside donc dans l’optimisation du profil de risque pour soutenir la progression future.",
+    "points": [
+      "RN atteint 101 352,0, plaçant SGCI en tête du classement.",
+      "PNB s’élève à 276 048,0, soit plus du double du deuxième concurrent.",
+      "ROE s’établit à 20,5 % contre 29,0 % pour ECOBANK.",
+      "Marge nette de 36,7 % dépasse celle de NSIA (36,1 %).",
+      "Coefficient d’exploitation se situe à 38,8 %, inférieur au plus élevé (54,6 % de NSIA).",
+      "Coût du risque s’élève à 17,0 %, nettement supérieur aux 2,2 % d’ECOBANK.",
+      "Croissance de 4,2 % reste la plus basse du groupe.",
+      "Mix commissions représente 24 % du revenu total."
+    ],
+    "analyse": "Le résultat net record reflète la capacité de SGCI à mobiliser un volume d’affaires conséquent, comme en témoigne le PNB dominant. Toutefois, le ROE inférieur aux leaders du segment indique que la rentabilité des capitaux propres n’est pas pleinement exploitée, en partie à cause d’un coût du risque élevé qui érode la marge nette. La croissance modérée contraste avec la forte dynamique de BICICI, soulignant la nécessité d’accélérer l’expansion tout en maîtrisant les pertes. Enfin, le poids des commissions, bien que respectable, reste en retrait face aux banques les plus performantes, suggérant une opportunité de diversification des sources de revenu.",
+    "tags": [
+      "Rentabilité",
+      "Risque",
+      "Croissance",
+      "Commissions"
+    ],
+    "conclusion": "Priorité n°1 : réduire le coût du risque à 12,0 % d’ici deux ans en renforçant les critères de crédit. Cette réduction devrait permettre d’accroître la marge nette de plusieurs points de pourcentage et de soutenir une croissance plus soutenue.",
+    "section": "Santé financière",
+    "segment": "Particuliers"
+  },
+  "resume_v16_ef_Particuliers_2d3503cd0fd3@meta": {
+    "generated_at": "2026-09-01T12:36:59",
+    "stale": false
   }
 }

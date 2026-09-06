@@ -342,6 +342,11 @@ def _chunk_ef(row) -> dict:
     annee_donnee = row[4] or 0
     is_primary   = row[5] if len(row) > 5 else True
     score        = float(row[6]) if len(row) > 6 and row[6] is not None else 1.0
+    # montant/annee_rapport : colonnes numeriques canoniques, portees uniquement pour
+    # departager les doublons (_desambiguiser_ef_chunks), jamais affichees au LLM (le texte
+    # lisible reste valeur_brute + unite, inchange).
+    montant       = float(row[7]) if len(row) > 7 and row[7] is not None else None
+    annee_rapport = row[8] if len(row) > 8 else None
 
     texte = f"{libelle} : {valeur_brute} {unite}".strip()
 
@@ -358,12 +363,99 @@ def _chunk_ef(row) -> dict:
             "is_primary"      : is_primary,
             "cible_clientele" : "",
             "semestre"        : "",
+            "montant"         : montant,
+            "annee_rapport"   : annee_rapport,
         },
         "source"  : f"EF_{banque}",
         "banque"  : banque,
         "periode" : str(annee_donnee),
         "type_doc": "etats_financiers",
     }
+
+
+# Cf. structured_tools._SEUIL_ECART_AMBIGU — meme seuil, meme justification, calibre sur les
+# memes cas reels (revisions inter-rapports legitimes sous 5 %, vraies anomalies bien au-dela).
+_SEUIL_ECART_AMBIGU = 0.05
+
+
+def _desambiguiser_ef_chunks(chunks: list) -> list:
+    """Neutralise les doublons contradictoires (OCR) avant qu'ils n'atteignent le LLM.
+
+    ef_indicateurs contient des lignes marquées is_primary=TRUE en double pour un même
+    (banque, année, libellé) — ex. ECOBANK PNB 2023 : 110 189 ET 710 189 (rapports 2023 et
+    2024), toutes deux is_primary=TRUE, texte quasi identique -> les DEUX remontent en tête
+    d'une recherche sémantique sur « PNB ECOBANK 2023 » (vérifié le 2026-09-03), sans aucun
+    signal qu'elles se contredisent. Le LLM recevait alors deux chiffres opposés dans son
+    contexte et pouvait en choisir un au hasard, ou pire, les mélanger, sans le dire au
+    lecteur. Ce filtre existait déjà côté SQL-comparaison (structured_tools._resoudre_valeur_ef)
+    mais jamais côté récupération sémantique — les deux chemins alimentent le même chat.
+
+    DEUX cas distincts :
+    1. Vraie contradiction (écart > 5 %, ex. ci-dessus 84 %) — aucune des deux valeurs n'est
+       fiable → exclue, remplacée par un chunk qui le dit explicitement.
+    2. Révision mineure entre deux rapports annuels qui se recouvrent (écart < 5 %, ex. SGCI
+       « autres actifs » 2024 : 17 708 vs 17 709) — pas une contradiction, on garde la valeur
+       du rapport le plus récent (annee_rapport le plus élevé), jamais une moyenne ou un
+       maximum muet."""
+    par_cle = defaultdict(list)
+    autres = []
+    for c in chunks:
+        md = c.get("metadata", {})
+        # Seules les lignes is_primary=TRUE sont regroupées : une ligne is_primary=FALSE est
+        # déjà, par construction de la base, écartée au profit d'une autre — la confondre ici
+        # avec la primaire ferait passer une valeur ÉTABLIE pour "ambiguë" si l'ancienne
+        # extraction superseded portait un chiffre différent (régression, pas un correctif).
+        if md.get("type_document") != "etats_financiers" or md.get("is_primary") is not True:
+            autres.append(c)
+            continue
+        libelle = (c.get("texte") or "").split(" : ", 1)[0].strip().lower()
+        cle = (c.get("banque"), md.get("annee"), libelle)
+        par_cle[cle].append(c)
+
+    out = list(autres)
+    for (banque, annee, libelle), groupe in par_cle.items():
+        # Comparaison sur `montant` (colonne numérique canonique), pas sur le texte affiché :
+        # deux lignes peuvent porter la même valeur avec un habillage différent sans être
+        # réellement contradictoires — seul le nombre canonique tranche.
+        vus = {}
+        for c in groupe:
+            md = c.get("metadata", {})
+            m = md.get("montant")
+            if m is not None:
+                vus.setdefault(round(m, 0), md.get("annee_rapport"))
+        montants = sorted(vus)
+        if len(montants) <= 1:
+            out.extend(groupe)
+            continue
+
+        ecart_relatif = (max(montants) - min(montants)) / max(abs(max(montants)), 1)
+        if ecart_relatif < _SEUIL_ECART_AMBIGU:
+            valeur_retenue = max(vus, key=lambda v: (vus[v] or 0, v))
+            print(f"  [EF RÉVISION] {banque} {annee} « {libelle} » : "
+                  f"{', '.join(f'{v:,.0f}'.replace(',', ' ') for v in montants)} "
+                  f"(écart {ecart_relatif:.1%}, rapports différents) — retenu : "
+                  f"{valeur_retenue:,.0f}".replace(",", " "))
+            for c in groupe:
+                if round((c.get("metadata", {}).get("montant") or -1), 0) == valeur_retenue:
+                    out.append(c)
+                    break
+            continue
+
+        vals_txt = ', '.join(f"{v:,.0f}".replace(',', ' ') for v in montants)
+        print(f"  [EF AMBIGU] {banque} {annee} « {libelle} » : {len(montants)} valeurs "
+              f"contradictoires en base ({vals_txt}, écart {ecart_relatif:.1%}) — exclu, non fiable")
+        out.append({
+            "texte": (f"{libelle} ({banque}, {annee}) : donnée AMBIGUË en base — plusieurs "
+                      f"valeurs contradictoires enregistrées, aucune ne peut être citée comme "
+                      f"fiable sans vérification de la source."),
+            "score": groupe[0].get("score", 1.0),
+            "metadata": {**groupe[0].get("metadata", {}), "ambigu": True},
+            "source": groupe[0].get("source", ""),
+            "banque": banque,
+            "periode": str(annee),
+            "type_doc": "etats_financiers",
+        })
+    return out
 
 
 # Marqueurs techniques du pipeline d'extraction présents dans 85 des 88 chunks réglementaires
@@ -474,7 +566,7 @@ def search(vectorstore: PGVectorStore, question: str, k: int = None, filters: di
                     where, params = _sql_where_ef(banque=banque, annee=annee, is_primary_only=bool(annee))
                     sql = f"""
                         SELECT banque, libelle, valeur_brute, unite, annee_donnee, is_primary,
-                               1 - (embedding <=> %s::vector) AS score
+                               1 - (embedding <=> %s::vector) AS score, montant, annee_rapport
                         FROM ef_indicateurs
                         {where}
                           {"AND" if where else "WHERE"} embedding IS NOT NULL
@@ -483,7 +575,9 @@ def search(vectorstore: PGVectorStore, question: str, k: int = None, filters: di
                         LIMIT %s
                     """
                     cur.execute(sql, [vec_lit] + params + [vec_lit, vec_lit, k])
-                    chunks = [_chunk_ef(r) for r in cur.fetchall()]
+                    # Doublons contradictoires is_primary=TRUE (ex. ECOBANK PNB 2023 : 110 189
+                    # vs 710 189) neutralises AVANT le LLM, pas apres — cf. _desambiguiser_ef_chunks.
+                    chunks = _desambiguiser_ef_chunks([_chunk_ef(r) for r in cur.fetchall()])
 
                 elif type_doc == "reglementation":
                     # Recherche HYBRIDE — mesure à l'appui : sur ce corpus, la similarité
@@ -791,7 +885,7 @@ def _get_exhaustif_ef(vectorstore: PGVectorStore, banque=None, annee=None) -> li
     primary_only = bool(annee)
     where, params = _sql_where_ef(banque=banque, annee=annee, is_primary_only=primary_only)
     sql = f"""
-        SELECT banque, libelle, valeur_brute, unite, annee_donnee, is_primary
+        SELECT banque, libelle, valeur_brute, unite, annee_donnee, is_primary, NULL, montant, annee_rapport
         FROM ef_indicateurs
         {where}
         ORDER BY banque, annee_donnee, libelle
@@ -800,7 +894,7 @@ def _get_exhaustif_ef(vectorstore: PGVectorStore, banque=None, annee=None) -> li
         with vectorstore.get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, params)
-                return [_chunk_ef(r) for r in cur.fetchall()]
+                return _desambiguiser_ef_chunks([_chunk_ef(r) for r in cur.fetchall()])
     except Exception as e:
         print(f"  [EXHAUSTIF EF ERREUR] {e}")
         return []

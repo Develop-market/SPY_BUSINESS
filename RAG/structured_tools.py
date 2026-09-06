@@ -48,6 +48,40 @@ def _conn():
     return psycopg2.connect(**config.DB_PARAMS)
 
 
+# Ecart relatif au-dela duquel deux valeurs pour le meme (banque, annee, indicateur) sont
+# une VRAIE contradiction (exclue) plutot qu'une simple revision entre deux rapports
+# annuels qui se recouvrent sur cette annee (ex. le rapport 2024 ET le rapport 2025 donnent
+# tous deux une valeur pour 2024, la seconde revisant legerement la premiere). Trouve et
+# calibre le 2026-09-03 en auditant EVAL_RAG_MEMOIRE (meme base, meme colonne ef_indicateurs)
+# : revisions legitimes observees sous 5 % (ex. 17 708 vs 17 709 = 0,006 %) ; vraies anomalies
+# — tres probablement des erreurs d'OCR — bien au-dela (ex. 110 189 vs 710 189 = 84 %).
+_SEUIL_ECART_AMBIGU = 0.05
+
+
+def _resoudre_valeur_ef(rows):
+    """rows : [(montant, annee_rapport), ...] pour un (banque, annee, indicateur) donne.
+    AVANT ce correctif : `max(vals)` etait pris sans condition — un chiffre invente/errone
+    (une des deux valeurs contradictoires) passait pour une valeur « representative », sans
+    jamais etre signale. Meme politique que le juge/gold-set : jamais une valeur choisie au
+    hasard parmi plusieurs contradictoires. Retour (valeur, ambigu:bool)."""
+    montants = sorted({round(m, 0) for m, _ in rows})
+    if len(montants) == 1:
+        return montants[0], False
+    ecart_relatif = (max(montants) - min(montants)) / max(abs(max(montants)), 1)
+    if ecart_relatif < _SEUIL_ECART_AMBIGU:
+        # Revision mineure entre deux rapports : valeur du rapport le plus RECENT
+        # (annee_rapport la plus haute), jamais une moyenne ou un max muet.
+        # BUG CORRIGE (2026-09-03, trouve en testant SIB) : `_, plus_recent = max(rows, ...)`
+        # depaquetait le tuple gagnant (montant, annee_rapport) A L'ENVERS — `plus_recent`
+        # recevait l'ANNEE (ex. 2025) au lieu du MONTANT, faisant passer un coefficient
+        # d'exploitation calcule avec "2025" comme chiffre a la place de 108700 (SIB :
+        # 2069 % au lieu de ~38 %). Detecte car ce cas precis (deux valeurs PROCHES, pas
+        # une seule) n'avait jamais ete exerce par les tests de cette nuit sur BNI.
+        plus_recent, _ = max(rows, key=lambda mr: (mr[1] or 0, mr[0]))
+        return plus_recent, False
+    return None, True
+
+
 def _an_year(cur, banque, mode):
     """Année AN1 (la + ancienne des 3 dernières) ou AN3 (la + récente) pour une banque."""
     cur.execute("""SELECT DISTINCT annee_donnee FROM ef_indicateurs
@@ -72,13 +106,20 @@ def comparer_ef(indicateur: str, mode: str = "AN3", banques: list = None) -> dic
             y = _an_year(cur, b, mode)
             if not y:
                 continue
-            cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
+            cur.execute("""SELECT ROUND(montant::double precision::numeric,0), annee_rapport
+                           FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND libelle ILIKE %s AND libelle NOT ILIKE %s
                              AND montant IS NOT NULL""", (b, y, pat, "%avant%"))
-            vals = [float(r[0]) for r in cur.fetchall()]
-            if vals:
-                out[b] = {"annee": y, "valeur": max(vals)}   # valeur représentative
+            rows = [(float(r[0]), r[1]) for r in cur.fetchall()]
+            if not rows:
+                continue
+            valeur, ambigu = _resoudre_valeur_ef(rows)
+            if ambigu:
+                out[b] = {"annee": y, "valeur": None, "ambigu": True,
+                          "valeurs_conflictuelles": sorted({m for m, _ in rows})}
+            else:
+                out[b] = {"annee": y, "valeur": valeur}
     finally:
         cur.close(); cx.close()
     return out
@@ -97,12 +138,19 @@ def valeur_ef(banque: str, indicateur: str, annee: int = None) -> dict:
         y = annee or _an_year(cur, banque, "AN3")
         if not y:
             return {}
-        cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
+        cur.execute("""SELECT ROUND(montant::double precision::numeric,0), annee_rapport
+                       FROM ef_indicateurs
                        WHERE banque=%s AND annee_donnee=%s AND is_primary
                          AND libelle ILIKE %s AND libelle NOT ILIKE %s
                          AND montant IS NOT NULL""", (banque, y, pat, "%avant%"))
-        vals = [float(r[0]) for r in cur.fetchall()]
-        return {"annee": y, "valeur": max(vals)} if vals else {}
+        rows = [(float(r[0]), r[1]) for r in cur.fetchall()]
+        if not rows:
+            return {}
+        valeur, ambigu = _resoudre_valeur_ef(rows)
+        if ambigu:
+            return {"annee": y, "valeur": None, "ambigu": True,
+                    "valeurs_conflictuelles": sorted({m for m, _ in rows})}
+        return {"annee": y, "valeur": valeur}
     finally:
         cur.close(); cx.close()
 
@@ -121,16 +169,34 @@ def serie_ef(banque: str, indicateur: str) -> list:
     `is_primary` filtre les colonnes N-1 des rapports à 2 colonnes (source classique de
     confusion d'exercice) ; NOT ILIKE '%avant%' écarte « RESULTAT NET AVANT IMPOTS ».
     """
+    # 2026-09-03 : `MAX(...) GROUP BY annee_donnee` avait exactement le meme defaut que
+    # comparer_ef/valeur_ef avant leur correctif — un MAX SQL muet plutot qu'un Python, mais
+    # le meme risque (deux valeurs contradictoires pour la meme annee, la plus grande —
+    # potentiellement une erreur d'OCR — gagne sans jamais etre signalee). Remplace par la
+    # meme resolution (_resoudre_valeur_ef, seuil 5 %) : une annee dont les valeurs sont
+    # ambigues est EXCLUE de la serie plutot que d'afficher un chiffre invente dans un
+    # graphique d'evolution — la meme politique que partout ailleurs dans ce fichier.
     pat = EF_PATTERNS.get((indicateur or "").strip().lower(), f"%{(indicateur or '').strip()}%")
     cx = _conn(); cur = cx.cursor()
     try:
-        cur.execute("""SELECT annee_donnee, MAX(ROUND(montant::double precision::numeric,0))
+        cur.execute("""SELECT annee_donnee, ROUND(montant::double precision::numeric,0), annee_rapport
                        FROM ef_indicateurs
                        WHERE banque=%s AND is_primary AND annee_donnee IS NOT NULL
                          AND libelle ILIKE %s AND libelle NOT ILIKE %s AND montant IS NOT NULL
-                       GROUP BY annee_donnee ORDER BY annee_donnee""",
+                       ORDER BY annee_donnee""",
                     (banque, pat, "%avant%"))
-        return [(int(a), float(v)) for a, v in cur.fetchall() if v is not None]
+        par_annee = {}
+        for a, m, ar in cur.fetchall():
+            par_annee.setdefault(int(a), []).append((float(m), ar))
+        serie = []
+        for annee in sorted(par_annee):
+            valeur, ambigu = _resoudre_valeur_ef(par_annee[annee])
+            if ambigu:
+                print(f"  [EF SERIE AMBIGUË] {banque} {annee} « {indicateur} » exclue "
+                      f"(valeurs contradictoires : {sorted({m for m, _ in par_annee[annee]})})")
+                continue
+            serie.append((annee, valeur))
+        return serie
     finally:
         cur.close(); cx.close()
 
@@ -156,30 +222,108 @@ def format_serie_ef(banque: str, label: str, serie: list) -> str:
         lignes.append(f"| {annee} | {val:,.0f} |".replace(",", " ") + f" {va} | {vp} |")
     total = ""
     if len(serie) >= 2 and serie[0][1]:
-        var_tot = (serie[-1][1] - serie[0][1]) / serie[0][1] * 100
-        total = (f"\nVariation totale {serie[0][0]}→{serie[-1][0]} : {var_tot:+.1f} %")
+        delta_tot = serie[-1][1] - serie[0][1]
+        var_tot = delta_tot / serie[0][1] * 100
+        # Variation ABSOLUE en plus du pourcentage (2026-09-04) : sans elle, « de combien a
+        # évolué X ? » forçait le modèle à faire la soustraction lui-même — ce que ce projet
+        # interdit partout ailleurs. Le calcul appartient au déterministe.
+        total = (f"\nVariation totale {serie[0][0]}→{serie[-1][0]} : "
+                 f"{delta_tot:+,.0f} millions FCFA ({var_tot:+.1f} %)".replace(",", " "))
     return "\n".join(lignes) + total
+
+
+def valeur_cb(banque: str, service: str, annee, semestre: str, segment: str) -> dict:
+    """Tarif EXACT d'un service pour UNE banque à une période — pendant CB de `valeur_ef`.
+
+    Ajouté le 2026-09-04. Sans lui, « quel est le tarif du Compte courant chez SIB en 2024
+    S1 ? » partait au RAG : mesuré, la bonne ligne était bien récupérée mais classée 62ᵉ sur
+    80 passages. Gemini la retrouve, un modèle plus modeste non — et rien ne justifie de faire
+    chercher une aiguille quand la valeur se lit en une requête. Même départage que
+    `comparer_cb` (`_resoudre_ligne_cb`), donc une valeur factuelle et une valeur comparée ne
+    peuvent pas diverger.
+    Retour : {'montant': m, 'gratuit': bool} | {'ambigu': True, ...} | {}."""
+    cx = _conn(); cur = cx.cursor()
+    try:
+        cur.execute("""SELECT montant, est_gratuit, type_valeur, libelle FROM cb_tarifs
+                       WHERE banque=%s AND annee=%s AND semestre=%s AND segment ILIKE %s
+                         AND COALESCE(is_header,false)=false AND libelle ILIKE %s
+                         AND type_valeur IN ('MONTANT_FCFA','GRATUIT')""",
+                    (banque, annee, semestre, f"%{segment}%", f"%{service}%"))
+        rows = cur.fetchall()
+        if not rows:
+            return {}
+        return _resoudre_ligne_cb(rows, (service or "").strip().lower())
+    finally:
+        cur.close(); cx.close()
+
+
+def _resoudre_ligne_cb(rows, terme_norm: str) -> dict:
+    """Départage UNIQUE des lignes cb_tarifs matchées par un terme.
+    rows : [(montant, est_gratuit, type_valeur, libelle), ...]
+
+    ORDRE DES RÈGLES (il vient de bugs réels, ne pas réordonner) :
+      1. Correspondance EXACTE au terme, évaluée sur TOUTES les lignes, GRATUITES COMPRISES.
+         Bug trouvé le 2026-09-04 en validant contre le jeu de test : chercher l'exactitude
+         seulement parmi les lignes payantes fait renvoyer un tarif payant quand la ligne
+         exactement demandée existe mais est gratuite (NSIA « Compte chèque » : gratuit en
+         base, mais « Compte chèque classique » et « ... formule package » sont payants).
+      2. Plusieurs montants distincts restants -> terme trop vague, signalé, jamais deviné
+         (ex. « carte » matche 15 produits SGCI de 1 000 à 280 000 FCFA).
+      3. Un seul montant -> réponse directe ; sinon gratuité si une ligne l'atteste.
+    """
+    exactes = [r for r in rows if (r[3] or "").strip().lower() == terme_norm]
+    if exactes:
+        rows = exactes
+    payantes = [(r[3], float(r[0])) for r in rows if r[0] is not None and r[2] == 'MONTANT_FCFA']
+    montants_distincts = {round(m, 0) for _, m in payantes}
+    if len(montants_distincts) > 1:
+        return {"montant": None, "gratuit": False, "ambigu": True,
+                "libelles_conflictuels": sorted({lib for lib, _ in payantes})}
+    if payantes:
+        return {"montant": payantes[0][1], "gratuit": False}
+    if any(r[1] or r[2] == 'GRATUIT' for r in rows):
+        return {"montant": 0.0, "gratuit": True}
+    return {}
 
 
 def comparer_cb(service: str, annee, semestre: str, segment: str) -> dict:
     """Tarif d'un service CB pour CHAQUE banque (annee/semestre/segment donnés).
-    Retour : {banque: {'montant': m, 'gratuit': bool}}."""
+    Retour : {banque: {'montant': m, 'gratuit': bool}} — ou {'montant': None, 'ambigu': True,
+    'libelles_conflictuels': [...]} si le terme est trop large et matche PLUSIEURS services
+    réellement distincts, sans qu'aucun ne se distingue clairement (ex. "carte" matche 15
+    libellés différents pour SGCI, de 1 000 à 280 000 FCFA — vérifié en base le 2026-09-03).
+    Avant ce correctif, min(mts) prenait aveuglément le moins cher parmi TOUS les libellés
+    matchés, sans savoir s'ils désignaient le même service.
+
+    Deux départages AVANT de conclure à l'ambiguïté (raffiné le 2026-09-03 en testant contre
+    le jeu de test EVAL_RAG_MEMOIRE, qui a révélé ces deux cas réels) :
+      1. Tous les libellés matchés partagent le MÊME montant (ex. BICICI "Attestation de
+         solde" : "Attestation de solde" et "Autres types d'attestationAttestation de solde"
+         [artefact de concaténation d'en-tête OCR] valent tous deux 30 000 FCFA) -> pas une
+         vraie ambiguïté, peu importe le libellé exact.
+      2. Un SEUL des libellés matchés correspond EXACTEMENT (mot pour mot) au terme cherché,
+         les autres étant des variantes/fusions plus longues (ex. NSIA "Attestation de non
+         engagement" = 20 000 FCFA EXACT vs "Attestation de non engagement — Attestation de
+         non-redevance" = 30 000 FCFA, un produit combiné différent) -> on retient la
+         correspondance exacte, qui est la lecture la plus littérale de la demande.
+    Seulement si le désaccord persiste après ces deux départages -> terme trop vague, signalé
+    au lieu de deviné (même principe que `_resoudre_valeur_ef`)."""
+    terme_norm = (service or "").strip().lower()
     out = {}
     cx = _conn(); cur = cx.cursor()
     try:
         for b in BANQUES:
-            cur.execute("""SELECT montant, est_gratuit, type_valeur FROM cb_tarifs
+            cur.execute("""SELECT montant, est_gratuit, type_valeur, libelle FROM cb_tarifs
                            WHERE banque=%s AND annee=%s AND semestre=%s AND segment ILIKE %s
                              AND COALESCE(is_header,false)=false AND libelle ILIKE %s
                              AND type_valeur IN ('MONTANT_FCFA','GRATUIT')""",
                         (b, annee, semestre, f"%{segment}%", f"%{service}%"))
             rows = cur.fetchall()
-            mts  = [float(r[0]) for r in rows if r[0] is not None and r[2] == 'MONTANT_FCFA']
-            grat = any(r[1] or r[2] == 'GRATUIT' for r in rows)
-            if mts:
-                out[b] = {"montant": min(mts), "gratuit": False}
-            elif grat:
-                out[b] = {"montant": 0.0, "gratuit": True}
+            if not rows:
+                continue
+            info = _resoudre_ligne_cb(rows, terme_norm)
+            if info:
+                out[b] = info
     finally:
         cur.close(); cx.close()
     return out
@@ -326,19 +470,31 @@ def comparer_roe(mode: str = "AN3", banques: list = None) -> dict:
             # aussi — bug trouvé le 2026-07-14 (BACI/BNI en avaient les deux, max() prenait à tort
             # le résultat AVANT impôt, gonflant le ROE affiché par le chat, ex. BNI 2024 : 22,7%
             # au lieu de 21,5%).
-            cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
+            # 2026-09-03 : max() restait pris SANS CONDITION quand plusieurs valeurs subsistent
+            # apres ce premier filtre (deux rapports annuels qui se recouvrent, ou une vraie
+            # anomalie OCR) — meme classe de bug, cf. _resoudre_valeur_ef. Un ratio dont l'un
+            # des deux termes est ambigu n'est pas fiable : la banque est omise plutot que de
+            # publier un ROE calcule sur un chiffre invente/errone.
+            cur.execute("""SELECT ROUND(montant::double precision::numeric,0), annee_rapport
+                           FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND libelle ILIKE %s AND libelle NOT ILIKE '%%avant%%' AND montant IS NOT NULL""",
                         (b, y, "%sultat net%"))
-            rn_vals = [float(r[0]) for r in cur.fetchall()]
-            cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
+            rn_rows = [(float(r[0]), r[1]) for r in cur.fetchall()]
+            cur.execute("""SELECT ROUND(montant::double precision::numeric,0), annee_rapport
+                           FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND libelle ILIKE %s AND montant IS NOT NULL""",
                         (b, y, "%capitaux propres%"))
-            cp_vals = [float(r[0]) for r in cur.fetchall()]
-            if rn_vals and cp_vals and max(cp_vals) != 0:
-                roe = max(rn_vals) / max(cp_vals) * 100
-                out[b] = {"annee": y, "valeur": round(roe, 1)}
+            cp_rows = [(float(r[0]), r[1]) for r in cur.fetchall()]
+            if not rn_rows or not cp_rows:
+                continue
+            rn, rn_ambigu = _resoudre_valeur_ef(rn_rows)
+            cp, cp_ambigu = _resoudre_valeur_ef(cp_rows)
+            if rn_ambigu or cp_ambigu or not cp:
+                continue
+            roe = rn / cp * 100
+            out[b] = {"annee": y, "valeur": round(roe, 1)}
     finally:
         cur.close(); cx.close()
     return out
@@ -366,19 +522,28 @@ def comparer_coefficient_exploitation(mode: str = "AN3", banques: list = None) -
             # fiche de synthèse), alors que le dashboard l'affiche correctement puisque
             # dash_app/db.py:805 utilise déjà le motif à jokers. Le chat disait donc
             # "donnée non trouvée" sur une donnée présente et affichée à l'écran.
-            cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
+            # 2026-09-03 : meme correctif que comparer_roe — max() sans condition remplace par
+            # _resoudre_valeur_ef (seuil 5%, sinon banque omise plutot qu'un ratio invente).
+            cur.execute("""SELECT ROUND(montant::double precision::numeric,0), annee_rapport
+                           FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND libelle ILIKE %s AND montant IS NOT NULL""",
                         (b, y, EF_PATTERNS["pnb"]))
-            pnb_vals = [float(r[0]) for r in cur.fetchall()]
-            cur.execute("""SELECT DISTINCT ROUND(montant::double precision::numeric,0) FROM ef_indicateurs
+            pnb_rows = [(float(r[0]), r[1]) for r in cur.fetchall()]
+            cur.execute("""SELECT ROUND(montant::double precision::numeric,0), annee_rapport
+                           FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND (libelle ILIKE %s OR libelle ILIKE %s) AND montant IS NOT NULL""",
                         (b, y, "%frais g%raux%", "%charges g%rales d%exploitation%"))
-            fg_vals = [float(r[0]) for r in cur.fetchall()]
-            if pnb_vals and fg_vals and max(pnb_vals) != 0:
-                coeff = max(fg_vals) / max(pnb_vals) * 100
-                out[b] = {"annee": y, "valeur": round(coeff, 1)}
+            fg_rows = [(float(r[0]), r[1]) for r in cur.fetchall()]
+            if not pnb_rows or not fg_rows:
+                continue
+            pnb, pnb_ambigu = _resoudre_valeur_ef(pnb_rows)
+            fg, fg_ambigu = _resoudre_valeur_ef(fg_rows)
+            if pnb_ambigu or fg_ambigu or not pnb:
+                continue
+            coeff = fg / pnb * 100
+            out[b] = {"annee": y, "valeur": round(coeff, 1)}
     finally:
         cur.close(); cx.close()
     return out
@@ -388,8 +553,17 @@ def format_comparaison(d: dict, unite="FCFA", sens="max") -> tuple:
     """Formate la comparaison en texte trié + renvoie (texte, banque_gagnante)."""
     items = [(k, v.get("valeur", v.get("montant"))) for k, v in d.items()]
     items = [(k, val) for k, val in items if val is not None]
+    ambigus = [k for k, v in d.items() if v.get("ambigu")]
     if not items:
-        return "Aucune donnée comparable trouvée dans la base.", None
+        msg = "Aucune donnée comparable trouvée dans la base."
+        if ambigus:
+            msg += (f" ({', '.join(ambigus)} : valeurs contradictoires en base, "
+                    f"exclues plutôt que devinées.)")
+            for k in ambigus:
+                libs = d[k].get("libelles_conflictuels")
+                if libs:
+                    msg += f"\n  {k} : plusieurs services matchent ce terme — {' / '.join(libs)}"
+        return msg, None
     items.sort(key=lambda x: x[1], reverse=(sens == "max"))
     gagnant = items[0][0]
     lignes = []
@@ -406,7 +580,18 @@ def format_comparaison(d: dict, unite="FCFA", sens="max") -> tuple:
               "est la bonne réponse) :" if sens == "max"
               else "Comparaison (classée du plus faible au plus élevé — le PREMIER de la "
               "liste est la bonne réponse) :")
-    return entete + "\n" + "\n".join(lignes), gagnant
+    texte = entete + "\n" + "\n".join(lignes)
+    if ambigus:
+        texte += f"\n  [NON INCLUS — valeur ambiguë en base, ne pas deviner] {', '.join(ambigus)}"
+        # Cas comparer_cb() : le terme demandé matche PLUSIEURS services distincts (ex.
+        # "carte" -> 15 produits de 1 000 à 280 000 FCFA) — donner les libellés en cause
+        # plutot qu'un simple "ambigu" muet, pour que le LLM puisse demander a l'utilisateur
+        # de preciser le produit au lieu de deviner.
+        for k in ambigus:
+            libs = d[k].get("libelles_conflictuels")
+            if libs:
+                texte += f"\n      {k} : plusieurs services matchent ce terme — {' / '.join(libs)}"
+    return texte, gagnant
 
 
 if __name__ == "__main__":
