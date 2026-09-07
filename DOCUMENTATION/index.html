@@ -1,0 +1,1102 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpyBusiness — Documentation</title>
+<style>
+:root{
+  --rouge:#E4002B; --rouge-fonce:#B00020; --noir:#0E0E10; --gris:#5A5A63;
+  --gris-clair:#EDEDF0; --blanc:#FFFFFF; --fond:#F7F7F9; --bord:#DCDCE2;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fond);color:var(--noir);
+     font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--rouge);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── En-tête ───────────────────────────────────────────────────────────────── */
+header{background:var(--noir);color:var(--blanc);padding:0}
+.bandeau{max-width:1280px;margin:0 auto;padding:22px 28px 0;display:flex;
+         align-items:flex-end;gap:18px;flex-wrap:wrap}
+.marque{display:flex;align-items:center;gap:12px}
+.carre{width:34px;height:34px;background:var(--rouge);flex:0 0 auto}
+.marque h1{margin:0;font-size:21px;letter-spacing:.3px;font-weight:700}
+.marque span{display:block;font-size:12px;color:#9A9AA5;font-weight:400;letter-spacing:.6px;
+             text-transform:uppercase;margin-top:2px}
+.meta{margin-left:auto;font-size:12px;color:#9A9AA5;text-align:right;line-height:1.5}
+
+/* ── Bascule de vue ────────────────────────────────────────────────────────── */
+.vues{max-width:1280px;margin:0 auto;padding:20px 28px 0;display:flex;gap:0}
+.vues button{background:transparent;border:0;border-bottom:3px solid transparent;
+  color:#9A9AA5;font:600 14px/1 inherit;letter-spacing:.8px;text-transform:uppercase;
+  padding:14px 26px;cursor:pointer;transition:color .15s,border-color .15s}
+.vues button:hover{color:var(--blanc)}
+.vues button[aria-selected="true"]{color:var(--blanc);border-bottom-color:var(--rouge)}
+
+/* ── Corps ─────────────────────────────────────────────────────────────────── */
+/* display:grid ci-dessous ecrase le display:none par defaut de [hidden] : sans cette
+   regle, les DEUX vues restent affichees en meme temps. */
+[hidden]{display:none !important}
+.page{max-width:1280px;margin:0 auto;padding:0 28px 80px;display:grid;
+      grid-template-columns:250px 1fr;gap:36px;align-items:start}
+nav{position:sticky;top:20px;padding:24px 0}
+nav h2{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--gris);
+       margin:0 0 10px;font-weight:700}
+nav a{display:block;padding:7px 12px;border-left:2px solid var(--bord);color:var(--gris);
+      font-size:14px;transition:all .12s}
+nav a:hover{color:var(--noir);border-left-color:var(--gris);text-decoration:none}
+nav a.actif{color:var(--rouge);border-left-color:var(--rouge);font-weight:600;
+            background:var(--blanc)}
+main{padding:24px 0;min-width:0}
+
+section{background:var(--blanc);border:1px solid var(--bord);border-radius:4px;
+        padding:30px 34px;margin-bottom:22px;scroll-margin-top:20px}
+section > h2{margin:0 0 6px;font-size:24px;letter-spacing:-.2px}
+section > h2::before{content:"";display:block;width:44px;height:4px;background:var(--rouge);
+                     margin-bottom:14px}
+h3{font-size:17px;margin:30px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--gris-clair)}
+h4{font-size:14px;margin:20px 0 6px;color:var(--rouge-fonce);text-transform:uppercase;
+   letter-spacing:.6px}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:22px}
+li{margin:5px 0}
+.chapo{color:var(--gris);font-size:15px;margin:0 0 18px}
+
+code{font-family:var(--mono);font-size:13px;background:var(--gris-clair);
+     padding:1px 5px;border-radius:3px}
+pre{background:var(--noir);color:#E6E6EB;padding:16px 18px;border-radius:4px;
+    overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+pre .c{color:#8A8A96}
+pre .k{color:#FF7B8F}
+
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px}
+th,td{border:1px solid var(--bord);padding:8px 11px;text-align:left;vertical-align:top}
+th{background:var(--noir);color:var(--blanc);font-weight:600;font-size:13px;
+   letter-spacing:.3px}
+tbody tr:nth-child(even){background:#FAFAFC}
+
+figure{margin:20px 0;text-align:center}
+figure img{max-width:100%;border:1px solid var(--bord);border-radius:3px;
+           box-shadow:0 1px 4px rgba(0,0,0,.07)}
+figcaption{font-size:13px;color:var(--gris);margin-top:8px;font-style:italic}
+
+.encart{border-left:4px solid var(--rouge);background:#FFF5F6;padding:14px 18px;
+        margin:18px 0;border-radius:0 3px 3px 0}
+.encart strong:first-child{color:var(--rouge-fonce)}
+.note{border-left:4px solid var(--gris);background:var(--gris-clair);padding:14px 18px;
+      margin:18px 0;border-radius:0 3px 3px 0}
+.sicas{border:1px solid var(--bord);border-top:4px solid var(--noir);padding:18px 20px;
+       margin:18px 0;border-radius:0 0 3px 3px;background:#FCFCFD}
+.sicas > p:first-child{margin-top:0;font-weight:700;font-size:15px}
+.cartouche{display:inline-block;background:var(--noir);color:var(--blanc);font-size:11px;
+           letter-spacing:.8px;text-transform:uppercase;padding:3px 9px;border-radius:2px;
+           margin-bottom:8px}
+.grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;
+        margin:18px 0}
+.carte{border:1px solid var(--bord);border-radius:3px;padding:14px 16px;background:#FCFCFD}
+.carte h4{margin-top:0}
+footer{max-width:1280px;margin:0 auto;padding:26px 28px 50px;color:var(--gris);font-size:13px;
+       border-top:1px solid var(--bord)}
+@media(max-width:900px){
+  .page{grid-template-columns:1fr}
+  nav{position:static}
+  nav a{display:inline-block;border-left:0;border-bottom:2px solid var(--bord)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bandeau">
+    <div class="marque">
+      <div class="carre"></div>
+      <div>
+        <h1>SpyBusiness</h1>
+        <span>Veille concurrentielle bancaire &middot; Société Générale Côte d'Ivoire</span>
+      </div>
+    </div>
+    <div class="meta">
+      Documentation d'exploitation<br>
+      <a href="https://spybusiness.onrender.com" style="color:#fff">spybusiness.onrender.com</a>
+    </div>
+  </div>
+  <div class="vues" role="tablist">
+    <button role="tab" data-vue="tech" aria-selected="true">Vue technique</button>
+    <button role="tab" data-vue="user" aria-selected="false">Vue utilisateur</button>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════════════════════════════════
+     VUE TECHNIQUE
+     ════════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="vue-tech">
+  <nav>
+    <h2>Vue technique</h2>
+    <a href="#t-principe">1. Le principe</a>
+    <a href="#t-archi">2. Architecture</a>
+    <a href="#t-code">3. Carte du code</a>
+    <a href="#t-bd">4. Base de données</a>
+    <a href="#t-chat">5. L'assistant</a>
+    <a href="#t-secu">6. Sécurité et comptes</a>
+    <a href="#t-deploy">7. Déploiement</a>
+    <a href="#t-cles">8. Changer une clé</a>
+    <a href="#t-donnees">9. Ajouter des données</a>
+    <a href="#t-perf">10. Caches et performance</a>
+    <a href="#t-panne">11. Dépannage</a>
+  </nav>
+
+  <main>
+
+  <!-- ── 1. PRINCIPE ────────────────────────────────────────────────────── -->
+  <section id="t-principe">
+    <h2>1. Le principe qui gouverne tout le code</h2>
+    <p class="chapo">À lire avant toute modification. Une proposition qui contredit ce
+    principe est à refuser, quelle que soit sa commodité.</p>
+
+    <div class="encart">
+      <strong>Le déterministe établit, le modèle formule.</strong>
+      <p style="margin-bottom:0">Aucun chiffre affiché par l'application ne vient d'un modèle
+      de langage. Les montants, les rangs, les écarts et les médianes sont calculés en SQL.
+      Le modèle ne fait que rédiger autour de faits qu'on lui impose.</p>
+    </div>
+
+    <p>Ce que l'application compare : la SGCI face à <strong>six concurrents</strong> — BACI,
+    BICICI, BNI, ECOBANK, NSIA, SIB — sur trois matières publiques.</p>
+
+    <table>
+      <thead><tr><th>Matière</th><th>Périodicité</th><th>Table</th></tr></thead>
+      <tbody>
+        <tr><td>Grilles tarifaires</td><td>semestrielle</td><td><code>cb_tarifs</code></td></tr>
+        <tr><td>États financiers</td><td>annuelle</td><td><code>ef_indicateurs</code></td></tr>
+        <tr><td>Textes réglementaires BCEAO / UEMOA</td><td>au fil des publications</td>
+            <td><code>regl_documents</code></td></tr>
+      </tbody>
+    </table>
+
+    <p>Cinq écrans : <strong>Santé financière</strong>, <strong>Conditions bancaires</strong>,
+    <strong>Stratégie</strong>, <strong>Stratégie opérationnelle</strong> et
+    <strong>Assistant conversationnel</strong>.</p>
+
+    <div class="note">
+      <strong>Deux livrables à ne pas confondre.</strong> Ce dépôt contient
+      <em>l'application</em>. Le mémoire de master est un document séparé, dans
+      <code>Desktop/MEMOIRE_LATEX</code>. Cette documentation ne dépend pas du mémoire et n'a
+      pas à être tenue à jour avec lui.
+    </div>
+  </section>
+
+  <!-- ── 2. ARCHITECTURE ───────────────────────────────────────────────── -->
+  <section id="t-archi">
+    <h2>2. Architecture</h2>
+    <p class="chapo">Le tableau de bord et l'assistant reposent sur la même base et les mêmes
+    outils de récupération. Ce qui les distingue est la façon dont le traitement à exécuter
+    est déterminé.</p>
+
+    <figure>
+      <img src="img/archi_globale.jpg" alt="Architecture globale du système">
+      <figcaption>Un socle commun, deux modes d'utilisation</figcaption>
+    </figure>
+
+    <h3>Le tableau de bord : un chemin déterminé par le contexte</h3>
+    <p>L'écran consulté définit déjà la nature de l'information attendue. Le système sait quel
+    traitement exécuter sans demander au modèle de choisir un outil.</p>
+    <pre><code>écran → traitement → récupération → calcul → restitution</code></pre>
+    <figure>
+      <img src="img/archi_dashboard.jpg" alt="Chaîne du tableau de bord">
+      <figcaption>Du clic de l'utilisateur à l'analyse rédigée</figcaption>
+    </figure>
+
+    <h3>L'assistant : un chemin à déterminer</h3>
+    <p>Une même zone de saisie peut recevoir une question financière, tarifaire, réglementaire
+    ou une demande de synthèse. Le problème n'est plus seulement de récupérer l'information,
+    mais de déterminer <em>quelle</em> récupération effectuer. L'application retient
+    l'orchestration <strong>modulaire</strong> : un routeur à règles, sans modèle de langage.</p>
+    <figure>
+      <img src="img/archi_retenue.jpg" alt="Architecture retenue pour l'assistant">
+      <figcaption>L'architecture retenue pour l'assistant conversationnel</figcaption>
+    </figure>
+  </section>
+
+  <!-- ── 3. CARTE DU CODE ──────────────────────────────────────────────── -->
+  <section id="t-code">
+    <h2>3. Carte du code</h2>
+    <p class="chapo">Où se trouve quoi, et ce qu'il faut savoir avant d'y toucher.</p>
+
+<pre><code>BACK/
+├── <span class="k">SGCI Strategic Intelligence — Design System/spybusiness/</span>
+│   ├── server.py          <span class="c">Flask — toutes les routes /api/* (~7 800 lignes)</span>
+│   ├── app.html           <span class="c">coquille HTML</span>
+│   ├── app.main.js        <span class="c">toute l'interface (~10 000 lignes)</span>
+│   ├── app.data.js        <span class="c">libellés, palettes, constantes d'affichage</span>
+│   ├── assets/logos/      <span class="c">logos des banques, un fichier par code</span>
+│   ├── cache/             <span class="c">analyses rédigées, versionnées par clé</span>
+│   └── dash_app/
+│       ├── db.py                       <span class="c">TOUT le SQL (~3 300 lignes)</span>
+│       ├── securite.py                 <span class="c">comptes, rôles, droits, journal</span>
+│       ├── directives.py               <span class="c">les 20 directives opérationnelles</span>
+│       ├── strategie_operationnelle.py  <span class="c">dossiers sectoriels</span>
+│       └── redaction_secours.py        <span class="c">rédaction sans modèle, si quota épuisé</span>
+├── <span class="k">RAG/</span>
+│   ├── chain.py           <span class="c">orchestration de l'assistant, appels au modèle</span>
+│   ├── retriever.py       <span class="c">routage, filtres, recherche vectorielle et lexicale</span>
+│   ├── config.py          <span class="c">seuils, plafonds, listes de mots-clés</span>
+│   ├── agent_tools.py     <span class="c">outils exposés à l'orchestration</span>
+│   └── structured_tools.py <span class="c">lectures chiffrées garanties par SQL</span>
+├── <span class="k">PIPELINE/</span>          <span class="c">extraction PDF → base — NON déployé</span>
+│   ├── ingest.py          <span class="c">point d'entrée en ligne de commande</span>
+│   └── EXTRACTION/ NETTOYAGE/ STOCKAGE_BD/ VECTORISATION/
+├── DATA/SOURCE/           <span class="c">plaquettes et états financiers d'origine</span>
+├── wsgi.py                <span class="c">point d'entrée de production</span>
+├── build.py               <span class="c">installation des dépendances à la construction</span>
+├── render.yaml            <span class="c">description du service, lue par le Blueprint</span>
+└── migrer_vers_supabase.py <span class="c">transport de la base vers l'hébergeur</span></code></pre>
+
+    <div class="encart">
+      <strong>Le nom du dossier applicatif contient un tiret cadratin et des espaces.</strong>
+      <p>« SGCI Strategic Intelligence — Design System ». Ne jamais en dépendre dans une ligne
+      de commande : <code>pip</code> a réellement échoué dessus, coupant le chemin au premier
+      espace et cherchant un fichier nommé « SGCI ». <code>wsgi.py</code> et
+      <code>build.py</code> résolvent le chemin en Python, et le <em>cherchent</em> plutôt que
+      de l'écrire en dur. Toute nouvelle commande doit faire de même.</p>
+    </div>
+
+    <h3>Faire tourner en local</h3>
+    <pre><code><span class="c"># PostgreSQL « intelligence_bancaire » + extensions pgvector et pg_trgm</span>
+cd "SGCI Strategic Intelligence — Design System/spybusiness"
+python server.py
+<span class="c"># → http://localhost:5000</span></code></pre>
+    <p>Les secrets vivent dans <code>BACK/.env</code>, <strong>exclu de git</strong>. Voir la
+    section <a href="#t-cles">Changer une clé</a> pour la liste complète.</p>
+  </section>
+
+  <!-- ── 4. BASE DE DONNÉES ────────────────────────────────────────────── -->
+  <section id="t-bd">
+    <h2>4. Base de données</h2>
+    <p class="chapo">PostgreSQL, avec les extensions <code>pgvector</code> (recherche par
+    similarité) et <code>pg_trgm</code> (rapprochement de libellés). En local :
+    <code>intelligence_bancaire</code>. En production : Supabase.</p>
+
+    <h3>Tables principales</h3>
+    <table>
+      <thead><tr><th>Table</th><th>Contenu</th></tr></thead>
+      <tbody>
+        <tr><td><code>banques</code></td><td>le référentiel ; toute nouvelle banque commence
+            ici, les autres tables y font clé étrangère</td></tr>
+        <tr><td><code>cb_tarifs</code></td><td>lignes des grilles tarifaires, par banque,
+            période, segment, section et sous-section</td></tr>
+        <tr><td><code>ef_indicateurs</code></td><td>indicateurs des états financiers, par
+            banque et exercice</td></tr>
+        <tr><td><code>regl_documents</code></td><td>textes réglementaires découpés par
+            article, avec leur vecteur</td></tr>
+        <tr><td><code>cache_app</code></td><td>résultats coûteux, en base et non en mémoire :
+            ils survivent aux réveils du service et aux redéploiements</td></tr>
+      </tbody>
+    </table>
+
+    <div class="encart">
+      <strong>db.query() avale les erreurs et rend une liste vide.</strong>
+      <p>C'est la source de presque tous les bugs silencieux de ce projet. Une requête
+      invalide, un chemin mort ou une extension manquante donnent un écran vide, sans le
+      moindre message. Cinq chemins morts ont ainsi ignoré 1 240 validations sourcées pendant
+      des semaines.</p>
+      <p style="margin-bottom:0"><strong>Devant un écran vide, toujours vérifier que la requête
+      passe avant de soupçonner les données.</strong> À l'inverse, <code>db.execute()</code>
+      propage les erreurs : c'est voulu, une écriture qui échoue doit se voir.</p>
+    </div>
+
+    <div class="encart">
+      <strong>Tout DISTINCT ON doit être départagé jusqu'à l'unicité.</strong>
+      <p style="margin-bottom:0">Un <code>DISTINCT ON</code> sans départage complet rendait des
+      résultats différents sur deux copies identiques de la base : un simple
+      <code>VACUUM</code> déplaçait les chiffres. Corrigé en ajoutant <code>o.libelle, o.id,
+      s.id</code> à l'ordonnancement. Tout nouveau <code>DISTINCT ON</code> est soumis à la
+      même règle.</p>
+    </div>
+  </section>
+
+  <!-- ── 5. ASSISTANT ──────────────────────────────────────────────────── -->
+  <section id="t-chat">
+    <h2>5. L'assistant conversationnel</h2>
+    <p class="chapo">Une question posée traverse un routeur à règles, puis un ou plusieurs
+    outils de récupération, avant qu'une seule rédaction ne soit demandée au modèle.</p>
+
+    <h3>Le routage, sans modèle</h3>
+    <p><code>retriever.detect_types_doc(question)</code> met la question en minuscules et y
+    cherche des mots-clés <strong>en début de mot</strong>. Ni appel de modèle, ni vecteur :
+    le routage ne coûte rien.</p>
+
+    <div class="note">
+      <strong>Pourquoi « en début de mot » et non « contenu dans ».</strong> Une simple
+      recherche de sous-chaîne faisait déclencher le domaine réglementaire par le mot
+      <em>loi</em> présent à l'intérieur d'<em>exploitation</em>. Le motif utilise donc une
+      limite de mot. Même précaution pour les numéros d'articles : « Article 5 » ne doit pas
+      correspondre à l'intérieur de « Article 53 ».
+    </div>
+
+    <h3>La récupération</h3>
+    <p>Une fois le domaine choisi, l'outil décide <em>comment</em> lire :</p>
+    <ul>
+      <li>si la question désigne déjà une banque et un exercice précis, les lignes
+        correspondantes sont lues directement en SQL — rien n'est classé ;</li>
+      <li>sinon la question est vectorisée (768 dimensions) et comparée aux fragments par
+        similarité cosinus, avec un seuil de <code>0,30</code> ;</li>
+      <li>sur les textes réglementaires uniquement, une seconde recherche par les mots exacts
+        est menée en parallèle, et les deux <em>classements</em> sont fusionnés — le
+        vocabulaire juridique est trop précis pour le seul vecteur.</li>
+    </ul>
+    <p>Un plafond global limite le volume remis au modèle. Au-delà, la réduction est
+    <strong>déterministe</strong> et garantit qu'aucune banque ne disparaît de la comparaison.</p>
+
+    <h3>Les garde-fous anti-invention</h3>
+    <p>Un modèle privé de la valeur exacte ne se tait pas : il produit la suite la plus
+    plausible. Deux garde-fous, de même mécanisme, sont posés dans <code>RAG/chain.py</code>.</p>
+    <table>
+      <thead><tr><th>Garde-fou</th><th>Ce qu'il attrape</th></tr></thead>
+      <tbody>
+        <tr><td>Chiffres</td><td>un montant présent dans la réponse mais absent du contexte
+            fourni</td></tr>
+        <tr><td>Citations</td><td>une référence — article, instruction, décision, circulaire,
+            règlement, directive, loi — absente du contexte. Déclenché en production :
+            le modèle avait fabriqué une « Circulaire BCEAO n° 2018/05 » qui n'existe dans
+            aucun document du corpus.</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Politique commune :</strong> on retente une fois, on ne bloque jamais dur, et
+    l'on journalise si cela persiste plutôt que de rendre une réponse vide.</p>
+  </section>
+
+  <!-- ── 6. SÉCURITÉ ───────────────────────────────────────────────────── -->
+  <section id="t-secu">
+    <h2>6. Sécurité et comptes</h2>
+
+    <h3>Une porte unique</h3>
+    <p>Toutes les requêtes passent par <code>@app.before_request _controle_acces()</code>.
+    Aucune route <code>/api/*</code> ne répond sans session valide. Le contrôle est
+    <em>centralisé</em> : ajouter une route ne crée pas de trou, elle est protégée d'office.</p>
+
+    <h3>Des droits par section, pas seulement par rôle</h3>
+    <p>L'administrateur coche, compte par compte, les sections visibles. Le rôle
+    <code>admin</code> constitue un <strong>second verrou</strong> sur
+    <code>/api/admin/*</code> : une case cochée par erreur ne suffit pas à ouvrir
+    l'administration.</p>
+
+    <h3>Mots de passe et blocage</h3>
+    <ul>
+      <li>hachage <strong>scrypt avec sel</strong>, via <code>werkzeug.security</code> — le
+        mot de passe n'est jamais stocké en clair ;</li>
+      <li><strong>blocage de cinq minutes après cinq échecs</strong> ;</li>
+      <li><strong>sans compte créé par l'administrateur, aucun accès</strong> — il n'existe
+        pas de mode invité.</li>
+    </ul>
+
+    <div class="note">
+      <strong>L'administration vit dans l'application</strong>, onglet Administration, et non
+      dans une interface séparée. Une console à part a été construite puis révoquée : ce
+      n'était pas la demande.
+    </div>
+
+    <figure>
+      <img src="img/t01_admin_acces.jpg" alt="Écran d'administration des accès">
+      <figcaption>Gestion des comptes et de leurs droits par section</figcaption>
+    </figure>
+    <figure>
+      <img src="img/t03_administration.png" alt="Onglet Administration">
+      <figcaption>L'onglet Administration, dans l'application</figcaption>
+    </figure>
+  </section>
+
+  <!-- ── 7. DÉPLOIEMENT ────────────────────────────────────────────────── -->
+  <section id="t-deploy">
+    <h2>7. Déploiement</h2>
+    <p class="chapo">Un seul service web sur Render, une base sur Supabase. La branche
+    déployée est <code>main</code> : <strong>tout ce qui y est poussé part en production.</strong></p>
+
+    <table>
+      <thead><tr><th>Élément</th><th>Où</th><th>Pourquoi</th></tr></thead>
+      <tbody>
+        <tr><td>Application</td><td>Render, plan gratuit, région Frankfurt</td>
+            <td>la plus proche d'Abidjan parmi les régions offertes</td></tr>
+        <tr><td>Base de données</td><td>Supabase</td>
+            <td>l'offre gratuite de Render supprime la base au bout de trente jours</td></tr>
+        <tr><td>Rédaction des analyses</td><td>Gemini, Groq en relais</td>
+            <td>appels d'API, aucun modèle local</td></tr>
+        <tr><td>Vecteur de la question</td><td>API Hugging Face</td>
+            <td>évite d'embarquer 1,9 Go de modèle</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Comment se fait une mise en production</h3>
+    <pre><code>git add &lt;les fichiers modifiés&gt;
+git commit -m "…"
+git push origin main        <span class="c"># Render reconstruit et redéploie tout seul</span></code></pre>
+    <p>La construction exécute <code>python build.py</code>, le démarrage
+    <code>gunicorn wsgi:app</code> depuis la racine.</p>
+
+    <div class="encart">
+      <strong>Un seul worker, et ce n'est pas une économie.</strong>
+      <p style="margin-bottom:0">Les caches applicatifs sont en mémoire. Deux workers
+      tiendraient deux caches divergents, dont l'un servirait des chiffres différents de
+      l'autre selon la requête tirée. Les fils d'exécution (<code>--threads 8</code>)
+      suffisent : les requêtes attendent la base et les API, pas le processeur.</p>
+    </div>
+
+    <h4>Détails de configuration à ne pas défaire</h4>
+    <ul>
+      <li><code>--timeout 180</code> : le préchauffage reconstruit les analyses au premier
+        démarrage ; la valeur par défaut de 30 s tuerait le worker en pleine tâche.</li>
+      <li><code>healthCheckPath: /sante</code> et non <code>/</code> : la page d'accueil lit un
+        fichier de 78 ko, ce qui dépasse les cinq secondes accordées quand un calcul occupe le
+        worker unique. L'hébergeur concluait à une instance morte et la remplaçait,
+        interrompant justement le calcul. <code>/sante</code> ne touche ni disque, ni base, ni
+        cache.</li>
+      <li>Supabase en mode <strong>Session pooler, port 5432</strong>. Le mode transaction ne
+        supporte ni les curseurs nommés ni les instructions préparées dont
+        <code>psycopg2</code> se sert.</li>
+    </ul>
+
+    <div class="encart">
+      <strong>Le plan gratuit endort le service après quinze minutes.</strong>
+      <p style="margin-bottom:0">Le premier accès prend alors environ une minute. <strong>Avant
+      une démonstration, ouvrir la page cinq minutes à l'avance.</strong> Un réveil
+      automatique aux heures ouvrées, par tâche planifiée GitHub Actions, a été proposé mais
+      n'est pas en place.</p>
+    </div>
+  </section>
+
+  <!-- ── 8. CLÉS ───────────────────────────────────────────────────────── -->
+  <section id="t-cles">
+    <h2>8. Changer une clé, ajouter un fournisseur</h2>
+    <p class="chapo">Aucune clé n'est écrite dans le code. Elles vivent dans les variables
+    d'environnement : <code>BACK/.env</code> en local, le tableau de bord de l'hébergeur en
+    production.</p>
+
+    <h3>Les variables et ce qu'elles commandent</h3>
+    <table>
+      <thead><tr><th>Variable</th><th>Rôle</th><th>Si elle manque</th></tr></thead>
+      <tbody>
+        <tr><td><code>DATABASE_URL</code></td><td>connexion Supabase</td>
+            <td>l'application ne démarre pas</td></tr>
+        <tr><td><code>DB_HOST</code> · <code>DB_NAME</code> · <code>DB_USER</code> ·
+            <code>DB_PASSWORD</code> · <code>DB_PORT</code></td>
+            <td>connexion en local, à défaut d'URL</td><td>idem</td></tr>
+        <tr><td><code>APP_SECRET_KEY</code></td><td>signature des cookies de session</td>
+            <td>sessions invalides</td></tr>
+        <tr><td><code>APP_ADMIN_PASSWORD</code></td>
+            <td>mot de passe du compte d'administration créé au tout premier démarrage sur une
+            base vide</td>
+            <td>sans objet sur une base déjà migrée</td></tr>
+        <tr><td><code>APP_HTTPS</code></td><td>cookie « Secure » — vaut <code>1</code> en
+            production</td><td>cookie envoyé hors HTTPS</td></tr>
+        <tr><td><code>APP_ORIGINES</code></td><td>origines autorisées à interroger l'API</td>
+            <td>requêtes croisées refusées</td></tr>
+        <tr><td><code>LLM_PROVIDER</code></td><td><code>gemini</code> ou <code>groq</code></td>
+            <td>valeur par défaut du code</td></tr>
+        <tr><td><code>GEMINI_MODEL</code></td><td>nom du modèle Gemini</td>
+            <td>voir l'encart ci-dessous</td></tr>
+        <tr><td><code>GEMINI_API_KEY</code> · <code>GROQ_API_KEY</code></td>
+            <td>rédaction des analyses</td>
+            <td>bascule sur la rédaction de secours</td></tr>
+        <tr><td><code>HF_TOKEN</code></td><td>vectorisation de la question du chat</td>
+            <td>le chat se désactive proprement, le reste fonctionne</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sicas">
+      <p>Si demain il faut remplacer une clé d'API</p>
+      <ol>
+        <li>Créer la nouvelle clé chez le fournisseur (Google AI Studio pour Gemini, console
+          Groq pour Groq, Hugging Face pour le jeton de lecture).</li>
+        <li><strong>En production</strong> : Render → le service <em>spybusiness</em> →
+          <em>Environment</em> → modifier la valeur → <em>Save</em>. Render redémarre le
+          service tout seul ; <strong>aucun redéploiement de code n'est nécessaire</strong>.</li>
+        <li><strong>En local</strong> : modifier la ligne correspondante dans
+          <code>BACK/.env</code>, puis relancer <code>server.py</code>. Le fichier est exclu de
+          git : il ne partira jamais dans un commit.</li>
+        <li>Vérifier par la route <code>/api/llm_status</code>, qui indique le fournisseur
+          actif et l'état du quota.</li>
+        <li>Révoquer l'ancienne clé chez le fournisseur — sans quoi elle reste utilisable.</li>
+      </ol>
+    </div>
+
+    <div class="sicas">
+      <p>Si demain le modèle répond « 404 » ou « modèle inconnu »</p>
+      <p>Le nom d'un modèle se périme. <code>gemini-2.0-flash</code> a été retiré sans préavis
+      utilisable, et l'appel rendait 404. C'est exactement pour cela que le nom est une
+      variable d'environnement : changer <code>GEMINI_MODEL</code> depuis le tableau de bord de
+      l'hébergeur suffit, sans toucher au code ni redéployer.</p>
+    </div>
+
+    <div class="encart">
+      <strong>Changer APP_SECRET_KEY déconnecte tout le monde.</strong>
+      <p style="margin-bottom:0">Les cookies signés avec l'ancienne clé deviennent invalides.
+      Ce n'est pas un défaut — c'est le comportement attendu — mais il faut le faire en dehors
+      des heures d'usage.</p>
+    </div>
+
+    <h3>Les quotas, mesurés</h3>
+    <p>Les deux paliers gratuits ont été mesurés, et aucun ne tient une séance à lui seul.</p>
+    <table>
+      <thead><tr><th>Fournisseur</th><th>Palier gratuit</th><th>Ce que cela représente</th></tr></thead>
+      <tbody>
+        <tr><td>Groq</td><td>100 000 jetons par <strong>jour</strong>, pour toutes les clés du
+            <em>même compte</em></td><td>une quinzaine de questions au chat</td></tr>
+        <tr><td>Gemini</td><td>20 <strong>requêtes</strong> par jour et par modèle</td>
+            <td>plus étroit encore</td></tr>
+      </tbody>
+    </table>
+    <p>Les deux ne comptent pas la même chose : ils s'épuisent à des moments différents, et le
+    code bascule de l'un à l'autre <em>en cours de question</em>
+    (<code>chain.py</code>, <code>_invoke_with_retry</code>). Deux budgets valent mieux qu'un.</p>
+
+    <div class="note">
+      <strong>Multiplier les clés d'un même compte Groq ne crée aucun quota.</strong> Le palier
+      s'applique à l'organisation, pas à la clé. Pour une démonstration sans risque, il faut
+      activer la facturation chez l'un des deux fournisseurs : aucun réglage ne crée du quota
+      qui n'existe pas.
+    </div>
+
+    <p>Ce qui départage réellement les deux, c'est la <strong>fenêtre de contexte</strong> :
+    Groq accepte environ 9 000 caractères, Gemini 200 000. Tout un pan de complexité — réduire,
+    partager la place entre les sections, choisir ce que l'on sacrifie — n'existe que pour tenir
+    dans 9 000. À 200 000, les textes réglementaires arrivent entiers au modèle, et les réponses
+    citent l'article au lieu de s'en excuser.</p>
+
+    <div class="sicas">
+      <p>Si demain les deux quotas sont épuisés</p>
+      <p style="margin-bottom:0">L'application ne se vide pas. <code>redaction_secours.py</code>
+      compose les analyses à partir des mêmes faits que ceux qui seraient envoyés au modèle :
+      les textes restent calculés, donc justes et évolutifs, et le lecteur en est averti par une
+      mention. Il n'y a jamais de bloc vide.</p>
+    </div>
+  </section>
+
+  <!-- ── 9. AJOUTER DES DONNÉES ────────────────────────────────────────── -->
+  <section id="t-donnees">
+    <h2>9. Ajouter des données</h2>
+    <p class="chapo">Deux chemins mènent au même endroit : le bouton dans l'application, ou la
+    ligne de commande. Le second est le seul disponible sur l'instance hébergée.</p>
+
+    <div class="encart">
+      <strong>Le pipeline d'extraction n'est pas déployé.</strong>
+      <p style="margin-bottom:0">Ses dépendances — <code>docling</code>, <code>paddleocr</code>,
+      <code>torch-vision</code> — pèsent plusieurs gigaoctets et ne servent qu'à transformer des
+      PDF en lignes de base. L'ajout de données se fait donc <strong>depuis un poste local
+      pointé sur la même base</strong>. L'application le détecte seule, par
+      <code>/api/features</code>, et masque le bouton en production.</p>
+    </div>
+
+    <h3>Chemin 1 — par l'application, en local</h3>
+    <p>Bouton <strong>« Ajouter des données »</strong>. Le traitement se fait en deux temps,
+    par des tâches asynchrones dont l'interface suit l'avancement.</p>
+    <table>
+      <thead><tr><th>Étape</th><th>Route</th><th>Ce qui se passe</th></tr></thead>
+      <tbody>
+        <tr><td>1. Extraire</td><td><code>/api/ajout/extraire</code></td>
+            <td>le PDF est lu, un aperçu du résultat est proposé <em>avant</em> toute
+            écriture</td></tr>
+        <tr><td>2. Stocker</td><td><code>/api/ajout/stocker</code></td>
+            <td>écriture ciblée en base, après validation de l'aperçu</td></tr>
+        <tr><td>Suivi</td><td><code>/api/ajout/statut</code></td><td>avancement de la tâche</td></tr>
+        <tr><td>Repères</td><td><code>/api/ajout/banques</code> ·
+            <code>/api/ajout/prochaine_periode</code></td>
+            <td>banques connues, période attendue ensuite</td></tr>
+        <tr><td>Logo</td><td><code>/api/ajout/logo</code></td>
+            <td>dépose le logo d'une nouvelle banque dans <code>assets/logos/&lt;CODE&gt;</code></td></tr>
+      </tbody>
+    </table>
+    <figure>
+      <img src="img/t02_ajout_donnees.png" alt="Formulaire d'ajout de données">
+      <figcaption>Le formulaire d'ajout, avec aperçu avant écriture</figcaption>
+    </figure>
+
+    <h3>Chemin 2 — en ligne de commande</h3>
+    <p><code>PIPELINE/ingest.py</code> expose les mêmes deux temps.</p>
+    <pre><code><span class="c"># 1. extraire, et regarder ce qui sort AVANT d'écrire quoi que ce soit</span>
+python PIPELINE/ingest.py --mode extract --type CB \
+       --banque SGCI --annee 2026 --semestre S1 \
+       --segment Particuliers --fichier "DATA/SOURCE/…​.pdf"
+
+<span class="c"># 2. stocker seulement si l'aperçu est correct</span>
+python PIPELINE/ingest.py --mode store --type CB \
+       --banque SGCI --annee 2026 --semestre S1 --segment Particuliers</code></pre>
+
+    <table>
+      <thead><tr><th>Option</th><th>Valeurs</th><th>Remarque</th></tr></thead>
+      <tbody>
+        <tr><td><code>--mode</code></td><td><code>extract</code> · <code>store</code></td>
+            <td>obligatoire ; toujours <code>extract</code> d'abord</td></tr>
+        <tr><td><code>--type</code></td><td><code>CB</code> · <code>EF</code> ·
+            <code>REGL</code> · <code>DOC</code></td><td>obligatoire</td></tr>
+        <tr><td><code>--banque</code></td><td>code de la banque</td>
+            <td>doit exister dans <code>banques</code></td></tr>
+        <tr><td><code>--banque-nom</code> · <code>--banque-groupe</code></td>
+            <td>libellé et groupe</td>
+            <td><strong>pour créer une banque qui n'existe pas encore</strong></td></tr>
+        <tr><td><code>--annee</code> · <code>--semestre</code></td><td>ex. 2026 · S1</td>
+            <td><code>--semestre</code> vaut S1 par défaut</td></tr>
+        <tr><td><code>--segment</code></td><td>Particuliers, Entreprises…</td>
+            <td>défaut : Particuliers</td></tr>
+        <tr><td><code>--fichier</code> · <code>--stem</code></td><td>chemin du PDF, ou racine du
+            nom</td><td>nécessaire à l'extraction</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sicas">
+      <p>Si demain il faut ajouter une banque entière</p>
+      <ol>
+        <li>Créer la banque en passant <code>--banque</code>, <code>--banque-nom</code> et
+          <code>--banque-groupe</code> à la première ingestion — les autres tables y font clé
+          étrangère, rien ne peut être chargé avant.</li>
+        <li>Déposer son logo dans <code>assets/logos/&lt;CODE&gt;</code>, ou par
+          <code>/api/ajout/logo</code>. À défaut, l'interface affiche un monogramme construit
+          à partir des initiales : rien ne casse.</li>
+        <li>Charger ses grilles tarifaires puis ses états financiers, période par période.</li>
+        <li><strong>Vider les caches</strong> — voir la section suivante. Sans cela, les écrans
+          continuent d'afficher les analyses d'avant.</li>
+      </ol>
+    </div>
+
+    <div class="note">
+      <strong>Toujours extraire avant de stocker.</strong> L'aperçu existe pour cela : le
+      recensement des lignes extraites se relit en quelques secondes, alors qu'un chargement
+      fautif se retrouve dans tous les écrans et dans toutes les analyses rédigées.
+    </div>
+
+    <figure>
+      <img src="img/pipeline_cb.jpg" alt="Pipeline d'extraction des conditions bancaires"
+           style="max-width:320px">
+      <figcaption>Extraction des grilles tarifaires</figcaption>
+    </figure>
+    <figure>
+      <img src="img/pipeline_ef.jpg" alt="Pipeline d'extraction des états financiers"
+           style="max-width:260px">
+      <figcaption>Extraction des états financiers</figcaption>
+    </figure>
+  </section>
+
+  <!-- ── 10. PERFORMANCE ───────────────────────────────────────────────── -->
+  <section id="t-perf">
+    <h2>10. Caches et performance</h2>
+    <p class="chapo">Trois causes de lenteur ont été identifiées par chronométrage sur le
+    service réel. Aucune n'était la lenteur du serveur.</p>
+
+    <table>
+      <thead><tr><th>Écran</th><th>Avant</th><th>Après</th></tr></thead>
+      <tbody>
+        <tr><td>Stratégie opérationnelle</td><td>162 s</td><td><strong>3,8 s</strong></td></tr>
+        <tr><td>Conditions bancaires</td><td>28,9 s</td><td><strong>7,1 s</strong></td></tr>
+      </tbody>
+    </table>
+
+    <div class="grille">
+      <div class="carte">
+        <h4>Le préchauffage</h4>
+        <p style="margin-bottom:0">Il calculait douze combinaisons — trois ans × deux semestres
+        × deux segments — sur une instance à 0,1 CPU. Les requêtes des utilisateurs attendaient
+        derrière. Réduit à la période courante, avec une pause entre calculs.</p>
+      </div>
+      <div class="carte">
+        <h4>Les caches</h4>
+        <p style="margin-bottom:0">Ils vivaient en mémoire et ne servaient donc
+        <em>jamais le premier visiteur</em>, celui-là même qui réveille le service. Déplacés
+        dans la table <code>cache_app</code>, ils survivent aux réveils et aux
+        redéploiements.</p>
+      </div>
+      <div class="carte">
+        <h4>La file d'attente</h4>
+        <p style="margin-bottom:0">La page lançait treize requêtes simultanées. Prises une par
+        une, elles répondaient en moins d'une seconde ; ensemble, elles n'étaient pas revenues
+        au bout de vingt. Une file limitée à trois a suffi, sans modifier une seule requête.</p>
+      </div>
+    </div>
+
+    <div class="encart">
+      <strong>Le serveur n'était pas lent : la file était mal formée.</strong>
+      <p style="margin-bottom:0">Sur un dixième de processeur, il n'y a aucun parallélisme à
+      exploiter. Devant une lenteur, compter d'abord les requêtes simultanées.</p>
+    </div>
+
+    <h4>Vider les caches</h4>
+    <p>La table <code>cache_app</code> est vidée automatiquement à chaque ingestion de données.
+    Les analyses rédigées, elles, sont versionnées par clé dans <code>cache/</code> : changer la
+    clé de version invalide l'ancienne série sans avoir à supprimer quoi que ce soit.</p>
+    <p>L'interface pose un <strong>écran de chargement</strong> à chaque changement d'onglet —
+    cercle, pourcentage réel, page floutée. Le taux ne redescend jamais et finit toujours à
+    100 %, avec un filet de sécurité à 25 secondes.</p>
+  </section>
+
+  <!-- ── 11. DÉPANNAGE ─────────────────────────────────────────────────── -->
+  <section id="t-panne">
+    <h2>11. Dépannage — pièges déjà rencontrés</h2>
+    <p class="chapo">Chacun de ces points a coûté du temps au moins une fois. Les relire avant
+    de chercher ailleurs.</p>
+
+    <div class="sicas">
+      <p>Un écran est vide, sans message d'erreur</p>
+      <p style="margin-bottom:0">Cause la plus fréquente :
+      <code>db.query()</code> a intercepté une erreur SQL et rendu une liste vide. Exécuter la
+      requête à la main contre la base <em>avant</em> de soupçonner les données. Vérifier aussi
+      que <code>pgvector</code> et <code>pg_trgm</code> sont bien installées sur la base
+      visée.</p>
+    </div>
+
+    <div class="sicas">
+      <p>Le serveur sert l'ancien code après un redémarrage</p>
+      <p>Rencontré trois fois. Arrêter la tâche ne tue pas le processus Python : le port 5000
+      reste tenu par un ancien serveur.</p>
+      <pre style="margin-bottom:0"><code>Get-CimInstance Win32_Process -Filter "Name='python.exe'" |
+  Where-Object { $_.CommandLine -like '*server.py*' } | Stop-Process -Force</code></pre>
+    </div>
+
+    <div class="sicas">
+      <p>Les mêmes données donnent des chiffres différents d'une base à l'autre</p>
+      <p style="margin-bottom:0">Chercher un <code>DISTINCT ON</code> dont l'ordonnancement ne
+      va pas jusqu'à l'unicité. Sans départage complet, PostgreSQL est libre de choisir la
+      ligne — et un simple <code>VACUUM</code> change son choix.</p>
+    </div>
+
+    <div class="sicas">
+      <p>Un script Python meurt sur son propre message</p>
+      <p style="margin-bottom:0">La console Windows est en cp1252 : elle ne sait pas afficher
+      « → » ni « — ». Ouvrir la sortie en UTF-8 :
+      <code>sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")</code>.</p>
+    </div>
+
+    <div class="sicas">
+      <p>Un script écrit par heredoc produit du code cassé</p>
+      <p style="margin-bottom:0">Écrire un script Python par heredoc dans un interpréteur de
+      commandes altère les <code>\n</code> et les accents. Passer par un vrai fichier.</p>
+    </div>
+
+    <div class="sicas">
+      <p>Un test compare des libellés et échoue sans raison</p>
+      <p style="margin-bottom:0"><code>innerText</code> respecte <code>text-transform</code> :
+      un libellé stylé en majuscules revient en CAPITALES. Comparer sans tenir compte de la
+      casse.</p>
+    </div>
+
+    <div class="sicas">
+      <p>Un PDF produit par l'application semble comporter des caractères parasites</p>
+      <p>Vérifier avec <strong>PyMuPDF</strong>, jamais avec Poppler. Sur ce poste,
+      <code>pdftotext</code> et <code>pdftoppm</code> mal-interprètent le flux de contenu que
+      jsPDF génère et affichent un « / » avant chaque <code>%</code>, <code>:</code> ou
+      <code>Mds</code>. Une nuit entière y est passée, avant que PyMuPDF ne rende le
+      <em>même fichier</em> sans le moindre défaut : ce n'était pas le PDF.</p>
+      <pre style="margin-bottom:0"><code>import fitz
+fitz.open(chemin).get_text()   <span class="c"># et non pdftotext</span></code></pre>
+    </div>
+
+    <div class="sicas">
+      <p>Le service met une minute à répondre</p>
+      <p style="margin-bottom:0">Comportement normal du plan gratuit, qui endort l'instance
+      après quinze minutes d'inactivité. Ce n'est pas une panne. Avant une démonstration,
+      ouvrir la page cinq minutes à l'avance.</p>
+    </div>
+
+    <h3>Routes utiles au diagnostic</h3>
+    <table>
+      <thead><tr><th>Route</th><th>Ce qu'elle dit</th></tr></thead>
+      <tbody>
+        <tr><td><code>/sante</code></td><td>le service répond — ne touche ni disque, ni base,
+            ni cache</td></tr>
+        <tr><td><code>/api/llm_status</code></td><td>fournisseur actif, état du quota</td></tr>
+        <tr><td><code>/api/features</code></td><td>ce que l'instance sait faire ; c'est elle
+            qui masque le bouton d'ajout en production</td></tr>
+        <tr><td><code>/api/journal_acces</code></td><td>journal des connexions</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Ce qui reste à faire</h3>
+    <ul>
+      <li><strong>Régénérer les clés</strong> — Groq, Gemini, Hugging Face, mot de passe
+        Supabase : elles ont transité en clair dans des échanges.</li>
+      <li><strong>Réveil automatique</strong> aux heures ouvrées, par GitHub Actions, pour
+        supprimer les trente secondes de démarrage. Proposé, non fait.</li>
+    </ul>
+  </section>
+
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════════
+     VUE UTILISATEUR
+     ════════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="vue-user" hidden>
+  <nav>
+    <h2>Vue utilisateur</h2>
+    <a href="#u-connexion">1. Se connecter</a>
+    <a href="#u-accueil">2. L'écran d'accueil</a>
+    <a href="#u-sante">3. Santé financière</a>
+    <a href="#u-cb">4. Conditions bancaires</a>
+    <a href="#u-strat">5. Stratégie</a>
+    <a href="#u-stratop">6. Stratégie opérationnelle</a>
+    <a href="#u-chat">7. Assistant</a>
+    <a href="#u-export">8. Exporter</a>
+  </nav>
+
+  <main>
+
+  <section id="u-connexion">
+    <h2>1. Se connecter</h2>
+    <p class="chapo">L'application est accessible à l'adresse
+    <a href="https://spybusiness.onrender.com">spybusiness.onrender.com</a>.</p>
+    <figure>
+      <img src="img/u01_connexion.jpg" alt="Page de connexion">
+      <figcaption>La page de connexion</figcaption>
+    </figure>
+    <ul>
+      <li>Votre compte est créé par l'administrateur. <strong>Il n'existe pas
+        d'inscription libre.</strong></li>
+      <li>Vous ne voyez que les sections que l'administrateur vous a ouvertes : deux personnes
+        peuvent donc voir des écrans différents.</li>
+      <li>Après cinq échecs, le compte est bloqué cinq minutes. Attendez, plutôt que de
+        réessayer.</li>
+    </ul>
+    <div class="note">
+      <strong>Le premier accès de la journée peut prendre une minute.</strong> L'hébergement
+      met le service en veille après quinze minutes sans visite. Ce n'est pas une panne.
+      Avant une réunion, ouvrez la page cinq minutes à l'avance.
+    </div>
+  </section>
+
+  <section id="u-accueil">
+    <h2>2. L'écran d'accueil</h2>
+    <p class="chapo">Cinq onglets, un par matière. On passe de l'un à l'autre sans perdre ses
+    filtres.</p>
+    <figure>
+      <img src="img/u02_accueil.jpg" alt="Écran principal de l'application">
+      <figcaption>L'écran principal et ses onglets</figcaption>
+    </figure>
+    <p>À chaque changement d'onglet, un écran de chargement affiche l'avancement réel. Il finit
+    toujours à 100 % : si le pourcentage progresse, laissez-le aller.</p>
+    <div class="encart">
+      <strong>Tous les chiffres affichés sont calculés, jamais rédigés.</strong>
+      <p style="margin-bottom:0">Les montants, les rangs et les écarts viennent de la base par
+      requête. Le texte d'analyse est rédigé autour de ces chiffres, il ne les invente pas.
+      Vous pouvez donc citer un montant lu à l'écran.</p>
+    </div>
+  </section>
+
+  <section id="u-sante">
+    <h2>3. Santé financière</h2>
+    <p class="chapo">Où se situe la SGCI parmi les sept banques, sur les états financiers
+    publiés.</p>
+
+    <h3>Position</h3>
+    <figure>
+      <img src="img/u03_position.jpg" alt="Onglet Positionnement">
+      <figcaption>Classement par résultat, et évolution du rang</figcaption>
+    </figure>
+
+    <h3>Revenus</h3>
+    <figure>
+      <img src="img/u04_revenus.jpg" alt="Classement par produit net bancaire">
+      <figcaption>Classement par produit net bancaire</figcaption>
+    </figure>
+    <figure>
+      <img src="img/u05_cascade.jpg" alt="Décomposition du produit net bancaire">
+      <figcaption>Décomposition du PNB et cascade du compte de résultat</figcaption>
+    </figure>
+
+    <h3>Efficience</h3>
+    <figure>
+      <img src="img/u06_efficience.jpg" alt="Coefficient d'exploitation">
+      <figcaption>Coefficient d'exploitation face au marché</figcaption>
+    </figure>
+
+    <h3>Risque</h3>
+    <figure>
+      <img src="img/u07_risque1.jpg" alt="Coût du risque rapporté au PNB">
+      <figcaption>Coût du risque rapporté au produit net bancaire</figcaption>
+    </figure>
+    <figure>
+      <img src="img/u08_risque2.jpg" alt="Évolution du coût du risque">
+      <figcaption>Évolution du coût du risque rapporté aux encours</figcaption>
+    </figure>
+  </section>
+
+  <section id="u-cb">
+    <h2>4. Conditions bancaires</h2>
+    <p class="chapo">Ce que chaque banque propose, et à quel prix, d'après les grilles
+    tarifaires publiées.</p>
+
+    <h3>Catalogue</h3>
+    <figure>
+      <img src="img/u09_catalogue.jpg" alt="Onglet Catalogue">
+      <figcaption>Évolution des offres sur trois ans</figcaption>
+    </figure>
+
+    <h3>Innovations</h3>
+    <figure>
+      <img src="img/u10_innovations.jpg" alt="Onglet Innovations">
+      <figcaption>Rattrapage et dépassement de la SGCI</figcaption>
+    </figure>
+
+    <h3>Prix</h3>
+    <figure>
+      <img src="img/u11_prix.jpg" alt="Comparatif tarifaire">
+      <figcaption>Comparatif tarifaire, service par service</figcaption>
+    </figure>
+    <div class="note">
+      Un service n'est comparé qu'à son équivalent réel. Deux libellés voisins qui désignent
+      des choses différentes ne sont pas mis en regard : la comparaison serait fausse.
+    </div>
+  </section>
+
+  <section id="u-strat">
+    <h2>5. Stratégie</h2>
+    <p class="chapo">La lecture d'ensemble : ce que les données disent une fois croisées.</p>
+
+    <h3>Révélations</h3>
+    <figure>
+      <img src="img/u12_revelations.jpg" alt="Onglet Révélations">
+      <figcaption>Constats issus du croisement des sources</figcaption>
+    </figure>
+
+    <h3>Les cinq forces</h3>
+    <figure>
+      <img src="img/u13_porter.jpg" alt="Analyse de Porter">
+      <figcaption>Les cinq forces concurrentielles</figcaption>
+    </figure>
+
+    <h3>Projection à trois ans</h3>
+    <figure>
+      <img src="img/u14_projection.jpg" alt="Scénario central à trois ans">
+      <figcaption>Scénario central de la projection</figcaption>
+    </figure>
+    <p>La cible est la moyenne des performances des trois meilleures banques du panel, afin
+    qu'un résultat exceptionnel d'une seule ne constitue pas à lui seul la référence. Trois
+    niveaux d'exécution sont simulés : ce sont des <strong>hypothèses</strong>, non des
+    probabilités.</p>
+  </section>
+
+  <section id="u-stratop">
+    <h2>6. Stratégie opérationnelle</h2>
+    <p class="chapo">Les directives, direction par direction, avec l'écart mesuré qui les
+    justifie.</p>
+    <figure>
+      <img src="img/u15_stratop.jpg" alt="Recommandations par direction">
+      <figcaption>Les recommandations de la direction financière</figcaption>
+    </figure>
+    <figure>
+      <img src="img/u16_stratop_secteur.png" alt="Arbitrage sectoriel">
+      <figcaption>Arbitrage sectoriel</figcaption>
+    </figure>
+    <p>Chaque directive porte l'écart chiffré qui la motive et la contribution attendue. Une
+    directive sans écart mesuré n'est pas affichée.</p>
+  </section>
+
+  <section id="u-chat">
+    <h2>7. Assistant conversationnel</h2>
+    <p class="chapo">Poser une question en français, obtenir une réponse sourcée.</p>
+    <figure>
+      <img src="img/u17_chat.jpg" alt="Assistant conversationnel">
+      <figcaption>Une question, une réponse et ses sources</figcaption>
+    </figure>
+    <figure>
+      <img src="img/u18_approfondir.jpg" alt="Approfondir une réponse">
+      <figcaption>Approfondir depuis un écran</figcaption>
+    </figure>
+
+    <h4>Bien poser une question</h4>
+    <table>
+      <thead><tr><th>Plutôt</th><th>Que</th></tr></thead>
+      <tbody>
+        <tr><td>« Quel est le PNB de la SGCI en 2024 ? »</td>
+            <td>« Parle-moi de la SGCI »</td></tr>
+        <tr><td>« Quels sont les frais de tenue de compte SGCI, particuliers, 2024 S1 ? »</td>
+            <td>« Combien ça coûte ? »</td></tr>
+        <tr><td>« Que dit la BCEAO sur la gratuité des services bancaires ? »</td>
+            <td>« Et la loi ? »</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>Nommez la <strong>banque</strong>, l'<strong>exercice</strong> ou la
+        <strong>période</strong>, et le <strong>segment</strong> quand il compte. Plus la
+        question est précise, plus la lecture est directe.</li>
+      <li>Les réponses citent leurs sources. Une réponse sans source citée doit être
+        vérifiée.</li>
+      <li>Si l'assistant annonce des <strong>valeurs contradictoires</strong>, ce n'est pas une
+        panne : la base contient deux chiffres divergents pour cette ligne, et il refuse d'en
+        choisir un. Signalez-le à l'administrateur.</li>
+    </ul>
+    <div class="note">
+      Si le chat est indisponible, le reste de l'application continue de fonctionner
+      normalement — les écrans ne dépendent pas de lui.
+    </div>
+  </section>
+
+  <section id="u-export">
+    <h2>8. Exporter</h2>
+    <p class="chapo">Chaque onglet peut être emporté hors de l'application.</p>
+    <figure>
+      <img src="img/u19_pptx.jpg" alt="Diaporama exporté">
+      <figcaption>Extrait du diaporama rédigé par l'application</figcaption>
+    </figure>
+    <ul>
+      <li><strong>Diaporama</strong> — retrace chaque section de l'onglet, avec ses graphiques
+        et son analyse.</li>
+      <li><strong>Rapport complet</strong> — la version imprimable.</li>
+    </ul>
+    <p>Les documents exportés portent les mêmes chiffres que l'écran : ils sont produits à
+    partir des mêmes calculs, non ressaisis.</p>
+  </section>
+
+  </main>
+</div>
+
+<footer>
+  SpyBusiness — documentation d'exploitation. Application déployée sur
+  <a href="https://spybusiness.onrender.com">spybusiness.onrender.com</a>,
+  branche <code>main</code>.
+</footer>
+
+<script>
+(function(){
+  var vues = {tech: document.getElementById('vue-tech'),
+              user: document.getElementById('vue-user')};
+  var boutons = document.querySelectorAll('.vues button');
+
+  function montrer(nom){
+    // Une seule vue visible a la fois : l autre est retiree du flux, pas juste masquee,
+    // pour que ses ancres ne captent pas la navigation.
+    for (var k in vues){ vues[k].hidden = (k !== nom); }
+    boutons.forEach(function(b){
+      b.setAttribute('aria-selected', String(b.dataset.vue === nom));
+    });
+    try { localStorage.setItem('spybusiness-vue', nom); } catch(e){}
+    window.scrollTo({top:0, behavior:'instant'});
+    surligner();
+  }
+
+  boutons.forEach(function(b){
+    b.addEventListener('click', function(){ montrer(b.dataset.vue); });
+  });
+
+  // La vue choisie est retenue d une visite a l autre, quand le navigateur le permet.
+  var memorisee = null;
+  try { memorisee = localStorage.getItem('spybusiness-vue'); } catch(e){}
+  montrer(memorisee === 'user' ? 'user' : 'tech');
+
+  // Surlignage du lien correspondant a la section lue.
+  function surligner(){
+    var vue = vues.tech.hidden ? vues.user : vues.tech;
+    var sections = vue.querySelectorAll('section');
+    var liens = vue.querySelectorAll('nav a');
+    var courant = null;
+    sections.forEach(function(s){
+      if (s.getBoundingClientRect().top <= 90) { courant = s.id; }
+    });
+    if (!courant && sections.length) { courant = sections[0].id; }
+    liens.forEach(function(a){
+      a.classList.toggle('actif', a.getAttribute('href') === '#' + courant);
+    });
+  }
+  window.addEventListener('scroll', surligner, {passive:true});
+})();
+</script>
+</body>
+</html>
