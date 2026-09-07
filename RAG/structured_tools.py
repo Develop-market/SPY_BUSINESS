@@ -530,20 +530,46 @@ def comparer_coefficient_exploitation(mode: str = "AN3", banques: list = None) -
                              AND libelle ILIKE %s AND montant IS NOT NULL""",
                         (b, y, EF_PATTERNS["pnb"]))
             pnb_rows = [(float(r[0]), r[1]) for r in cur.fetchall()]
+            if not pnb_rows:
+                continue
+            pnb, pnb_ambigu = _resoudre_valeur_ef(pnb_rows)
+            if pnb_ambigu or not pnb:
+                continue
+
+            # MÉTHODE 1, PRIORITAIRE — (PNB − RBE) / PNB, exactement comme le tableau de bord
+            # (db.py::ef_coeff_series). Ajoutée le 2026-09-07 : le chat omettait SGCI et
+            # ECOBANK d'un classement que l'écran affiche pourtant. Cause — SGCI porte DEUX
+            # libellés de charges de périmètres différents (« Charges générales
+            # d'exploitation » 94 052 et « Frais Généraux » 106 974 pour 2025, cf. db.py) ;
+            # _resoudre_valeur_ef les juge contradictoires et omet la banque. Le résultat brut
+            # d'exploitation est une ligne NON AMBIGUË : il supprime le problème à la source.
+            # Motif sans « resultat » : NSIA écrit « Résultat Brut d'Exploitation » quand SGCI
+            # écrit « RESULTAT BRUTD'EXPLOITATION », en capitales, sans accent ni espace.
+            cur.execute("""SELECT ROUND(montant::double precision::numeric,0), annee_rapport
+                           FROM ef_indicateurs
+                           WHERE banque=%s AND annee_donnee=%s AND is_primary
+                             AND libelle ILIKE %s AND montant IS NOT NULL AND montant > 0""",
+                        (b, y, "%brut%exploitation%"))
+            rbe_rows = [(float(r[0]), r[1]) for r in cur.fetchall()]
+            if rbe_rows:
+                rbe, rbe_ambigu = _resoudre_valeur_ef(rbe_rows)
+                if not rbe_ambigu and rbe is not None:
+                    out[b] = {"annee": y, "valeur": round((pnb - rbe) / pnb * 100, 1)}
+                    continue
+
+            # MÉTHODE 2, REPLI — libellé direct des charges, seulement quand le RBE manque.
             cur.execute("""SELECT ROUND(montant::double precision::numeric,0), annee_rapport
                            FROM ef_indicateurs
                            WHERE banque=%s AND annee_donnee=%s AND is_primary
                              AND (libelle ILIKE %s OR libelle ILIKE %s) AND montant IS NOT NULL""",
                         (b, y, "%frais g%raux%", "%charges g%rales d%exploitation%"))
             fg_rows = [(float(r[0]), r[1]) for r in cur.fetchall()]
-            if not pnb_rows or not fg_rows:
+            if not fg_rows:
                 continue
-            pnb, pnb_ambigu = _resoudre_valeur_ef(pnb_rows)
             fg, fg_ambigu = _resoudre_valeur_ef(fg_rows)
-            if pnb_ambigu or fg_ambigu or not pnb:
+            if fg_ambigu:
                 continue
-            coeff = fg / pnb * 100
-            out[b] = {"annee": y, "valeur": round(coeff, 1)}
+            out[b] = {"annee": y, "valeur": round(fg / pnb * 100, 1)}
     finally:
         cur.close(); cx.close()
     return out

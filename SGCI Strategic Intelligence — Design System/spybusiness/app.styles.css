@@ -335,6 +335,10 @@ html[data-theme="light"] .bg .vig{background:radial-gradient(ellipse at 50% 35%,
 .bubble th{text-align:left;padding:8px 11px;border-bottom:1px solid var(--line);color:var(--muted);font:700 10px var(--sans);text-transform:uppercase;letter-spacing:.06em}
 .bubble td{padding:8px 11px;border-bottom:1px solid var(--line);font-family:var(--mono)}
 .bubble td:first-child{font-family:var(--sans);font-weight:600}
+/* Colonnes de montants : jamais coupees au milieu d un nombre, et alignees a droite
+   comme dans n importe quel tableau financier. Constate le 2026-09-07 : « 276 000 »
+   s affichait sur deux lignes. */
+.bubble td.num{white-space:nowrap;text-align:right}
 /* ── Rendu Markdown des réponses IA (2026-07-28) ───────────────────────────
    Jusqu'ici seuls <p> et <table> étaient stylés : les titres « ### » du LLM
    s'affichaient en clair et les listes en paragraphes collés. mdToHtml() produit

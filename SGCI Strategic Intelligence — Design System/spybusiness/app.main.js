@@ -4240,13 +4240,19 @@ function mdToHtml(t){
     // ── Tableau : | a | b | … (la ligne de séparation |---|---| est ignorée) ──
     if(ln.startsWith("|")){
       if(/^\|[\s:|-]+\|?$/.test(ln)) continue;
-      const cells = ln.replace(/^\|/,"").replace(/\|$/,"").split("|").map(c => inl(c.trim()));
+      const brutes = ln.replace(/^\|/,"").replace(/\|$/,"").split("|").map(c => c.trim());
+      const cells  = brutes.map(c => inl(c));
+      // Une cellule faite de chiffres, d espaces de milliers et de signes ne doit
+      // JAMAIS se couper : « 276 000 » s affichait sur deux lignes, l espace des
+      // milliers etant un point de coupure legitime pour le navigateur.
+      const estNombre = c => /^[-+]?[\d][\d\s\u00a0\u202f.,]*\s*(%|Mds|M|FCFA|MFCFA)?$/.test(c);
       if(mode !== "table"){
         fermer();
         out += "<table><thead><tr>" + cells.map(c => `<th>${c}</th>`).join("") + "</tr></thead><tbody>";
         mode = "table";
       } else {
-        out += "<tr>" + cells.map(c => `<td>${c}</td>`).join("") + "</tr>";
+        out += "<tr>" + cells.map((c, i) =>
+          `<td${estNombre(brutes[i]) ? ' class="num"' : ""}>${c}</td>`).join("") + "</tr>";
       }
       continue;
     }
@@ -4255,7 +4261,12 @@ function mdToHtml(t){
     // ── Titres : #, ##, ### … (tous rendus en h4 — un message de chat n'a pas
     //    besoin d'une échelle de titres, il a besoin d'étiquettes de section lisibles) ──
     const mTitre = ln.match(/^(#{1,6})\s+(.+)$/);
-    if(mTitre){ fermer(); out += `<h4>${inl(mTitre[2].replace(/[:\s]+$/,""))}</h4>`; continue; }
+    // Le second `replace` retire un marqueur RESIDUEL : le modele ecrit parfois
+    // « ## ## TITRE » — l expression ci-dessus ne consomme que le premier diese, et
+    // le titre s affichait alors avec « ## » en clair. Constate le 2026-09-07.
+    if(mTitre){ fermer();
+      const titre = mTitre[2].replace(/^#+\s*/,"").replace(/[:\s]+$/,"");
+      out += `<h4>${inl(titre)}</h4>`; continue; }
 
     // ── Séparateur horizontal ──
     if(/^(-{3,}|_{3,}|\*{3,})$/.test(ln)){ fermer(); out += "<hr>"; continue; }
