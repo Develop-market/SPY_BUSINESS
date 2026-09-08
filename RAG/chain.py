@@ -1902,6 +1902,87 @@ def _est_question_meta(question: str) -> bool:
     return any(n in q for n in _NOYAUX_META) and _sans_trace_bancaire(question)
 
 
+_MARQUEURS_DEFINITION = (
+    "c est quoi", "cest quoi", "qu est ce que", "qu est ce qu", "quest ce que",
+    "que veut dire", "que signifie", "signification de", "definition de", "definition d",
+    "a quoi sert", "a quoi servent", "a quoi ca sert", "comment fonctionne",
+    "comment marche", "comment ca marche", "comment se calcule", "comment calcule",
+    "comment on calcule", "comment lire", "comment interpreter", "en quoi consiste",
+    "difference entre", "quelle difference", "explique moi", "explique", "expliquez",
+    "peux tu m expliquer", "c est quoi la difference",
+)
+
+
+def _est_question_definition(question: str) -> bool:
+    """Question SUR une notion, pas sur un chiffre. Ne s active que sans banque nommee et sans
+    annee : « c est quoi le PNB » est une definition, « c est quoi le PNB de SGCI en 2024 »
+    est une demande de chiffre et garde le chemin normal."""
+    q = _normaliser(question)
+    if not q or len(q.split()) > 16:
+        return False
+    if not any(m in q for m in _MARQUEURS_DEFINITION):
+        return False
+    try:
+        if retriever.detect_banques(question):
+            return False
+    except Exception:                       # noqa: BLE001
+        return False
+    return not re.search(r"\b(19|20)\d{2}\b", question)
+
+
+_BANQUES_CITEES = ("baci", "bicici", "bni", "ecobank", "nsia", "sib", "sgci",
+                   "societe generale")
+
+
+def _chiffre_sur_une_banque(texte: str) -> bool:
+    """Une definition n a aucun contexte : tout chiffre rapporte a une banque nommee y serait
+    forcement invente. On ne regarde que ce couple — une formule (« PNB = produits - charges »)
+    ou un pourcentage generique restent legitimes."""
+    t = _normaliser(texte)
+    for b in _BANQUES_CITEES:
+        for m in re.finditer(re.escape(b), t):
+            fenetre = t[max(0, m.start() - 90): m.end() + 90]
+            if re.search(r"\d[\d\s.,]{2,}", fenetre):
+                return True
+    return False
+
+
+def _repondre_definition(question: str) -> str:
+    """Explique la notion. Le modele mobilise ses connaissances du metier bancaire — c est
+    legitime pour une DEFINITION — mais il lui est interdit d avancer le moindre chiffre sur
+    les 7 banques, dont il n a ici aucune donnee."""
+    from langchain_core.messages import HumanMessage, SystemMessage
+    systeme = (
+        "Tu es SpyBusiness, assistant de veille concurrentielle bancaire (Cote d'Ivoire, "
+        "zone UEMOA/BCEAO).\n"
+        "La question porte sur une NOTION, pas sur une valeur. Explique-la simplement, en "
+        "francais, en 3 a 6 lignes : ce que la notion mesure, sa formule si elle en a une, "
+        "et ce qu'elle permet de juger. Va droit au but, sans preambule.\n"
+        "INTERDIT ABSOLU : ne cite AUCUN chiffre concernant BACI, BICICI, BNI, ECOBANK, NSIA, "
+        "SIB ou SGCI — tu n'as pas leurs donnees sous les yeux. Une formule generale et des "
+        "ordres de grandeur du secteur sont permis, un chiffre attribue a une banque ne l'est "
+        "pas.\n"
+        "Termine par une phrase invitant a demander la donnee chiffree, par exemple "
+        "« Voulez-vous le coefficient d'exploitation des 7 banques ? ».\n"
+        "Si la notion n'a rien de bancaire ni de financier, dis-le en une phrase et n'invente "
+        "rien."
+    )
+    llm = _get_llm(["reglementation"])      # temperature analytique : on redige, on ne lit pas
+    msgs = [SystemMessage(systeme), HumanMessage(question)]
+    rep = _invoke_with_retry(llm, msgs)
+
+    if _chiffre_sur_une_banque(rep):
+        print("  [DEFINITION] chiffre attribue a une banque — seconde tentative")
+        msgs.append(HumanMessage(
+            "Ta reponse attribue un chiffre a une banque nommee, ce qui est interdit ici : tu "
+            "n'as aucune donnee. Reformule la meme explication sans citer ni banque ni montant."))
+        rep2 = _invoke_with_retry(llm, msgs)
+        if not _chiffre_sur_une_banque(rep2):
+            return rep2
+        print("  [DEFINITION] persiste apres relance — reponse rendue telle quelle, a auditer")
+    return rep
+
+
 def ask(chain: dict, question: str) -> str:
     """Point d'entrée unique — routing multi-label automatique."""
     if _est_question_meta(question):
@@ -1914,6 +1995,12 @@ def ask(chain: dict, question: str) -> str:
                 "- la **réglementation** BCEAO et UEMOA.\n\n"
                 "Chaque chiffre que je cite vient de la base, jamais de moi. "
                 "Essayez : « compare les PNB » ou « frais de tenue de compte SGCI 2024 ».")
+
+    # Question SUR une notion (« c'est quoi le PNB ? ») : on explique, on ne va pas
+    # chercher un montant. Placee AVANT les detecteurs, qui la routeraient vers les
+    # etats financiers a cause du mot « PNB » et repondraient « non disponible ».
+    if _est_question_definition(question):
+        return _repondre_definition(question)
 
     if _est_salutation_seule(question) or _est_civilite(question):
         # BUG TROUVÉ le 2026-07-27 (reproduit à partir d'une capture du directeur) : cette
