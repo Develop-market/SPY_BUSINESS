@@ -1817,32 +1817,46 @@ _SALUTATIONS = ("bonjour", "bonsoir", "salut", "hello", "hi", "coucou", "bsr", "
 # Vocabulaire de politesse. Une phrase dont TOUS les mots sont ici, et qui contient au moins
 # un NOYAU, est une civilite — quelle que soit sa longueur. Ajoute le 2026-09-07 : la borne
 # de trois mots rejetait « bonjour comment vas tu ».
-_NOYAUX_CIVILITE = {
-    "bonjour", "bonsoir", "salut", "hello", "hi", "coucou", "bjr", "bsr", "slt", "cc", "yo",
-    "hey", "salutations", "merci", "bienvenue", "enchante", "ravi", "revoir", "bye", "adieu",
-}
-_MOTS_CIVILITE = _NOYAUX_CIVILITE | {
-    "comment", "vas", "va", "vais", "allez", "ca", "tu", "te", "toi", "vous", "on", "et",
-    "tout", "le", "la", "les", "monde", "beaucoup", "bien", "tres", "au", "a", "bientot",
-    "plus", "tard", "demain", "bonne", "bon", "journee", "soiree", "nuit", "matinee",
-    "week", "end", "ok", "d", "accord", "parfait", "super", "genial", "nickel", "quoi",
-    "de", "neuf", "s", "il", "te", "plait", "svp", "stp", "es", "est", "ce", "que", "je",
-    "suis", "content", "aussi", "pareil", "moi", "meme", "oui", "non", "yes", "no",
-}
+# Marqueurs de politesse. La liste n a pas besoin d etre exhaustive dans le detail des
+# formules : elle ne sert qu a reconnaitre l INTENTION. C est l absence de contenu bancaire
+# qui fait la decision (cf. _est_civilite).
+_NOYAUX_CIVILITE = (
+    "bonjour", "bonsoir", "bjr", "bsr", "salut", "slt", "coucou", "cc", "hello", "hi",
+    "hey", "yo", "salutations", "bienvenue", "enchante", "ravi",
+    "merci", "remercie", "remerciements", "gratitude",
+    "au revoir", "revoir", "bye", "ciao", "adieu", "a bientot", "a plus", "a demain",
+    "bonne journee", "bonne soiree", "bonne nuit", "bonne continuation", "bon courage",
+    "bon week", "excellente journee",
+    "comment vas", "comment allez", "comment ca va", "ca va", "ca roule", "quoi de neuf",
+    "quoi de beau", "tu vas bien", "vous allez bien", "j espere que",
+    "desole", "pardon", "excuse", "excusez", "felicitations", "bravo", "bien joue",
+    "s il vous plait", "s il te plait", "svp", "stp", "de rien", "avec plaisir",
+)
+
+# Questions SUR l assistant : ni bancaires ni polies, mais parfaitement legitimes.
+_NOYAUX_META = (
+    "qui es tu", "qui etes vous", "tu es qui", "vous etes qui", "c est quoi spybusiness",
+    "que peux tu", "que pouvez vous", "tu peux faire quoi", "tu fais quoi", "vous faites quoi",
+    "tu sers a quoi", "a quoi tu sers", "comment tu marches", "comment ca marche",
+    "aide", "help", "tes capacites", "tes fonctions",
+)
 
 
-def _est_civilite(question: str) -> bool:
-    """Vrai si la phrase n est faite QUE de politesse. Insensible a la longueur, contrairement
-    a _est_salutation_seule : c est le vocabulaire qui tranche, pas le nombre de mots."""
-    # Toute ponctuation devient un separateur : « Bonjour, comment vas-tu ? » laissait
-    # sinon le token « bonjour, » virgule comprise, absent du vocabulaire.
-    q = _normaliser(question)
-    mots = [m for m in re.split(r"[^0-9a-z]+", q) if m]
-    if not mots or len(mots) > 8:
+def _sans_trace_bancaire(question: str) -> bool:
+    """Vrai si la question ne porte AUCUN indice bancaire. On s appuie sur les detecteurs
+    deja en service — les memes qui routent les vraies questions — plutot que sur une seconde
+    liste de mots a maintenir en parallele, qui divergerait tot ou tard de la premiere."""
+    try:
+        if retriever.detect_types_doc(question):
+            return False
+        if retriever.detect_banques(question):
+            return False
+    except Exception:                      # noqa: BLE001
+        # Un detecteur indisponible ne doit pas transformer une question en salutation :
+        # dans le doute, on considere qu il y a du contenu bancaire.
         return False
-    if not all(m in _MOTS_CIVILITE for m in mots):
-        return False
-    return any(m in _NOYAUX_CIVILITE for m in mots)
+    # Un nombre est presque toujours une annee, un montant ou un semestre.
+    return not re.search(r"\d", question)
 
 
 def _est_salutation_seule(question: str) -> bool:
@@ -1868,8 +1882,39 @@ def _est_salutation_seule(question: str) -> bool:
     return bool(difflib.get_close_matches(q, _SALUTATIONS, n=1, cutoff=0.85))
 
 
+def _est_civilite(question: str) -> bool:
+    """Une formule de politesse, quelle qu elle soit, du moment qu elle ne demande rien de
+    bancaire. Insensible a la longueur et au vocabulaire exact : « bonjour, j espere que vous
+    allez bien » passe comme « bjr »."""
+    q = _normaliser(question)
+    if not q or len(q.split()) > 15:
+        return False
+    if not any(n in q for n in _NOYAUX_CIVILITE):
+        return False
+    return _sans_trace_bancaire(question)
+
+
+def _est_question_meta(question: str) -> bool:
+    """« qui es-tu ? », « tu sers a quoi ? » — sur l assistant, pas sur les banques."""
+    q = _normaliser(question)
+    if not q or len(q.split()) > 12:
+        return False
+    return any(n in q for n in _NOYAUX_META) and _sans_trace_bancaire(question)
+
+
 def ask(chain: dict, question: str) -> str:
     """Point d'entrée unique — routing multi-label automatique."""
+    if _est_question_meta(question):
+        return ("Je suis SpyBusiness, l'assistant de veille concurrentielle bancaire de la "
+                "Direction Innovation. Je réponds sur trois matières, pour les 7 banques "
+                "ivoiriennes (BACI, BICICI, BNI, ECOBANK, NSIA, SIB, SGCI) :\n\n"
+                "- les **tarifs** — frais de tenue de compte, virements, cartes, commissions ;\n"
+                "- la **performance financière** — PNB, résultat net, ROE, coefficient "
+                "d'exploitation, coût du risque ;\n"
+                "- la **réglementation** BCEAO et UEMOA.\n\n"
+                "Chaque chiffre que je cite vient de la base, jamais de moi. "
+                "Essayez : « compare les PNB » ou « frais de tenue de compte SGCI 2024 ».")
+
     if _est_salutation_seule(question) or _est_civilite(question):
         # BUG TROUVÉ le 2026-07-27 (reproduit à partir d'une capture du directeur) : cette
         # branche écrivait la salutation dans la mémoire (mem.add_user/add_assistant), ce qui

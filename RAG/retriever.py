@@ -1044,7 +1044,13 @@ def _contient_mot(q: str, mots) -> bool:
         # fait une fois ici plutôt que répété dans trois listes, et les doublons déjà
         # présents deviennent inoffensifs.
         motifs = sorted({_sans_accents(m) for m in mots}, key=len, reverse=True)
-        compiled = re.compile(r"\b(?:" + "|".join(re.escape(m) for m in motifs) + r")\b")
+        # PLURIELS (2026-09-07). La frontiere de FIN excluait « tarifs », « cartes »,
+        # « virements », « commissions » : seul le singulier exact matchait, et « compare
+        # les tarifs des cartes » n activait AUCUN domaine — la question partait en
+        # recherche vectorielle generique, sans filtre. Un « s » ou « x » optionnel avant
+        # la frontiere suffit. On ne RETIRE pas cette frontiere : sans elle « ratio »
+        # matcherait « rationalisation », ce qui rejouerait le bug du 2026-07-25 en miroir.
+        compiled = re.compile(r"\b(?:" + "|".join(re.escape(m) for m in motifs) + r")(?:s|x)?\b")
         _RE_CACHE_MOTS[key] = compiled
     return compiled.search(_sans_accents(q)) is not None
 
