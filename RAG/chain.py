@@ -1814,6 +1814,36 @@ _SALUTATIONS = ("bonjour", "bonsoir", "salut", "hello", "hi", "coucou", "bsr", "
                 "bonjour a tous", "hello a tous", "ca va", "comment ca va", "merci beaucoup",
                 "ok", "d accord", "parfait", "super", "a bientot", "bye", "bonne nuit")
 
+# Vocabulaire de politesse. Une phrase dont TOUS les mots sont ici, et qui contient au moins
+# un NOYAU, est une civilite — quelle que soit sa longueur. Ajoute le 2026-09-07 : la borne
+# de trois mots rejetait « bonjour comment vas tu ».
+_NOYAUX_CIVILITE = {
+    "bonjour", "bonsoir", "salut", "hello", "hi", "coucou", "bjr", "bsr", "slt", "cc", "yo",
+    "hey", "salutations", "merci", "bienvenue", "enchante", "ravi", "revoir", "bye", "adieu",
+}
+_MOTS_CIVILITE = _NOYAUX_CIVILITE | {
+    "comment", "vas", "va", "vais", "allez", "ca", "tu", "te", "toi", "vous", "on", "et",
+    "tout", "le", "la", "les", "monde", "beaucoup", "bien", "tres", "au", "a", "bientot",
+    "plus", "tard", "demain", "bonne", "bon", "journee", "soiree", "nuit", "matinee",
+    "week", "end", "ok", "d", "accord", "parfait", "super", "genial", "nickel", "quoi",
+    "de", "neuf", "s", "il", "te", "plait", "svp", "stp", "es", "est", "ce", "que", "je",
+    "suis", "content", "aussi", "pareil", "moi", "meme", "oui", "non", "yes", "no",
+}
+
+
+def _est_civilite(question: str) -> bool:
+    """Vrai si la phrase n est faite QUE de politesse. Insensible a la longueur, contrairement
+    a _est_salutation_seule : c est le vocabulaire qui tranche, pas le nombre de mots."""
+    # Toute ponctuation devient un separateur : « Bonjour, comment vas-tu ? » laissait
+    # sinon le token « bonjour, » virgule comprise, absent du vocabulaire.
+    q = _normaliser(question)
+    mots = [m for m in re.split(r"[^0-9a-z]+", q) if m]
+    if not mots or len(mots) > 8:
+        return False
+    if not all(m in _MOTS_CIVILITE for m in mots):
+        return False
+    return any(m in _NOYAUX_CIVILITE for m in mots)
+
 
 def _est_salutation_seule(question: str) -> bool:
     """BUG TROUVÉ (2026-07-25, signalé par le directeur en testant) : « Bonjour » tout seul
@@ -1840,7 +1870,7 @@ def _est_salutation_seule(question: str) -> bool:
 
 def ask(chain: dict, question: str) -> str:
     """Point d'entrée unique — routing multi-label automatique."""
-    if _est_salutation_seule(question):
+    if _est_salutation_seule(question) or _est_civilite(question):
         # BUG TROUVÉ le 2026-07-27 (reproduit à partir d'une capture du directeur) : cette
         # branche écrivait la salutation dans la mémoire (mem.add_user/add_assistant), ce qui
         # en faisait un VRAI tour de conversation. Conséquence en cascade sur la question
@@ -1850,7 +1880,18 @@ def ask(chain: dict, question: str) -> str:
         # CB+EF et envoyait cette bouillie en recherche vectorielle — d'où la réponse sur les
         # prêts subordonnés BICICI. Un « bonjour » n'est pas un sujet : il ne doit RIEN laisser
         # dans la mémoire, sinon il pollue tout ce qui suit.
-        return ("Bonjour ! Je suis l'assistant SpyBusiness — posez-moi une question sur les "
+        # Si l'on nous demande comment nous allons, on répond : ignorer la question posée
+        # pour dérouler sa présentation, c'est ce qui donne l'impression d'un mur.
+        _q = _normaliser(question)
+        # Un adieu se rend, il ne se repond pas par une presentation.
+        if any(m in _q for m in ("au revoir", "bye", "bonne nuit", "a bientot", "adieu")):
+            return "Au revoir, et a bientot !"
+        _politesse = "Bonjour ! " if "merci" not in _q else ""
+        if any(m in _q for m in ("comment vas", "comment allez", "comment ca va", "ca va")):
+            _politesse = "Bonjour, je vais bien, merci ! "
+        elif "merci" in _q:
+            _politesse = "Avec plaisir ! "
+        return (_politesse + "Je suis l'assistant SpyBusiness — posez-moi une question sur les "
                 "tarifs, la performance financière ou la réglementation des 7 banques ivoiriennes "
                 "(BACI, BICICI, BNI, ECOBANK, NSIA, SIB, SGCI).")
 
