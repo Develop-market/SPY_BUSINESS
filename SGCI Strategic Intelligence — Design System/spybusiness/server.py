@@ -1349,11 +1349,23 @@ def api_approfondir():
         "risque : X% » seul, qui se confondrait avec la convention bancaire standard (provisions "
         "rapportées à l'encours de crédit, en points de base, une mesure différente).",
         "IMPÉRATIF ABSOLU SUR LES CLASSEMENTS : toute mention de « leader », « premier », "
-        "« dernier », « meilleur », « pire », ou d'un rang (« 2e », « 3e »...) DOIT reprendre "
-        "MOT POUR MOT une phrase de la section « === CLASSEMENTS === » ci-dessous — jamais une "
+        "« dernier », « meilleur », « pire », ou d'un rang (« 2e », « 3e »...) DOIT correspondre "
+        "MOT POUR MOT aux données de la section « === CLASSEMENTS === » ci-dessous — jamais une "
         "banque ou un rang que tu aurais toi-même déduit d'une liste de chiffres triée. Si le "
         "classement demandé n'y figure pas, dis explicitement que tu ne peux pas l'établir avec "
-        "les données fournies, plutôt que d'en proposer un.",
+        "les données fournies, plutôt que d'en proposer un. "
+        # 2026-09-19 (le directeur, capture à l'appui : une puce affichait le chiffre PUIS,
+        # entre guillemets juste après, la phrase-classement ENTIÈRE recopiée une seconde fois
+        # — « PNB : 276,0 Mds FCFA – «PNB — leader (rang #1) : SGCI (276.0 Mds FCFA)...» ».
+        # La consigne « recopier mot pour mot » ci-dessus, écrite pour empêcher un rang
+        # inventé, se lisait aussi comme une invitation à CITER la phrase — d'où le doublon.
+        # Elle interdit maintenant explicitement la citation entre guillemets : le contenu de
+        # la phrase-classement doit être repris, jamais collé en bloc à côté du chiffre déjà
+        # énoncé.
+        "N'insère JAMAIS ces phrases-classements entre guillemets comme une citation à part : "
+        "reformule-les pour qu'elles se lisent comme une phrase normale de ta puce, et ne "
+        "répète pas le nom de la banque ni son chiffre une seconde fois juste après les avoir "
+        "déjà donnés — chaque fait n'apparaît qu'UNE SEULE fois dans la puce.",
     ]
 
     # GARDE-FOU (2026-07-22, bug trouvé : un clic « Approfondir » sur la Projection avait fait
