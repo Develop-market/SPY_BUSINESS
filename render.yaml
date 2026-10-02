@@ -115,8 +115,54 @@ services:
         value: gemini-3.5-flash
       - key: GROQ_API_KEY
         sync: false
+      # UNE SEULE clé Groq était déclarée ici jusqu'au 2026-10-02 — alors que chain.py en
+      # fait tourner DOUZE en local (_groq_key_index, rotation automatique sur quota épuisé,
+      # cf. _invoke_with_retry). Sans les onze suivantes, une clé à sec sur Render n'a nulle
+      # part où basculer~: le code attend 15 à 30 s par tentative (branche is_413/is_tpm) au
+      # lieu de tourner sur une clé fraîche en quelques millisecondes. C'est la cause la plus
+      # probable du chat « très rapide en local, très lent sur Render » — en local les douze
+      # clés du .env absorbent la charge, sur Render une seule le pouvait.
+      # À COLLER DANS LE TABLEAU DE BORD RENDER (Settings → Environment), PAS ICI~: les
+      # valeurs réelles vivent dans BACK/.env (exclu de git), onze lignes GROQ_API_KEY_2 à
+      # GROQ_API_KEY_12 à copier telles quelles.
+      - key: GROQ_API_KEY_2
+        sync: false
+      - key: GROQ_API_KEY_3
+        sync: false
+      - key: GROQ_API_KEY_4
+        sync: false
+      - key: GROQ_API_KEY_5
+        sync: false
+      - key: GROQ_API_KEY_6
+        sync: false
+      - key: GROQ_API_KEY_7
+        sync: false
+      - key: GROQ_API_KEY_8
+        sync: false
+      - key: GROQ_API_KEY_9
+        sync: false
+      - key: GROQ_API_KEY_10
+        sync: false
+      - key: GROQ_API_KEY_11
+        sync: false
+      - key: GROQ_API_KEY_12
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
+
+      # ── Claude (chat), via OpenRouter — demande du directeur du 2026-10-02 ─────────
+      # Claude en tête du chat, Groq en secours automatique si Claude est à sec ou en panne
+      # (chain.py::_ChatClaudePuisGroq). PAS la clé Anthropic native (ANTHROPIC_API_KEY,
+      # restée à 0 crédit) — OpenRouter expose Claude à une adresse et dans un format
+      # compatibles OpenAI, avec un budget séparé. CLAUDE_DISABLED=0 pour l'activer~; à 1,
+      # le chat saute directement à Groq sans tenter Claude (coupe-circuit déjà utilisé par
+      # server.py pour les analyses du tableau de bord).
+      - key: CLAUDE_DISABLED
+        value: "0"
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: EF_CLAUDE_MODEL
+        value: anthropic/claude-sonnet-5
 
       # ── Vectorisation de la question posée au chat ─────────────────────────────────
       # Jeton Hugging Face en lecture. Sans lui, le chat se désactive proprement et affiche un

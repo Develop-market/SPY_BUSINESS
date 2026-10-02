@@ -86,23 +86,17 @@ _AGENT_LABELS = {
 # ═══════════════════════════════════════════════════════════
 
 def _creer_llm(temperature: float = None):
-    """Crée le LLM selon LLM_PROVIDER dans config."""
+    """Crée le LLM du chat~: Claude (via OpenRouter) en tête, Groq en secours automatique.
+
+    Historique (2026-10-02, demande explicite du directeur — « rebrancher Claude au chat,
+    et si Claude finit basculer sur Groq directement ») : jusqu'ici le chat n'utilisait que
+    Gemini ou Groq (LLM_PROVIDER), Claude restait réservé aux analyses du tableau de bord
+    (server.py::_claude_call). `_ChatClaudePuisGroq` ci-dessous rend CE comportement
+    transparent pour tous les appelants de ce fichier — qu'ils passent par
+    `_invoke_with_retry` ou appellent `.invoke()` directement — en encapsulant la bascule
+    DANS l'objet LLM lui-même, plutôt qu'en dupliquant la logique à chaque site d'appel."""
     temp = temperature if temperature is not None else config.LLM_TEMPERATURE_ANALYTIQUE
-
-    if config.LLM_PROVIDER == "groq":
-        try:
-            from langchain_groq import ChatGroq
-            return ChatGroq(
-                model       = config.GROQ_MODEL,
-                groq_api_key = config.GROQ_API_KEY,
-                temperature  = temp,
-                max_tokens   = config.LLM_MAX_TOKENS,
-                reasoning_effort = "low",
-            )
-        except ImportError:
-            print("[WARN] langchain-groq non installé — bascule sur Gemini")
-
-    return _creer_llm_gemini(temp)
+    return _ChatClaudePuisGroq(temperature=temp)
 
 
 def _creer_llm_gemini(temp: float):
@@ -129,6 +123,108 @@ def _creer_llm_gemini(temp: float):
         # Tous les modèles n'acceptent pas ce réglage : mieux vaut un modèle bavard qu'aucun.
         print(f"  [GEMINI] raisonnement non réglable ({str(e)[:70]}) — réponses plus longues à venir")
         return ChatGoogleGenerativeAI(**commun)
+
+
+# ═══════════════════════════════════════════════════════════
+#  CLAUDE (OpenRouter) PUIS GROQ — chaîne de secours du chat (2026-10-02)
+# ═══════════════════════════════════════════════════════════
+MESSAGE_PLUS_DE_TOKENS = "Plus de tokens disponibles : recharger svp."
+
+
+class _Reponse:
+    """Enveloppe minimale compatible `.content`, ce que `_texte_reponse()` attend d'un
+    message LangChain — évite d'importer AIMessage pour une simple chaîne."""
+    __slots__ = ("content",)
+    def __init__(self, content: str):
+        self.content = content
+
+
+def _messages_vers_openai(messages) -> list:
+    """Convertit une liste SystemMessage/HumanMessage LangChain au format {role, content}
+    attendu par l'API OpenRouter (compatible OpenAI)."""
+    role_par_type = {"system": "system", "human": "user", "ai": "assistant"}
+    out = []
+    for m in messages:
+        role = role_par_type.get(getattr(m, "type", "human"), "user")
+        contenu = getattr(m, "content", m if isinstance(m, str) else str(m))
+        if isinstance(contenu, list):
+            contenu = "\n".join(c.get("text", "") if isinstance(c, dict) else str(c) for c in contenu)
+        out.append({"role": role, "content": contenu})
+    return out
+
+
+def _appeler_claude_openrouter(messages, temperature: float, max_tokens: int = 2000) -> str:
+    """Appelle Claude via OpenRouter pour LE CHAT — même mécanisme que server.py::_claude_call
+    (clé OPENROUTER_API_KEY, PAS ANTHROPIC_API_KEY qui reste à 0 crédit ; `reasoning:
+    {enabled: False}` OBLIGATOIRE, sinon Claude Sonnet 5 consomme tout `max_tokens` en
+    raisonnement interne et ne renvoie aucun texte — cf. le commentaire détaillé là-bas).
+
+    COUPE-CIRCUIT identique : CLAUDE_DISABLED=1 dans .env retourne "" immédiatement, avant
+    tout appel réseau. Retourne toujours une chaîne (jamais d'exception) — "" signale
+    l'indisponibilité à l'appelant, qui bascule sur Groq."""
+    if os.getenv("CLAUDE_DISABLED") == "1":
+        return ""
+    or_key = os.getenv("OPENROUTER_API_KEY", "")
+    if not or_key:
+        return ""
+    import requests as _rq
+    last_err = None
+    for attempt in range(2):
+        try:
+            resp = _rq.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={"Authorization": f"Bearer {or_key}", "Content-Type": "application/json"},
+                json={
+                    "model": os.getenv("EF_CLAUDE_MODEL", "anthropic/claude-sonnet-5"),
+                    "max_tokens": max_tokens, "temperature": temperature,
+                    "reasoning": {"enabled": False},
+                    "messages": _messages_vers_openai(messages),
+                },
+                timeout=60,
+            )
+            d = resp.json()
+            txt = (d.get("choices") or [{}])[0].get("message", {}).get("content") or ""
+            if txt:
+                return txt
+            print(f"  [CLAUDE/chat] réponse vide ({resp.status_code}) : {str(d)[:200].encode('ascii','backslashreplace').decode()}")
+            return ""
+        except Exception as e:
+            last_err = e
+            if attempt == 0:
+                print(f"  [CLAUDE/chat] erreur réseau transitoire ({str(e)[:80]}) → retry")
+                time.sleep(1.5)
+                continue
+    print(f"  [CLAUDE/chat] indisponible après retry ({str(last_err)[:80]}) → bascule Groq")
+    return ""
+
+
+class _ChatClaudePuisGroq:
+    """LLM composite~: Claude d'abord, Groq (rotation 12 clés via `_invoke_with_retry`) si
+    Claude est désactivé, à sec ou en panne, message clair si les deux le sont. `.invoke()`
+    ne lève jamais — transparent pour TOUS les appelants de ce fichier, y compris ceux qui
+    appellent `llm.invoke()` directement sans passer par `_invoke_with_retry`."""
+    def __init__(self, temperature: float = 0.3):
+        self.temperature = temperature  # lu par endroits qui font getattr(llm, "temperature", ...)
+
+    def invoke(self, messages):
+        max_tokens = config.LLM_MAX_TOKENS if config.LLM_PROVIDER == "gemini" else config.LLM_MAX_TOKENS_GROQ
+        texte = _appeler_claude_openrouter(messages, self.temperature, max_tokens=max(max_tokens, 2000))
+        if texte:
+            return _Reponse(texte)
+
+        # Claude indisponible → Groq, avec la rotation de clés déjà éprouvée. On force le
+        # nombre de clés à considérer explicitement (plutôt que via config.LLM_PROVIDER,
+        # qui peut rester "gemini" en configuration générale sans rapport avec ce chat).
+        if not (config.GROQ_API_KEYS or config.GROQ_API_KEY):
+            return _Reponse(MESSAGE_PLUS_DE_TOKENS)
+        from langchain_groq import ChatGroq
+        cle = (config.GROQ_API_KEYS or [config.GROQ_API_KEY])[0]
+        groq_llm = ChatGroq(model=config.GROQ_MODEL, groq_api_key=cle,
+                             temperature=self.temperature, max_tokens=config.LLM_MAX_TOKENS_GROQ,
+                             reasoning_effort="low")
+        texte = _invoke_with_retry(groq_llm, _adapter_messages(messages, config.MAX_CONTEXT_CHARS_COMPARAISON),
+                                    _forcer_rotation_groq=True)
+        return _Reponse(texte)
 
 
 # Singletons LLM (initialisés au premier appel)
@@ -340,7 +436,7 @@ def _creer_llm_autre(temp: float):
         return None
 
 
-def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
+def _invoke_with_retry(llm, messages, max_retries: int = None, _forcer_rotation_groq: bool = False) -> str:
     """
     Appelle le LLM avec retry et rotation des clés Groq sur quota épuisé.
     - 429 TPD (quota journalier épuisé) : bascule sur clé suivante automatiquement
@@ -349,9 +445,13 @@ def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
       différente a son propre budget, donc quasi toujours disponible immédiatement, plus
       rapide et plus fiable qu'attendre sur la même clé.
     - 429 TPM générique (sans indication clé alternative utile) : attente 30s puis retry.
-    """
+
+    `_forcer_rotation_groq` (2026-10-02) : active la rotation sur les 12 clés même quand
+    config.LLM_PROVIDER vaut "gemini" en configuration générale — utilisé par
+    `_ChatClaudePuisGroq`, dont la bascule Claude→Groq ne dépend pas du fournisseur par
+    défaut du reste de l'application."""
     global _groq_key_index
-    n_keys = len(config.GROQ_API_KEYS) if config.LLM_PROVIDER == "groq" else 1
+    n_keys = len(config.GROQ_API_KEYS) if (config.LLM_PROVIDER == "groq" or _forcer_rotation_groq) else 1
     if max_retries is None:
         max_retries = max(4, n_keys * 2)
 
@@ -377,6 +477,8 @@ def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
             is_indispo   = "503" in err or "unavailable" in err_low or "high demand" in err_low
 
             if attempt >= max_retries - 1:
+                if is_tpd or is_resource or is_413 or is_indispo:
+                    return MESSAGE_PLUS_DE_TOKENS
                 return f"Erreur après {max_retries} tentatives : {err[:150]}"
 
             # BASCULE DE FOURNISSEUR quand celui en cours est à sec. Les deux paliers gratuits
@@ -385,7 +487,7 @@ def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
             # séance de travail à lui seul ; ensemble ils la tiennent. L'un s'épuise, l'autre
             # prend la suite — une seule fois, pour ne pas faire l'aller-retour entre deux
             # fournisseurs tous deux vides.
-            if (is_tpd or is_resource) and not bascule_faite and _autre_fournisseur_dispo():
+            if (is_tpd or is_resource) and not bascule_faite and not _forcer_rotation_groq and _autre_fournisseur_dispo():
                 bascule_faite = True
                 autre = "gemini" if config.LLM_PROVIDER == "groq" else "groq"
                 print(f"  [BASCULE] {config.LLM_PROVIDER} épuisé → {autre}")
@@ -397,7 +499,7 @@ def _invoke_with_retry(llm, messages, max_retries: int = None) -> str:
                                                      config.MAX_CONTEXT_CHARS_COMPARAISON)
                     continue
 
-            if (is_tpd or is_resource or is_413) and config.LLM_PROVIDER == "groq" and n_keys > 1:
+            if (is_tpd or is_resource or is_413) and (config.LLM_PROVIDER == "groq" or _forcer_rotation_groq) and n_keys > 1:
                 _groq_key_index = (_groq_key_index + 1) % n_keys
                 new_key = config.GROQ_API_KEYS[_groq_key_index]
                 motif = "413 (budget minute plein)" if is_413 else "TPD"
