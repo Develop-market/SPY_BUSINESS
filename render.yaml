@@ -164,6 +164,17 @@ services:
       - key: EF_CLAUDE_MODEL
         value: anthropic/claude-sonnet-5
 
+      # ── CodeCraftAPI (chat), priorité #1 — demande du directeur du 2026-10-02 ───────
+      # Revendeur tiers (compatible OpenAI, base https://codecraftapi.com/v1), 1M de jetons.
+      # Essayé AVANT Claude/OpenRouter dans chain.py::_ChatClaudePuisGroq. Accepté
+      # explicitement par la direction malgré le risque de gouvernance (les questions du
+      # chat transitent par un service non affilié à Anthropic). La clé réelle se colle
+      # dans le tableau de bord Render (sync: false), comme les autres secrets.
+      - key: CODECRAFT_API_KEY
+        sync: false
+      - key: CODECRAFT_MODEL
+        value: claude-fable-5
+
       # ── Vectorisation de la question posée au chat ─────────────────────────────────
       # Jeton Hugging Face en lecture. Sans lui, le chat se désactive proprement et affiche un
       # message ; le reste de l'application n'en dépend pas.

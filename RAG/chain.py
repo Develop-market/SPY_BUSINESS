@@ -126,8 +126,14 @@ def _creer_llm_gemini(temp: float):
 
 
 # ═══════════════════════════════════════════════════════════
-#  CLAUDE (OpenRouter) PUIS GROQ — chaîne de secours du chat (2026-10-02)
+#  CODECRAFT PUIS CLAUDE PUIS GROQ — chaîne de secours du chat (2026-10-02)
 # ═══════════════════════════════════════════════════════════
+# Ordre voulu par la direction, demande du 2026-10-02 : CodeCraftAPI (1M de jetons, revendeur
+# tiers — accepté explicitement malgré le risque de gouvernance, cf. .env) en premier ; si à
+# sec, Claude via OpenRouter s'il reste du crédit ; si les deux le sont, Groq (rotation 12
+# clés déjà éprouvée). ROTATION RAPIDE EXIGÉE~: aucun des appels de ce palier n'attend ni ne
+# réessaie sur la même source avant de passer à la suivante — un délai perdu ici se répète à
+# chaque question du chat, ce qui est précisément ce qui rendait Render lent.
 MESSAGE_PLUS_DE_TOKENS = "Plus de tokens disponibles : recharger svp."
 
 
@@ -153,68 +159,100 @@ def _messages_vers_openai(messages) -> list:
     return out
 
 
+def _appeler_codecraft(messages, temperature: float, max_tokens: int = 2000) -> str:
+    """Appelle CodeCraftAPI (revendeur tiers, clé CODECRAFT_API_KEY, modèle claude-fable-5
+    par défaut) — PRIORITÉ #1 du chat (2026-10-02). API compatible OpenAI, format standard.
+
+    UNE SEULE tentative, délai COURT~: la consigne est une rotation rapide — si CodeCraft ne
+    répond pas vite, on ne doit pas faire attendre l'utilisateur, on passe à Claude. Retourne
+    toujours une chaîne, jamais d'exception."""
+    cle = os.getenv("CODECRAFT_API_KEY", "")
+    if not cle:
+        return ""
+    import requests as _rq
+    try:
+        resp = _rq.post(
+            "https://codecraftapi.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {cle}", "Content-Type": "application/json"},
+            json={
+                "model": os.getenv("CODECRAFT_MODEL", "claude-fable-5"),
+                "max_tokens": max_tokens, "temperature": temperature,
+                "messages": _messages_vers_openai(messages),
+            },
+            timeout=25,
+        )
+        d = resp.json()
+        txt = (d.get("choices") or [{}])[0].get("message", {}).get("content") or ""
+        if txt:
+            return txt
+        print(f"  [CODECRAFT/chat] réponse vide ({resp.status_code}) : {str(d)[:200].encode('ascii','backslashreplace').decode()}")
+    except Exception as e:
+        print(f"  [CODECRAFT/chat] indisponible ({str(e)[:80]}) → bascule Claude")
+    return ""
+
+
 def _appeler_claude_openrouter(messages, temperature: float, max_tokens: int = 2000) -> str:
     """Appelle Claude via OpenRouter pour LE CHAT — même mécanisme que server.py::_claude_call
     (clé OPENROUTER_API_KEY, PAS ANTHROPIC_API_KEY qui reste à 0 crédit ; `reasoning:
     {enabled: False}` OBLIGATOIRE, sinon Claude Sonnet 5 consomme tout `max_tokens` en
     raisonnement interne et ne renvoie aucun texte — cf. le commentaire détaillé là-bas).
 
-    COUPE-CIRCUIT identique : CLAUDE_DISABLED=1 dans .env retourne "" immédiatement, avant
-    tout appel réseau. Retourne toujours une chaîne (jamais d'exception) — "" signale
-    l'indisponibilité à l'appelant, qui bascule sur Groq."""
+    Palier #2 (après CodeCraftAPI, avant Groq). UNE SEULE tentative, délai court~: même
+    logique de rotation rapide que `_appeler_codecraft` — pas d'attente sur une source à sec.
+    COUPE-CIRCUIT identique~: CLAUDE_DISABLED=1 dans .env retourne "" immédiatement, avant
+    tout appel réseau. Retourne toujours une chaîne (jamais d'exception)."""
     if os.getenv("CLAUDE_DISABLED") == "1":
         return ""
     or_key = os.getenv("OPENROUTER_API_KEY", "")
     if not or_key:
         return ""
     import requests as _rq
-    last_err = None
-    for attempt in range(2):
-        try:
-            resp = _rq.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers={"Authorization": f"Bearer {or_key}", "Content-Type": "application/json"},
-                json={
-                    "model": os.getenv("EF_CLAUDE_MODEL", "anthropic/claude-sonnet-5"),
-                    "max_tokens": max_tokens, "temperature": temperature,
-                    "reasoning": {"enabled": False},
-                    "messages": _messages_vers_openai(messages),
-                },
-                timeout=60,
-            )
-            d = resp.json()
-            txt = (d.get("choices") or [{}])[0].get("message", {}).get("content") or ""
-            if txt:
-                return txt
-            print(f"  [CLAUDE/chat] réponse vide ({resp.status_code}) : {str(d)[:200].encode('ascii','backslashreplace').decode()}")
-            return ""
-        except Exception as e:
-            last_err = e
-            if attempt == 0:
-                print(f"  [CLAUDE/chat] erreur réseau transitoire ({str(e)[:80]}) → retry")
-                time.sleep(1.5)
-                continue
-    print(f"  [CLAUDE/chat] indisponible après retry ({str(last_err)[:80]}) → bascule Groq")
+    try:
+        resp = _rq.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={"Authorization": f"Bearer {or_key}", "Content-Type": "application/json"},
+            json={
+                "model": os.getenv("EF_CLAUDE_MODEL", "anthropic/claude-sonnet-5"),
+                "max_tokens": max_tokens, "temperature": temperature,
+                "reasoning": {"enabled": False},
+                "messages": _messages_vers_openai(messages),
+            },
+            timeout=25,
+        )
+        d = resp.json()
+        txt = (d.get("choices") or [{}])[0].get("message", {}).get("content") or ""
+        if txt:
+            return txt
+        print(f"  [CLAUDE/chat] réponse vide ({resp.status_code}) : {str(d)[:200].encode('ascii','backslashreplace').decode()}")
+    except Exception as e:
+        print(f"  [CLAUDE/chat] indisponible ({str(e)[:80]}) → bascule Groq")
     return ""
 
 
 class _ChatClaudePuisGroq:
-    """LLM composite~: Claude d'abord, Groq (rotation 12 clés via `_invoke_with_retry`) si
-    Claude est désactivé, à sec ou en panne, message clair si les deux le sont. `.invoke()`
-    ne lève jamais — transparent pour TOUS les appelants de ce fichier, y compris ceux qui
-    appellent `llm.invoke()` directement sans passer par `_invoke_with_retry`."""
+    """LLM composite~: CodeCraftAPI d'abord, puis Claude (OpenRouter), puis Groq (rotation
+    12 clés via `_invoke_with_retry`), message clair si les trois sont à sec. Chaque palier
+    échoue VITE (une tentative, délai court~: cf. les fonctions ci-dessus) — c'est l'enchaînement
+    qui protège, pas l'attente sur une source donnée. `.invoke()` ne lève jamais — transparent
+    pour TOUS les appelants de ce fichier, y compris ceux qui appellent `llm.invoke()`
+    directement sans passer par `_invoke_with_retry`."""
     def __init__(self, temperature: float = 0.3):
         self.temperature = temperature  # lu par endroits qui font getattr(llm, "temperature", ...)
 
     def invoke(self, messages):
-        max_tokens = config.LLM_MAX_TOKENS if config.LLM_PROVIDER == "gemini" else config.LLM_MAX_TOKENS_GROQ
-        texte = _appeler_claude_openrouter(messages, self.temperature, max_tokens=max(max_tokens, 2000))
+        max_tokens = max(config.LLM_MAX_TOKENS if config.LLM_PROVIDER == "gemini" else config.LLM_MAX_TOKENS_GROQ, 2000)
+
+        texte = _appeler_codecraft(messages, self.temperature, max_tokens=max_tokens)
         if texte:
             return _Reponse(texte)
 
-        # Claude indisponible → Groq, avec la rotation de clés déjà éprouvée. On force le
-        # nombre de clés à considérer explicitement (plutôt que via config.LLM_PROVIDER,
-        # qui peut rester "gemini" en configuration générale sans rapport avec ce chat).
+        texte = _appeler_claude_openrouter(messages, self.temperature, max_tokens=max_tokens)
+        if texte:
+            return _Reponse(texte)
+
+        # Les deux sont à sec → Groq, rotation de clés déjà éprouvée. On force le nombre de
+        # clés à considérer explicitement (plutôt que via config.LLM_PROVIDER, qui peut
+        # rester "gemini" en configuration générale sans rapport avec ce chat).
         if not (config.GROQ_API_KEYS or config.GROQ_API_KEY):
             return _Reponse(MESSAGE_PLUS_DE_TOKENS)
         from langchain_groq import ChatGroq
