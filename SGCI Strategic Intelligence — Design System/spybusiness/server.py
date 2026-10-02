@@ -285,6 +285,55 @@ def api_journal_acces():
         return jsonify({"error": "réservé à l'administration"}), 403
     return jsonify({"entrees": securite.journal(200)})
 
+
+@app.route("/api/admin/diag_llm")
+def api_diag_llm():
+    """DIAGNOSTIC TEMPORAIRE (2026-10-02) — réservé à l'administration. Teste CodeCraft et
+    Claude/OpenRouter DEPUIS CE SERVEUR (Render), avec l'erreur brute de chacun, sans passer
+    par la chaîne de bascule complète. Sert à distinguer « la clé est absente/mauvaise sur
+    Render » de « le service bloque les requêtes depuis cette adresse », ce que les logs seuls
+    ne distinguaient pas vu d'ici. À retirer une fois le diagnostic terminé."""
+    u = session.get("utilisateur") or {}
+    if u.get("role") != securite.ADMIN:
+        return jsonify({"error": "réservé à l'administration"}), 403
+    import requests as _rq, time as _t
+    resultats = {}
+
+    cle_cc = os.getenv("CODECRAFT_API_KEY", "")
+    resultats["codecraft"] = {"cle_presente": bool(cle_cc), "cle_longueur": len(cle_cc)}
+    if cle_cc:
+        t0 = _t.time()
+        try:
+            r = _rq.post("https://codecraftapi.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {cle_cc}", "Content-Type": "application/json"},
+                json={"model": os.getenv("CODECRAFT_MODEL", "claude-fable-5"), "max_tokens": 20,
+                      "messages": [{"role": "user", "content": "Dis juste OK."}]}, timeout=20)
+            resultats["codecraft"].update({"duree_s": round(_t.time() - t0, 2),
+                "statut": r.status_code, "corps": r.text[:400]})
+        except Exception as e:
+            resultats["codecraft"].update({"duree_s": round(_t.time() - t0, 2),
+                "exception": f"{type(e).__name__}: {str(e)[:300]}"})
+
+    cle_or = os.getenv("OPENROUTER_API_KEY", "")
+    resultats["claude_openrouter"] = {"cle_presente": bool(cle_or), "cle_longueur": len(cle_or)}
+    if cle_or:
+        t0 = _t.time()
+        try:
+            r = _rq.post("https://openrouter.ai/api/v1/chat/completions",
+                headers={"Authorization": f"Bearer {cle_or}", "Content-Type": "application/json"},
+                json={"model": os.getenv("EF_CLAUDE_MODEL", "anthropic/claude-sonnet-5"), "max_tokens": 20,
+                      "temperature": 0.3, "reasoning": {"enabled": False},
+                      "messages": [{"role": "user", "content": "Dis juste OK."}]}, timeout=20)
+            resultats["claude_openrouter"].update({"duree_s": round(_t.time() - t0, 2),
+                "statut": r.status_code, "corps": r.text[:400]})
+        except Exception as e:
+            resultats["claude_openrouter"].update({"duree_s": round(_t.time() - t0, 2),
+                "exception": f"{type(e).__name__}: {str(e)[:300]}"})
+
+    resultats["groq_cles_configurees"] = len([k for k in
+        [os.getenv(f"GROQ_API_KEY{('_'+str(i)) if i>1 else ''}", "") for i in range(1, 13)] if k])
+    return jsonify(resultats)
+
 # ── RAG (init une seule fois) ──────────────────────────────────────────
 _chain  = None
 _RAG_OK = False
