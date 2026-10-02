@@ -113,6 +113,17 @@ def comparer_ef(indicateur: str, mode: str = "AN3", banques: list = None) -> dic
                              AND montant IS NOT NULL""", (b, y, pat, "%avant%"))
             rows = [(float(r[0]), r[1]) for r in cur.fetchall()]
             if not rows:
+                # BUG TROUVÉ le 2026-09-19 (le directeur, testant « capitaux propres les plus
+                # faibles » : SIB manquait du classement, SANS AUCUNE TRACE — même défaut que
+                # « db.query() avale les erreurs et rend [] », ici au niveau de l'agrégation.
+                # Cause réelle : SIB a un AN3 = 2025 (elle a d'autres indicateurs 2025), mais
+                # AUCUNE ligne « capitaux propres » n'existe pour son rapport 2025 en base (elle
+                # s'arrête à 2024) — un vrai trou de donnée, pas une erreur de requête. Jusqu'ici
+                # `continue` faisait disparaître la banque sans un mot, alors que le cas voisin
+                # « valeur ambiguë » (juste en dessous) est lui bien signalé. Même traitement :
+                # la banque reste dans `out`, marquée absente, pour que format_comparaison()
+                # le dise au lieu de le taire.
+                out[b] = {"annee": y, "valeur": None, "manquant": True}
                 continue
             valeur, ambigu = _resoudre_valeur_ef(rows)
             if ambigu:
@@ -580,6 +591,10 @@ def format_comparaison(d: dict, unite="FCFA", sens="max") -> tuple:
     items = [(k, v.get("valeur", v.get("montant"))) for k, v in d.items()]
     items = [(k, val) for k, val in items if val is not None]
     ambigus = [k for k, v in d.items() if v.get("ambigu")]
+    # 2026-09-19 : « manquant » (comparer_ef) — banque avec une année de référence (AN3) mais
+    # SANS aucune ligne pour l'indicateur demandé (trou de donnée réel, pas une ambiguïté) —
+    # même traitement que "ambigus" ci-dessous : dit, jamais tu.
+    manquants = [k for k, v in d.items() if v.get("manquant")]
     if not items:
         msg = "Aucune donnée comparable trouvée dans la base."
         if ambigus:
@@ -589,6 +604,8 @@ def format_comparaison(d: dict, unite="FCFA", sens="max") -> tuple:
                 libs = d[k].get("libelles_conflictuels")
                 if libs:
                     msg += f"\n  {k} : plusieurs services matchent ce terme — {' / '.join(libs)}"
+        if manquants:
+            msg += f" ({', '.join(manquants)} : donnée absente en base pour l'année la plus récente.)"
         return msg, None
     items.sort(key=lambda x: x[1], reverse=(sens == "max"))
     gagnant = items[0][0]
@@ -617,6 +634,9 @@ def format_comparaison(d: dict, unite="FCFA", sens="max") -> tuple:
             libs = d[k].get("libelles_conflictuels")
             if libs:
                 texte += f"\n      {k} : plusieurs services matchent ce terme — {' / '.join(libs)}"
+    if manquants:
+        texte += (f"\n  [NON INCLUS — donnée absente en base pour l'année la plus récente, "
+                   f"ne pas deviner] {', '.join(manquants)}")
     return texte, gagnant
 
 

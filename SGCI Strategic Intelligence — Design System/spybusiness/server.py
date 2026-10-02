@@ -1246,6 +1246,12 @@ def api_approfondir():
     kpis     = body.get("kpis", {})   # données live envoyées par le front
     section_facts = body.get("section_facts")   # 2026-07-22 : vrais chiffres DÉJÀ CALCULÉS de la section cliquée
     conv_id  = body.get("conv_id")    # 2026-07-23 : pour verser cet échange dans la mémoire du chat (voir _bridge_vers_memoire_chat)
+    # scope (2026-09-19, le directeur : cliquer « Approfondir » sur la section Revenus a
+    # produit une réponse sur le coût du risque et le résultat net — hors sujet). `kpis` est
+    # déjà filtré côté front pour les 4 boutons EF (position/revenus/efficience/risque) ; ce
+    # nom de section sert ici UNIQUEMENT à ne pas coller le paragraphe fixe sur le coût du
+    # risque (ci-dessous) quand la section cliquée ne le concerne pas.
+    scope    = body.get("scope")
 
     if not question:
         return jsonify({"error": "question manquante"}), 400
@@ -1334,20 +1340,27 @@ def api_approfondir():
     _cr_best = min(((b, v) for b, v in _cr.items() if b != "SGCI"), key=lambda x: x[1], default=None)
     _cr_sgci_txt = f"{_cr_sgci}%" if _cr_sgci is not None else "(valeur non transmise ici, voir la ligne « Coût du risque/PNB » ci-dessus)"
     _cr_best_txt = f"{_cr_best[0]} ({_cr_best[1]}% de coût du risque rapporté au PNB)" if _cr_best else "non disponible"
+    ctx_lines += ["", "=== CONTEXTE SGCI ===", "SGCI est la plus grande banque du marché ivoirien."]
+    # 2026-09-19 (élargi : « ça doit être valable pour TOUS les boutons Approfondir », pas
+    # seulement les 4 de Santé financière) : ce paragraphe ne concerne QUE l'efficience/le
+    # risque (il parle du coût du risque et de la marge nette) — il s'affichait pourtant sur
+    # TOUT bouton Approfondir, y compris Stratégie et les suggestions de chat, qui n'ont rien
+    # à voir, et tirait systématiquement la réponse vers ce sujet. Il ne s'ajoute désormais que
+    # si le scope demandé le concerne explicitement — plus jamais par défaut.
+    if scope in ("efficience", "risque"):
+        ctx_lines += [
+            f"Paradoxe identifié : #1 en PNB et en maîtrise des charges, mais dernière en marge nette "
+            f"à cause du coût du risque RAPPORTÉ AU PNB le plus élevé du marché ({_cr_sgci_txt}).",
+            f"Concurrent à surveiller sur ce point : {_cr_best_txt}.",
+            "Formules : Marge nette = RN/PNB×100 | Coût du risque rapporté au PNB = |Provisions|/PNB×100 "
+            "(à ne jamais confondre avec le coût du risque rapporté à l'encours de crédit, une "
+            "convention différente) | ROE = RN/Capitaux propres×100",
+            "IMPÉRATIF DE FORMULATION : chaque fois que tu cites le « coût du risque », précise "
+            "TOUJOURS « rapporté au PNB » (ou « /PNB ») à côté du chiffre — ne dis jamais « coût du "
+            "risque : X% » seul, qui se confondrait avec la convention bancaire standard (provisions "
+            "rapportées à l'encours de crédit, en points de base, une mesure différente).",
+        ]
     ctx_lines += [
-        "",
-        "=== CONTEXTE SGCI ===",
-        "SGCI est la plus grande banque du marché ivoirien.",
-        f"Paradoxe identifié : #1 en PNB et en maîtrise des charges, mais dernière en marge nette "
-        f"à cause du coût du risque RAPPORTÉ AU PNB le plus élevé du marché ({_cr_sgci_txt}).",
-        f"Concurrent à surveiller sur ce point : {_cr_best_txt}.",
-        "Formules : Marge nette = RN/PNB×100 | Coût du risque rapporté au PNB = |Provisions|/PNB×100 "
-        "(à ne jamais confondre avec le coût du risque rapporté à l'encours de crédit, une "
-        "convention différente) | ROE = RN/Capitaux propres×100",
-        "IMPÉRATIF DE FORMULATION : chaque fois que tu cites le « coût du risque », précise "
-        "TOUJOURS « rapporté au PNB » (ou « /PNB ») à côté du chiffre — ne dis jamais « coût du "
-        "risque : X% » seul, qui se confondrait avec la convention bancaire standard (provisions "
-        "rapportées à l'encours de crédit, en points de base, une mesure différente).",
         "IMPÉRATIF ABSOLU SUR LES CLASSEMENTS : toute mention de « leader », « premier », "
         "« dernier », « meilleur », « pire », ou d'un rang (« 2e », « 3e »...) DOIT correspondre "
         "MOT POUR MOT aux données de la section « === CLASSEMENTS === » ci-dessous — jamais une "
@@ -1393,6 +1406,18 @@ def api_approfondir():
         "Tu es un expert en analyse financière bancaire pour le marché ivoirien (UEMOA). "
         "Tu réponds toujours en français, avec précision et pédagogie. "
         "Tu t'appuies UNIQUEMENT sur les données chiffrées fournies — pas d'invention. "
+        # 2026-09-19 (le directeur, capture à l'appui : un clic « Approfondir » sur la section
+        # Revenus avait répondu avec du coût du risque et du résultat net). Consigne UNIVERSELLE
+        # — s'applique à CE PROMPT quel que soit le bouton qui l'a déclenché (Santé financière,
+        # Stratégie, suggestions de chat) : le filtrage des KPIs envoyés (voir front) retire déjà
+        # la donnée elle-même pour les 4 boutons Santé financière, mais un autre bouton peut
+        # recevoir plusieurs groupes de KPIs à la fois sans que la question porte sur tous. Cette
+        # phrase est le filet qui s'applique dans tous les cas, quelle que soit la donnée reçue.
+        "CE BOUTON SERT À DÉVELOPPER LA VUE SUR LAQUELLE L'UTILISATEUR SE TROUVE, PAS À BALAYER "
+        "D'AUTRES INDICATEURS DU DASHBOARD : reste strictement dans le périmètre thématique de la "
+        "question posée. N'introduis un indicateur (marge nette, coût du risque, coefficient "
+        "d'exploitation, ROE, croissance...) que si la question le nomme explicitement ou s'il est "
+        "indispensable pour y répondre — même s'il figure parmi les données fournies ci-dessous. "
         # STRUCTURE REVUE le 2026-07-28 (le directeur : « on ne peut pas fournir une meilleure
         # structure ? »). L'ancienne consigne — « explication, chiffres, implications métier,
         # recommandation » — imposait QUATRE blocs à toute question, même la plus simple : on

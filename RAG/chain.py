@@ -1179,6 +1179,131 @@ _EF_KEYS = ("produit net bancaire", "pnb", "résultat net", "resultat net",
             "frais généraux", "frais generaux")
 
 
+# ═══════════════════════════════════════════════════════════
+#  BRANCHE MULTIHOP EF — deux indicateurs, deuxième rattaché au résultat du premier
+#  ("Quelle banque a le PNB le plus élevé..., et quel est le résultat net de CETTE
+#  banque la même année ?") — AJOUTÉ le 2026-09-19.
+#
+#  BUG TROUVÉ (le directeur, testant en direct la même question que le jeu d'éval,
+#  mh_001) : sans ce détecteur, _detect_comparatif() ci-dessous — qui s'exécute juste
+#  après dans _essayer_detecteurs() — matche la question sur le PREMIER indicateur EF
+#  qu'il y trouve (ici « pnb »), répond au classement PNB, et RETOURNE — la deuxième
+#  moitié de la question (le résultat net) n'est jamais lue. Reproductible : c'est
+#  exactement le mode d'échec déjà mesuré sur l'architecture modulaire pour mh_001/
+#  mh_002 dans le jeu d'évaluation (169 questions), où le résultat net n'était jamais
+#  donné non plus. Ce détecteur doit être essayé AVANT _detect_comparatif.
+# ═══════════════════════════════════════════════════════════
+
+_MOTS_MEME_BANQUE = ("cette banque", "cette même banque", "cette meme banque",
+                      "de cette banque", "pour cette banque")
+
+# (id concept, alias reconnus dans la question, clé à passer à structured_tools,
+#  libellé affiché). Les concepts EXISTENT en plusieurs graphies dans _EF_KEYS
+# (accentuée/non accentuée, ou synonymes) : on les regroupe ici pour ne jamais compter
+# deux fois le MÊME indicateur comme s'il s'agissait de deux critères différents.
+_MULTIHOP_CONCEPTS = (
+    ("pnb", ("produit net bancaire", "pnb"), "pnb", "PNB"),
+    ("resultat_net", ("résultat net", "resultat net"), "résultat net", "résultat net"),
+    ("capitaux_propres", ("capitaux propres",), "capitaux propres", "capitaux propres"),
+    ("resultat_exploitation", ("résultat d'exploitation",), "résultat d'exploitation", "résultat d'exploitation"),
+    ("resultat_brut", ("résultat brut",), "résultat brut", "résultat brut d'exploitation"),
+    ("roe", ("roe", "rentabilité", "rentabilite", "return on equity"), "roe", "ROE"),
+    ("coeff_expl", ("coefficient d'exploitation", "coefficient d exploitation"), "coefficient d'exploitation", "coefficient d'exploitation"),
+    ("total_bilan", ("total bilan", "total actif", "total de l'actif"), "total bilan", "total bilan"),
+    ("cout_risque", ("coût du risque", "cout du risque"), "coût du risque", "coût du risque"),
+    ("charges_generales", ("charges générales d'exploitation", "charges generales d'exploitation",
+                            "charges générales", "charges generales",
+                            "frais généraux", "frais generaux"), "charges générales", "charges générales d'exploitation"),
+)
+
+
+def _detect_multihop_ef(question: str):
+    """Détecte une question EF à DEUX étapes : un classement, puis un second indicateur
+    demandé explicitement POUR LA BANQUE GAGNANTE ('cette banque'/'cette même banque').
+    Retourne None si un seul indicateur est trouvé, ou si les deux occurrences renvoient
+    au même concept (ex. « résultat net » cité deux fois) — dans ces cas, la question
+    n'a rien de multihop et les détecteurs habituels (simple comparaison) suffisent."""
+    q = question.lower()
+    if not any(m in q for m in _MOTS_MEME_BANQUE):
+        return None
+    trouves = []
+    for cid, alias, cle, label in _MULTIHOP_CONCEPTS:
+        pos = min((q.find(a) for a in alias if a in q), default=-1)
+        if pos != -1:
+            trouves.append((pos, cid, cle, label))
+    trouves.sort(key=lambda t: t[0])
+    if len(trouves) < 2 or trouves[0][1] == trouves[1][1]:
+        return None
+    _, cid1, cle1, label1 = trouves[0]
+    _, cid2, cle2, label2 = trouves[1]
+    mode = "AN1" if ("an1" in q or "plus ancienne" in q or "ancienne" in q) else "AN3"
+    sens = "min" if ("plus faible" in q or "plus bas" in q or "moins" in q) else "max"
+    return {"cid1": cid1, "cle1": cle1, "label1": label1,
+            "cid2": cid2, "cle2": cle2, "label2": label2,
+            "mode": mode, "sens": sens}
+
+
+def _valeurs_par_concept_ef(cid: str, cle: str, mode: str):
+    """Même dispatch que _executer_comparatif ci-dessous (ROE/coefficient = ratios
+    calculés, le reste = lecture directe), factorisé pour être réutilisé par le multihop.
+    Retour : (dict {banque: {'annee':y,'valeur':v}}, unité)."""
+    if cid == "roe":
+        return structured_tools.comparer_roe(mode), "%"
+    if cid == "coeff_expl":
+        return structured_tools.comparer_coefficient_exploitation(mode), "%"
+    return structured_tools.comparer_ef(cle, mode), "millions FCFA"
+
+
+def _executer_multihop_ef(chain: dict, question: str, spec: dict, question_memoire: str = None) -> str:
+    """Exécute les DEUX étapes en SQL déterministe, puis fait phraser le LLM sur les deux
+    faits déjà calculés — jamais sur un seul, contrairement au bug corrigé ici."""
+    mem = chain["memory"]
+    d1, unite1 = _valeurs_par_concept_ef(spec["cid1"], spec["cle1"], spec["mode"])
+    txt1, gagnant = structured_tools.format_comparaison(d1, unite1, spec["sens"])
+    if not gagnant:
+        rep = "Données insuffisantes dans la base pour cette comparaison."
+        mem.add_user(question_memoire or question); mem.add_assistant(rep)
+        return rep
+    annee_gagnant = d1[gagnant].get("annee")
+
+    # 2ᵉ étape : le fait demandé pour LA BANQUE GAGNANTE, à LA MÊME ANNÉE — la question le
+    # précise explicitement ("la même année") : on relit CETTE année précise plutôt qu'un
+    # AN3 recalculé séparément, qui pourrait en théorie diverger (exercices publiés à des
+    # rythmes différents selon la banque).
+    if spec["cid2"] == "roe":
+        info2 = structured_tools.comparer_roe(spec["mode"]).get(gagnant)
+    elif spec["cid2"] == "coeff_expl":
+        info2 = structured_tools.comparer_coefficient_exploitation(spec["mode"]).get(gagnant)
+    else:
+        info2 = structured_tools.valeur_ef(gagnant, spec["cle2"], annee_gagnant)
+
+    val1_fmt = (f"{d1[gagnant]['valeur']:,.1f}" if unite1 == "%" else f"{d1[gagnant]['valeur']:,.0f}").replace(",", " ")
+    sens_txt = "le plus élevé" if spec["sens"] == "max" else "le plus faible"
+
+    if not info2 or info2.get("valeur") is None or info2.get("ambigu"):
+        rep = (f"{gagnant} a le {spec['label1']} {sens_txt} du panel "
+               f"({val1_fmt} {unite1}, {annee_gagnant}), mais son « {spec['label2']} » "
+               f"n'est pas disponible sans ambiguïté en base pour {annee_gagnant}.")
+        mem.add_user(question_memoire or question); mem.add_assistant(rep)
+        return rep
+
+    unite2 = "%" if spec["cid2"] in ("roe", "coeff_expl") else "millions FCFA"
+    val2_fmt = (f"{info2['valeur']:,.1f}" if unite2 == "%" else f"{info2['valeur']:,.0f}").replace(",", " ")
+
+    sysm = ("Tu réponds UNIQUEMENT à partir des DEUX faits calculés ci-dessous (source : base SQL "
+            "exacte). La question a DEUX volets : confirme EXPLICITEMENT les deux dans ta réponse "
+            "(la banque gagnante ET le second indicateur demandé pour cette même banque) — ne "
+            "réponds jamais à un seul des deux volets.")
+    userm = (f"Question : {question}\n\n"
+             f"FAIT 1 (classement) : {gagnant} a le {spec['label1']} {sens_txt} du panel : "
+             f"{val1_fmt} {unite1} ({annee_gagnant}).\n"
+             f"FAIT 2 : {spec['label2']} de {gagnant} pour {annee_gagnant} : {val2_fmt} {unite2}.")
+    llm = _get_llm(["etats_financiers"])
+    rep = _invoke_avec_garde_fou(llm, [("system", sysm), ("human", userm)], userm, tag="GARDE-FOU MULTIHOP EF")
+    mem.add_user(question_memoire or question); mem.add_assistant(rep)
+    return rep
+
+
 def _detect_comparatif(question: str):
     """Règle déterministe : détecte une question comparative + extrait ses paramètres."""
     q = question.lower()
@@ -2034,6 +2159,16 @@ def ask(chain: dict, question: str) -> str:
         Retourne la réponse, ou None si aucun ne s'applique / ne trouve de données.
         q_mem : ce qu'on écrit dans la mémoire (la question ORIGINALE de l'utilisateur, pour
         qu'un enrichissement de suivi ne s'empile pas d'un tour à l'autre)."""
+        # MULTIHOP (2026-09-19) : DOIT être essayé AVANT _detect_comparatif — sinon celui-ci
+        # intercepte la question sur son PREMIER indicateur EF et ne répond jamais au second
+        # volet demandé (« ... et quel est le résultat net de CETTE banque ? »). Voir le
+        # commentaire au-dessus de _detect_multihop_ef pour le bug réel qui a motivé l'ajout.
+        spec_mh = _detect_multihop_ef(q_detect)
+        if spec_mh:
+            rep = _executer_multihop_ef(chain, q_detect, spec_mh, question_memoire=q_mem)
+            if rep:
+                return rep
+
         spec = _detect_comparatif(q_detect)
         if spec:
             return _executer_comparatif(chain, q_detect, spec, question_memoire=q_mem)

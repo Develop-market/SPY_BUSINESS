@@ -1626,7 +1626,7 @@ function pageApercu(){
         <div class="e">Signal Analytique · États Financiers · ${anxKey} (${k.sgci_rn_annee})</div>
         <div class="h" data-ef="s1"><div data-ef-body><span style="opacity:.4">Analyse en cours…</span></div></div>
       </div>
-      <button class="cta ml" onclick="askIA('Analyse la santé financière de SGCI par rapport au marché bancaire ivoirien')">Approfondir →</button>
+      <button class="cta ml" onclick="askIA('Analyse la santé financière de SGCI par rapport au marché bancaire ivoirien', null, 'position')">Approfondir →</button>
     </div>
 
     <div style="grid-column:span 12;display:flex;gap:var(--s5)">
@@ -1749,7 +1749,7 @@ function pageApercu(){
     <div class="tile insight c12" style="animation-delay:.02s">
       <div class="orb">✦</div>
       <div><div class="e">Signal Analytique · Puissance commerciale</div><div class="h" data-ef="s2"><div data-ef-body><span style="opacity:.4">Analyse en cours…</span></div></div></div>
-      <button class="cta ml" onclick="askIA('Analyse la puissance commerciale de SGCI : PNB et revenus comparés au marché ivoirien')">Approfondir →</button>
+      <button class="cta ml" onclick="askIA('Analyse la puissance commerciale de SGCI : PNB et revenus comparés au marché ivoirien', null, 'revenus')">Approfondir →</button>
     </div>
 
     <div class="tile c6 tpad" style="animation-delay:.05s">
@@ -1808,7 +1808,7 @@ function pageApercu(){
     <div class="tile insight c12" style="animation-delay:.02s">
       <div class="orb">✦</div>
       <div><div class="e">Signal Analytique · Efficacité opérationnelle</div><div class="h" data-ef="s3"><div data-ef-body><span style="opacity:.4">Analyse en cours…</span></div></div></div>
-      <button class="cta ml" onclick="askIA('Analyse l efficacité opérationnelle de SGCI : marge nette et coefficient exploitation comparés aux 7 banques CI')">Approfondir →</button>
+      <button class="cta ml" onclick="askIA('Analyse l efficacité opérationnelle de SGCI : marge nette et coefficient exploitation comparés aux 7 banques CI', null, 'efficience')">Approfondir →</button>
     </div>
 
     <div class="tile c6 tpad" style="animation-delay:.05s">
@@ -1931,7 +1931,7 @@ function pageApercu(){
     <div class="tile insight c12" style="animation-delay:.02s">
       <div class="orb">✦</div>
       <div><div class="e">Signal Analytique · Qualité du risque</div><div class="h" data-ef="s4"><div data-ef-body><span style="opacity:.4">Analyse en cours…</span></div></div></div>
-      <button class="cta ml" onclick="askIA('Analyse le coût du risque de SGCI et la qualité de son portefeuille de crédits par rapport aux banques ivoiriennes')">Approfondir →</button>
+      <button class="cta ml" onclick="askIA('Analyse le coût du risque de SGCI et la qualité de son portefeuille de crédits par rapport aux banques ivoiriennes', null, 'risque')">Approfondir →</button>
     </div>
 
     <div class="tile c7 tpad" style="animation-delay:.05s">
@@ -4324,8 +4324,21 @@ async function askRAG(q){
 }
 
 // Collecte les données KPI actuelles pour enrichir le contexte de l'IA
-function getKPIContext(){
-  return {
+// SCOPE (2026-09-19, le directeur : le bouton « Approfondir » de la section Revenus
+// répondait avec du coût du risque et du résultat net — parce que getKPIContext() renvoyait
+// TOUJOURS les 7 groupes de KPIs, quelle que soit la section cliquée. Le LLM les a tous
+// devant lui, il s'en sert tous. `scope` restreint désormais l'envoi aux seuls indicateurs de
+// la section demandée ; sans scope (chat libre, boutons Stratégie/CB), le comportement
+// d'avant est inchangé — tout est envoyé.
+const _KPI_SCOPES = {
+  position:   ["pnb", "rn", "roe", "growths"],
+  revenus:    ["pnb", "growths"],
+  efficience: ["marge", "coeff"],
+  risque:     ["cout_risque", "roe"],
+};
+
+function getKPIContext(scope){
+  const tout = {
     pnb:         PNB_DATA         || {},
     rn:          Object.fromEntries(Object.entries(KPI_DATA?.rn_data||{}).map(([b,v])=>[b, typeof v==='object'?v.montant:v])),
     marge:       KPI_DATA?.marge_nette_data  || {},
@@ -4334,9 +4347,14 @@ function getKPIContext(){
     roe:         KPI_DATA?.roe_data           || {},
     growths:     KPI_DATA?.growths_data       || {},
   };
+  const clefs = _KPI_SCOPES[scope];
+  if(!clefs) return tout;
+  const filtre = {};
+  clefs.forEach(c => { filtre[c] = tout[c]; });
+  return filtre;
 }
 
-async function askApprofondir(q, sectionFacts){
+async function askApprofondir(q, sectionFacts, scope){
   try{
     const res = await fetch("/api/approfondir", {
       method:"POST",
@@ -4347,7 +4365,9 @@ async function askApprofondir(q, sectionFacts){
       // conv_id (2026-07-23) : verse cet échange dans la mémoire serveur du chat, pour
       // qu'une question de suivi tapée juste après ("Quelles sont les hypothèses ?") ne
       // soit plus rejetée à tort "hors périmètre" faute de contexte connu côté RAG.
-      body: JSON.stringify({ question:q, kpis: getKPIContext(), section_facts: sectionFacts || null, conv_id: CUR_CONV }),
+      // scope (2026-09-19) : nom de la section EF cliquée, pour que le serveur n'ajoute pas
+      // non plus son paragraphe fixe sur le coût du risque hors sujet (voir server.py).
+      body: JSON.stringify({ question:q, kpis: getKPIContext(scope), section_facts: sectionFacts || null, conv_id: CUR_CONV, scope: scope || null }),
     });
     const data = await res.json();
     return data.reponse || "Aucune réponse reçue.";
@@ -4356,7 +4376,7 @@ async function askApprofondir(q, sectionFacts){
   }
 }
 
-async function askIA(q, sectionId){
+async function askIA(q, sectionId, scope){
   go("chat");
   const sectionFacts = sectionId ? (window._STRAT_FACTS||{})[sectionId] : null;
   setTimeout(async ()=>{
@@ -4364,7 +4384,7 @@ async function askIA(q, sectionId){
     _convPersist();
     pushChat("a", "⏳ Analyse en cours avec les données réelles du marché…");
     // Utilise le nouvel endpoint contextualisé qui inclut les KPIs live + les faits de section
-    const r = await askApprofondir(q, sectionFacts);
+    const r = await askApprofondir(q, sectionFacts, scope);
     CHAT[CHAT.length-1] = { role:"a", content:r, ts:Date.now() };
     renderMsgs();
     _convPersist();
@@ -9115,7 +9135,7 @@ function _gateAccept(){
 function _gateShowLogin(){
   const gate = document.getElementById("gate");
   gate.innerHTML = _gateLogin();
-  setTheme(localStorage.getItem("sb-theme") || "dark");   // ré-applique l'icône sur l'écran injecté
+  setTheme(localStorage.getItem("sb-theme") || "light");   // ré-applique l'icône sur l'écran injecté
   /* Focus first input */
   const u = document.getElementById("gate-user");
   if(u) setTimeout(()=> u.focus(), 100);
@@ -9400,7 +9420,7 @@ function _refreshFail(msg){
 
 /* ─── démarrage ──────────────────────────────────────────────────── */
 window.addEventListener("load", ()=>{
-  setTheme(localStorage.getItem("sb-theme") || "dark");
+  setTheme(localStorage.getItem("sb-theme") || "light");
 
   const disclaimerRead = sessionStorage.getItem("sb-disclaimer-read") === "1";
 
@@ -9685,7 +9705,7 @@ function _gateStart(disclaimerRead){
   } else {
     _gateShowLogin();
   }
-  setTheme(localStorage.getItem("sb-theme") || "dark");   // ré-applique l'icône sur le gate injecté
+  setTheme(localStorage.getItem("sb-theme") || "light");   // ré-applique l'icône sur le gate injecté
 }
 
 
