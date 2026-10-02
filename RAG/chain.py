@@ -490,8 +490,14 @@ def _invoke_with_retry(llm, messages, max_retries: int = None, _forcer_rotation_
     défaut du reste de l'application."""
     global _groq_key_index
     n_keys = len(config.GROQ_API_KEYS) if (config.LLM_PROVIDER == "groq" or _forcer_rotation_groq) else 1
+    # ÉCHEC RAPIDE (2026-10-02) : avec UNE seule clé Groq, il n'y a rien vers quoi tourner —
+    # attendre 15 à 30 s par tentative (jusqu'à 4 fois) pour finir quand même sur le message
+    # « plus de tokens » coûtait 50 à 60 s à l'utilisateur, mesuré en direct sur Render (54,8 s).
+    # Dans ce cas précis (bascule forcée + une seule clé), on tente une fois, sans attente, et
+    # on rend la main — la vraie solution est d'ajouter des clés, pas de patienter sur la seule
+    # qu'on a.
     if max_retries is None:
-        max_retries = max(4, n_keys * 2)
+        max_retries = 1 if (_forcer_rotation_groq and n_keys <= 1) else max(4, n_keys * 2)
 
     current_llm = llm  # copie locale pour permettre la rotation
     rotations_413_de_suite = 0  # compteur pour détecter un cycle complet épuisé
