@@ -525,6 +525,17 @@ def _invoke_with_retry(llm, messages, max_retries: int = None, _forcer_rotation_
                     return MESSAGE_PLUS_DE_TOKENS
                 return f"Erreur après {max_retries} tentatives : {err[:150]}"
 
+            # ÉCHEC RAPIDE SUR QUOTA JOURNALIER PARTAGÉ (2026-10-02) : les 12 clés Groq de ce
+            # projet appartiennent au MÊME compte (cf. mémoire du projet, déjà rencontré le
+            # 2026-06-21 — « MUR DE QUOTA Groq 100K tok/JOUR épuisé, 12 clés = même org »). Le
+            # jeton journalier est donc partagé~: si une clé le signale à sec (is_tpd), les
+            # onze autres le seront À L'IDENTIQUE. Les faire tourner quand même coûtait jusqu'à
+            # 24 tentatives avant d'abandonner (mesuré~: ~40s sur Render). Seul 413 (budget PAR
+            # MINUTE, lui vraiment propre à chaque clé/connexion) justifie encore une rotation.
+            if is_tpd and _forcer_rotation_groq:
+                print("  [GROQ] quota journalier épuisé (compte partagé par les 12 clés) → abandon immédiat")
+                return MESSAGE_PLUS_DE_TOKENS
+
             # BASCULE DE FOURNISSEUR quand celui en cours est à sec. Les deux paliers gratuits
             # sont étroits, mais ils ne comptent pas la même chose : Groq alloue 100 000 jetons
             # par jour, Gemini 20 REQUÊTES par jour et par modèle. Aucun des deux ne tient une
