@@ -6,7 +6,7 @@ Lit les PDFs depuis DATA/SOURCE/ et produit des fichiers bruts dans DATA/DONNEES
 Règles strictes (par ordre de priorité décroissante) :
   EF  (tous)     → Docling TXT
   EF  (natifs)   → camelot Excel (complement uniquement)
-                   Seuil qualité : EF_TXT_MIN_BYTES=2000 / EF_XLSX_MIN_CELLS=20
+                   Seuil qualité : EF_TXT_MIN_WORDS=400 + ancrage "résultat net" / EF_XLSX_MIN_CELLS=40
 
   CB  (natifs)   → pdfplumber Excel
                    si résultat < CB_MIN_TABLES ou CB_MIN_CELLS → Docling+EasyOCR
@@ -56,7 +56,12 @@ DENSITY_THRESHOLD = 100   # chars/page — en dessous = scanne
 IMAGE_EXTS        = {".jpg", ".jpeg", ".png"}
 CB_MIN_TABLES     = 4     # pdfplumber insuffisant si < 4 feuilles → Docling auto
 CB_MIN_CELLS      = 200   # pdfplumber insuffisant si < 200 cellules non-vides → Docling auto
-EF_TXT_MIN_BYTES  = 2000  # TXT EF insuffisant si < 2 Ko → re-extraction Docling
+# EF_TXT_MIN_BYTES remplacé le 2026-10-26 : la taille en octets n'est pas fiable (gonflée par
+# l'encodage des accents, ne mesure pas le contenu). Remplacé par un seuil en nombre de mots,
+# calibré sur les 17 états financiers du corpus réel (le plus petit cas valide en compte 500),
+# combiné à un ancrage de contenu qui confirme qu'il s'agit bien d'un état financier.
+EF_TXT_MIN_WORDS  = 400   # TXT EF insuffisant si < 400 mots → re-extraction Docling
+EF_REQUIRED_TERMS = ("résultat net", "pnb")  # un seul suffit ; "résultat net" présent dans 17/17
 EF_XLSX_MIN_CELLS = 40    # XLSX EF insuffisant si < 40 cellules → re-extraction camelot
 
 
@@ -103,6 +108,27 @@ def _count_sheets(path: Path) -> tuple[int, int]:
     return sheets, cells
 
 
+def _sans_accents(s: str) -> str:
+    """Retire les accents (les extractions OCR en MAJUSCULES les perdent souvent)."""
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn")
+
+
+def _text_quality(path: Path) -> tuple[int, bool]:
+    """
+    Retourne (nb_mots, ancrage_present) d'un TXT d'état financier.
+    L'ancrage (un des EF_REQUIRED_TERMS) confirme qu'il s'agit bien d'un état financier
+    et non d'un texte insuffisant qui dépasserait le seuil de mots par hasard.
+    Comparaison sans accents~: certaines extractions OCR en majuscules les perdent
+    ("RESULTAT NET"), d'autres (rapports narratifs) les conservent ("Résultat net").
+    """
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    words = len(text.split())
+    texte_norm = _sans_accents(text).lower()
+    anchor = any(_sans_accents(terme) in texte_norm for terme in EF_REQUIRED_TERMS)
+    return words, anchor
+
+
 # ── ETATS FINANCIERS ──────────────────────────────────────────────────────────
 def process_etats(src_path: Path, out_dir: Path):
     """
@@ -116,13 +142,13 @@ def process_etats(src_path: Path, out_dir: Path):
 
     # --- 1. TXT (source primaire) ---
     if txt_out.exists():
-        size = txt_out.stat().st_size
-        if size >= EF_TXT_MIN_BYTES:
-            print(f"    [TXT OK   ] {txt_out.name}  ({size:,} bytes — existe)")
+        words, anchor = _text_quality(txt_out)
+        if words >= EF_TXT_MIN_WORDS and anchor:
+            print(f"    [TXT OK   ] {txt_out.name}  ({words} mots, ancrage trouvé — existe)")
         else:
             txt_out.unlink()
-            print(f"    [QUALITE  ] {txt_out.name} insuffisant ({size} bytes) → re-extraction ...",
-                  flush=True)
+            print(f"    [QUALITE  ] {txt_out.name} insuffisant ({words} mots, "
+                  f"ancrage={'oui' if anchor else 'non'}) → re-extraction ...", flush=True)
 
     if not txt_out.exists():
         print(f"    [DOCLING  ] {src_path.name} ...", end=" ", flush=True)

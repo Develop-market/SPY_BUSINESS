@@ -1,0 +1,2503 @@
+[
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BACI\\2024\\S1_E.pdf",
+   "type": "CB",
+   "banque": "BACI",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 784,
+  "outils": {
+   "pdfplumber": {
+    "temps": 24.667,
+    "erreur": null,
+    "precision": 0.8007,
+    "rappel": 0.3023,
+    "f1": 0.4389
+   },
+   "PyMuPDF": {
+    "temps": 0.229,
+    "erreur": null,
+    "precision": 0.8013,
+    "rappel": 0.3036,
+    "f1": 0.4403
+   },
+   "pdfminer.six": {
+    "temps": 13.556,
+    "erreur": null,
+    "precision": 0.8013,
+    "rappel": 0.3036,
+    "f1": 0.4403
+   },
+   "Camelot": {
+    "temps": 17.022,
+    "erreur": null,
+    "precision": 0.8041,
+    "rappel": 0.3036,
+    "f1": 0.4407
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BACI\\2024\\S1_P.pdf",
+   "type": "CB",
+   "banque": "BACI",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 547,
+  "outils": {
+   "pdfplumber": {
+    "temps": 1.406,
+    "erreur": null,
+    "precision": 0.5553,
+    "rappel": 0.8629,
+    "f1": 0.6757
+   },
+   "PyMuPDF": {
+    "temps": 0.027,
+    "erreur": null,
+    "precision": 0.5434,
+    "rappel": 0.9378,
+    "f1": 0.6881
+   },
+   "pdfminer.six": {
+    "temps": 0.877,
+    "erreur": null,
+    "precision": 0.5434,
+    "rappel": 0.9378,
+    "f1": 0.6881
+   },
+   "Camelot": {
+    "temps": 2.676,
+    "erreur": null,
+    "precision": 0.5434,
+    "rappel": 0.9378,
+    "f1": 0.6881
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BACI\\2024\\S2_E.pdf",
+   "type": "CB",
+   "banque": "BACI",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 437,
+  "outils": {
+   "pdfplumber": {
+    "temps": 21.131,
+    "erreur": null,
+    "precision": 0.3333,
+    "rappel": 0.0641,
+    "f1": 0.1075
+   },
+   "PyMuPDF": {
+    "temps": 0.269,
+    "erreur": null,
+    "precision": 0.3333,
+    "rappel": 0.0641,
+    "f1": 0.1075
+   },
+   "pdfminer.six": {
+    "temps": 21.055,
+    "erreur": null,
+    "precision": 0.3333,
+    "rappel": 0.0641,
+    "f1": 0.1075
+   },
+   "Camelot": {
+    "temps": 17.322,
+    "erreur": null,
+    "precision": 0.3333,
+    "rappel": 0.0641,
+    "f1": 0.1075
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BACI\\2024\\S2_P.pdf",
+   "type": "CB",
+   "banque": "BACI",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 585,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.084,
+    "erreur": null,
+    "precision": 0.5414,
+    "rappel": 0.7932,
+    "f1": 0.6436
+   },
+   "PyMuPDF": {
+    "temps": 0.027,
+    "erreur": null,
+    "precision": 0.5527,
+    "rappel": 0.8701,
+    "f1": 0.676
+   },
+   "pdfminer.six": {
+    "temps": 1.616,
+    "erreur": null,
+    "precision": 0.5527,
+    "rappel": 0.8701,
+    "f1": 0.676
+   },
+   "Camelot": {
+    "temps": 3.283,
+    "erreur": null,
+    "precision": 0.5539,
+    "rappel": 0.8701,
+    "f1": 0.6769
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BACI\\2025\\S1_E.pdf",
+   "type": "CB",
+   "banque": "BACI",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 435,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.654,
+    "erreur": null,
+    "precision": 0.6507,
+    "rappel": 0.9977,
+    "f1": 0.7877
+   },
+   "PyMuPDF": {
+    "temps": 0.046,
+    "erreur": null,
+    "precision": 0.6507,
+    "rappel": 0.9977,
+    "f1": 0.7877
+   },
+   "pdfminer.six": {
+    "temps": 9.525,
+    "erreur": null,
+    "precision": 0.6507,
+    "rappel": 0.9977,
+    "f1": 0.7877
+   },
+   "Camelot": {
+    "temps": 10.111,
+    "erreur": null,
+    "precision": 0.6903,
+    "rappel": 0.9839,
+    "f1": 0.8114
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BACI\\2025\\S1_P.pdf",
+   "type": "CB",
+   "banque": "BACI",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 466,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.846,
+    "erreur": null,
+    "precision": 0.4525,
+    "rappel": 0.8584,
+    "f1": 0.5926
+   },
+   "PyMuPDF": {
+    "temps": 0.052,
+    "erreur": null,
+    "precision": 0.5367,
+    "rappel": 0.9893,
+    "f1": 0.6958
+   },
+   "pdfminer.six": {
+    "temps": 14.797,
+    "erreur": null,
+    "precision": 0.5367,
+    "rappel": 0.9893,
+    "f1": 0.6958
+   },
+   "Camelot": {
+    "temps": 19.407,
+    "erreur": null,
+    "precision": 0.5663,
+    "rappel": 0.9893,
+    "f1": 0.7203
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BACI\\2025\\S2_E.pdf",
+   "type": "CB",
+   "banque": "BACI",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 466,
+  "outils": {
+   "pdfplumber": {
+    "temps": 5.938,
+    "erreur": null,
+    "precision": 0.6596,
+    "rappel": 0.9979,
+    "f1": 0.7942
+   },
+   "PyMuPDF": {
+    "temps": 0.07,
+    "erreur": null,
+    "precision": 0.6657,
+    "rappel": 0.9914,
+    "f1": 0.7966
+   },
+   "pdfminer.six": {
+    "temps": 15.937,
+    "erreur": null,
+    "precision": 0.6657,
+    "rappel": 0.9914,
+    "f1": 0.7966
+   },
+   "Camelot": {
+    "temps": 29.364,
+    "erreur": null,
+    "precision": 0.7043,
+    "rappel": 0.9764,
+    "f1": 0.8183
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BACI\\2025\\S2_P.pdf",
+   "type": "CB",
+   "banque": "BACI",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 399,
+  "outils": {
+   "pdfplumber": {
+    "temps": 7.902,
+    "erreur": null,
+    "precision": 0.5477,
+    "rappel": 0.9925,
+    "f1": 0.7059
+   },
+   "PyMuPDF": {
+    "temps": 0.1,
+    "erreur": null,
+    "precision": 0.5462,
+    "rappel": 0.9925,
+    "f1": 0.7046
+   },
+   "pdfminer.six": {
+    "temps": 23.747,
+    "erreur": null,
+    "precision": 0.5462,
+    "rappel": 0.9925,
+    "f1": 0.7046
+   },
+   "Camelot": {
+    "temps": 19.012,
+    "erreur": null,
+    "precision": 0.5577,
+    "rappel": 0.9323,
+    "f1": 0.6979
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BACI\\2026\\S1_E.pdf",
+   "type": "CB",
+   "banque": "BACI",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 656,
+  "outils": {
+   "pdfplumber": {
+    "temps": 7.041,
+    "erreur": null,
+    "precision": 0.9292,
+    "rappel": 1.0,
+    "f1": 0.9633
+   },
+   "PyMuPDF": {
+    "temps": 0.067,
+    "erreur": null,
+    "precision": 0.9215,
+    "rappel": 0.9665,
+    "f1": 0.9435
+   },
+   "pdfminer.six": {
+    "temps": 18.346,
+    "erreur": null,
+    "precision": 0.9215,
+    "rappel": 0.9665,
+    "f1": 0.9435
+   },
+   "Camelot": {
+    "temps": 31.14,
+    "erreur": null,
+    "precision": 0.9174,
+    "rappel": 0.8979,
+    "f1": 0.9076
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BACI\\2026\\S1_P.pdf",
+   "type": "CB",
+   "banque": "BACI",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 834,
+  "outils": {
+   "pdfplumber": {
+    "temps": 12.088,
+    "erreur": null,
+    "precision": 0.9882,
+    "rappel": 1.0,
+    "f1": 0.994
+   },
+   "PyMuPDF": {
+    "temps": 0.114,
+    "erreur": null,
+    "precision": 0.9518,
+    "rappel": 0.9233,
+    "f1": 0.9373
+   },
+   "pdfminer.six": {
+    "temps": 35.53,
+    "erreur": null,
+    "precision": 0.9518,
+    "rappel": 0.9233,
+    "f1": 0.9373
+   },
+   "Camelot": {
+    "temps": 49.131,
+    "erreur": null,
+    "precision": 0.9541,
+    "rappel": 0.8717,
+    "f1": 0.911
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BICICI\\2024\\S1_E.pdf",
+   "type": "CB",
+   "banque": "BICICI",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 717,
+  "outils": {
+   "pdfplumber": {
+    "temps": 63.43,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.375,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 34.045,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 34.964,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BICICI\\2024\\S1_P.pdf",
+   "type": "CB",
+   "banque": "BICICI",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 810,
+  "outils": {
+   "pdfplumber": {
+    "temps": 1.948,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "PyMuPDF": {
+    "temps": 0.05,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "pdfminer.six": {
+    "temps": 2.307,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "Camelot": {
+    "temps": 2.677,
+    "erreur": null,
+    "precision": 0.8451,
+    "rappel": 0.6938,
+    "f1": 0.762
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BICICI\\2024\\S2_E.pdf",
+   "type": "CB",
+   "banque": "BICICI",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 717,
+  "outils": {
+   "pdfplumber": {
+    "temps": 54.768,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.446,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 34.517,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 38.097,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BICICI\\2024\\S2_P.pdf",
+   "type": "CB",
+   "banque": "BICICI",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 810,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.263,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "PyMuPDF": {
+    "temps": 0.038,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "pdfminer.six": {
+    "temps": 2.493,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "Camelot": {
+    "temps": 2.696,
+    "erreur": null,
+    "precision": 0.8451,
+    "rappel": 0.6938,
+    "f1": 0.762
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BICICI\\2025\\S1_E.pdf",
+   "type": "CB",
+   "banque": "BICICI",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 717,
+  "outils": {
+   "pdfplumber": {
+    "temps": 38.286,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.405,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 17.073,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 20.044,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BICICI\\2025\\S1_P.pdf",
+   "type": "CB",
+   "banque": "BICICI",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 810,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.025,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "PyMuPDF": {
+    "temps": 0.037,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "pdfminer.six": {
+    "temps": 2.402,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "Camelot": {
+    "temps": 2.847,
+    "erreur": null,
+    "precision": 0.8451,
+    "rappel": 0.6938,
+    "f1": 0.762
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BICICI\\2025\\S2_E.pdf",
+   "type": "CB",
+   "banque": "BICICI",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 850,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.321,
+    "erreur": null,
+    "precision": 0.8251,
+    "rappel": 0.8494,
+    "f1": 0.8371
+   },
+   "PyMuPDF": {
+    "temps": 0.045,
+    "erreur": null,
+    "precision": 0.8251,
+    "rappel": 0.8494,
+    "f1": 0.8371
+   },
+   "pdfminer.six": {
+    "temps": 2.901,
+    "erreur": null,
+    "precision": 0.8251,
+    "rappel": 0.8494,
+    "f1": 0.8371
+   },
+   "Camelot": {
+    "temps": 3.607,
+    "erreur": null,
+    "precision": 0.8178,
+    "rappel": 0.6282,
+    "f1": 0.7106
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BICICI\\2025\\S2_P.pdf",
+   "type": "CB",
+   "banque": "BICICI",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 810,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.053,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "PyMuPDF": {
+    "temps": 0.037,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "pdfminer.six": {
+    "temps": 2.361,
+    "erreur": null,
+    "precision": 0.8331,
+    "rappel": 0.8877,
+    "f1": 0.8595
+   },
+   "Camelot": {
+    "temps": 2.934,
+    "erreur": null,
+    "precision": 0.8451,
+    "rappel": 0.6938,
+    "f1": 0.762
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BICICI\\2026\\S1_E.pdf",
+   "type": "CB",
+   "banque": "BICICI",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 843,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.263,
+    "erreur": null,
+    "precision": 0.8264,
+    "rappel": 0.8529,
+    "f1": 0.8395
+   },
+   "PyMuPDF": {
+    "temps": 0.043,
+    "erreur": null,
+    "precision": 0.8264,
+    "rappel": 0.8529,
+    "f1": 0.8395
+   },
+   "pdfminer.six": {
+    "temps": 2.486,
+    "erreur": null,
+    "precision": 0.8264,
+    "rappel": 0.8529,
+    "f1": 0.8395
+   },
+   "Camelot": {
+    "temps": 2.347,
+    "erreur": null,
+    "precision": 0.8261,
+    "rappel": 0.7272,
+    "f1": 0.7735
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BICICI\\2026\\S1_P.pdf",
+   "type": "CB",
+   "banque": "BICICI",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 829,
+  "outils": {
+   "pdfplumber": {
+    "temps": 1.087,
+    "erreur": null,
+    "precision": 0.8407,
+    "rappel": 0.8721,
+    "f1": 0.8561
+   },
+   "PyMuPDF": {
+    "temps": 0.018,
+    "erreur": null,
+    "precision": 0.8407,
+    "rappel": 0.8721,
+    "f1": 0.8561
+   },
+   "pdfminer.six": {
+    "temps": 1.563,
+    "erreur": null,
+    "precision": 0.8407,
+    "rappel": 0.8721,
+    "f1": 0.8561
+   },
+   "Camelot": {
+    "temps": 1.769,
+    "erreur": null,
+    "precision": 0.8425,
+    "rappel": 0.6128,
+    "f1": 0.7095
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BNI\\2024\\S1_E.pdf",
+   "type": "CB",
+   "banque": "BNI",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 577,
+  "outils": {
+   "pdfplumber": {
+    "temps": 75.522,
+    "erreur": null,
+    "precision": 0.7216,
+    "rappel": 0.9705,
+    "f1": 0.8278
+   },
+   "PyMuPDF": {
+    "temps": 0.711,
+    "erreur": null,
+    "precision": 0.8014,
+    "rappel": 1.0,
+    "f1": 0.8897
+   },
+   "pdfminer.six": {
+    "temps": 47.69,
+    "erreur": null,
+    "precision": 0.8014,
+    "rappel": 1.0,
+    "f1": 0.8897
+   },
+   "Camelot": {
+    "temps": 76.443,
+    "erreur": null,
+    "precision": 0.8011,
+    "rappel": 0.9983,
+    "f1": 0.8889
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BNI\\2024\\S1_P.pdf",
+   "type": "CB",
+   "banque": "BNI",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 587,
+  "outils": {
+   "pdfplumber": {
+    "temps": 73.703,
+    "erreur": null,
+    "precision": 0.7507,
+    "rappel": 0.9796,
+    "f1": 0.85
+   },
+   "PyMuPDF": {
+    "temps": 0.499,
+    "erreur": null,
+    "precision": 0.8063,
+    "rappel": 1.0,
+    "f1": 0.8928
+   },
+   "pdfminer.six": {
+    "temps": 52.364,
+    "erreur": null,
+    "precision": 0.8063,
+    "rappel": 1.0,
+    "f1": 0.8928
+   },
+   "Camelot": {
+    "temps": 54.061,
+    "erreur": null,
+    "precision": 0.8269,
+    "rappel": 0.9523,
+    "f1": 0.8852
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BNI\\2024\\S2_E.pdf",
+   "type": "CB",
+   "banque": "BNI",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 581,
+  "outils": {
+   "pdfplumber": {
+    "temps": 4.939,
+    "erreur": null,
+    "precision": 0.7246,
+    "rappel": 0.969,
+    "f1": 0.8292
+   },
+   "PyMuPDF": {
+    "temps": 0.05,
+    "erreur": null,
+    "precision": 0.8044,
+    "rappel": 0.9983,
+    "f1": 0.8909
+   },
+   "pdfminer.six": {
+    "temps": 3.438,
+    "erreur": null,
+    "precision": 0.8044,
+    "rappel": 0.9983,
+    "f1": 0.8909
+   },
+   "Camelot": {
+    "temps": 4.377,
+    "erreur": null,
+    "precision": 0.8042,
+    "rappel": 0.9966,
+    "f1": 0.8901
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BNI\\2024\\S2_P.pdf",
+   "type": "CB",
+   "banque": "BNI",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 575,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.297,
+    "erreur": null,
+    "precision": 0.734,
+    "rappel": 0.9791,
+    "f1": 0.839
+   },
+   "PyMuPDF": {
+    "temps": 0.052,
+    "erreur": null,
+    "precision": 0.7888,
+    "rappel": 1.0,
+    "f1": 0.8819
+   },
+   "pdfminer.six": {
+    "temps": 3.123,
+    "erreur": null,
+    "precision": 0.7888,
+    "rappel": 1.0,
+    "f1": 0.8819
+   },
+   "Camelot": {
+    "temps": 5.794,
+    "erreur": null,
+    "precision": 0.8095,
+    "rappel": 0.953,
+    "f1": 0.8754
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BNI\\2025\\S1_E.pdf",
+   "type": "CB",
+   "banque": "BNI",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 587,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.873,
+    "erreur": null,
+    "precision": 0.7361,
+    "rappel": 0.9693,
+    "f1": 0.8368
+   },
+   "PyMuPDF": {
+    "temps": 0.088,
+    "erreur": null,
+    "precision": 0.8072,
+    "rappel": 0.9983,
+    "f1": 0.8926
+   },
+   "pdfminer.six": {
+    "temps": 3.268,
+    "erreur": null,
+    "precision": 0.8072,
+    "rappel": 0.9983,
+    "f1": 0.8926
+   },
+   "Camelot": {
+    "temps": 6.271,
+    "erreur": null,
+    "precision": 0.8058,
+    "rappel": 0.9966,
+    "f1": 0.8911
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BNI\\2025\\S1_P.pdf",
+   "type": "CB",
+   "banque": "BNI",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 577,
+  "outils": {
+   "pdfplumber": {
+    "temps": 4.76,
+    "erreur": null,
+    "precision": 0.7281,
+    "rappel": 0.9792,
+    "f1": 0.8352
+   },
+   "PyMuPDF": {
+    "temps": 0.065,
+    "erreur": null,
+    "precision": 0.7861,
+    "rappel": 1.0,
+    "f1": 0.8802
+   },
+   "pdfminer.six": {
+    "temps": 3.145,
+    "erreur": null,
+    "precision": 0.7861,
+    "rappel": 1.0,
+    "f1": 0.8802
+   },
+   "Camelot": {
+    "temps": 4.182,
+    "erreur": null,
+    "precision": 0.7972,
+    "rappel": 0.974,
+    "f1": 0.8768
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BNI\\2025\\S2_E.pdf",
+   "type": "CB",
+   "banque": "BNI",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 592,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.327,
+    "erreur": null,
+    "precision": 0.7184,
+    "rappel": 0.9696,
+    "f1": 0.8253
+   },
+   "PyMuPDF": {
+    "temps": 0.05,
+    "erreur": null,
+    "precision": 0.8129,
+    "rappel": 0.9983,
+    "f1": 0.8961
+   },
+   "pdfminer.six": {
+    "temps": 3.072,
+    "erreur": null,
+    "precision": 0.7859,
+    "rappel": 0.9983,
+    "f1": 0.8795
+   },
+   "Camelot": {
+    "temps": 4.308,
+    "erreur": null,
+    "precision": 0.7846,
+    "rappel": 0.9966,
+    "f1": 0.878
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BNI\\2025\\S2_P.pdf",
+   "type": "CB",
+   "banque": "BNI",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 578,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.998,
+    "erreur": null,
+    "precision": 0.7084,
+    "rappel": 0.9792,
+    "f1": 0.8221
+   },
+   "PyMuPDF": {
+    "temps": 0.054,
+    "erreur": null,
+    "precision": 0.7811,
+    "rappel": 1.0,
+    "f1": 0.8771
+   },
+   "pdfminer.six": {
+    "temps": 3.01,
+    "erreur": null,
+    "precision": 0.7635,
+    "rappel": 1.0,
+    "f1": 0.8659
+   },
+   "Camelot": {
+    "temps": 4.754,
+    "erreur": null,
+    "precision": 0.7744,
+    "rappel": 0.974,
+    "f1": 0.8628
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BNI\\2026\\S1_E.pdf",
+   "type": "CB",
+   "banque": "BNI",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 448,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.722,
+    "erreur": null,
+    "precision": 0.5707,
+    "rappel": 0.9911,
+    "f1": 0.7243
+   },
+   "PyMuPDF": {
+    "temps": 0.078,
+    "erreur": null,
+    "precision": 0.6191,
+    "rappel": 0.9978,
+    "f1": 0.7641
+   },
+   "pdfminer.six": {
+    "temps": 3.055,
+    "erreur": null,
+    "precision": 0.6191,
+    "rappel": 0.9978,
+    "f1": 0.7641
+   },
+   "Camelot": {
+    "temps": 4.511,
+    "erreur": null,
+    "precision": 0.6196,
+    "rappel": 0.9888,
+    "f1": 0.7618
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\BNI\\2026\\S1_P.pdf",
+   "type": "CB",
+   "banque": "BNI",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 610,
+  "outils": {
+   "pdfplumber": {
+    "temps": 4.404,
+    "erreur": null,
+    "precision": 0.7707,
+    "rappel": 0.9754,
+    "f1": 0.8611
+   },
+   "PyMuPDF": {
+    "temps": 0.096,
+    "erreur": null,
+    "precision": 0.8292,
+    "rappel": 0.9951,
+    "f1": 0.9046
+   },
+   "pdfminer.six": {
+    "temps": 3.835,
+    "erreur": null,
+    "precision": 0.8292,
+    "rappel": 0.9951,
+    "f1": 0.9046
+   },
+   "Camelot": {
+    "temps": 4.803,
+    "erreur": null,
+    "precision": 0.8304,
+    "rappel": 0.9951,
+    "f1": 0.9053
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\ECOBANK\\2024\\S1_E.pdf",
+   "type": "CB",
+   "banque": "ECOBANK",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 774,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.036,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.042,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 0.028,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 0.092,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\ECOBANK\\2024\\S1_P.pdf",
+   "type": "CB",
+   "banque": "ECOBANK",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 709,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.031,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.038,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 0.031,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 0.101,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\ECOBANK\\2024\\S2_E.pdf",
+   "type": "CB",
+   "banque": "ECOBANK",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 679,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.033,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.063,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 0.082,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 0.113,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\ECOBANK\\2024\\S2_P.pdf",
+   "type": "CB",
+   "banque": "ECOBANK",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 686,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.046,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.058,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 0.033,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 0.097,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\ECOBANK\\2025\\S1_E.pdf",
+   "type": "CB",
+   "banque": "ECOBANK",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 685,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.051,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.065,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 0.04,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 0.143,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\ECOBANK\\2025\\S1_P.pdf",
+   "type": "CB",
+   "banque": "ECOBANK",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 736,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.058,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.05,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 0.034,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 0.101,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\ECOBANK\\2025\\S2_E.pdf",
+   "type": "CB",
+   "banque": "ECOBANK",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 654,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.043,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.07,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 0.045,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 0.107,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\ECOBANK\\2025\\S2_P.pdf",
+   "type": "CB",
+   "banque": "ECOBANK",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 717,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.062,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.061,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 0.028,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 0.123,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\ECOBANK\\2026\\S1_E.pdf",
+   "type": "CB",
+   "banque": "ECOBANK",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 774,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.038,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.051,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 0.031,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 0.127,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\ECOBANK\\2026\\S1_P.pdf",
+   "type": "CB",
+   "banque": "ECOBANK",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 697,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.06,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "PyMuPDF": {
+    "temps": 0.157,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "pdfminer.six": {
+    "temps": 0.069,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   },
+   "Camelot": {
+    "temps": 0.161,
+    "erreur": null,
+    "precision": 0.0,
+    "rappel": 0.0,
+    "f1": 0.0
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\NSIA\\2024\\S1_E.pdf",
+   "type": "CB",
+   "banque": "NSIA",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 808,
+  "outils": {
+   "pdfplumber": {
+    "temps": 5.077,
+    "erreur": null,
+    "precision": 0.8834,
+    "rappel": 0.8911,
+    "f1": 0.8872
+   },
+   "PyMuPDF": {
+    "temps": 0.087,
+    "erreur": null,
+    "precision": 0.9234,
+    "rappel": 0.9097,
+    "f1": 0.9165
+   },
+   "pdfminer.six": {
+    "temps": 3.023,
+    "erreur": null,
+    "precision": 0.9234,
+    "rappel": 0.9097,
+    "f1": 0.9165
+   },
+   "Camelot": {
+    "temps": 6.704,
+    "erreur": null,
+    "precision": 0.9243,
+    "rappel": 0.8911,
+    "f1": 0.9074
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\NSIA\\2024\\S1_P.pdf",
+   "type": "CB",
+   "banque": "NSIA",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 822,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.451,
+    "erreur": null,
+    "precision": 0.9154,
+    "rappel": 0.8552,
+    "f1": 0.8843
+   },
+   "PyMuPDF": {
+    "temps": 0.056,
+    "erreur": null,
+    "precision": 0.9322,
+    "rappel": 0.8698,
+    "f1": 0.8999
+   },
+   "pdfminer.six": {
+    "temps": 1.97,
+    "erreur": null,
+    "precision": 0.9322,
+    "rappel": 0.8698,
+    "f1": 0.8999
+   },
+   "Camelot": {
+    "temps": 4.8,
+    "erreur": null,
+    "precision": 0.9319,
+    "rappel": 0.8491,
+    "f1": 0.8886
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\NSIA\\2024\\S2_E.pdf",
+   "type": "CB",
+   "banque": "NSIA",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 803,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.336,
+    "erreur": null,
+    "precision": 0.8297,
+    "rappel": 0.8618,
+    "f1": 0.8454
+   },
+   "PyMuPDF": {
+    "temps": 0.065,
+    "erreur": null,
+    "precision": 0.8666,
+    "rappel": 0.8655,
+    "f1": 0.866
+   },
+   "pdfminer.six": {
+    "temps": 2.338,
+    "erreur": null,
+    "precision": 0.8666,
+    "rappel": 0.8655,
+    "f1": 0.866
+   },
+   "Camelot": {
+    "temps": 6.152,
+    "erreur": null,
+    "precision": 0.8705,
+    "rappel": 0.8456,
+    "f1": 0.8579
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\NSIA\\2024\\S2_P.pdf",
+   "type": "CB",
+   "banque": "NSIA",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 801,
+  "outils": {
+   "pdfplumber": {
+    "temps": 4.16,
+    "erreur": null,
+    "precision": 0.7884,
+    "rappel": 0.7628,
+    "f1": 0.7754
+   },
+   "PyMuPDF": {
+    "temps": 0.113,
+    "erreur": null,
+    "precision": 0.8055,
+    "rappel": 0.7703,
+    "f1": 0.7875
+   },
+   "pdfminer.six": {
+    "temps": 4.16,
+    "erreur": null,
+    "precision": 0.8055,
+    "rappel": 0.7703,
+    "f1": 0.7875
+   },
+   "Camelot": {
+    "temps": 5.906,
+    "erreur": null,
+    "precision": 0.8237,
+    "rappel": 0.764,
+    "f1": 0.7927
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\NSIA\\2025\\S1_E.pdf",
+   "type": "CB",
+   "banque": "NSIA",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 763,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.548,
+    "erreur": null,
+    "precision": 0.7995,
+    "rappel": 0.8257,
+    "f1": 0.8124
+   },
+   "PyMuPDF": {
+    "temps": 0.06,
+    "erreur": null,
+    "precision": 0.8726,
+    "rappel": 0.8978,
+    "f1": 0.885
+   },
+   "pdfminer.six": {
+    "temps": 3.399,
+    "erreur": null,
+    "precision": 0.8726,
+    "rappel": 0.8978,
+    "f1": 0.885
+   },
+   "Camelot": {
+    "temps": 5.691,
+    "erreur": null,
+    "precision": 0.8748,
+    "rappel": 0.8794,
+    "f1": 0.8771
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\NSIA\\2025\\S1_P.pdf",
+   "type": "CB",
+   "banque": "NSIA",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 1129,
+  "outils": {
+   "pdfplumber": {
+    "temps": 4.458,
+    "erreur": null,
+    "precision": 0.862,
+    "rappel": 0.581,
+    "f1": 0.6942
+   },
+   "PyMuPDF": {
+    "temps": 0.046,
+    "erreur": null,
+    "precision": 0.879,
+    "rappel": 0.5855,
+    "f1": 0.7028
+   },
+   "pdfminer.six": {
+    "temps": 2.917,
+    "erreur": null,
+    "precision": 0.879,
+    "rappel": 0.5855,
+    "f1": 0.7028
+   },
+   "Camelot": {
+    "temps": 4.999,
+    "erreur": null,
+    "precision": 0.8951,
+    "rappel": 0.5819,
+    "f1": 0.7053
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\NSIA\\2025\\S2_E.pdf",
+   "type": "CB",
+   "banque": "NSIA",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 773,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.762,
+    "erreur": null,
+    "precision": 0.8708,
+    "rappel": 0.881,
+    "f1": 0.8759
+   },
+   "PyMuPDF": {
+    "temps": 0.082,
+    "erreur": null,
+    "precision": 0.8933,
+    "rappel": 0.9094,
+    "f1": 0.9013
+   },
+   "pdfminer.six": {
+    "temps": 2.953,
+    "erreur": null,
+    "precision": 0.8933,
+    "rappel": 0.9094,
+    "f1": 0.9013
+   },
+   "Camelot": {
+    "temps": 6.944,
+    "erreur": null,
+    "precision": 0.9252,
+    "rappel": 0.8965,
+    "f1": 0.9106
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\NSIA\\2025\\S2_P.pdf",
+   "type": "CB",
+   "banque": "NSIA",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 753,
+  "outils": {
+   "pdfplumber": {
+    "temps": 4.836,
+    "erreur": null,
+    "precision": 0.8284,
+    "rappel": 0.8526,
+    "f1": 0.8403
+   },
+   "PyMuPDF": {
+    "temps": 0.12,
+    "erreur": null,
+    "precision": 0.9032,
+    "rappel": 0.9044,
+    "f1": 0.9038
+   },
+   "pdfminer.six": {
+    "temps": 3.622,
+    "erreur": null,
+    "precision": 0.9032,
+    "rappel": 0.9044,
+    "f1": 0.9038
+   },
+   "Camelot": {
+    "temps": 7.178,
+    "erreur": null,
+    "precision": 0.9497,
+    "rappel": 0.9031,
+    "f1": 0.9258
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\NSIA\\2026\\S1_E.pdf",
+   "type": "CB",
+   "banque": "NSIA",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 772,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.15,
+    "erreur": null,
+    "precision": 0.8696,
+    "rappel": 0.8808,
+    "f1": 0.8752
+   },
+   "PyMuPDF": {
+    "temps": 0.116,
+    "erreur": null,
+    "precision": 0.8907,
+    "rappel": 0.908,
+    "f1": 0.8993
+   },
+   "pdfminer.six": {
+    "temps": 2.214,
+    "erreur": null,
+    "precision": 0.8907,
+    "rappel": 0.908,
+    "f1": 0.8993
+   },
+   "Camelot": {
+    "temps": 3.908,
+    "erreur": null,
+    "precision": 0.9226,
+    "rappel": 0.8951,
+    "f1": 0.9086
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\NSIA\\2026\\S1_P.pdf",
+   "type": "CB",
+   "banque": "NSIA",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 749,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.986,
+    "erreur": null,
+    "precision": 0.8271,
+    "rappel": 0.8558,
+    "f1": 0.8412
+   },
+   "PyMuPDF": {
+    "temps": 0.045,
+    "erreur": null,
+    "precision": 0.9005,
+    "rappel": 0.9065,
+    "f1": 0.9035
+   },
+   "pdfminer.six": {
+    "temps": 1.878,
+    "erreur": null,
+    "precision": 0.9005,
+    "rappel": 0.9065,
+    "f1": 0.9035
+   },
+   "Camelot": {
+    "temps": 5.489,
+    "erreur": null,
+    "precision": 0.9483,
+    "rappel": 0.9065,
+    "f1": 0.927
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SGCI\\2024\\S1_E.pdf",
+   "type": "CB",
+   "banque": "SGCI",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 577,
+  "outils": {
+   "pdfplumber": {
+    "temps": 4.281,
+    "erreur": null,
+    "precision": 0.4964,
+    "rappel": 0.2409,
+    "f1": 0.3244
+   },
+   "PyMuPDF": {
+    "temps": 0.048,
+    "erreur": null,
+    "precision": 0.7028,
+    "rappel": 1.0,
+    "f1": 0.8255
+   },
+   "pdfminer.six": {
+    "temps": 10.485,
+    "erreur": null,
+    "precision": 0.7028,
+    "rappel": 1.0,
+    "f1": 0.8255
+   },
+   "Camelot": {
+    "temps": 13.517,
+    "erreur": null,
+    "precision": 0.7062,
+    "rappel": 1.0,
+    "f1": 0.8278
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SGCI\\2024\\S1_P.pdf",
+   "type": "CB",
+   "banque": "SGCI",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 617,
+  "outils": {
+   "pdfplumber": {
+    "temps": 3.784,
+    "erreur": null,
+    "precision": 0.5429,
+    "rappel": 0.2156,
+    "f1": 0.3086
+   },
+   "PyMuPDF": {
+    "temps": 0.06,
+    "erreur": null,
+    "precision": 0.6953,
+    "rappel": 0.9984,
+    "f1": 0.8197
+   },
+   "pdfminer.six": {
+    "temps": 11.879,
+    "erreur": null,
+    "precision": 0.6953,
+    "rappel": 0.9984,
+    "f1": 0.8197
+   },
+   "Camelot": {
+    "temps": 11.846,
+    "erreur": null,
+    "precision": 0.6984,
+    "rappel": 0.9984,
+    "f1": 0.8219
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SGCI\\2024\\S2_E.pdf",
+   "type": "CB",
+   "banque": "SGCI",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 577,
+  "outils": {
+   "pdfplumber": {
+    "temps": 4.153,
+    "erreur": null,
+    "precision": 0.4964,
+    "rappel": 0.2409,
+    "f1": 0.3244
+   },
+   "PyMuPDF": {
+    "temps": 0.056,
+    "erreur": null,
+    "precision": 0.7028,
+    "rappel": 1.0,
+    "f1": 0.8255
+   },
+   "pdfminer.six": {
+    "temps": 11.919,
+    "erreur": null,
+    "precision": 0.7028,
+    "rappel": 1.0,
+    "f1": 0.8255
+   },
+   "Camelot": {
+    "temps": 10.98,
+    "erreur": null,
+    "precision": 0.7062,
+    "rappel": 1.0,
+    "f1": 0.8278
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SGCI\\2024\\S2_P.pdf",
+   "type": "CB",
+   "banque": "SGCI",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 617,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.982,
+    "erreur": null,
+    "precision": 0.5429,
+    "rappel": 0.2156,
+    "f1": 0.3086
+   },
+   "PyMuPDF": {
+    "temps": 0.054,
+    "erreur": null,
+    "precision": 0.6953,
+    "rappel": 0.9984,
+    "f1": 0.8197
+   },
+   "pdfminer.six": {
+    "temps": 9.255,
+    "erreur": null,
+    "precision": 0.6953,
+    "rappel": 0.9984,
+    "f1": 0.8197
+   },
+   "Camelot": {
+    "temps": 9.479,
+    "erreur": null,
+    "precision": 0.6984,
+    "rappel": 0.9984,
+    "f1": 0.8219
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SGCI\\2025\\S1_E.pdf",
+   "type": "CB",
+   "banque": "SGCI",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 633,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.543,
+    "erreur": null,
+    "precision": 0.7062,
+    "rappel": 0.9605,
+    "f1": 0.8139
+   },
+   "PyMuPDF": {
+    "temps": 0.035,
+    "erreur": null,
+    "precision": 0.7385,
+    "rappel": 0.9905,
+    "f1": 0.8462
+   },
+   "pdfminer.six": {
+    "temps": 9.874,
+    "erreur": null,
+    "precision": 0.7385,
+    "rappel": 0.9905,
+    "f1": 0.8462
+   },
+   "Camelot": {
+    "temps": 11.052,
+    "erreur": null,
+    "precision": 0.7473,
+    "rappel": 0.9905,
+    "f1": 0.8519
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SGCI\\2025\\S1_P.pdf",
+   "type": "CB",
+   "banque": "SGCI",
+   "annee": "2025",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 684,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.736,
+    "erreur": null,
+    "precision": 0.7071,
+    "rappel": 0.9708,
+    "f1": 0.8182
+   },
+   "PyMuPDF": {
+    "temps": 0.038,
+    "erreur": null,
+    "precision": 0.7386,
+    "rappel": 0.9956,
+    "f1": 0.8481
+   },
+   "pdfminer.six": {
+    "temps": 9.192,
+    "erreur": null,
+    "precision": 0.7386,
+    "rappel": 0.9956,
+    "f1": 0.8481
+   },
+   "Camelot": {
+    "temps": 10.385,
+    "erreur": null,
+    "precision": 0.7467,
+    "rappel": 0.9956,
+    "f1": 0.8534
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SGCI\\2025\\S2_E.pdf",
+   "type": "CB",
+   "banque": "SGCI",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 633,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.567,
+    "erreur": null,
+    "precision": 0.7062,
+    "rappel": 0.9605,
+    "f1": 0.8139
+   },
+   "PyMuPDF": {
+    "temps": 0.036,
+    "erreur": null,
+    "precision": 0.7385,
+    "rappel": 0.9905,
+    "f1": 0.8462
+   },
+   "pdfminer.six": {
+    "temps": 9.305,
+    "erreur": null,
+    "precision": 0.7385,
+    "rappel": 0.9905,
+    "f1": 0.8462
+   },
+   "Camelot": {
+    "temps": 16.703,
+    "erreur": null,
+    "precision": 0.7473,
+    "rappel": 0.9905,
+    "f1": 0.8519
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SGCI\\2025\\S2_P.pdf",
+   "type": "CB",
+   "banque": "SGCI",
+   "annee": "2025",
+   "semestre": "S2",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 684,
+  "outils": {
+   "pdfplumber": {
+    "temps": 7.684,
+    "erreur": null,
+    "precision": 0.7071,
+    "rappel": 0.9708,
+    "f1": 0.8182
+   },
+   "PyMuPDF": {
+    "temps": 0.183,
+    "erreur": null,
+    "precision": 0.7386,
+    "rappel": 0.9956,
+    "f1": 0.8481
+   },
+   "pdfminer.six": {
+    "temps": 23.588,
+    "erreur": null,
+    "precision": 0.7386,
+    "rappel": 0.9956,
+    "f1": 0.8481
+   },
+   "Camelot": {
+    "temps": 30.307,
+    "erreur": null,
+    "precision": 0.7467,
+    "rappel": 0.9956,
+    "f1": 0.8534
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SGCI\\2026\\S1_E.pdf",
+   "type": "CB",
+   "banque": "SGCI",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 633,
+  "outils": {
+   "pdfplumber": {
+    "temps": 6.953,
+    "erreur": null,
+    "precision": 0.7062,
+    "rappel": 0.9605,
+    "f1": 0.8139
+   },
+   "PyMuPDF": {
+    "temps": 0.179,
+    "erreur": null,
+    "precision": 0.7385,
+    "rappel": 0.9905,
+    "f1": 0.8462
+   },
+   "pdfminer.six": {
+    "temps": 20.462,
+    "erreur": null,
+    "precision": 0.7385,
+    "rappel": 0.9905,
+    "f1": 0.8462
+   },
+   "Camelot": {
+    "temps": 23.671,
+    "erreur": null,
+    "precision": 0.7473,
+    "rappel": 0.9905,
+    "f1": 0.8519
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SGCI\\2026\\S1_P.pdf",
+   "type": "CB",
+   "banque": "SGCI",
+   "annee": "2026",
+   "semestre": "S1",
+   "segment": "Particuliers"
+  },
+  "n_gt_words": 684,
+  "outils": {
+   "pdfplumber": {
+    "temps": 4.161,
+    "erreur": null,
+    "precision": 0.7071,
+    "rappel": 0.9708,
+    "f1": 0.8182
+   },
+   "PyMuPDF": {
+    "temps": 0.082,
+    "erreur": null,
+    "precision": 0.7386,
+    "rappel": 0.9956,
+    "f1": 0.8481
+   },
+   "pdfminer.six": {
+    "temps": 13.861,
+    "erreur": null,
+    "precision": 0.7386,
+    "rappel": 0.9956,
+    "f1": 0.8481
+   },
+   "Camelot": {
+    "temps": 15.659,
+    "erreur": null,
+    "precision": 0.7467,
+    "rappel": 0.9956,
+    "f1": 0.8534
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/CONDITIONS_BANQUES\\SIB\\2024\\S1_E.pdf",
+   "type": "CB",
+   "banque": "SIB",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Entreprises"
+  },
+  "n_gt_words": 729,
+  "outils": {
+   "pdfplumber": {
+    "temps": 26.589,
+    "erreur": null,
+    "precision": 0.8485,
+    "rappel": 0.3457,
+    "f1": 0.4912
+   },
+   "PyMuPDF": {
+    "temps": 0.172,
+    "erreur": null,
+    "precision": 0.9726,
+    "rappel": 0.3896,
+    "f1": 0.5563
+   },
+   "pdfminer.six": {
+    "temps": 23.416,
+    "erreur": null,
+    "precision": 0.9726,
+    "rappel": 0.3896,
+    "f1": 0.5563
+   },
+   "Camelot": {
+    "temps": 42.881,
+    "erreur": null,
+    "precision": 0.9675,
+    "rappel": 0.3265,
+    "f1": 0.4882
+   }
+  }
+ }
+]

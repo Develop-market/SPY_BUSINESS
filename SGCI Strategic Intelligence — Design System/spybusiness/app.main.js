@@ -1565,7 +1565,7 @@ function pageApercu(){
   }).join("");
 
   return `
-  <div style="position:sticky;top:116px;z-index:20;margin-bottom:var(--s5);padding:6px 0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg-deep) 72%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)">
+  <div class="sec-sticky-bar" style="position:sticky;top:116px;z-index:20;margin-bottom:var(--s5);padding:6px 0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg-deep) 72%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span style="font:700 9px var(--sans);color:#38D1F0;letter-spacing:.1em;text-transform:uppercase">📈 États Financiers</span>
       <div class="seg" style="margin:0">${btnAnx(1,"Année 1")}${btnAnx(2,"Année 2")}${btnAnx(3,"Année 3")}</div>
@@ -1629,7 +1629,7 @@ function pageApercu(){
       <button class="cta ml" onclick="askIA('Analyse la santé financière de SGCI par rapport au marché bancaire ivoirien', null, 'position')">Approfondir →</button>
     </div>
 
-    <div style="grid-column:span 12;display:flex;gap:var(--s5)">
+    <div class="kpi-row" style="grid-column:span 12;display:flex;gap:var(--s5)">
       ${sgciROE ? kpiTile("◈","rgba(255,176,32,.14)","#ffce7a","rgba(255,176,32,.3)",
         sgciROE,"ROE SGCI · Rendement des capitaux propres",
         "Résultat net / Capitaux propres · "+anxKey,".18","%","","","1") : ""}
@@ -2808,7 +2808,7 @@ function _stratStickyBar(segment){
   const nav=[["①","L'essentiel","st-essentiel"],["②","Révélations","st-revel"],
              ["③","Porter","st-conc"],["④","VRIST","st-vrist"],["⑤","SWOT","st-swot"],["⑥","PESTEL","st-pestel"],["⑦","Projection","st-proj"]]
     .map(([n,l,id])=>`<button class="sec-nav-btn" data-sec="${id}" onclick="_paneShow('strat','${id}')">${n} ${l}</button>`).join("");
-  return `<div style="position:sticky;top:116px;z-index:20;margin-bottom:14px;padding:6px 0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg-deep) 72%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)">
+  return `<div class="sec-sticky-bar" style="position:sticky;top:116px;z-index:20;margin-bottom:14px;padding:6px 0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg-deep) 72%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span style="font:700 9px var(--sans);color:var(--accent-2);letter-spacing:.1em;text-transform:uppercase">🎯 Stratégie SGCI</span>
       <div class="seg" style="margin:0">${nav}</div>
@@ -7770,7 +7770,7 @@ function _cbStickyBar(){
   const _cbNav=[["①","Catalogue","cb-ax-1"],["②","Innovations","cb-ax-2"],["③","Exclusivités","cb-ax-3"],
                 ["④","Manques","cb-ax-5"],["⑤","Prix","cb-ax-6"]]
     .map(([n,l,id],i)=>`<button class="sec-nav-btn" data-sec="${id}" onclick="_paneShow('cb','${id}')">${n} ${l}</button>`).join("");
-  return`<div style="position:sticky;top:116px;z-index:20;margin-bottom:var(--s5,16px);padding:6px 0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg-deep) 72%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)">
+  return`<div class="sec-sticky-bar" style="position:sticky;top:116px;z-index:20;margin-bottom:var(--s5,16px);padding:6px 0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg-deep) 72%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)">
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span style="font:700 9px var(--sans);color:var(--accent-2);letter-spacing:.1em;text-transform:uppercase">🏦 Conditions de Banques</span>
       <div class="seg" style="margin:0">${seg("Particuliers","Particuliers","◐")}${seg("Entreprises","Entreprises","◆")}</div>
@@ -9256,9 +9256,6 @@ function _bootApp(){
       if(nav) nav.style.display = "none";
     }
   }).catch(()=>{});
-  // Tampon discret de traçabilité (filigrane) — date/heure de la session en cours.
-  const _wmStamp = document.getElementById("app-watermark-stamp");
-  if(_wmStamp) _wmStamp.textContent = "Direction Innovation SGCI · " + new Date().toLocaleString("fr-FR", {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"});
 }
 
 // Bandeau visible si le LLM est indisponible (quota épuisé / panne) — pour ne JAMAIS laisser

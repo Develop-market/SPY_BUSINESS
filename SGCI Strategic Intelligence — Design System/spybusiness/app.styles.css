@@ -702,6 +702,11 @@ html[data-theme="light"] .bg .vig{background:radial-gradient(ellipse at 50% 35%,
   .cb3 .row.r2,.cb3 .row.r13{grid-template-columns:1fr!important}
   .reco .r{grid-template-columns:46px 1fr}
   .reco .r .imp{grid-column:2;text-align:left}
+  /* Rangée de cartes KPI (ROE, croissance, parts de marché…) : passait en flex
+     non-wrappable, donc les cartes se compressaient et les chiffres/libellés
+     étaient tronqués ou poussés hors écran (capture 2026-11-21). */
+  .kpi-row{flex-wrap:wrap}
+  .kpi-row .kpi{flex:1 1 220px}
 }
 
 @media(max-width:600px){
@@ -728,6 +733,15 @@ html[data-theme="light"] .bg .vig{background:radial-gradient(ellipse at 50% 35%,
   .aj-grid{grid-template-columns:1fr}
   .aj-body{padding:16px 16px 20px}
   .aj-head{padding:16px 16px 12px}
+  /* cartes KPI : une par ligne sur téléphone étroit, plus lisible que 2 compressées */
+  .kpi-row .kpi{flex:1 1 100%}
+  /* Barre sticky (ÉTATS FINANCIERS / Stratégie / Conditions de Banques) : calée sur
+     top:116px pour l'en-tête desktop (72px). Sur mobile .hdr passe à 60px juste
+     au-dessus : sans ce correctif, un bandeau de 56px de contenu normal (pas encore
+     sticky) reste visible entre l'en-tête et la barre, et on y voit un fragment de
+     la carte précédente (ex. le bandeau rouge de la hero) comme s'il « bavait »
+     sur la barre de filtres (capture mobile 2026-11-21). */
+  .sec-sticky-bar{top:60px!important}
 }
 
 /* ── @media print ───────────────────────────────────────────────────────── */

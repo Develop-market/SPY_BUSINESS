@@ -1,0 +1,218 @@
+[
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\BACI\\ANS.pdf",
+   "banque": "BACI",
+   "fichier": "ANS"
+  },
+  "n_gt": 0,
+  "temps": 2.26,
+  "erreur": null,
+  "trouve": 0,
+  "total_gt": 0
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\BICICI\\AN1.pdf",
+   "banque": "BICICI",
+   "fichier": "AN1"
+  },
+  "n_gt": 39,
+  "temps": 0.263,
+  "erreur": null,
+  "trouve": 17,
+  "total_gt": 39
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\BICICI\\AN2.pdf",
+   "banque": "BICICI",
+   "fichier": "AN2"
+  },
+  "n_gt": 106,
+  "temps": 2.521,
+  "erreur": null,
+  "trouve": 0,
+  "total_gt": 106
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\BICICI\\AN3.pdf",
+   "banque": "BICICI",
+   "fichier": "AN3"
+  },
+  "n_gt": 112,
+  "temps": 0.585,
+  "erreur": null,
+  "trouve": 110,
+  "total_gt": 112
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\BNI\\AN4.pdf",
+   "banque": "BNI",
+   "fichier": "AN4"
+  },
+  "n_gt": 9,
+  "temps": 0.473,
+  "erreur": null,
+  "trouve": 2,
+  "total_gt": 9
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\BNI\\ANS.pdf",
+   "banque": "BNI",
+   "fichier": "ANS"
+  },
+  "n_gt": 0,
+  "temps": 0.347,
+  "erreur": null,
+  "trouve": 0,
+  "total_gt": 0
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\ECOBANK\\AN1.pdf",
+   "banque": "ECOBANK",
+   "fichier": "AN1"
+  },
+  "n_gt": 42,
+  "temps": 1.755,
+  "erreur": null,
+  "trouve": 39,
+  "total_gt": 42
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\ECOBANK\\AN2.pdf",
+   "banque": "ECOBANK",
+   "fichier": "AN2"
+  },
+  "n_gt": 62,
+  "temps": 2.887,
+  "erreur": null,
+  "trouve": 0,
+  "total_gt": 62
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\ECOBANK\\AN3.pdf",
+   "banque": "ECOBANK",
+   "fichier": "AN3"
+  },
+  "n_gt": 106,
+  "temps": 5.617,
+  "erreur": null,
+  "trouve": 89,
+  "total_gt": 106
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\NSIA\\AN1.pdf",
+   "banque": "NSIA",
+   "fichier": "AN1"
+  },
+  "n_gt": 47,
+  "temps": 1.21,
+  "erreur": null,
+  "trouve": 44,
+  "total_gt": 47
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\NSIA\\AN2.pdf",
+   "banque": "NSIA",
+   "fichier": "AN2"
+  },
+  "n_gt": 94,
+  "temps": 1.153,
+  "erreur": null,
+  "trouve": 88,
+  "total_gt": 94
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\NSIA\\AN3.pdf",
+   "banque": "NSIA",
+   "fichier": "AN3"
+  },
+  "n_gt": 92,
+  "temps": 1.269,
+  "erreur": null,
+  "trouve": 88,
+  "total_gt": 92
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\SGCI\\AN1.pdf",
+   "banque": "SGCI",
+   "fichier": "AN1"
+  },
+  "n_gt": 60,
+  "temps": 0.71,
+  "erreur": null,
+  "trouve": 60,
+  "total_gt": 60
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\SGCI\\AN2.pdf",
+   "banque": "SGCI",
+   "fichier": "AN2"
+  },
+  "n_gt": 105,
+  "temps": 0.981,
+  "erreur": null,
+  "trouve": 88,
+  "total_gt": 105
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\SGCI\\AN3.pdf",
+   "banque": "SGCI",
+   "fichier": "AN3"
+  },
+  "n_gt": 112,
+  "temps": 0.773,
+  "erreur": null,
+  "trouve": 100,
+  "total_gt": 112
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\SIB\\AN1.pdf",
+   "banque": "SIB",
+   "fichier": "AN1"
+  },
+  "n_gt": 50,
+  "temps": 1.358,
+  "erreur": null,
+  "trouve": 29,
+  "total_gt": 50
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\SIB\\AN2.pdf",
+   "banque": "SIB",
+   "fichier": "AN2"
+  },
+  "n_gt": 92,
+  "temps": 2.487,
+  "erreur": null,
+  "trouve": 86,
+  "total_gt": 92
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK/DATA/SOURCE/ETATS_FINANCIERS\\SIB\\AN3.pdf",
+   "banque": "SIB",
+   "fichier": "AN3"
+  },
+  "n_gt": 85,
+  "temps": 1.257,
+  "erreur": null,
+  "trouve": 20,
+  "total_gt": 85
+ }
+]

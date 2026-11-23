@@ -1,0 +1,1973 @@
+RÉPUBLIQUE DE CÔTE D’IVOIRE
+Union — Discipline — Travail
+Ministère de l’Enseignement Supérieur et de la Recherche Scientifique
+International Data Science Institute
+Année académique : 2025 — 2026
+MÉMOIRE DE FIN DE CYCLE
+POUR L’OBTENTION DU MASTER EN
+DATA SCIENCE — BIG DATA ET INTELLIGENCE ARTIFICIELLE
+CONCEPTION ET MISE EN ŒUVRE D’UN SYSTÈME DE VEILLE
+STRATÉGIQUE, DE BENCHMARKING CONCURRENTIEL ET
+D’AIDE À LA DÉCISION BASÉ SUR UNE APPROCHE RAG : CAS
+DE LA SOCIÉTÉ GÉNÉRALE CÔTE D’IVOIRE
+Présenté par :
+ZONGO MESSOU ALPHÉE COLOMBE
+Période de stage :
+Avril — Septembre 2026
+Encadrant académique :
+M. MONSIA DOUGBAN
+International Data Science Institute
+Maître de stage :
+M. MOUAHA HANDY
+Direction de l’Innovation
+à la Société Générale Côte d’Ivoire
+Dédicace
+À ma famille, dont le soutien constant a rendu ce parcours
+possible.
+À celles et ceux qui, par leur exigence, m’ont appris qu’un
+résultat ne vaut que par la rigueur qui le fonde.
+iii
+Remerciements
+Ce mémoire est l’aboutissement d’un travail conduit au sein de la Société Générale Côte
+d’Ivoire. Il n’aurait pu être mené sans les concours que je tiens à saluer ici.
+J’adresse mes remerciements au corps professoral et au personnel administratif
+de
+l’International
+Datascience
+Institute,
+pour
+l’enseignement
+reçu
+et
+l’encadrement
+méthodologique dont j’ai bénéficié tout au long de ce cycle.
+Ma reconnaissance va par-
+ticulièrement à M. MONSIA DOUGBAN, encadrant académique, dont les orientations ont
+contribué à la rigueur de ce travail.
+Je remercie la Direction de l’Innovation de la Société Générale Côte d’Ivoire de m’avoir
+accueilli et confié un sujet à la fois exigeant et concret. J’exprime ma gratitude à M. MOUAHA
+HANDY, maître de stage, pour sa disponibilité et pour la clarté des exigences qu’il a formulées.
+Celles posées en cours de projet — notamment l’interdiction de restituer une valeur non traçable
+— ont façonné la solution autant que les spécifications initiales.
+Ma reconnaissance va également à l’équipe de la cellule Data Science, dont les remarques
+ont orienté ce travail à des moments décisifs.
+Je remercie enfin ma famille et mes proches, dont le soutien ne s’est jamais démenti.
+iv
+Avant-propos
+Ce travail s’inscrit dans le cadre de la formation en Data Science, Big Data et Intelligence
+Artificielle dispensée par l’International Datascience Institute. Il en mobilise les trois com-
+posantes : l’ingénierie des données, appliquée à un corpus documentaire hétérogène ; les mé-
+thodes d’apprentissage, à travers les représentations vectorielles sémantiques ; et l’intelligence
+artificielle générative, mise au service d’une aide à la décision.
+Le choix de ce sujet procède d’une observation faite dès les premières semaines de stage
+: la Société Générale Côte d’Ivoire dispose d’une information concurrentielle abondante et
+publique, mais ne l’exploite pas de façon systématique. L’écart entre cette disponibilité et son
+absence d’usage a constitué le point de départ du travail.
+La difficulté principale n’a pas été d’ordre technique au sens habituel du terme. Faire répon-
+dre un modèle de langage à une question portant sur des données bancaires est aujourd’hui
+accessible. Faire en sorte que la réponse ne comporte aucune valeur inventée, et que chaque
+chiffre restitué puisse être remonté jusqu’à sa source, s’est révélé autrement plus contraignant.
+Cette exigence a orienté l’ensemble des choix d’architecture.
+Les difficultés rencontrées ont été de trois ordres : l’hétérogénéité des documents sources,
+dont certains ne sont disponibles que sous forme d’images numérisées ; la nécessité de ne com-
+parer que des services de périmètre équivalent, alors que chaque établissement nomme dif-
+féremment les mêmes prestations ; et la contrainte de coût, qui interdisait le recours illimité à
+des services d’intelligence artificielle payants. Chacune est exposée dans le corps du mémoire,
+avec la réponse qui lui a été apportée.
+v
+Sommaire
+INTRODUCTION GÉNÉRALE
+PREMIÈRE PARTIE — GÉNÉRALITÉS
+Chapitre I. Présentation de la structure d’accueil
+Chapitre II. Présentation du projet
+Chapitre III. État de l’art
+DEUXIÈME PARTIE — ÉTUDE TECHNIQUE
+Chapitre IV. Méthodologie et ingénierie des données
+Chapitre V. Architecture du système
+Chapitre VI. Évaluation comparative des architectures
+TROISIÈME PARTIE — RÉALISATION ET DISCUSSION
+Chapitre VIII. Présentation des résultats
+Chapitre IX. Estimation budgétaire et discussion
+CONCLUSION GÉNÉRALE
+BIBLIOGRAPHIE ET WEBOGRAPHIE
+ANNEXES
+TABLE DES MATIÈRES
+vi
+Liste des sigles, abréviations et acronymes
+API
+Application Programming Interface — interface de programmation
+applicative
+BCEAO
+Banque Centrale des États de l’Afrique de l’Ouest
+CB
+Conditions de banque (grilles tarifaires publiées)
+COFEB
+Centre Ouest Africain de Formation et d’Études Bancaires
+CSS
+Cascading Style Sheets — feuilles de style en cascade
+EF
+États financiers
+FCFA
+Franc de la Communauté Financière Africaine
+HTML
+HyperText Markup Language
+HTTP
+HyperText Transfer Protocol
+JSON
+JavaScript Object Notation
+LLM
+Large Language Model — grand modèle de langage
+MRR
+Mean Reciprocal Rank — rang réciproque moyen
+nDCG
+normalized Discounted Cumulative Gain — gain cumulé actualisé
+normalisé
+OCR
+Optical Character Recognition — reconnaissance optique de carac-
+tères
+OHADA
+Organisation pour l’Harmonisation en Afrique du Droit des Affaires
+PDF
+Portable Document Format
+PESTEL
+Politique, Économique, Sociologique, Technologique, Écologique,
+Légal
+PNB
+Produit Net Bancaire
+RAG
+Retrieval-Augmented Generation — génération augmentée par
+récupération
+RBAC
+Role-Based Access Control — contrôle d’accès fondé sur les rôles
+ROE
+Return On Equity — rentabilité des fonds propres
+SGCI
+Société Générale Côte d’Ivoire
+SQL
+Structured Query Language — langage de requête structuré
+SWOT
+Strengths, Weaknesses, Opportunities, Threats
+TPE
+Terminal de Paiement Électronique
+UEMOA
+Union Économique et Monétaire Ouest-Africaine
+VRIST
+Valeur, Rareté, Imitabilité, Substituabilité, Transférabilité
+vii
+Liste des figures
+Figure 1
+Organigramme de la Direction de l’Innovation de la SGCI
+Figure 2
+Architecture Transformer — encodeur (à gauche) et décodeur (à droite),
+d’après Vaswani et al., 2017
+Figure 3
+RAG naïf — indexation, récupération, génération, sans boucle de retour
+Figure 4
+RAG avancé — optimisations avant et après la récupération
+Figure 5
+RAG modulaire — modules interchangeables et routage dynamique des
+requêtes
+Figure 6
+RAG agentique — l’agent choisit ses outils et raffine sa réponse par itéra-
+tions
+Figure 7
+Pipeline d’extraction des conditions bancaires
+Figure 8
+Pipeline d’extraction des états financiers
+Figure 9
+Modèle de données — les tables et leurs rattachements
+Figure 10
+Les deux architectures candidates — même socle,
+décision de
+l’enchaînement différente
+Figure 11
+Traitement d’une question par l’assistant — le calcul établit, le modèle
+formule
+Figure 12
+Chaîne de traitement d’une question dans l’assistant conversationnel
+Figure 13
+Les deux architectures comparées — même socle,
+décision de
+l’enchaînement différente
+Figure 14
+Exactitude globale et par type de question
+Figure 15
+Exactitude par type de question
+Figure 16
+Tests statistiques sur les 114 paires de réponses
+Figure 17
+Appels au modèle et latence par question
+Figure 18
+Reproductibilité sur huit répétitions d’une même question
+Figure 19
+Fidélité, pertinence et couverture jugées
+Figure 20
+Fidélité et pertinence par type de question
+Figure 21
+Page d’authentification de l’application
+Figure 22
+Tableau de bord Santé financière
+Figure 23
+Tableau de bord Conditions bancaires
+Figure 24
+Tableau de bord Stratégie
+Figure 25
+Analyse concurrentielle — les cinq forces de Porter appliquées au
+marché ivoirien
+Figure 26
+Onglet Stratégie opérationnelle — directives par direction
+Figure 27
+Directives de la Direction Marketing — adossées à la segmentation clien-
+tèle
+Figure 28
+Écran d’administration des accès
+Figure 29
+Assistant conversationnel — question tarifaire
+Figure 30
+Assistant conversationnel — comparaison financière
+Figure 31
+Assistant conversationnel — question stratégique
+viii
+Liste des tableaux
+Tableau 1
+Insuffisances du système existant — dimension, nature et impact
+opérationnel
+Tableau 2
+Périmètre documentaire traité
+Tableau 3
+Approches essayées par source, résultat obtenu et décision
+Tableau 4
+Choix techniques et justifications
+Tableau 5
+Composition du jeu de référence
+Tableau 6
+Temps d’affichage mesurés sur le service hébergé, avant et après opti-
+misation
+Tableau 7
+Estimation budgétaire du projet
+ix
+INTRODUCTION GÉNÉRALE
+En janvier 2026, la Banque Centrale des États de l’Afrique de l’Ouest (BCEAO), à travers son
+Centre Ouest Africain de Formation et d’Études Bancaires (COFEB), a consacré une conférence
+à l’intelligence économique et aux nouveaux enjeux du secteur bancaire africain. Les échanges
+y ont mis en évidence une difficulté commune aux établissements de l’Union Économique
+et Monétaire Ouest-Africaine (UEMOA) : la matière informationnelle nécessaire au pilotage
+stratégique est disponible, mais elle demeure largement inexploitée faute d’outils adaptés à son
+traitement.
+Ce constat institutionnel trouve un écho direct dans la réalité opérationnelle des banques
+ivoiriennes. La Société Générale Côte d’Ivoire (SGCI), l’un des principaux acteurs du secteur
+bancaire national, n’échappe pas à cette situation. À ce jour, elle ne dispose ni de direction
+stratégique dédiée, ni d’outil centralisé d’analyse de la concurrence. Sa direction générale
+s’appuie sur des remontées commerciales et des enquêtes de terrain ponctuelles, sans vision
+comparative structurée des offres, des performances et des évolutions du marché. Les données
+existent pourtant : rapports annuels, états financiers, grilles tarifaires et textes réglementaires
+sont publiés par les banques de l’UEMOA et par les autorités de régulation. Mais elles restent
+dispersées et produites dans des formats hétérogènes. C’est cet écart entre une information
+abondante et son absence d’exploitation qui a motivé le présent travail.
+Les technologies d’intelligence artificielle générative, et singulièrement les systèmes de
+génération augmentée par récupération (RAG, pour Retrieval-Augmented Generation), appor-
+tent une réponse à cette difficulté. Elles autorisent l’interrogation directe, en langage naturel,
+d’un ensemble documentaire étendu, et en restituent une synthèse rédigée là où l’exploitation
+manuelle imposait un dépouillement préalable. Cette capacité comporte néanmoins une con-
+trepartie que le domaine bancaire rend critique. Un système génératif peut avancer un chiffre
+absent des documents consultés et l’énoncer avec la même autorité qu’une valeur exacte, sans
+qu’aucun indice ne signale la différence au lecteur. Or, en matière tarifaire comme en matière
+de rentabilité, une donnée fausse ne dégrade pas la décision : elle l’invalide. L’exactitude des
+valeurs restituées s’impose dès lors comme une exigence de conception, au même rang que la
+pertinence de l’analyse.
+1
+Veille stratégique et aide à la décision par une approche RAG
+Introduction générale
+C’est dans ce cadre que la SGCI nous a confié la mission suivante : « Conception et mise en
+œuvre d’un système de veille stratégique, de benchmarking concurrentiel et d’aide à la décision
+basé sur une approche RAG ».
+Le système attendu doit situer la banque face aux principaux établissements du marché
+ivoirien, tant sur le plan de la performance financière que sur celui des conditions tarifaires,
+afin d’identifier les positions où elle dispose d’un avantage et celles où elle accuse un retard.
+Restituées sous une forme directement exploitable par la direction générale, ces analyses ont
+pour finalité de fonder les décisions stratégiques sur des données comparables et vérifiables, là
+où prévalaient jusqu’ici des remontées partielles.
+La mise en œuvre d’un tel dispositif soulève une question centrale : comment concevoir
+un système fondé sur l’intelligence artificielle générative capable de produire, à partir de
+données bancaires publiques et hétérogènes, des analyses concurrentielles suffisamment
+fiables pour fonder une décision stratégique ?
+Cette interrogation se décompose en trois questions subsidiaires. Comment structurer des
+données issues de sources externes hétérogènes afin de les rendre exploitables par un système
+de génération augmentée ? Quelle architecture retenir pour convertir ces données en analyses
+pertinentes pour la décision marketing et financière ? Enfin, par quels mécanismes garantir
+l’exactitude des valeurs restituées, et selon quel protocole la mesurer ?
+Pour répondre à ces questions, ce mémoire s’articule en trois parties. La première dresse
+le cadre général : présentation de la structure d’accueil, critique du système existant, cahier
+des charges et état de l’art des technologies mobilisées. La deuxième expose l’étude technique,
+de l’ingénierie des données au choix de l’architecture retenue, et détaille le modèle de don-
+nées retenu. La troisième présente la réalisation, l’évaluation expérimentale du système livré,
+l’estimation budgétaire et la discussion des résultats.
+2
+PREMIÈRE PARTIE
+GÉNÉRALITÉS
+Cette partie situe le travail dans son cadre. Elle présente la structure
+d’accueil, dresse le bilan critique du dispositif en place avant le projet,
+formalise le cahier des charges, puis expose l’état de l’art des
+technologies mobilisées et les raisons qui ont conduit à retenir
+l’approche par génération augmentée.
+CHAPITRE I | PRÉSENTATION DE LA
+STRUCTURE D’ACCUEIL
+Ce chapitre décrit l’environnement de travail.
+Il présente d’abord la Société Générale Côte
+d’Ivoire, puis la Direction de l’Innovation au sein de laquelle s’est déroulé le stage et dont les
+orientations ont cadré le projet.
+I. La structure d’accueil
+1. Présentation de la Société Générale Côte d’Ivoire
+La Société Générale Côte d’Ivoire (SGCI) est une filiale du groupe bancaire international So-
+ciété Générale. Présente dans le pays depuis plus de cinquante ans, elle occupe le premier rang
+du marché bancaire ivoirien en produit net bancaire, avec 276,0 milliards de francs CFA au titre
+de l’exercice 2025, pour un résultat net de 101,4 milliards de francs CFA sur le même exercice1.
+L’établissement intervient auprès d’une clientèle variée composée des administrations
+publiques, des particuliers, des professionnels ainsi que des entreprises. Son objectif est d’offrir
+un accompagnement adapté à chaque profil grâce à une équipe de spécialistes et une large palette
+de solutions financières couvrant les besoins quotidiens comme les projets à dimension inter-
+nationale.
+Dans une logique de segmentation de sa clientèle, la banque a développé des dispositifs
+spécifiques, notamment des services dédiés à la gestion de patrimoine pour les clients à fort
+potentiel financier, ainsi qu’un accompagnement renforcé en direction des petites et moyennes
+entreprises. Cette segmentation repose sur des seuils explicites de revenu mensuel pour les
+particuliers et de chiffre d’affaires annuel pour les entreprises, qui déterminent le niveau de
+service et les conditions tarifaires appliquées à chaque catégorie de clientèle.
+La SGCI s’appuie sur un réseau d’agences couvrant l’ensemble du territoire national, com-
+plété par des services digitaux, des guichets automatiques hors site et des unités mobiles per-
+mettant de rapprocher les services bancaires des populations.
+Sur le plan des activités spécialisées, la banque intègre une salle des marchés qui gère notam-
+1Source : états financiers publiés de l’établissement, exercice 2025.
+4
+Veille stratégique et aide à la décision par une approche RAG
+Présentation de la structure d’accueil
+ment les opérations de change au niveau régional pour les entités du groupe en zone UEMOA.
+Elle s’appuie également sur une structure dédiée aux financements structurés, intervenant sur
+des opérations complexes telles que les syndications et les grands projets de financement à
+portée régionale. Elle est enfin active sur le marché financier à travers deux filiales : So-
+ciété Générale Capital Securities West Africa, spécialisée dans la gestion d’actifs pour compte
+de tiers, et Société Générale Capital Asset Management West Africa, société de gestion et
+d’intermédiation.
+2. Engagements et valeurs
+2.1. Engagements
+La Société Générale Côte d’Ivoire s’inscrit dans une dynamique de contribution au développe-
+ment économique et social du pays à travers plusieurs actions structurantes. Elle se positionne
+d’une part comme un employeur attractif, en favorisant l’intégration de jeunes diplômés, notam-
+ment par des stages de perfectionnement et des programmes d’insertion professionnelle. Elle
+affirme d’autre part son rôle d’acteur engagé sur le plan sociétal en soutenant des initiatives à
+fort impact social : promotion de l’entrepreneuriat féminin, appui à l’insertion professionnelle
+des jeunes, accompagnement des enfants en situation de vulnérabilité et actions de mécénat de
+compétences impliquant ses collaborateurs.
+2.2. Valeurs
+Les activités de la SGCI reposent sur quatre valeurs qui orientent son fonctionnement interne
+comme sa relation client : l’esprit d’équipe, l’innovation, la responsabilité et l’engagement. La
+seconde entretient un lien direct avec le présent travail : c’est au titre de cette orientation que
+la banque s’est dotée d’une Direction de l’Innovation, structure d’accueil de ce stage.
+II. La Direction de l’Innovation
+1. Présentation
+Créée en 2022, cette direction s’inscrit dans la volonté de la banque d’accélérer sa transforma-
+tion digitale et de développer de nouvelles approches fondées sur l’exploitation des données.
+Elle accompagne les différentes entités dans l’optimisation de leurs processus, par l’innovation,
+les solutions digitales et la valorisation des données.
+Elle intervient dans l’identification des opportunités d’optimisation, l’automatisation des
+processus métiers et la conception de solutions améliorant la performance globale de
+5
+Veille stratégique et aide à la décision par une approche RAG
+Présentation de la structure d’accueil
+l’organisation. À cette fin, elle collabore avec l’ensemble des directions de la SGCI afin de
+comprendre leurs besoins et de proposer des réponses adaptées à leurs enjeux opérationnels :
+faciliter le quotidien des collaborateurs, renforcer la gestion des risques et fonder la décision
+sur les données.
+La Direction de l’Innovation est organisée autour de deux services. Le Service Data re-
+groupe le pôle Front-End, dédié au développement des interfaces et des solutions applicatives ;
+la cellule Data Science, spécialisée dans l’analyse des données et le développement de modèles
+intelligents ; et la cellule Data Engineering, chargée de la collecte, du traitement et de la gestion
+des infrastructures de données. Le Service Gouvernance Projet assure quant à lui le cadrage,
+la coordination, le suivi et l’accompagnement des différents projets portés par la direction.
+2. Organisation fonctionnelle
+La figure 1 présente l’organisation fonctionnelle de la Direction de l’Innovation. Elle met en
+évidence les équipes qui la composent ainsi que leurs principales interactions.
+Figure 1 : Organigramme de la Direction de l’Innovation de la SGCI
+Cette direction est structurée selon une approche agile reposant sur plusieurs squads et des
+équipes pluridisciplinaires. Elle rassemble des profils complémentaires : Data Engineers, Data
+Scientists, développeurs Front-End et Back-End, UX/UI Designers, Business Analysts, Prod-
+uct Owners et Scrum Masters. Cette organisation favorise la collaboration entre les métiers et
+6
+Veille stratégique et aide à la décision par une approche RAG
+Présentation de la structure d’accueil
+permet d’assurer une gestion efficace des projets d’innovation, de digitalisation et de transfor-
+mation. Le présent travail a été conduit au sein de la cellule Data Science.
+7
+CHAPITRE II | PRÉSENTATION DU PROJET
+Ce chapitre expose le cadre du projet. Il dresse d’abord le bilan critique du système opérationnel
+existant au sein de la SGCI, puis détaille le cahier des charges fixant les objectifs, les livrables et
+les contraintes techniques du système à développer.
+I. Présentation et critique du système opérationnel existant
+1. Description du système en place avant le projet
+Avant la mise en œuvre du présent système, la Société Générale Côte d’Ivoire ne disposait
+d’aucun outil centralisé permettant une analyse comparative structurée du marché bancaire
+ivoirien. La veille concurrentielle et l’analyse stratégique reposaient sur un ensemble de pra-
+tiques manuelles, fragmentées et insuffisamment systématisées.
+Sur le plan organisationnel, l’absence de direction stratégique dédiée impliquait que la pro-
+duction d’informations concurrentielles relevait de plusieurs entités distinctes sans coordina-
+tion formalisée. La Direction Générale recourait principalement à trois modalités pour disposer
+d’une vision du marché.
+Les remontées commerciales, issues du réseau d’agences et des équipes de terrain, portaient
+essentiellement sur les grilles tarifaires des concurrents, recueillies de manière opportuniste et
+sans protocole standardisé. Leur fréquence, leur exhaustivité et leur fiabilité variaient consid-
+érablement selon les interlocuteurs, rendant toute consolidation à l’échelle du marché aléatoire.
+Les enquêtes ponctuelles, commanditées pour des besoins spécifiques, ne couvraient
+qu’une fraction du marché et présentaient un caractère non reproductible. Leurs résultats, livrés
+sous forme de rapports statiques, devenaient rapidement obsolètes sans mécanisme de mise à
+jour, et ne s’inscrivaient dans aucune démarche de suivi longitudinal.
+Le recours à des structures de conseil externes constituait la troisième voie. Elle présente
+l’avantage d’un regard externe structuré, mais demeure difficilement soutenable pour un besoin
+récurrent : une mission de conseil de cette nature représente plus de 30 millions de FCFA par
+analyse, un montant qui se justifie mal pour un exercice à renouveler chaque semestre, et les
+délais de production s’accordent mal avec les exigences de réactivité de la Direction Générale.
+Surtout, une prestation ponctuelle ne dote pas la banque d’une capacité d’analyse interne : elle
+8
+Veille stratégique et aide à la décision par une approche RAG
+Présentation du projet
+produit un livrable, non un outil réutilisable.
+Par ailleurs, les données financières des établissements concurrents (rapports annuels, états
+financiers, grilles tarifaires semestrielles et textes réglementaires publiés par la BCEAO et
+l’UEMOA) étaient disponibles publiquement mais inexploitées de manière systématique. Leur
+traitement était confié à des agents qui procédaient manuellement, sans outillage adapté à la
+diversité des formats ni à la volumétrie concernée.
+2. Critique du système existant
+L’analyse critique du dispositif en place révèle plusieurs défaillances structurelles qui justifient
+l’initiative engagée.
+2.1. Une information dispersée et hétérogène
+Les sources mobilisables pour l’analyse concurrentielle sont nombreuses. Au 31 décembre
+2025, la Côte d’Ivoire comptait 33 établissements de crédit, dont 29 banques, qui publient
+chacune leurs conditions tarifaires chaque semestre et leurs états financiers annuels, dans un
+cadre réglementaire lui-même défini par les textes de la BCEAO et de l’UEMOA. Or ces do-
+cuments sont produits dans des formats hétérogènes : tableaux multi-colonnes, mises en page
+denses, documents numérisés à faible résolution dont le texte n’est pas sélectionnable. Cette
+hétérogénéité rendait toute tentative de consolidation manuelle à la fois coûteuse en temps et
+sujette à des erreurs d’interprétation.
+2.2. Une absence de vision comparative structurée
+En l’absence d’outil dédié, il était impossible d’établir rapidement un tableau comparatif ser-
+vice par service entre les principales banques du marché. Déterminer, par exemple, si la SGCI
+pratiquait des frais de tenue de compte compétitifs, ou identifier les services proposés exclusive-
+ment par un concurrent, imposait un rapprochement manuel des grilles, sans qu’il soit possible
+de s’assurer qu’aucun service n’avait été omis. Cette lacune avait des conséquences directes
+sur la qualité de la décision : sans référentiel comparatif fiable, il était difficile d’arbitrer entre
+le maintien, la révision ou l’abandon d’un tarif.
+2.3. Une analyse financière longue à produire
+Les rapports financiers des établissements concurrents existent et sont publiés : les indicateurs
+clés de performance (produit net bancaire, résultat net, rentabilité des fonds propres, coefficient
+d’exploitation, coût du risque) y figurent, établis selon les normes comptables en vigueur. La
+9
+Veille stratégique et aide à la décision par une approche RAG
+Présentation du projet
+difficulté ne tenait donc pas à la disponibilité de l’information, mais au chemin qui séparait cette
+information de la décision. Il fallait ouvrir chaque rapport, y relever les indicateurs un à un, les
+reporter dans un tableau de comparaison, puis seulement interpréter les écarts observés et en
+tirer une orientation. Ce rapprochement, entièrement manuel, était long et fastidieux ; répété à
+chaque sollicitation et sur sept établissements, il consommait l’essentiel du temps disponible, au
+détriment de l’analyse elle-même. Il se limitait de ce fait, dans le meilleur des cas, à l’exercice
+le plus récent, sans reconstitution des trajectoires pluriannuelles qui révèlent les tendances et
+les inflexions.
+2.4. Une veille réglementaire menée manuellement
+Les textes réglementaires de la BCEAO et de l’UEMOA constituent un corpus de référence
+obligatoire pour valider la conformité des analyses et des recommandations. Cette consultation
+était effectivement conduite, mais entièrement à la main : il fallait retrouver le texte applicable,
+l’ouvrir, y localiser la disposition pertinente, puis vérifier manuellement que la recommandation
+envisagée s’y conformait. Sur un corpus de plusieurs centaines de pages, cette vérification
+était lente et sa complétude reposait sur la mémoire de l’analyste plutôt que sur une recherche
+outillée.
+2.5. Une capitalisation qui reposait sur des prestataires externes
+Les analyses produites ne s’inscrivaient dans aucun mécanisme interne de capitalisation. Les
+données collectées, la méthodologie employée et les enseignements tirés ne faisaient l’objet
+d’aucun archivage centralisé au sein de la banque. Le suivi dans le temps existait bien, mais
+il était de fait délégué aux cabinets de conseil sollicités, seuls détenteurs de l’historique des
+travaux antérieurs. Cette dépendance avait deux conséquences : la banque devait racheter à
+chaque exercice une continuité qu’elle ne possédait pas, et l’historique lui-même restait hors de
+son contrôle.
+2.6. Un processus long, du recueil à la décision
+Enfin, l’analyse stratégique demandait du temps sur ses deux volets, financier et commercial.
+Du côté tarifaire, chaque banque désigne les mêmes services sous des libellés différents, ce qui
+imposait un rapprochement manuel section par section avant toute comparaison. Une fois les
+remontées consolidées, la Direction Générale devait encore les analyser pour en dégager une
+stratégie globale. Le délai s’accumulait ainsi à chaque étape, du recueil de l’information jusqu’à
+la formulation de la décision.
+10
+Veille stratégique et aide à la décision par une approche RAG
+Présentation du projet
+3. Synthèse des insuffisances identifiées
+Les six insuffisances développées ci-dessus peuvent être synthétisées selon leur dimension, leur
+nature et leur impact opérationnel.
+Dimension
+Insuffisance constatée
+Impact
+Collecte des données
+Manuelle, non exhaustive, non repro-
+ductible
+Information lacunaire, coût élevé
+Consolidation
+Formats hétérogènes, rapprochement à
+la main
+Comparaisons impossibles à l’échelle
+du marché
+Analyse financière
+Relevé et comparaison manuels des in-
+dicateurs
+Processus long, couverture limitée au
+dernier exercice
+Veille réglementaire
+Conduite, mais entièrement manuelle
+Vérification lente, complétude non
+garantie
+Capitalisation
+Historique détenu par les prestataires
+externes
+Continuité rachetée à chaque exercice
+Délais
+Rapprochement manuel puis analyse, à
+chaque étape
+Temps disponible pour l’analyse réduit
+d’autant
+Tableau 1 : Insuffisances du système existant — dimension, nature et impact opérationnel
+II. Cahier des charges
+1. Contexte du projet
+Le projet vise à doter la Société Générale Côte d’Ivoire d’un système intelligent de veille
+stratégique, de benchmarking concurrentiel et d’aide à la décision appliqué au secteur ban-
+caire ivoirien. Bien qu’elle figure parmi les principaux acteurs du marché, la SGCI ne dispose
+ni de direction stratégique dédiée, ni d’outil centralisé d’analyse de la concurrence, alors que
+les données utiles existent mais restent dispersées, hétérogènes et inexploitées.
+Pour répondre à ce besoin, la solution s’appuie sur une approche RAG et se compose de
+trois briques : une chaîne d’ingestion documentaire (extraction, nettoyage, structuration) qui
+transforme des documents bancaires complexes en données exploitables ; une base centralisée
+PostgreSQL enrichie de l’extension pgvector, réunissant données structurées et représentations
+vectorielles, et permettant à la fois des requêtes SQL exactes et une recherche sémantique ;
+et une application d’analyse réunissant des tableaux de bord et un assistant conversationnel.
+L’ensemble est orchestré pour livrer, sur simple demande, des analyses comparatives systéma-
+tiquement sourcées, vérifiables et prêtes à la décision.
+2. Objectifs du projet
+11
+Veille stratégique et aide à la décision par une approche RAG
+Présentation du projet
+2.1. Objectif général
+Offrir à la Direction Générale une vision comparative, consolidée et fiable du marché ban-
+caire ivoirien. Là où les analyses manuelles sont lentes, parcellaires et dépourvues de vision
+d’ensemble, le système centralise, analyse et restitue automatiquement les données financières
+et tarifaires des banques du marché, afin de transformer une information dispersée en avantage
+décisionnel concret.
+2.2. Objectifs spécifiques
+• Construire une chaîne automatisée rassemblant dans une base unique des données
+jusqu’ici éparpillées et de formats différents, afin de les rendre exploitables par un sys-
+tème d’intelligence artificielle.
+• Permettre le benchmarking concurrentiel des sept principales banques du marché (offres,
+tarifs, exclusivités, manques) sur un ensemble de services rigoureusement comparable.
+• Analyser la performance financière à partir d’indicateurs clés et de leur évolution pluri-
+annuelle.
+• Produire une synthèse stratégique du marché (diagnostic, SWOT, forces de Porter, ma-
+trice VRIST, analyse PESTEL) assortie de recommandations actionnables.
+• Intégrer une dimension prospective, en projetant à trois ans la position de la SGCI et les
+trajectoires probables du marché.
+• Développer un assistant conversationnel permettant d’interroger l’ensemble des données
+en langage naturel.
+• Aboutir à une application intégrée réunissant ces capacités à destination de la Direction
+Générale.
+3. Périmètre du projet
+3.1. Périmètre couvert
+Le benchmark porte sur les sept principales banques de Côte d’Ivoire, retenues d’après le dernier
+rapport de la Commission Bancaire de l’UEMOA, qui classe les établissements selon leur total
+de bilan. Le corpus traité est détaillé au tableau 2.
+12
+Veille stratégique et aide à la décision par une approche RAG
+Présentation du projet
+Nature du document
+Couverture
+Usage dans le système
+Grilles tarifaires semestrielles
+7 banques, 5 périodes (S1 2024
+à S1 2026), segments Particuliers
+et Entreprises
+Comparaison service par service,
+indice de compétitivité prix
+États financiers annuels
+7 banques, exercices publiés
+Indicateurs de performance et tra-
+jectoires pluriannuelles
+Textes réglementaires
+BCEAO et UEMOA
+Cadre de conformité des analyses
+et recommandations
+Tableau 2 : Périmètre documentaire traité
+3.2. Utilisateurs cibles
+La Direction Générale est le destinataire principal des analyses. La Direction Financière assure
+le suivi comparé de la performance et des ratios de rentabilité. La Direction de l’Innovation
+est en charge de l’exploitation et de l’enrichissement du système. Les directions métiers sont
+concernées par les arbitrages tarifaires et commerciaux. Cette composition, majoritairement
+non technique, conditionne les choix d’interface et de restitution : elle impose une formulation
+en langage métier et proscrit toute exigence de compétence informatique pour la lecture des
+résultats.
+4. Besoins fonctionnels
+4.1. Ingestion et structuration des données
+Le système doit assurer l’extraction automatique de documents bancaires à structures tabulaires
+complexes (grilles tarifaires multi-colonnes, mises en page denses et imbriquées, PDF natifs
+et numérisés, images) dont la diversité constitue l’un des principaux défis du projet. Il doit
+également extraire les textes réglementaires de la BCEAO et de l’UEMOA, destinés à encadrer
+les analyses. S’y ajoutent le nettoyage, la normalisation et la structuration des données extraites,
+puis leur chargement en base avec génération des représentations vectorielles nécessaires à la
+recherche sémantique.
+4.2. Analyse et benchmarking
+Trois domaines d’analyse sont attendus. La santé financière compare les indicateurs et ra-
+tios de la SGCI à ceux des six concurrents, sur plusieurs exercices. Les conditions bancaires
+portent sur la comparaison tarifaire service par service, l’indice de compétitivité prix, les exclu-
+sivités, les manques d’offre et les coûts de changement. La stratégie réunit diagnostic, SWOT,
+cinq forces de Porter, matrice VRIST, analyse PESTEL, projection prospective à trois ans et
+propositions de décisions par direction.
+13
+Veille stratégique et aide à la décision par une approche RAG
+Présentation du projet
+4.3. Veille, restitution et assistance
+Le système doit intégrer un agent de veille web reproductible, produisant des faits sectoriels
+récents, datés et sourcés, afin d’actualiser en continu le contexte macroéconomique et secto-
+riel. Il doit enfin proposer un assistant conversationnel fondé sur l’approche RAG, permettant
+d’interroger les données et d’obtenir des analyses contextualisées.
+5. Besoins non fonctionnels
+• Fiabilité factuelle : aucune valeur inventée ; chaque chiffre restitué est traçable jusqu’à
+sa source documentaire. Il s’agit de l’exigence centrale du système.
+• Reproductibilité et déterminisme : à sources inchangées, résultats identiques ; chaîne
+de traitement rejouable et résultats mis en cache.
+• Coût maîtrisé : recours privilégié à des briques open source.
+• Performance : traitement d’un volume important de données et restitution rapide, par
+mise en cache et optimisation des requêtes.
+• Convivialité : interface claire, formulée en langage métier et lisible par des décideurs
+non techniques.
+• Évolutivité : l’ajout de nouvelles données ou d’un nouvel établissement doit se répercuter
+sur l’ensemble des analyses sans intervention manuelle sur le code.
+• Sécurité : accès restreint aux personnes autorisées, droits différenciés selon les profils et
+traçabilité des actions.
+6. Livrables attendus
+La base de données centralisée, alimentée et documentée ; la chaîne d’ingestion documentaire,
+réutilisable pour tout nouvel apport de données ; l’application réunissant les tableaux de bord
+et l’assistant conversationnel ; le jeu de test de référence servant à la validation des restitutions
+; la documentation technique et le présent mémoire.
+7. Contraintes techniques
+Le langage principal retenu est Python.
+Le framework de développement est Flask, pour
+l’application et l’interface applicative du moteur RAG. La base de données est PostgreSQL avec
+l’extension pgvector, données structurées et représentations vectorielles réunies, conformément
+à la demande de l’équipe technique. Le volet intelligence artificielle repose sur un modèle de
+langage intégré dans une architecture de génération augmentée, associé à des représentations
+14
+Veille stratégique et aide à la décision par une approche RAG
+Présentation du projet
+vectorielles sémantiques multilingues de 768 dimensions calculées localement. Le traitement
+des données couvre l’analyse et la structuration de documents à mises en page complexes, in-
+cluant PDF natifs, PDF numérisés et images. L’interface prend la forme d’une application à
+tableaux de bord interactifs. Deux contraintes transversales s’imposent enfin : toute analyse
+produite doit être confrontée aux textes réglementaires de la BCEAO et de l’UEMOA afin d’en
+valider la conformité, et toute restitution doit être sourcée et vérifiable, aucune génération libre
+non ancrée sur les données n’étant admise.
+8. Critères d’acceptation
+Le système est jugé conforme sur six critères :
+• toute valeur est traçable à sa source documentaire ;
+• une même interrogation sur données inchangées produit un résultat identique ;
+• les comparaisons tarifaires ne rassemblent que des services équivalents ;
+• l’ajout de données se répercute sur toutes les analyses sans intervention manuelle ;
+• les analyses prospectives ou prescriptives citent le cadre réglementaire ;
+• l’interface est utilisable sans assistance par un décideur non technique.
+15
+CHAPITRE III | ÉTAT DE L’ART
+Ce chapitre expose les technologies mobilisables pour répondre au besoin exprimé. Il retrace la
+montée de l’intelligence artificielle générative, expose le mécanisme de la génération augmentée
+par récupération, en discute les limites au regard de l’exigence d’exactitude, puis examine les
+travaux voisins afin de situer la contribution de ce mémoire.
+I. Montée de l’intelligence artificielle générative
+1. De l’architecture Transformer aux modèles de langage
+L’architecture Transformer, proposée par Vaswani et ses coauteurs en 2017, a marqué un
+tournant majeur en traitement du langage naturel. En remplaçant les mécanismes séquen-
+tiels des réseaux récurrents par un système d’attention à plusieurs têtes, elle a rendu possible
+l’entraînement de modèles sur des corpus de taille sans précédent. Ce mécanisme d’attention
+permet au modèle de calculer des poids d’importance entre les éléments d’une séquence, don-
+nant la capacité de concentrer le calcul sur certaines parties d’une entrée lors du traitement.
+Figure 2 : Architecture Transformer — encodeur (à gauche) et décodeur (à droite), d’après Vaswani et
+al., 2017
+La figure 2 en donne la structure. L’entrée est d’abord convertie en vecteurs (input embedding),
+auxquels s’ajoute un encodage positionnel : l’attention traitant tous les mots en parallèle, elle
+ignorerait sans lui l’ordre de la phrase. Suit un empilement de blocs identiques, six dans la
+16
+Veille stratégique et aide à la décision par une approche RAG
+État de l’art
+publication d’origine, dont chacun combine une attention multi-têtes et un réseau dense, avec
+normalisation et connexion résiduelle à chaque étage. L’attention multi-têtes est le cœur du dis-
+positif : plusieurs mécanismes d’attention opèrent en parallèle sur des sous-espaces différents,
+ce qui permet au modèle de suivre simultanément plusieurs types de relations, accord grammat-
+ical, dépendance à distance, rattachement sémantique. Le décodeur reprend la même structure,
+avec une attention masquée qui l’empêche de regarder les mots qu’il n’a pas encore produits,
+et une seconde attention tournée vers la sortie de l’encodeur.
+Les grands modèles de langage (Large Language Models, LLM) qui en dérivent ( GPT-3,
+GPT-4, Claude, Llama) produisent du texte en estimant, de proche en proche, le mot le plus
+probable étant donnée la séquence précédente. Ils incarnent une propriété utile et une limita-
+tion structurelle. La propriété est la fluidité : le texte généré est grammaticalement correct et
+stylistiquement homogène, ce qui le rend plaisant à lire. La limitation est que la vraisemblance
+linguistique ne garantit pas la vérité factuelle. Un modèle qui n’a jamais rencontré une infor-
+mation produira néanmoins la suite de mots la plus plausible, sans signal explicite que cette
+suite n’est fondée sur rien. Ce phénomène s’appelle hallucination, et il représente un obstacle
+majeur pour les applications où l’exactitude est critique.
+Cette limitation n’est pas un défaut d’entraînement que davantage de données corrigerait :
+elle tient à la nature même de l’objectif d’apprentissage, qui optimise la vraisemblance d’une
+suite de mots et non son exactitude. C’est de ce constat qu’est née la génération augmentée par
+récupération.
+II. La génération augmentée par récupération : paradigmes et architec-
+tures
+Le RAG (proposé en 2020) répond à la limitation des LLM : incapacité à utiliser des connais-
+sances externes actualisées sans hallucination. Le principe : fournir des documents pertinents
+que le modèle synthétisera en réponse traçable. Le RAG a évolué selon quatre paradigmes
+majeurs.
+17
+Veille stratégique et aide à la décision par une approche RAG
+État de l’art
+1. Naive RAG
+Le RAG naïf suit un processus linéaire : indexation →récupération →génération. Simple mais
+sans feedback ni optimisation.
+Figure 3 : RAG naïf — indexation, récupération, génération, sans boucle de retour
+2. Advanced RAG
+Optimisations pré et post-retrieval : query expansion, reranking, compression de contexte.
+Meilleure précision.
+Figure 4 : RAG avancé — optimisations avant et après la récupération
+18
+Veille stratégique et aide à la décision par une approche RAG
+État de l’art
+3. Modular RAG
+Modules interchangeables : routage dynamique (vectoriel, SQL, APIs), gestion de mémoire.
+Flexible et adaptatif.
+Figure 5 : RAG modulaire — modules interchangeables et routage dynamique des requêtes
+4. Agentic RAG
+Raisonnement autonome : agent décide des outils, évalue les résultats, raffine itérativement.
+Figure 6 : RAG agentique — l’agent choisit ses outils et raffine sa réponse par itérations
+Transition
+Cette première partie a établi le cadre du travail. Elle a montré que la SGCI
+dispose d’une information concurrentielle publique et abondante, mais qu’elle
+ne l’exploite pas faute d’outil adapté, et que six insuffisances structurelles
+19
+Veille stratégique et aide à la décision par une approche RAG
+État de l’art
+caractérisent le dispositif en place. Le cahier des charges a fixé les objectifs
+et, surtout, la contrainte qui les domine : aucune valeur restituée ne doit être
+invérifiable.
+L’état de l’art a ensuite montré que la génération augmentée par récupération
+répond au besoin d’interrogation en langage naturel, mais qu’elle ne suffit pas à
+garantir l’exactitude : ni sur des données tabulaires, où la similarité sémantique
+est un signal faible, ni sur la génération elle-même, que la récupération n’astreint
+pas.
+La deuxième partie expose comment cette contrainte a été traduite en choix
+techniques : comment les documents ont été transformés en données exploitables,
+quelle architecture a été retenue pour subordonner la génération au calcul, et quel
+dispositif protège l’accès au système.
+20
+DEUXIÈME PARTIE
+ÉTUDE TECHNIQUE
+Cette partie expose les méthodes retenues et les raisons de ces choix. Elle
+décrit la chaîne qui transforme des documents bancaires hétérogènes en
+données exploitables, l’architecture qui subordonne la génération de
+texte au calcul exact, et le dispositif qui protège l’accès au système.
+CHAPITRE IV | MÉTHODOLOGIE ET
+INGÉNIERIE DES DONNÉES
+Ce chapitre décrit le corpus traité et la chaîne d’ingestion documentaire. Il expose les difficultés
+propres à ce corpus (documents numérisés, tableaux imbriqués, libellés divergents d’un établisse-
+ment à l’autre) et les traitements appliqués pour y répondre.
+I. Constitution du corpus
+1. Sources retenues
+Le corpus porte sur sept établissements, BACI, BICICI, BNI, ECOBANK, NSIA, SGCI et
+SIB, les sept premiers du classement de la Commission Bancaire de l’UEMOA par total de
+bilan.
+Il s’agit du corpus initial, borné par une exigence de méthode : une analyse financière ne
+prend son sens que sur trois exercices au moins, en deçà desquels une variation ne se distingue
+pas d’un accident de gestion. Le périmètre retenu est donc celui qui rend la comparaison per-
+tinente. La chaîne d’ingestion est conçue pour absorber tout apport ultérieur, qui se répercute
+alors sur l’ensemble des analyses sans reprise du code.
+Le corpus réunit quatre natures de matière, toutes publiques :
+• Grilles tarifaires, les « conditions de banque ». Cinq périodes semestrielles : les deux
+semestres de 2024 et de 2025, le premier de 2026 ; chacune pour les segments Partic-
+uliers et Entreprises. Soit 70 documents.
+• États financiers des sept banques sur les trois derniers exercices publiés. Soit 18 do-
+cuments.
+• Textes réglementaires de la BCEAO et de l’UEMOA, qui fixent le cadre de conformité :
+gratuités obligatoires, plafond d’usure, transparence tarifaire, seuils de déclaration (voir
+annexe 3).
+• Veille de marché, événements datés et sourcés : décision réglementaire, programme
+public, mouvement d’un concurrent. Ils ne servent pas à calculer, mais à orienter la
+décision et à l’ajuster à l’état du marché au moment où elle est prise.
+22
+Veille stratégique et aide à la décision par une approche RAG
+Méthodologie et ingénierie des données
+L’ensemble représente 90 documents, d’environ quatre pages chacun en moyenne.
+2. Difficultés propres au corpus
+Deux des quatre natures de matière ont demandé un traitement particulier. Les textes réglemen-
+taires et la veille de marché en ont exigé moins, leur structure étant plus régulière ; les difficultés
+qu’ils soulèvent tiennent à leur exploitation, non à leur extraction.
+2.1. Grilles tarifaires — voir annexe 1
+• Hétérogénéité des formats. PDF natifs, PDF numérisés ou simples images JPG ; une
+même banque peut changer de format d’une période à l’autre.
+• Structure tabulaire. Sections et sous-sections numérotées, cellules fusionnées : une
+extraction ligne à ligne perd la hiérarchie, et un montant isolé de sa section peut être
+attribué au mauvais service.
+• Libellés divergents. Chaque établissement nomme différemment des services identiques
+; sans normalisation, la comparaison rapproche des prestations de périmètres différents.
+2.2. États financiers — voir annexe 2
+• Texte non extractible sous une apparence de texte. Certains états s’affichent nettement
+mais ne rendent aucun caractère à l’extraction directe, leur texte ayant été converti en
+tracés. Rien ne permet de le prévoir avant d’essayer : ils doivent suivre la voie réservée
+aux documents numérisés.
+• Deux exercices par tableau. L’exercice clos et le précédent figurent côte à côte ; chaque
+montant doit être rattaché au bon, faute de quoi une progression serait lue à l’envers.
+• Postes agrégés différemment. Un même agrégat n’est pas toujours nommé ni découpé
+de la même façon d’un établissement à l’autre. Chaque poste est donc rattaché à sa
+rubrique du plan comptable bancaire de l’UEMOA, sans quoi la comparaison addition-
+nerait des périmètres différents.
+II. Chaîne d’ingestion
+Les quatre sources n’ont ni le même format ni la même structure : chacune suit sa propre voie
+d’extraction.
+23
+Veille stratégique et aide à la décision par une approche RAG
+Méthodologie et ingénierie des données
+1. Conditions bancaires
+Le pipeline d’extraction des conditions bancaires commence par vérifier si le document est un
+PDF natif (texte sélectionnable) ou un scan. Si le PDF est natif, pdfplumber extrait directement
+les tableaux avec une précision parfaite ; si le résultat contient au moins 4 feuilles et 200 cellules
+(seuils retenus après examen des extractions abouties du corpus), le fichier Excel est validé. En
+revanche, si le document est un scan ou si l’extraction native donne un résultat insuffisant, le
+système bascule sur Docling + EasyOCR pour lire l’image et reconstruire le tableau, validé
+dès 200 cellules. La figure 7 présente cet enchaînement.
+Figure 7 : Pipeline d’extraction des conditions bancaires
+2. États financiers
+Les états financiers sont traités par Docling + EasyOCR uniquement, qu’ils soient natifs ou
+numérisés. Ce choix tient à une propriété de l’outil : il restitue dans un même passage le texte
+intégral et les tableaux, ces derniers convertis dans un format qui conserve leurs lignes et leurs
+colonnes. Il n’y avait donc pas lieu de lui adjoindre un second outil pour les tableaux, ni de
+traiter différemment un bilan selon qu’il est encodé ou photographié.
+24
+Veille stratégique et aide à la décision par une approche RAG
+Méthodologie et ingénierie des données
+Le fichier produit est validé à partir de 2 Ko (seuil retenu après examen de la taille des textes
+réellement exploitables du corpus). Si un scan trop sombre ou trop incliné ne rend pas même
+cent caractères, un second moteur, Tesseract, prend le relais : la page est alors reconvertie en
+image agrandie, puis relue caractère par caractère. La figure 8 présente cette chaîne.
+Figure 8 : Pipeline d’extraction des états financiers
+3. Textes réglementaires
+Docling seul en extrait le texte : cette prose juridique, structurée en articles numérotés, ne
+comporte aucun tableau à reconstruire.
+4. Veille de marché
+La veille ne pratique aucun moissonnage de pages. Elle interroge une interface de recherche
+documentaire (Tavily), restreinte par liste blanche aux domaines institutionnels : BCEAO,
+ministère des Finances, Banque mondiale, Fonds monétaire international… Tavily rapporte
+les résultats les plus pertinents avec leur contenu déjà extrait ; le modèle de langage les lit et en
+tire le fait daté, avec son année, sa source et son lien.
+25
+Veille stratégique et aide à la décision par une approche RAG
+Méthodologie et ingénierie des données
+5. Techniques d’extraction : ce qui a été comparé
+Chaque source a donné lieu à plusieurs essais, y compris sur le format de sortie, qui ne se choisit
+pas indépendamment de la matière traitée. Le tableau 3 en donne le relevé.
+Approche essayée
+Ce qu’elle a produit
+Décision
+Conditions bancaires
+Modèle de langage à vision
+(OPENAI VISION)
+Hallucinait
+Écartée
+Trois extractions par
+document, réconciliées par un
+modèle
+Coût de calcul élevé, et le modèle hallucinait encore
+Écartée
+Chaque outil employé seul :
+pdfplumber, Docling ou
+Tesseract
+Aucun ne couvre à lui seul la variété des formats,
+un même établissement changeant de format d’une
+période à l’autre
+Insuffisante
+pdfplumber, puis Docling +
+EasyOCR si le seuil n’est pas
+atteint
+Couvre les deux formats sans aucune génération
+Retenue
+Sortie, JSON
+Perdait la hiérarchie qui rattache un montant à sa
+section
+Écartée
+Sortie, tableur
+Reproduit les lignes et les colonnes de la grille
+d’origine
+Retenue
+États financiers
+Chaque outil employé seul :
+pdfplumber, Tesseract ou
+Docling
+Aucun ne rend à la fois le texte suivi et les tableaux
+du bilan
+Insuffisante
+Docling + EasyOCR, avec
+Tesseract en second recours
+Restitue le texte et les tableaux d’un même passage,
+natif comme numérisé ; sur un scan trop dégradé, le
+second étage rend au moins les caractères
+Retenue
+Sortie, JSON
+Détachait un montant de son poste et de son
+exercice
+Écartée
+Sortie, tableur
+Convient aux grilles, mais découpe en cellules le
+texte suivi des rapports
+Écartée
+Sortie, texte structuré
+Conserve à la fois le texte suivi et les tableaux, avec
+la hiérarchie des postes
+Retenue
+Textes réglementaires
+Docling seul
+S’est révélé le plus efficace sur une prose continue :
+texte normalisé, prêt à être découpé pour la
+recherche
+Retenue
+Veille de marché
+Scraping
+Les sites visés sont dynamiques et changent de
+structure : le programme cesse de fonctionner à
+chaque refonte
+Écartée
+Recherche documentaire
+(Tavily) sur liste blanche de
+domaines
+Texte déjà extrait, avec sa source et son lien ; le
+bruit du web ouvert est écarté
+Retenue
+Tableau 3 : Approches essayées par source, résultat obtenu et décision
+26
+Veille stratégique et aide à la décision par une approche RAG
+Méthodologie et ingénierie des données
+III. Préparation des données
+1. Nettoyage et vectorisation
+Les fichiers issus de l’extraction sont d’abord nettoyés pour devenir exploitables : les montants
+sont ramenés à des valeurs numériques, les libellés et les sections à une forme unique, les lignes
+sans contenu utile écartées. Ce nettoyage n’emploie aucun modèle de langage : uniquement des
+règles, donc un résultat reproductible.
+Chaque ligne reçoit ensuite une représentation vectorielle, calculée localement. C’est elle
+qui permet à l’assistant de retrouver une information formulée autrement que dans le docu-
+ment. Ce n’est pas le libellé seul qui est encodé, mais une phrase qui lui rend son contexte (la
+banque, la période, la section, la valeur), sans quoi deux tarifs portant le même nom chez deux
+établissements seraient confondus.
+L’ensemble est stocké dans PostgreSQL, où les données structurées et leurs vecteurs cohab-
+itent dans les mêmes tables.
+2. Modèle de données
+Le modèle est relationnel. Une table de référence, banques, tient le répertoire des sept étab-
+lissements : leur code, leur nom, leur groupe d’appartenance et les segments de clientèle qu’ils
+servent. Trois tables portent la matière et s’y rattachent par ce code.
+cb_tarifs contient une ligne par service tarifé : la banque, l’année, le semestre et le
+segment concernés, la section du référentiel, le libellé du service, son montant et son unité.
+ef_indicateurs contient une ligne par poste d’état financier : la banque, l’exercice, le libellé
+du poste, son montant et son unité. regl_documents contient un fragment de texte réglemen-
+taire, son rang dans le document d’origine et son contenu.
+Chacune de ces trois tables porte en outre, sur chaque ligne, le vecteur qui la rend retrouvable
+par le sens. La figure 9 donne le schéma.
+27
+Veille stratégique et aide à la décision par une approche RAG
+Méthodologie et ingénierie des données
+banques
+code (clé)
+nom_complet, groupe
+segments
+cb_tarifs (un service tarifé)
+banque, annee, semestre, segment
+section, libelle, montant, unite
+vecteur
+ef_indicateurs (un poste comptable)
+banque, annee
+libelle, montant, unite
+vecteur
+regl_documents (un fragment de texte)
+fichier, rang du fragment, contenu
+vecteur
+web_facts (un fait de veille)
+indicateur, valeur, année, source, lien, date de relevé
+1 →N
+1 →N
+aucun lien : un texte
+réglementaire vaut
+pour toutes les banques
+hors de la base : fichier
+daté, jamais calculé
+Figure 9 : Modèle de données — trois tables rattachées au répertoire des banques
+Une seule table échappe à ce rattachement : les extraits réglementaires n’ont pas de banque,
+et c’est délibéré. Un plafond d’usure ou une gratuité obligatoire s’impose à tous les établisse-
+ments, non à l’un d’eux.
+28
+CHAPITRE V | ÉTUDE COMPARATIVE DE
+DEUX ARCHITECTURES RAG
+Ce chapitre présente les deux architectures construites pour ce travail, le jeu de référence sur lequel
+elles ont été mises à l’épreuve, et les résultats de leur comparaison : exactitude, coût, reproducti-
+bilité et qualité de la récupération.
+I. Les deux architectures
+Les deux architectures partagent exactement le même socle : la même base, les mêmes cinq
+outils de récupération et le même modèle de langage. Une seule chose les sépare : qui décide
+de l’enchaînement.
+1. L’architecture modulaire (A1)
+C’est ce que l’état de l’art nomme RAG modulaire (chapitre III), et qu’on dira aussi détermi-
+niste. Le chemin y est écrit à l’avance et ne varie pas d’une question à l’autre.
+La question arrive d’abord sur un routeur à règles : une logique fixe, et non un modèle
+de langage. Ce routeur reconnaît de quoi relève la question et active les seuls outils utiles :
+interrogation SQL des tarifs, des états financiers, recherche vectorielle dans la réglementation,
+veille web, ou comparateur. Les extraits rapportés sont fusionnés, puis remis au modèle en une
+seule fois.
+Le modèle n’intervient donc qu’au dernier moment, et ne décide de rien : il met en forme ce
+que le calcul a établi. Il en découle deux propriétés : le déroulement est reproductible, puisqu’il
+ne dépend d’aucun choix du modèle, et il est auditable, puisqu’on sait par construction quels
+outils ont été appelés.
+2. L’architecture agentique (A2)
+Ici, la question va directement au modèle, à qui l’on a décrit les outils disponibles. Il remplit
+deux rôles au lieu d’un : il décide des outils à appeler, puis il rédige la réponse.
+Le fonctionnement est une boucle. Le modèle appelle un outil, lit ce qu’il a obtenu, et juge
+s’il lui en faut un autre : auquel cas il recommence. Il s’arrête lorsqu’il estime disposer d’assez
+de matière, et rédige alors lui-même. Les outils sont les mêmes, strictement : ce qui change
+29
+Veille stratégique et aide à la décision par une approche RAG
+Étude comparative de deux architectures RAG
+n’est pas ce qu’on peut atteindre, mais la façon d’y aller.
+Le chemin n’est donc pas connu d’avance : il se construit question par question.
+La figure 13 met les deux en regard.
+Figure 13 : Les deux architectures comparées — même socle, décision de l’enchaînement différente
+II. Le jeu de référence
+Évaluer suppose de savoir ce qu’est la bonne réponse. Le jeu a donc été construit à partir de la
+base elle-même : pour chaque question, la réponse attendue est obtenue par une requête SQL.
+On peut ainsi comparer ce qu’une architecture répond à ce qu’elle aurait dû répondre, au lieu
+d’en juger l’allure.
+Ce mode de construction fixe l’effectif, source par source.
+• États financiers. Cinq indicateurs (produit net bancaire, capitaux propres, résultat net,
+résultat d’exploitation, résultat brut d’exploitation) ont été croisés avec les sept banques
+et deux exercices, le plus ancien et le plus récent publiés. Sur les soixante-dix croisements
+possibles, 48 correspondent à une valeur présente et non équivoque dans la base : ce sont
+les 48 questions factuelles.
+• Grilles tarifaires. Cinq services retenus par banque, soit 35 questions. N’ont été gardés
+que les services dont le libellé ne peut désigner qu’une seule ligne.
+• Le reste. Huit comparaisons de tarifs entre établissements, huit questions réglementaires,
+sept évolutions d’un exercice à l’autre, cinq synthèses, deux comparaisons d’indicateurs
+30
+Veille stratégique et aide à la décision par une approche RAG
+Étude comparative de deux architectures RAG
+et une question à sauts multiples, soit 31.
+Le total s’établit à 114 questions, dont le tableau 5 donne la composition.
+Type
+Effectif
+Nature de la question
+ef_factuel
+48
+Un indicateur d’un état financier, pour une banque et
+un exercice
+cb_factuel
+35
+Un tarif d’une grille, pour une banque et une période
+comparatif_cb
+8
+Quel établissement pratique le tarif le plus bas
+reglementaire
+8
+Disposition à retrouver dans les textes BCEAO ou
+UEMOA
+evolution_ef
+7
+Variation d’un indicateur entre deux exercices
+synthese
+5
+Lecture d’ensemble mobilisant plusieurs sources
+comparatif_ef
+2
+Quel établissement maximise un indicateur
+multihop_ef
+1
+Deux interrogations enchaînées : trouver la banque,
+puis sa valeur
+Total
+114
+Tableau 5 : Composition du jeu de référence
+III. Mesures retenues
+Quatre familles de mesures ont été relevées.
+• L’exactitude confronte la réponse à la vérité issue de la base, par comparaison exacte.
+• La qualité est appréciée par un modèle de langage tiers agissant comme juge, sur la
+fidélité au contexte, la pertinence et la couverture. Elle ne s’applique qu’aux questions
+ouvertes, où il n’existe pas de réponse unique.
+• Le coût réunit la latence, le nombre d’appels au modèle et la reproductibilité.
+• Les mesures de recherche évaluent la seule composante vectorielle.
+31
+Veille stratégique et aide à la décision par une approche RAG
+Étude comparative de deux architectures RAG
+IV. Exactitude
+C’est la mesure principale : la réponse est-elle la bonne ? Elle s’obtient par comparaison exacte
+à la vérité tirée de la base.
+Toutes les questions ne s’y prêtent pas. Huit questions réglementaires et cinq synthèses appel-
+lent une réponse rédigée, dont on ne peut pas dire qu’elle est juste ou fausse. Elles sont écartées
+ici et jugées plus loin. L’exactitude porte donc sur les 101 questions restantes, et la figure 14
+en donne le résultat, d’ensemble et par type.
+Figure 14 : Exactitude globale et par type de question
+Sur les 101 questions, la modulaire donne la bonne réponse 93 fois et l’agentique 90 fois, soit
+92,1 % contre 89,1 %. Les intervalles de confiance se recouvrent largement : trois réponses
+d’écart ne séparent pas deux architectures. La figure 15 montre où chacune trébuche.
+Figure 15 : Exactitude par type de question
+L’écart se loge dans deux catégories seulement. Sur les tarifs, la modulaire l’emporte nettement,
+0,97 contre 0,83 : le chemin fixe interroge la bonne table sans hésiter. Sur les états financiers,
+l’agentique reprend l’avantage : 0,90 contre 0,85. Partout ailleurs, les deux atteignent la per-
+32
+Veille stratégique et aide à la décision par une approche RAG
+Étude comparative de deux architectures RAG
+fection.
+V. Ce que les écarts établissent
+Un écart observé est-il réel, ou dû au hasard ? Les deux architectures ayant répondu aux mêmes
+questions, les échantillons sont appariés, ce qui autorise les tests ci-dessous.
+Figure 16 : Tests statistiques sur les réponses appariées
+Chaque test livre une valeur p : sous 5 %, l’écart est tenu pour réel. L’exactitude ne franchit pas
+ce seuil (p = 0,63) ; la latence et le nombre d’appels au modèle le franchissent très largement.
+VI. Coût et reproductibilité
+1. Coût
+Figure 17 : Appels au modèle et latence par question
+L’architecture modulaire appelle le modèle une fois par question, quand l’agentique l’appelle
+près de deux fois et demie. Sa latence médiane est inférieure de moitié : 2,87 secondes con-
+tre 4,51. Ces deux écarts sont statistiquement significatifs, et ils se cumulent : chaque appel
+supplémentaire consomme du quota et allonge l’attente.
+33
+Veille stratégique et aide à la décision par une approche RAG
+Étude comparative de deux architectures RAG
+2. Reproductibilité
+Une même question a été posée huit fois à chaque architecture, puis on a compté combien de
+fois la réponse revenait identique.
+Figure 18 : Reproductibilité sur huit répétitions d’une même question
+• La modulaire rend la même réponse dans 65 % des cas, l’agentique dans 46 %.
+• Sur huit exécutions, l’agentique produit en moyenne près de quatre réponses différentes,
+la modulaire un peu plus de deux.
+• Le second tableau détaille le résultat question par question. Chacune y est désignée par
+un code : cb_cmp_001 pour une comparaison tarifaire, ef_fact_001 pour une question
+factuelle sur un état financier, synth_001 pour une synthèse.
+Pour un outil dont les restitutions servent à décider, cette stabilité n’est pas un détail de
+confort : deux lectures du même écran ne doivent pas dire deux choses différentes.
+VII. Qualité des réponses ouvertes
+On ne peut pas dire d’une synthèse qu’elle est « juste » ou « fausse ». Il faut donc une autre
+mesure. Vingt-quatre réponses ont été soumises à un modèle de langage tiers agissant comme
+juge : les treize questions sans réponse unique, et les onze comparaisons, dont on voulait aussi
+apprécier la formulation. Le juge les note sur la fidélité au contexte fourni, la pertinence au
+regard de la question et la couverture des éléments attendus.
+34
+Veille stratégique et aide à la décision par une approche RAG
+Étude comparative de deux architectures RAG
+1. Moyennes d’ensemble
+Figure 19 : Fidélité, pertinence et couverture jugées
+Les deux architectures sont au coude à coude sur la fidélité : 0,84 et 0,85. L’agentique devance
+nettement sur la pertinence, 0,89 contre 0,79.
+2. Détail par type de question
+Figure 20 : Fidélité et pertinence par type de question
+Ce détail montre que l’avantage de l’agentique n’est pas universel. Sur les comparaisons de
+tarifs et d’indicateurs, les deux atteignent 1,00 : aucune ne se distingue. L’écart tient à un seul
+type, la synthèse, où l’agentique obtient 0,84 de pertinence contre 0,64 : c’est là que sa capacité
+à enchaîner plusieurs interrogations trouve son emploi.
+Sur les questions réglementaires, c’est l’inverse : la modulaire est plus fidèle au contexte,
+0,82 contre 0,70. L’agent, en multipliant les appels, ramène de la matière qui s’éloigne de la
+question.
+35
+Veille stratégique et aide à la décision par une approche RAG
+Étude comparative de deux architectures RAG
+VIII. L’architecture retenue
+L’architecture modulaire est retenue. Voici ce que la comparaison établit.
+• Exactitude : égalité. 92,1 % contre 89,1 %, écart non significatif. Cette mesure ne
+départage pas les deux architectures.
+• Coût : un appel contre deux et demi. La modulaire n’interroge le modèle qu’une seule
+fois par question.
+• Vitesse : le double. Sa latence médiane est deux fois plus courte.
+• Stabilité : 65 % contre 46 %. Lorsqu’on repose huit fois la même question, elle rend
+la même réponse bien plus souvent.
+Trois raisons emportent la décision.
+• La reproductibilité, qui figure au cahier des charges.
+• Le coût, l’accès au modèle étant limité par des quotas.
+• L’auditabilité : un chemin fixe permet de savoir quels outils ont été appelés, ce qu’un
+enchaînement décidé par le modèle ne permet pas.
+36
+TROISIÈME PARTIE
+RÉALISATION ET DISCUSSION
+Cette partie présente le système livré et ce qu’il produit. Elle expose les
+restitutions obtenues, estime le coût du projet et discute les résultats ainsi
+que les limites du travail.
+CHAPITRE VI | PRÉSENTATION DES
+RÉSULTATS
+Ce chapitre présente le système tel qu’il fonctionne. Les illustrations qui suivent proviennent de
+l’application connectée à la base de production ; elles ne sont pas des maquettes. Chaque restitution
+est commentée du point de vue de ce qu’elle apporte à la décision.
+I. Accès au système
+L’accès est subordonné à une authentification vérifiée par le serveur, assortie de droits accordés
+section par section.
+Figure 21 : Page d’authentification de l’application
+38
+Veille stratégique et aide à la décision par une approche RAG
+Présentation des résultats
+II. Analyse de la santé financière
+Cette restitution répond à la première insuffisance identifiée : l’impossibilité de situer la perfor-
+mance de la SGCI par rapport au marché sur des bases harmonisées. Elle présente les indicateurs
+clés (produit net bancaire, résultat net, rentabilité des fonds propres, coefficient d’exploitation,
+coût du risque) pour les sept établissements, sur les exercices disponibles.
+Figure 22 : Tableau de bord Santé financière
+Le tableau de bord ne se limite pas à cette vue. Il propose, pour chaque indicateur, le choix de
+l’exercice de référence, la bascule entre produit net bancaire, résultat net et rentabilité des fonds
+propres, un portrait compétitif en cinq dimensions, un podium des établissements et un jeu de
+signaux analytiques rédigés. Ces vues figurent en annexe 9.
+Trois éléments méritent d’être relevés. Les valeurs affichées proviennent des états financiers
+publiés et sont rattachées à leur exercice de référence, ce qui évite de comparer des données
+d’années différentes sans le signaler. Les rangs sont calculés et non écrits : si la position de la
+SGCI change lors d’un prochain apport de données, les commentaires associés changent avec
+elle. Enfin, les analyses rédigées accompagnant les graphiques signalent explicitement leur
+nature, afin que le lecteur distingue le chiffre de son interprétation.
+39
+Veille stratégique et aide à la décision par une approche RAG
+Présentation des résultats
+III. Benchmark des conditions bancaires
+Cette restitution répond à la deuxième insuffisance : l’absence de comparaison tarifaire struc-
+turée. Elle rapproche les services des sept banques, section par section du référentiel BCEAO,
+et ne compare que des prestations de périmètre équivalent.
+Figure 23 : Tableau de bord Conditions bancaires
+L’indice de compétitivité prix situe la SGCI au troisième rang sur sept établissements, avec
+un taux de succès de 62,2 % sur les services comparables : c’est-à-dire que sur cent services
+comparés, la SGCI propose un tarif inférieur ou égal à la médiane du marché dans soixante-
+deux cas. Cette mesure porte sur un panier de services réellement comparables, constitué après
+élimination des rapprochements de périmètre douteux.
+Ce chiffre appelle une précision de méthode, car il a évolué au cours des travaux. Le rap-
+prochement entre un service de la SGCI et son équivalent chez un concurrent repose sur une
+mesure de similarité entre libellés ; lorsque deux candidats obtiennent exactement le même
+score, il faut bien en retenir un. Tant que ce départage n’était pas explicite, le choix revenait
+à l’ordre dans lequel la base restituait les lignes : un ordre que PostgreSQL ne garantit pas et
+qu’une simple réorganisation interne suffit à modifier. Deux copies d’une même base pouvaient
+ainsi produire des indices différents. Le tri a donc été complété par des critères stables, jusqu’à
+l’identifiant des lignes comparées, ce qui a été vérifié en dupliquant la base : les deux exem-
+plaires produisent désormais des résultats rigoureusement identiques, et plusieurs exécutions
+successives donnent la même empreinte. L’indice publié ici est celui de la version détermi-
+niste.
+Le système identifie également les exclusivités, services que la SGCI est seule à proposer,
+et les manques d’offre, services proposés par des concurrents et absents de son catalogue. Ces
+deux notions ont fait l’objet d’un traitement particulier : déduites des seules grilles publiées,
+40
+Veille stratégique et aide à la décision par une approche RAG
+Présentation des résultats
+elles produisent des faux positifs, un service pouvant exister chez un concurrent sans figurer
+dans sa brochure. Une validation par recherche web a donc été introduite, dont les verdicts sont
+conservés et sourcés.
+IV. Analyse stratégique
+Cette restitution répond à la difficulté d’articuler données et décision. Elle réunit le diagnos-
+tic, l’analyse SWOT, les cinq forces de Porter, la matrice VRIST, l’analyse PESTEL et une
+projection à trois ans.
+Figure 24 : Tableau de bord Stratégie
+Figure 25 : Analyse concurrentielle — les cinq forces de Porter appliquées au marché ivoirien
+La projection distingue trois scénarios et présente l’écart entre la trajectoire naturelle et le scé-
+nario central : cet écart constitue l’effort à fournir, et sert de référence aux recommandations
+opérationnelles présentées ci-après.
+41
+Veille stratégique et aide à la décision par une approche RAG
+Présentation des résultats
+V. Directives opérationnelles par direction
+Cette restitution est née d’un besoin exprimé en cours de projet : disposer, pour chaque direc-
+tion, de décisions concrètes rattachées à l’objectif global. Elle présente quatre directives par
+direction, chacune fondée sur un fait mesuré.
+Figure 26 : Onglet Stratégie opérationnelle — directives par direction
+Figure 27 : Directives de la Direction Marketing — adossées à la segmentation clientèle
+Chaque directive comporte six éléments : le constat chiffré qui la fonde, le signal de marché
+externe qui la rend actuelle, le terrain d’application avec son apport estimé, l’action à con-
+duire, un premier pas à trente jours, et l’indicateur de suivi. Un bouton permet d’interroger
+l’assistant pour approfondir une directive donnée.
+Deux points de conception méritent d’être signalés. D’une part, les directives sont produites
+par calcul déterministe et non par le modèle de langage : elles restent donc disponibles même
+lorsque le service d’intelligence artificielle est indisponible. D’autre part, lorsqu’une directive
+ne se rattache à aucun secteur particulier (le pilotage du coefficient d’exploitation, par exemple)
+elle est déclarée transversale plutôt que rattachée artificiellement à un secteur, ce qui éviterait
+un lien de convenance sans fondement.
+42
+Veille stratégique et aide à la décision par une approche RAG
+Présentation des résultats
+1. De l’observation à l’écart mesuré
+La première version de ces directives décrivait une situation sans dire où se situait la banque,
+et leur contribution à l’objectif était formulée comme une catégorie. La refonte a introduit deux
+champs calculés : l’enjeu, qui ouvre chaque directive sur l’écart mesuré (rang, distance au
+mieux placé), et la contribution, chiffrée en milliards de FCFA et rapportée à l’écart à combler,
+hypothèse énoncée. La directive sur les commissions n’annonce ainsi plus un levier mais un
+constat : elles pèsent 26,3 % du produit net bancaire de la SGCI contre 38,8 % chez le mieux
+placé, soit un écart valant 34,5 milliards par an à produit net inchangé, davantage que l’objectif
+à trois ans lui-même.
+Toutes ne se chiffrent pas, et le reconnaître est une exigence de méthode : cinq des vingt
+portent un montant, les quinze autres étant des conditions ou des défenses d’un acquis, que l’on
+ne peut additionner sans compter deux fois la même somme. L’écran affiche donc un bouclage
+explicite : 15,45 milliards identifiés sur 27,7, soit 55,8 %, et 12,25 sans source. Ce chiffre n’est
+pas flatteur ; il est l’information utile.
+Les directives ont enfin été raccordées à la trajectoire à trois ans. Plutôt que d’inventer une
+répartition annuelle, le système exploite l’horizon d’exécution que chacune porte déjà, de trois
+à vingt-quatre mois, et les regroupe par année, sous le thème correspondant de la feuille de route
+globale. Le regroupement révèle un constat que la présentation précédente masquait : l’horizon
+le plus lointain étant de vingt-quatre mois, la troisième année reste vide. Ce n’est pas une lacune
+de l’outil mais une caractéristique du plan.
+Ce rapprochement a par ailleurs mis au jour un défaut qu’aucun écran ne pouvait montrer seul
+: la part des commissions y était calculée de deux façons (rapportée à la somme des commissions
+et des intérêts d’un côté, au produit net bancaire publié de l’autre) soit 2,3 points d’écart pour ce
+que le lecteur prend pour la même grandeur. La définition a été unifiée, en retenant le rapport
+au produit net bancaire. En obligeant deux analyses à se rejoindre, l’outil révèle les divergences
+de définition qu’une lecture séparée laisse subsister.
+43
+Veille stratégique et aide à la décision par une approche RAG
+Présentation des résultats
+VI. Administration des accès
+Figure 28 : Écran d’administration des accès
+L’écran réunit la gestion des comptes, l’attribution des droits section par section et la consulta-
+tion du journal d’accès.
+VII. Assistant conversationnel
+L’assistant permet d’interroger l’ensemble des données en langage naturel. Trois interrogations
+sont présentées ci-après, choisies pour illustrer les trois natures de questions que le système doit
+traiter.
+1. Question tarifaire
+Figure 29 : Assistant conversationnel — question tarifaire
+La réponse distingue les différents types de comptes, ce qui n’est pas anecdotique : les frais
+de tenue de compte diffèrent selon qu’il s’agit d’un livret d’épargne, d’un compte ordinaire ou
+d’une succession. Une réponse fournissant un montant unique serait fausse pour la majorité des
+cas. Cette distinction résulte de la conservation de la hiérarchie des sections lors de l’ingestion.
+44
+Veille stratégique et aide à la décision par une approche RAG
+Présentation des résultats
+2. Comparaison financière
+Figure 30 : Assistant conversationnel — comparaison financière
+La réponse restitue le produit net bancaire et la rentabilité des fonds propres de la SGCI, puis
+les situe par rapport aux concurrents sous forme de classement. Les valeurs proviennent de
+requêtes exactes sur la base et non d’une interprétation d’extraits textuels.
+3. Question stratégique
+Figure 31 : Assistant conversationnel — question stratégique
+Cette interrogation, plus ouverte, mobilise à la fois les données tarifaires et les validations
+d’exclusivité. La réponse énumère les services concernés en les rattachant au segment de clien-
+tèle.
+L’application comporte d’autres vues que ce chapitre ne peut toutes reproduire sans nuire à
+la lecture. Trois d’entre elles (la lecture concurrentielle du marché, le repositionnement tarifaire
+et les directives de la Direction des Risques) figurent en annexes 11 à 13.
+45
+Veille stratégique et aide à la décision par une approche RAG
+Présentation des résultats
+VIII. Mise en service
+Le système a été déployé et rendu accessible en ligne. Cette étape, souvent traitée comme une
+formalité, a révélé six défauts qu’aucun test local n’aurait pu faire apparaître : ils tiennent tous
+à des différences entre le poste de développement et l’environnement d’exécution.
+1. Architecture retenue
+L’application est hébergée sur une plateforme d’exécution gérée, la base sur un service Post-
+greSQL distinct disposant de l’extension vectorielle : l’offre gratuite de l’hébergeur applicatif
+supprimant les bases après trente jours, échéance qui serait tombée pendant la période de sou-
+tenance.
+L’assistant conversationnel posait une difficulté particulière : le modèle de vectorisation
+pèse, avec ses dépendances, près de deux gigaoctets, davantage que la mémoire de l’instance.
+La solution exploite une asymétrie du besoin : les 31 985 vecteurs des documents sont déjà en
+base, seule la question reste à vectoriser. Cette opération est déléguée à une interface d’inférence
+distante exécutant le même modèle. La délégation n’était acceptable qu’à une condition, véri-
+fiée avant d’être adoptée : que les vecteurs distants soient comparables à ceux stockés, une
+différence de méthode d’agrégation ou de normalisation rendant la recherche incohérente sans
+produire aucune erreur visible. La mesure, sur quatre questions réelles, donne une similarité
+cosinus de 1,000000 et un écart maximal par coordonnée de 1,1 × 10−7 : le bruit de la virgule
+flottante.
+2. Défauts révélés par la mise en production
+Trois méritent d’être rapportés, car aucun ne provoquait d’erreur. L’hébergeur fournit une
+chaîne de connexion unique là où le code attendait cinq variables ; sans lecture de cette chaîne,
+l’application visait la machine locale, et comme la couche d’accès retourne une liste vide en
+cas d’échec, les tableaux de bord se seraient affichés vides, sans message. Le préchauffage des
+caches, placé dans le bloc d’exécution directe du script, ne tournait jamais sous un serveur de
+production, qui importe le module au lieu de l’exécuter : l’application aurait servi des analy-
+ses silencieusement périmées. Enfin, le dossier de l’application comportant des espaces et un
+tiret cadratin, le gestionnaire de paquets coupait ce chemin au premier espace ; construction et
+démarrage le résolvent désormais en Python, et le recherchent plutôt que de l’inscrire en dur.
+46
+Veille stratégique et aide à la décision par une approche RAG
+Présentation des résultats
+3. Performance en conditions réelles
+Les mesures sur le service hébergé ont montré des temps sans commune mesure avec ceux
+observés en local, pour des raisons qui n’étaient pas celles attendues.
+Écran
+Avant
+Après
+Facteur
+Stratégie opérationnelle
+162 s
+3,8 s
+×43
+Conditions bancaires
+28,9 s
+7,1 s
+×4
+Stratégie
+—
+5,0 s
+Santé financière
+—
+6,5 s
+Tableau 6 : Temps d’affichage mesurés sur le service hébergé, avant et après optimisation
+Trois causes ont été identifiées, aucune n’étant la lenteur du serveur. Le préchauffage calcu-
+lait douze combinaisons de périodes sur une instance disposant d’un dixième de processeur : les
+requêtes des utilisateurs attendaient derrière. Les caches, conservés en mémoire, ne servaient
+jamais le premier visiteur : l’hébergeur suspendant le service après quinze minutes d’inactivité,
+le processus repart à vide, et c’est précisément celui qui réveille le service qu’il fallait servir ;
+les résultats coûteux ont été déplacés en base.
+La troisième cause est la plus instructive. L’écran des conditions bancaires émet treize re-
+quêtes simultanées : la bonne pratique sur une machine ordinaire. Prises isolément, elles répon-
+dent en moins d’une seconde ; lancées ensemble, elles n’étaient pas revenues au bout de vingt
+secondes. Sur un dixième de processeur il n’existe aucun parallélisme à exploiter, et treize re-
+quêtes se disputent la même ressource en se ralentissant mutuellement. Une file limitant les
+appels concurrents à trois a résolu le problème sans modifier une seule requête : le serveur
+n’était pas lent, la file était mal formée.
+47
+CHAPITRE VII | ESTIMATION BUDGÉTAIRE
+ET DISCUSSION
+Ce chapitre estime le coût du projet, en distingue la part effectivement engagée de celle qui relève
+d’une mise en production, puis discute les résultats obtenus, les limites du travail et les perspectives
+ouvertes.
+I. Estimation budgétaire
+1. Coûts de développement
+Le projet a été conduit sur la durée du stage. L’estimation ci-dessous valorise le temps con-
+sacré et les ressources mobilisées, en distinguant ce qui a été effectivement engagé de ce
+qu’impliquerait une exploitation en production.
+Poste
+Base
+Quantité
+Montant (FCFA)
+Développement, engagé
+Conception et développement
+Stagiaire, 6 mois
+6
+— (stage)
+Logiciels et bibliothèques
+Open source
+—
+0
+Base de données PostgreSQL
+Open source
+—
+0
+Modèle d’embeddings
+Exécution locale
+—
+0
+Accès au modèle de langage
+Offre gratuite, quotas
+6 mois
+0
+Exploitation, à prévoir, estimation annuelle
+Hébergement applicatif
+Service géré
+12 mois
+480 000
+Base de données hébergée
+Service géré
+12 mois
+600 000
+Accès au modèle de langage
+Offre payante
+12 mois
+900 000
+Service de recherche web
+Veille sectorielle
+12 mois
+300 000
+Maintenance et évolutions
+2 jours par mois
+24 j
+1 200 000
+Total annuel d’exploitation
+3 480 000
+Tableau 7 : Estimation budgétaire du projet
+Nature de cette estimation
+Les montants d’exploitation sont des estimations établies à partir des grilles tarifaires publiques
+des fournisseurs de services concernés et d’une hypothèse de charge modérée. Ils n’engagent pas la
+SGCI et n’ont fait l’objet d’aucune consultation formelle. Les coûts de développement sont nuls du
+fait du statut de stage, ce qui ne signifie pas que le travail soit sans valeur : une prestation externe
+équivalente représenterait plusieurs mois-homme.
+48
+Veille stratégique et aide à la décision par une approche RAG
+Estimation budgétaire et discussion
+2. Comparaison avec l’alternative externalisée
+L’intérêt économique du système s’apprécie par comparaison avec la pratique antérieure. Une
+mission de conseil externe portant sur une analyse concurrentielle sectorielle représente un coût
+unitaire élevé, et doit être renouvelée à chaque actualisation. Le système développé présente
+une structure de coût différente : un investissement initial, puis un coût récurrent d’exploitation
+indépendant du nombre d’analyses produites. Au-delà d’une fréquence d’analyse semestrielle,
+l’écart joue nettement en faveur de la solution interne : sans compter qu’elle dote la banque
+d’une capacité durable là où une prestation livre un document.
+II. Discussion
+1. Apports du travail
+Le premier apport est la constitution d’un actif de données là où il n’en existait aucun. Les
+33 857 lignes structurées réunissent une information jusqu’alors dispersée dans des documents
+de formats hétérogènes, et permettent des analyses qui étaient matériellement impossibles au-
+paravant.
+Le deuxième est la démonstration qu’une exigence d’exactitude peut être satisfaite
+dans un système fondé sur un modèle génératif, à condition de ne pas confier à ce modèle
+l’établissement des valeurs. Le principe retenu n’est pas une précaution rédactionnelle : il se
+traduit par une architecture où le modèle n’a structurellement pas accès à la production des
+chiffres.
+Le troisième est la réduction du délai entre la disponibilité d’une donnée et son exploita-
+tion. Là où le rapprochement manuel des grilles mobilisait plusieurs jours, la comparaison est
+désormais immédiate, et l’ajout de nouvelles données se répercute sur l’ensemble des analyses
+sans intervention sur le code.
+2. Limites
+Plusieurs limites doivent être reconnues.
+La qualité de l’extraction n’est pas parfaite. Un audit de la base a identifié 265 lignes où
+un numéro de section a été pris pour un montant, et 339 lignes portant une valeur nulle sans être
+déclarées gratuites, soit environ 4 % des montants exploitables. Ces anomalies ont été mesurées
+et documentées ; leur correction demande un arbitrage au cas par cas et n’a pas été conduite
+dans le cadre de ce travail.
+49
+Veille stratégique et aide à la décision par une approche RAG
+Estimation budgétaire et discussion
+Le périmètre est restreint à sept établissements sur les vingt-neuf que compte le marché.
+Ce choix est justifié par le poids de ces sept banques, mais il exclut les établissements de taille
+moyenne, dont les stratégies tarifaires peuvent être plus agressives.
+L’évaluation d’exécution porte sur les 114 questions du jeu de référence, mais le jugement
+de qualité ne couvre que 24 réponses par architecture, et la reproductibilité six questions. Ces
+derniers effectifs sont insuffisants pour établir des différences statistiquement significatives en-
+tre architectures.
+La veille sectorielle dépend de la disponibilité de sources publiques. Deux secteurs suivis
+n’ont pu être documentés faute d’indicateurs chiffrés exploitables, et sont écartés du rendu :
+comportement conforme au principe retenu, mais qui limite la couverture.
+Enfin, le système repose sur un service d’intelligence artificielle externe soumis à quo-
+tas. L’architecture limite la portée de cette dépendance, les valeurs et les directives restent
+disponibles sans lui, mais la rédaction des analyses s’interrompt lorsque le quota est atteint.
+3. Perspectives
+Quatre prolongements se dégagent. L’extension du périmètre aux autres établissements du
+marché ne demande aucune modification du code, la chaîne d’ingestion étant conçue pour ac-
+cueillir un nouvel établissement. L’allègement du déploiement est documenté : la conversion
+du modèle d’embeddings à un format d’exécution allégé ramènerait l’empreinte de 1,9 Go à
+environ 300 Mo, sans invalider les vecteurs déjà calculés. L’enrichissement du protocole
+d’évaluation, par élargissement du jeu de test, permettrait de conclure là où le travail actuel ne
+fait qu’indiquer. La correction des anomalies d’extraction identifiées améliorerait la fiabilité
+des comparaisons de prix.
+50
+CONCLUSION GÉNÉRALE
+Ce mémoire est parti d’un constat simple : la Société Générale Côte d’Ivoire dispose d’une in-
+formation concurrentielle publique et abondante, mais ne l’exploite pas de façon systématique,
+faute d’outil adapté. La mission confiée consistait à concevoir et mettre en œuvre un système de
+veille stratégique, de benchmarking concurrentiel et d’aide à la décision fondé sur une approche
+de génération augmentée par récupération.
+La question centrale posée était de savoir comment concevoir un tel système, à partir de
+données bancaires publiques et hétérogènes, de manière à produire des analyses suffisamment
+fiables pour fonder une décision stratégique.
+Démarche suivie
+La réponse a été construite en trois temps. L’analyse de l’existant a d’abord établi six insuffi-
+sances structurelles, dont la plus déterminante n’était pas l’absence de données mais l’absence
+de moyen de les rapprocher : chaque banque nommant différemment les mêmes services, toute
+comparaison exigeait un travail manuel préalable.
+L’état de l’art a ensuite montré que la génération augmentée répond au besoin d’interrogation
+en langage naturel, mais qu’elle ne garantit pas l’exactitude. Cette limite s’est révélée décisive
+dans un domaine où une valeur fausse n’affaiblit pas la décision, mais l’invalide.
+La conception a enfin été gouvernée par un principe unique : le déterministe établit, le
+modèle formule. Les chiffres, classements et écarts sont calculés en base ; le modèle de langage
+n’intervient que pour leur mise en forme. Ce principe n’est pas une précaution de rédaction,
+c’est une contrainte d’architecture : le modèle n’a structurellement pas accès à la production
+des valeurs.
+Résultats obtenus
+Le système livré réunit une chaîne d’ingestion documentaire, une base centralisée de 33 857
+lignes structurées et vectorisées, une application à quatre tableaux de bord, un assistant conver-
+sationnel et un dispositif d’administration des accès.
+L’évaluation expérimentale a comparé deux architectures sur un jeu de référence de 114
+51
+Veille stratégique et aide à la décision par une approche RAG
+Conclusion générale
+questions, exécuté intégralement et sans erreur. Les deux répondent aussi juste (92,1 % contre
+89,1 %, écart non significatif), mais l’architecture modulaire est deux fois moins coûteuse en
+appels au modèle, deux fois plus rapide et nettement plus stable (0,65 contre 0,46). L’agentique
+ne l’emporte que sur la synthèse ouverte. La première a donc été retenue, la reproductibilité
+figurant parmi les critères d’acceptation.
+La mesure de la recherche vectorielle isolée a produit le résultat le plus instructif de cette
+évaluation. Ses performances faibles (un rang réciproque moyen de 0,052) confirment que la
+similarité sémantique est un signal peu opérant sur des données tabulaires, et valident ainsi le
+choix de ne pas fonder le système sur ce seul mécanisme.
+Pertinence et originalité
+L’originalité de ce travail ne réside pas dans les techniques employées, qui sont documentées,
+mais dans leur articulation au service d’une contrainte de véracité. Trois éléments le dis-
+tinguent des travaux voisins.
+Le corpus traité est tabulaire et réellement hétérogène : documents natifs et numérisés,
+tableaux imbriqués, libellés divergents entre établissements. Les chaînes de génération aug-
+mentée usuelles portent sur de la prose, où la difficulté ne se pose pas dans ces termes.
+La génération est subordonnée au calcul, de sorte que l’exactitude ne dépend pas du com-
+portement du modèle. Ce parti a un coût, la formulation est moins libre, et un bénéfice que
+l’exploitation a confirmé : les restitutions demeurent disponibles et exactes même lorsque le
+service d’intelligence artificielle est indisponible.
+Le système a enfin fait l’objet d’une évaluation comparative chiffrée, démarche peu
+fréquente dans les travaux de ce type, où la validation se limite souvent à des exemples choisis.
+Limites et recommandations
+Quatre limites doivent être rappelées.
+La qualité de l’extraction présente environ 4 %
+d’anomalies mesurées, dont la correction demande un arbitrage au cas par cas. Le périmètre
+couvre sept établissements sur vingt-neuf. Le jugement de qualité ne porte que sur 24 réponses
+par architecture, effectif insuffisant pour établir des différences significatives. Le système
+dépend enfin d’un service externe soumis à quotas, dépendance dont l’architecture limite la
+portée sans la supprimer.
+Trois recommandations en découlent pour l’établissement. Il conviendrait d’abord de cor-
+52
+Veille stratégique et aide à la décision par une approche RAG
+Conclusion générale
+riger les anomalies d’extraction identifiées, en priorité sur les lignes intervenant dans les
+comparaisons de prix. Il serait ensuite utile de conduire un test utilisateur formel auprès des
+directions destinataires, seul moyen d’établir le critère d’utilisabilité. Il faudrait enfin définir
+une politique de mise à jour : la valeur du système décroît avec la fraîcheur de ses données,
+et l’ingestion des grilles semestrielles devrait être inscrite dans un calendrier.
+Prolongements
+Quatre prolongements se dégagent naturellement.
+L’extension du périmètre aux autres
+établissements du marché ne demande aucune modification du code. L’allègement du dé-
+ploiement, par conversion du modèle d’embeddings à un format d’exécution allégé, ramènerait
+l’empreinte de 1,9 Go à environ 300 Mo sans invalider les vecteurs existants. L’élargissement
+du jeu d’évaluation permettrait de conclure là où le présent travail ne fait qu’indiquer. Enfin,
+l’extension à d’autres marchés de l’UEMOA constituerait le prolongement le plus ambitieux
+: la chaîne développée ne comporte aucune dépendance propre à la Côte d’Ivoire, et le cadre
+réglementaire de la BCEAO est commun à l’ensemble de l’Union.
+Au terme de ce travail, il apparaît que la difficulté principale d’un système d’aide à la déci-
+sion fondé sur l’intelligence artificielle générative n’est pas de le faire répondre, mais de faire en
+sorte que ses réponses puissent être vérifiées. C’est cette exigence, plus que toute considération
+technique, qui a façonné la solution présentée.
+53
+BIBLIOGRAPHIE
+Ouvrages
+1. Michel KALIKA, Le mémoire de master, éd. Dunod, Paris, 2016, 187 p.
+2. Jean-Pierre FRAGNIÈRE, Comment réussir un mémoire, 5e éd., Dunod, Paris, 2016, 142
+p.
+3. Aurélien GÉRON, Deep Learning avec Keras et TensorFlow : mise en œuvre et cas
+concrets, 2e éd., Dunod, Paris, 2020, 528 p.
+4. Denis ROUSSET, PostgreSQL : administration et exploitation d’une base de données,
+éd. ENI, Saint-Herblain, 2021, 466 p.
+Articles scientifiques
+5. Ashish VASWANI, Noam SHAZEER, Niki PARMAR et al., « Attention Is All You
+Need », Advances in Neural Information Processing Systems, vol. 30, 2017, p. 5998-
+6008.
+6. Patrick LEWIS, Ethan PEREZ, Aleksandra PIKTUS et al., « Retrieval-Augmented Gen-
+eration for Knowledge-Intensive NLP Tasks », Advances in Neural Information Process-
+ing Systems, vol. 33, 2020, p. 9459-9474.
+7. Timo SCHICK, Jane DWIVEDI-YU, Roberto DESSÌ et al., « Toolformer : Language
+Models Can Teach Themselves to Use Tools », Advances in Neural Information Process-
+ing Systems, vol. 36, 2023, p. 68539-68551.
+8. Nils REIMERS, Iryna GUREVYCH, « Sentence-BERT : Sentence Embeddings using
+Siamese BERT-Networks », Proceedings of the 2019 Conference on Empirical Methods
+in Natural Language Processing, 2019, p. 3982-3992.
+9. Ziwei JI, Nayeon LEE, Rita FRIESKE et al., « Survey of Hallucination in Natural Lan-
+guage Generation », ACM Computing Surveys, vol. 55, no 12, 2023, p. 1-38.
+54
+Veille stratégique et aide à la décision par une approche RAG
+Bibliographie
+10. Colin PERCIVAL, « Stronger Key Derivation via Sequential Memory-Hard Functions »,
+Proceedings of BSDCan, 2009, p. 1-16.
+11. Yunfan GAO, Yun XIONG, Xinyu GAO et al., « Retrieval-Augmented Generation for
+Large Language Models : A Survey », arXiv preprint arXiv:2312.10997, 2024, 21 p.
+Documents institutionnels et réglementaires
+12. BANQUE CENTRALE DES ÉTATS DE L’AFRIQUE DE L’OUEST, Instruction no
+2011-01 relative à la publication des conditions de banque applicables à la clientèle,
+Dakar, 2011.
+13. BANQUE CENTRALE DES ÉTATS DE L’AFRIQUE DE L’OUEST, Dispositif pruden-
+tiel applicable aux établissements de crédit et aux compagnies financières de l’UMOA,
+Dakar, 2016.
+14. COMMISSION BANCAIRE DE L’UMOA, Rapport annuel, Abidjan, 2024.
+15. SOCIÉTÉ GÉNÉRALE CÔTE D’IVOIRE, États financiers annuels, exercices 2021 à
+2025.
+16. ORGANISATION POUR L’HARMONISATION EN AFRIQUE DU DROIT DES AF-
+FAIRES, Acte uniforme relatif au droit comptable et à l’information financière, 2017.
+55
+WEBOGRAPHIE
+17. BANQUE CENTRALE DES ÉTATS DE L’AFRIQUE DE L’OUEST, « Textes régle-
+mentaires et conditions de banque », https://www.bceao.int, consulté le 15 juin 2026
+à 10 h 30.
+18. ASSOCIATION PROFESSIONNELLE DES BANQUES ET ÉTABLISSEMENTS FI-
+NANCIERS DE CÔTE D’IVOIRE, « Publications et statistiques du secteur », https:
+//www.apbefci.ci, consulté le 20 juin 2026 à 14 h 15.
+19. THE POSTGRESQL GLOBAL DEVELOPMENT GROUP, « PostgreSQL Documenta-
+tion », https://www.postgresql.org/docs/, consulté le 5 juillet 2026 à 09 h 00.
+20. PGVECTOR, « Open-source vector similarity search for Postgres », https://github
+.com/pgvector/pgvector, consulté le 5 juillet 2026 à 09 h 20.
+21. PALLETS PROJECTS, « Flask Documentation », https://flask.palletsproject
+s.com, consulté le 8 juillet 2026 à 11 h 40.
+22. HUGGING FACE, « Sentence Transformers : Multilingual Models », https://huggin
+gface.co/sentence-transformers, consulté le 10 juillet 2026 à 16 h 05.
+23. PALLETS PROJECTS, « Werkzeug : Password Hashing Utilities », https://werkze
+ug.palletsprojects.com/en/stable/utils/, consulté le 7 août 2026 à 09 h 30.
+24. OPEN WORLDWIDE APPLICATION SECURITY PROJECT, « OWASP Top 10 for
+Large Language Model Applications », https://owasp.org/www-project-top-10-
+for-large-language-model-applications/, consulté le 7 août 2026 à 10 h 15.
+56
+ANNEXES
+Annexe 1 — Exemple de grilles tarifaires
+Annexe 1 : Exemple de grilles tarifaires
+Annexe 2 — Exemple d’état financier
+Annexe 2 : Exemple d’état financier
+x
+Veille stratégique et aide à la décision par une approche RAG
+Annexes
+Annexe 3 — Exemple de texte réglementaire
+Annexe 3 : Exemple de texte réglementaire
+Annexe 4 — Les neuf sections canoniques du référentiel BCEAO
+Toutes les grilles tarifaires sont ramenées à ces neuf sections, ce qui permet de comparer des
+services relevant du même chapitre quel que soit le plan de la brochure d’origine.
+Section
+Intitulé
+I
+Conditions générales du compte
+II
+Services rattachés au fonctionnement du compte
+III
+Services bancaires
+IV
+Services de banque à distance
+V
+Gestion des incidents de paiement
+VI
+Opérations de change
+VII
+Opérations de crédit
+VIII
+Opérations avec l’étranger
+IX
+Autres services
+Annexe 5 — Segmentation de la clientèle
+Grille transmise par la direction, mobilisée pour orienter les recommandations commerciales et
+les directives adressées à la Direction Marketing.
+xi
+Veille stratégique et aide à la décision par une approche RAG
+Annexes
+Segment
+Critère
+Enjeu principal
+GP — Grand public
+Revenu mensuel inférieur à 450 000
+FCFA
+Volume et bancarisation
+BG — Bonne gamme
+Revenu
+mensuel
+de
+450 000
+à
+2 000 000 FCFA
+Équipement et fidélisation
+Patrimoniaux
+Revenu mensuel supérieur à 2 000 000
+FCFA
+Marge et rétention
+CLIPRO
+Chiffre d’affaires annuel ≤750 mil-
+lions FCFA
+Conquête
+CLICOM
+Chiffre d’affaires annuel > 750 mil-
+lions FCFA
+Revenus de commissions
+Annexe 6 — Établissements du périmètre
+Sept établissements retenus d’après le classement de la Commission Bancaire de l’UEMOA par
+total de bilan : BACI, BICICI, BNI, ECOBANK, NSIA, SGCI et SIB.
+Annexe 7 — Périodes couvertes par les grilles tarifaires
+Année
+Semestres
+Segments
+2024
+S1, S2
+Particuliers et Entreprises
+2025
+S1, S2
+Particuliers et Entreprises
+2026
+S1
+Particuliers et Entreprises
+Annexe 8 — Métriques de recherche par type de question
+Type de question
+Effectif
+MRR
+hit@5
+Tarifaire (conditions de banque)
+7
+0,123
+0,143
+Financier (états financiers)
+48
+0,042
+0,021
+Ensemble
+55
+0,052
+0,036
+L’écart entre les deux types conforte l’analyse du chapitre V : la similarité sémantique opère
+moins bien encore sur les données financières, dont les libellés sont plus courts et plus normal-
+isés que ceux des grilles tarifaires.
+Annexe 9 — Autres vues de l’application
+Ces vues complètent le chapitre VII. Elles y auraient alourdi la lecture sans rien ajouter à la
+démonstration, mais elles documentent l’étendue réelle de l’outil.
+xii
+Veille stratégique et aide à la décision par une approche RAG
+Annexes
+Annexe 9 : Analyse détaillée de la performance financière
+Annexe 10 — Analyse détaillée des tarifs
+Annexe 10 : Analyse détaillée des tarifs
+Annexe 11 — Lecture concurrentielle du marché
+Annexe 11 : Lecture concurrentielle du marché
+Annexe 12 — Repositionnement tarifaire
+Annexe 12 : Repositionnement tarifaire
+Annexe 13 — Directives de la Direction des Risques
+Annexe 13 : Directives de la Direction des Risques
+xiii
+RÉSUMÉ
+La Société Générale Côte d’Ivoire dispose d’une information concurrentielle publique et abon-
+dante (grilles tarifaires, états financiers, textes réglementaires) mais ne l’exploite pas de façon
+systématique, faute d’outil adapté à des documents de formats hétérogènes.
+Ce mémoire
+présente la conception et la mise en œuvre d’un système de veille stratégique, de benchmark-
+ing concurrentiel et d’aide à la décision fondé sur une approche de génération augmentée par
+récupération.
+La difficulté centrale n’est pas de faire répondre un modèle de langage, mais de garantir
+que ses réponses soient exactes : en matière bancaire, une valeur inventée n’affaiblit pas la
+décision, elle l’invalide. La solution retenue subordonne donc la génération au calcul : les
+chiffres, classements et écarts sont établis par requêtes sur une base PostgreSQL enrichie de
+vecteurs, le modèle n’intervenant que pour leur mise en forme.
+Le système livré réunit une chaîne d’ingestion documentaire traitant PDF natifs, documents
+numérisés et images, une base de données structurée, quatre tableaux de bord, un assistant
+conversationnel et un dispositif de sécurité à droits différenciés. Une évaluation comparative
+de deux architectures montre que l’approche déterministe est plus stable (0,646 contre 0,458) et
+moins coûteuse, tandis que l’approche agentique obtient une meilleure pertinence. La mesure
+de la recherche vectorielle isolée, faible sur ce corpus tabulaire, confirme la pertinence du parti
+retenu.
+Mots clés : intelligence artificielle générative, génération augmentée par récupération, veille
+stratégique, benchmarking concurrentiel, secteur bancaire, UEMOA, PostgreSQL, sécurité des
+systèmes d’information.
+ABSTRACT
+xiv
+Veille stratégique et aide à la décision par une approche RAG
+Annexes
+Société Générale Côte d’Ivoire has access to abundant public competitive information ( pricing
+schedules, financial statements, regulatory texts) yet does not exploit it systematically, lacking
+a tool suited to documents of heterogeneous formats. This dissertation presents the design
+and implementation of a strategic intelligence, competitive benchmarking and decision-support
+system based on a retrieval-augmented generation approach.
+The central difficulty is not making a language model answer, but ensuring its answers are
+accurate: in banking, a fabricated figure does not weaken a decision, it invalidates it. The
+adopted solution therefore subordinates generation to computation : figures, rankings and gaps
+are established through queries on a PostgreSQL database extended with vectors, the model
+intervening only to formulate them.
+The delivered system comprises a document ingestion pipeline handling native PDFs,
+scanned documents and images, a structured database, four dashboards, a conversational as-
+sistant and a security layer with fine-grained access rights. A comparative evaluation of two
+architectures shows the deterministic approach to be more stable (0.646 against 0.458) and less
+costly, while the agentic approach achieves better relevance. Measurement of vector retrieval
+in isolation, weak on this tabular corpus, confirms the soundness of the chosen design.
+Keywords: generative artificial intelligence, retrieval-augmented generation, strategic intelli-
+gence, competitive benchmarking, banking sector, WAEMU, PostgreSQL, information systems
+security.
+xv
+TABLE DES MATIÈRES
+INTRODUCTION GÉNÉRALE
+1
+I
+Présentation de la structure d’accueil
+4
+I
+La structure d’accueil . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4
+II
+La Direction de l’Innovation
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+5
+II
+Présentation du projet
+8
+I
+Présentation et critique du système opérationnel existant . . . . . . . . . . . . . . . . . . . .
+8
+II
+Cahier des charges . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+11
+III
+État de l’art
+16
+I
+Montée de l’intelligence artificielle générative . . . . . . . . . . . . . . . . . . . . . . . . .
+16
+II
+La génération augmentée par récupération : paradigmes et architectures
+. . . . . . . . . . .
+17
+IV
+Méthodologie et ingénierie des données
+22
+I
+Constitution du corpus . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+22
+II
+Chaîne d’ingestion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+23
+III
+Préparation des données . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+27
+V
+Étude comparative de deux architectures RAG
+29
+I
+Les deux architectures . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+29
+II
+Le jeu de référence
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+30
+III
+Mesures retenues
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+31
+IV
+Exactitude . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+32
+V
+Ce que les écarts établissent . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+33
+VI
+Coût et reproductibilité
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+33
+VII
+Qualité des réponses ouvertes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+34
+VIII
+L’architecture retenue . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+36
+VI
+Présentation des résultats
+38
+I
+Accès au système . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+38
+II
+Analyse de la santé financière . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+39
+III
+Benchmark des conditions bancaires . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+40
+IV
+Analyse stratégique . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+41
+V
+Directives opérationnelles par direction . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+42
+VI
+Administration des accès
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+44
+VII
+Assistant conversationnel . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+44
+VIII
+Mise en service
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+46
+VII
+Estimation budgétaire et discussion
+48
+I
+Estimation budgétaire . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+48
+II
+Discussion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+49
+CONCLUSION GÉNÉRALE
+51
+BIBLIOGRAPHIE ET WEBOGRAPHIE
+54
+ANNEXES
+x
+xvi

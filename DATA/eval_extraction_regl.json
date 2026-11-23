@@ -1,0 +1,127 @@
+[
+ {
+  "fichier": "BCEAO_INSTRUCTION_004-05-2015_TRANSPARENCE_TARIFAIRE",
+  "n_chunks": 9,
+  "n_gt": 9,
+  "outils": {
+   "pdfplumber": {
+    "temps": 2.454,
+    "erreur": null,
+    "trouve": 4,
+    "total_gt": 9
+   },
+   "PyMuPDF": {
+    "temps": 0.089,
+    "erreur": null,
+    "trouve": 9,
+    "total_gt": 9
+   },
+   "pdfminer.six": {
+    "temps": 2.049,
+    "erreur": null,
+    "trouve": 7,
+    "total_gt": 9
+   }
+  }
+ },
+ {
+  "fichier": "BCEAO_INSTRUCTION_004-06-2014_SERVICES_BANCAIRES_GRATUITS",
+  "n_chunks": 5,
+  "n_gt": 5,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.121,
+    "erreur": null,
+    "trouve": 4,
+    "total_gt": 5
+   },
+   "PyMuPDF": {
+    "temps": 0.005,
+    "erreur": null,
+    "trouve": 5,
+    "total_gt": 5
+   },
+   "pdfminer.six": {
+    "temps": 0.073,
+    "erreur": null,
+    "trouve": 5,
+    "total_gt": 5
+   }
+  }
+ },
+ {
+  "fichier": "LOI DE CONSOMMATION",
+  "n_chunks": 263,
+  "n_gt": 263,
+  "outils": {
+   "pdfplumber": {
+    "temps": 4.388,
+    "erreur": null,
+    "trouve": 261,
+    "total_gt": 263
+   },
+   "PyMuPDF": {
+    "temps": 0.075,
+    "erreur": null,
+    "trouve": 261,
+    "total_gt": 263
+   },
+   "pdfminer.six": {
+    "temps": 1.871,
+    "erreur": null,
+    "trouve": 263,
+    "total_gt": 263
+   }
+  }
+ },
+ {
+  "fichier": "REGLEMENTATION JURIDIQUE BANCAIRE UEMOA",
+  "n_chunks": 114,
+  "n_gt": 114,
+  "outils": {
+   "pdfplumber": {
+    "temps": 6.082,
+    "erreur": null,
+    "trouve": 109,
+    "total_gt": 114
+   },
+   "PyMuPDF": {
+    "temps": 0.082,
+    "erreur": null,
+    "trouve": 108,
+    "total_gt": 114
+   },
+   "pdfminer.six": {
+    "temps": 4.413,
+    "erreur": null,
+    "trouve": 108,
+    "total_gt": 114
+   }
+  }
+ },
+ {
+  "fichier": "UMOA_DECISION_19-2025_TAUX_USURE",
+  "n_chunks": 5,
+  "n_gt": 5,
+  "outils": {
+   "pdfplumber": {
+    "temps": 0.141,
+    "erreur": null,
+    "trouve": 5,
+    "total_gt": 5
+   },
+   "PyMuPDF": {
+    "temps": 0.005,
+    "erreur": null,
+    "trouve": 5,
+    "total_gt": 5
+   },
+   "pdfminer.six": {
+    "temps": 0.115,
+    "erreur": null,
+    "trouve": 5,
+    "total_gt": 5
+   }
+  }
+ }
+]

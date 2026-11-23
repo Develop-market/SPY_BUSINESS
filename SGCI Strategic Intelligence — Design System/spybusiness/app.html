@@ -16,20 +16,6 @@
 <!-- Gate : disclaimer + login (populated by JS) -->
 <div id="gate"></div>
 
-<!-- Filigrane discret — traçabilité si une capture d'écran circule hors de l'app.
-     pointer-events:none : ne gêne jamais le clic/la lecture, purement visuel.
-     Mis en pause le 2026-07-20, REMIS le 2026-07-28 « en beaucoup moins visible », puis
-     RE-REMONTÉ le 2026-07-29 (demande directe : « un peu plus visible ») — réglage intermédiaire
-     entre l'original (0,14/16px/460×260) et la version quasi invisible (0,05/12px/680×380) :
-       - opacité du texte  0,05 → 0,09
-       - taille de police  12 px → 14 px
-       - pas de la mosaïque 680×380 → 560×320 (un peu plus de répétitions à l'écran) -->
-<div id="app-watermark" style="position:fixed;inset:0;z-index:40;pointer-events:none;
-  background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22560%22 height=%22320%22><text x=%2240%22 y=%22170%22 font-family=%22Arial,sans-serif%22 font-size=%2214%22 font-weight=%22600%22 fill=%22rgba(140,140,140,0.09)%22 transform=%22rotate(-28 280 160)%22>DIRECTION INNOVATION SGCI</text></svg>');
-  background-repeat:repeat">
-  <div id="app-watermark-stamp" style="position:fixed;bottom:8px;right:10px;font:500 8.5px system-ui;color:rgba(128,128,128,.20);pointer-events:none"></div>
-</div>
-
 <div class="shell">
   <!-- SIDEBAR (no Chat item — bot leads there) -->
   <aside class="side">

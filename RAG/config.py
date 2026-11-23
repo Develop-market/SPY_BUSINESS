@@ -360,6 +360,13 @@ MOTS_EF = [
     "roe", "roa", "ratio", "marge nette",
     "total bilan", "capitaux propres", "coefficient",
     "croissance", "expansion", "solidité financière", "plus fiable",
+    # Risque / CNR (2026-10-19) — sans ces termes, « 20 % de CNR » ne routait pas en EF
+    # et « coût » seul activait les tarifs → reco tarifaires absurdes pour baisser le CNR.
+    "cnr", "coût du risque", "cout du risque", "coût net du risque", "cout net du risque",
+    "coût risque", "cout risque", "provision", "provisions", "provisionnement",
+    "créances douteuses", "creances douteuses", "créances en souffrance", "creances en souffrance",
+    "npl", "impayé", "impaye", "impayés", "impayes", "encours", "rbe",
+    "résultat brut d'exploitation", "resultat brut d exploitation",
 ]
 
 MOTS_CONDITIONS = [
@@ -380,6 +387,23 @@ MOTS_CONDITIONS = [
     "pme", "entreprise", "avantage", "avantageuse", "exportat",
     "import", "international", "change", "devises",
     "quelle banque", "meilleure banque", "choisir", "recommande",
+]
+
+# Veille externe (2026-11-15) — faits sourcés du cache web_facts.json (parts de marché,
+# réseau, notations, innovations des concurrents), jusqu'ici réservés au dashboard
+# Stratégie et absents de l'assistant conversationnel. Mots propres à l'EXTÉRIEUR de la
+# base interne : « classement » et « position financière » restent dans MOTS_EF (calculés
+# en SQL sur nos propres données), pas ici.
+MOTS_VEILLE = [
+    "part de marché", "parts de marché", "part de marche", "parts de marche",
+    "notation", "notations", "note financière", "note financiere",
+    "bloomfield", "apbef", "réseau d'agences", "reseau d'agences",
+    "nombre d'agences", "présence réseau", "presence reseau",
+    "innovation", "innovations", "a lancé", "a lance", "lancement",
+    "nouveau produit", "nouveaux produits", "nouveauté", "nouveautes",
+    "concurrent", "concurrents", "concurrence",
+    "veille", "actualité du secteur", "actualite du secteur",
+    "stratégie des concurrents", "strategie des concurrents",
 ]
 
 

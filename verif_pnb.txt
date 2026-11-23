@@ -1,0 +1,41 @@
+Q: C'est quoi le PNB ?
+R: Le **Produit Net Bancaire (PNB)** mesure la performance globale d’une banque en regroupant l’ensemble de ses revenus d’exploitation.  
+Il se calcule ainsi : **PNB = Produits d’intérêts (intérêts perçus sur les prêts) + Produits de commissions (frais de services, commissions) + Produits de change** – **Charges d’intérêts (intérêts versés aux déposants) – Charges de commissions**.  
+Le PNB reflète la capacité d’une banque à générer des revenus à partir de ses activités courantes, avant prise en compte des charges exceptionnelles, d’impôt et de provisions.  
+Il sert à évaluer la rentabilité opérationnelle, à comparer les banques entre elles et à suivre l’évolution de la performance d’une même banque dans le temps.  
+
+Voulez‑vous le PNB chiffré d’une banque ou d’un groupe de banques ?
+---
+Q: Qu'est-ce que le ROE ?
+R: Le ROE (Return on Equity) mesure la rentabilité des capitaux propres d’une banque : il indique le pourcentage de résultat net (RN) généré par chaque unité de fonds propres investis.  
+**Formule** : ROE = RN ÷ Capitaux propres moyens (sur la période considérée) × 100 %.  
+Il permet d’évaluer l’efficacité avec laquelle la banque utilise les fonds apportés par ses actionnaires pour produire du profit, et de comparer la performance financière entre établissements ou avec le coût du capital.  
+
+Voulez‑vous le ROE chiffré des banques de la zone UEMOA ?
+---
+Q: C'est quoi le PNB ?
+R: Le **Produit Net Bancaire (PNB)** mesure la totalité des revenus générés par l’activité bancaire d’une institution, hors impôts et charges exceptionnelles.  
+Il se calcule ainsi : **PNB = Intérêts perçus sur les prêts + Revenus de commissions et frais + Gains de change + Autres produits d’exploitation**.  
+Le PNB permet d’évaluer la capacité d’une banque à créer de la valeur à partir de son cœur de métier et sert de base à de nombreux ratios de performance (par ex. le ratio PNB/actif).  
+
+Voulez‑vous la valeur chiffrée du PNB pour les banques de la zone UEMOA ?
+---
+Q: Qu'est-ce que le ROE ?
+R: Le ROE (Return on Equity) mesure la rentabilité des capitaux propres d’une banque : il indique le pourcentage de résultat net (RN) généré par chaque unité de fonds propres investis par les actionnaires.  
+**Formule** : ROE = (RN ÷ Capitaux propres) × 100 %  
+Il permet d’évaluer l’efficacité avec laquelle la banque utilise les fonds propres pour créer de la valeur, de comparer la performance des établissements du secteur et de juger de l’attractivité pour les investisseurs.  
+
+Voulez‑vous le ROE chiffré des banques de la zone UEMOA ?
+---
+Q: Peux-tu m'expliquer le CNR ?
+R: Le **CNR (Coefficient Net de Réemploi)** mesure la capacité d’une banque à réutiliser les ressources de liquidité qu’elle détient, c’est‑à‑dire la part des fonds mobilisés (dépôts, emprunts) qui est effectivement remise en circulation sous forme de crédits ou d’investissements.  
+
+**Formule générale** :  
+\[
+\text{CNR} = \frac{\text{Actifs productifs nets (crédits, placements, etc.)}}{\text{Passifs de financement nets (dépôts, emprunts, etc.)}}
+\]  
+
+Un CNR élevé indique une bonne utilisation de la liquidité disponible, signe de rentabilité et d’efficacité opérationnelle, tandis qu’un CNR faible peut révéler une sous‑exploitation des fonds ou une politique de conservation de liquidités trop prudente.  
+
+Voulez‑vous le coefficient de réemploi des 7 banques de la zone UEMOA ?
+---

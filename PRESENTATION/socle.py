@@ -2,9 +2,19 @@
 """
 socle.py — briques de mise en page du diaporama de soutenance SpyBusiness
 =========================================================================
-Charte dominee par le ROUGE SGCI, elargie a une gamme qui evite le triptyque
-noir/blanc/rouge : bordeaux pour la profondeur, creme pour les panneaux, or pour les
-accents, ardoise et vert pour distinguer deux objets compares.
+Charte OFFICIELLE fournie le 2026-09-15 (rouge SGCI #C8102E + neutres + 3 accents),
+reprise telle quelle -- ce n'est plus une palette inventee.
+
+Polices demandees : Fraunces (titres), DM Sans (texte), JetBrains Mono (technique).
+AUCUNE des trois n'est installee sur ce poste (verifie via
+System.Drawing.Text.InstalledFontCollection le 2026-09-15) -- PowerPoint les remplacerait
+silencieusement par une police par defaut a l'ouverture, ce qui casserait le rendu.
+Remplacees par des equivalents Windows fiables et visuellement proches :
+    Fraunces (serif elegante)          -> Cambria
+    DM Sans (sans-serif geometrique)   -> Segoe UI
+    JetBrains Mono (monospace)         -> Consolas
+Si les vraies polices sont installees plus tard, changer TITRE/TEXTE/MONO ci-dessous suffit
+-- aucune autre ligne du diaporama n'a la police en dur.
 
 Format 16:9, 13,33 x 7,5 pouces — celui du modele « Inspection Drone » fourni.
 
@@ -25,23 +35,28 @@ from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.oxml.ns import nsdecls, qn
 from pptx.util import Emu, Inches, Pt
 
-# ── Charte : le rouge domine, le reste le soutient ────────────────────────────────────
-ROUGE     = RGBColor(0xE4, 0x00, 0x2B)   # rouge SGCI, couleur directrice
-ROUGE_VIF = RGBColor(0xFF, 0x2D, 0x55)   # eclat, pour un chiffre ou un pictogramme
-BORDEAUX  = RGBColor(0x7A, 0x00, 0x1E)   # profondeur des fonds pleins
-NOIR      = RGBColor(0x10, 0x10, 0x14)
-ANTHRACITE= RGBColor(0x2C, 0x2C, 0x36)
-GRIS      = RGBColor(0x62, 0x62, 0x70)
-GRIS_CLAIR= RGBColor(0xE8, 0xE8, 0xEE)
-CREME     = RGBColor(0xFF, 0xF5, 0xF6)   # panneau rose tres pale, sur fond blanc
-BLANC     = RGBColor(0xFF, 0xFF, 0xFF)
-OR        = RGBColor(0xF2, 0xA9, 0x00)   # accent chaud, s accorde au rouge
-ROSE      = RGBColor(0xFF, 0xA9, 0xB8)   # texte secondaire SUR fond rouge sombre
-ARDOISE   = RGBColor(0x33, 0x4E, 0x6B)   # « l autre » objet dans une comparaison
-VERT      = RGBColor(0x1B, 0x8E, 0x5A)   # ce qui est retenu, valide
+# ── Charte officielle SGCI (fournie le 2026-09-15) ────────────────────────────────────
+ROUGE       = RGBColor(0xC8, 0x10, 0x2E)   # --red : rouge SGCI, couleur directrice
+ROUGE_FONCE = RGBColor(0x8D, 0x07, 0x1F)   # --red-dark : profondeur des fonds pleins
+ROUGE_CLAIR = RGBColor(0xEC, 0x31, 0x50)   # --red-light : eclat, chiffre ou pictogramme
+ROUGE_VIF   = ROUGE_CLAIR                  # alias — code existant
+BORDEAUX    = ROUGE_FONCE                  # alias — code existant
+NOIR        = RGBColor(0x15, 0x17, 0x1C)   # --ink
+ANTHRACITE  = RGBColor(0x22, 0x26, 0x30)   # --ink-2
+GRIS        = RGBColor(0x69, 0x6D, 0x76)   # --muted
+GRIS_CLAIR  = RGBColor(0xE4, 0xE5, 0xE9)   # dérivé neutre, pour bordures/fonds legers
+CREME       = RGBColor(0xF7, 0xF4, 0xED)   # --cream
+PAPIER      = RGBColor(0xFF, 0xFD, 0xFA)   # --paper
+BLANC       = RGBColor(0xFF, 0xFF, 0xFF)   # --white
+VERT        = RGBColor(0x18, 0x79, 0x4E)   # --green : ce qui est retenu, valide
+OR          = RGBColor(0x9A, 0x67, 0x00)   # --amber : accent chaud
+BLEU        = RGBColor(0x2F, 0x5F, 0xCE)   # --blue : « l'autre » objet dans une comparaison
+ARDOISE     = BLEU                         # alias — code existant
+ROSE        = RGBColor(0xF4, 0xA8, 0xB8)   # texte secondaire SUR fond rouge fonce (derive)
 
-TITRE = "Calibri Light"      # present sur toute machine Windows, comme vos modeles
-TEXTE = "Calibri"
+TITRE = "Cambria"      # Fraunces demandee, absente du poste -> equivalent serif Windows
+TEXTE = "Segoe UI"      # DM Sans demandee, absente du poste -> equivalent Windows moderne
+MONO  = "Consolas"      # JetBrains Mono demandee, absente du poste -> equivalent Windows
 
 L, H = Inches(13.333), Inches(7.5)
 
@@ -80,7 +95,7 @@ def para(tf, texte, *, taille=14, gras=False, couleur=NOIR, police=TEXTE,
 
 
 def riche(tf, morceaux, *, taille=14, couleur=NOIR, police=TEXTE, align=PP_ALIGN.LEFT,
-          interligne=1.18, avant=0, premier=False):
+          interligne=1.18, avant=0, premier=False, espacement=None):
     """Un paragraphe fait de plusieurs fragments (texte, gras, couleur) — pour mettre un
     chiffre en avant SANS couper la phrase en trois zones de texte."""
     p = tf.paragraphs[0] if premier else tf.add_paragraph()
@@ -96,6 +111,8 @@ def riche(tf, morceaux, *, taille=14, couleur=NOIR, police=TEXTE, align=PP_ALIGN
         r.text = t
         r.font.size, r.font.bold, r.font.name = Pt(taille), gras, police
         r.font.color.rgb = col
+        if espacement is not None:
+            r.font._rPr.set("spc", str(int(espacement * 100)))
     return p
 
 
@@ -253,9 +270,15 @@ def separateur(slide, numero, titre, sous_titre=None):
 
 def carte(slide, x, y, w, h, titre, lignes, *, accent=ROUGE, fond_carte=BLANC,
           taille_titre=15, taille_texte=12):
-    """Bloc encadre, filet d accent en haut. La brique des diapositives en colonnes."""
+    """Bloc encadre, filet d accent en haut. La brique des diapositives en colonnes.
+    Renvoie (carte, filet) -- LE FILET EST UNE FORME A PART, distincte de la carte
+    elle-meme : un appelant qui n'anime que la valeur de retour (comme avant) laisse le
+    filet TOUJOURS visible, meme quand la carte est cachee en attente d'un clic. Bug
+    trouve le 2026-09-15 par capture d'ecran d'un vrai diaporama (pas juste un export
+    statique, qui ne le montrait pas) : le filet rouge/or de "Service Data" restait
+    visible AVANT son clic, sur la diapositive Entreprise a deux vues."""
     c = rect(slide, x, y, w, h, fond_carte, bord=GRIS_CLAIR, ep=1.0)
-    rect(slide, x, y, w, Inches(0.06), accent)
+    filet = rect(slide, x, y, w, Inches(0.06), accent)
     tf = c.text_frame
     tf.margin_left = tf.margin_right = Inches(0.24)
     tf.margin_top = Inches(0.30)
@@ -264,7 +287,7 @@ def carte(slide, x, y, w, h, titre, lignes, *, accent=ROUGE, fond_carte=BLANC,
     para(tf, titre, taille=taille_titre, gras=True, couleur=NOIR, police=TITRE, premier=True)
     for l in lignes:
         para(tf, l, taille=taille_texte, couleur=GRIS, avant=7, interligne=1.24)
-    return c
+    return c, filet
 
 
 def chiffre(slide, x, y, w, valeur, libelle, *, taille=42, couleur=ROUGE, align=PP_ALIGN.LEFT):
@@ -272,6 +295,29 @@ def chiffre(slide, x, y, w, valeur, libelle, *, taille=42, couleur=ROUGE, align=
     para(tf, valeur, taille=taille, gras=True, couleur=couleur, police=TITRE,
          align=align, premier=True, interligne=0.95)
     para(tf, libelle, taille=11, couleur=GRIS, avant=3, align=align, interligne=1.15)
+
+
+def cercle_chiffre(slide, cx, cy, diametre, valeur, libelle, *, couleur=ROUGE,
+                    taille_valeur=26, taille_libelle=11.5):
+    """Le chiffre ECRIT DANS le cercle plein, pas une icone generique a cote -- c est la
+    demande explicite du 2026-09-15 ("les chiffres doivent etre dans des cercles comme
+    cela"), en reponse a la premiere version qui reutilisait les pictogrammes generiques
+    du template (une roue dentee, une cible...) sans rapport avec le chiffre annonce.
+    `cx, cy` est le CENTRE du cercle (pas le coin) -- plus simple pour aligner une rangee."""
+    r = Emu(int(diametre / 2))
+    c = rect(slide, Emu(int(cx - r)), Emu(int(cy - r)), diametre, diametre, couleur,
+             forme=MSO_SHAPE.OVAL)
+    tf = c.text_frame
+    tf.margin_left = tf.margin_right = Inches(0.08)
+    tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+    para(tf, valeur, taille=taille_valeur, gras=True, couleur=BLANC, police=TITRE,
+         align=PP_ALIGN.CENTER, premier=True, interligne=0.95)
+    larg_etiquette = Emu(int(diametre * 1.32))   # > diametre mais < l'ecart entre cercles,
+    zone_sh, z = zone(slide, Emu(int(cx - larg_etiquette / 2)), Emu(int(cy + r + Inches(0.14))),
+                       larg_etiquette, Inches(0.52), align=PP_ALIGN.CENTER)
+    para(z, libelle, taille=taille_libelle, gras=True, couleur=NOIR, align=PP_ALIGN.CENTER,
+         premier=True, interligne=1.1)
+    return c, zone_sh
 
 
 def puce(slide, x, y, w, texte, *, taille=13, couleur=NOIR, gras=False, accent=ROUGE,
@@ -304,9 +350,14 @@ def etape(slide, x, y, w, h, n, titre, texte, *, accent=ROUGE):
 
 
 def image(slide, chemin, x, y, *, w=None, h=None, bord=True):
+    """Renvoie (image, cadre) si bord=True, sinon juste l'image seule (pas de tuple) --
+    LE CADRE EST UNE FORME A PART. Meme bug que carte() (trouve en meme temps, meme
+    capture d'ecran) : un appelant qui n'anime que l'image renvoyee laisse le cadre
+    TOUJOURS visible, meme apres la sortie de l'image elle-meme."""
     p = slide.shapes.add_picture(chemin, int(x), int(y), width=w, height=h)
     if bord:
-        rect(slide, p.left, p.top, p.width, p.height, None, bord=GRIS_CLAIR, ep=0.75)
+        cadre = rect(slide, p.left, p.top, p.width, p.height, None, bord=GRIS_CLAIR, ep=0.75)
+        return p, cadre
     return p
 
 
@@ -367,6 +418,22 @@ _EFFET = """<p:par><p:cTn id="{c}" presetID="{preset}" presetClass="entr" preset
 <p:cTn id="{e}" dur="{duree}"/><p:tgtEl><p:spTgt spid="{spid}"/></p:tgtEl></p:cBhvr></p:animEffect>
 </p:childTnLst></p:cTn></p:par>"""
 
+# Effet de SORTIE (miroir de _EFFET) : necessaire pour une "bascule de vue" sur une meme
+# diapo (ex. les chiffres SGCI qui laissent place a l'organigramme au clic) -- sans lui,
+# animer() ne pouvait QUE faire apparaitre des elements, jamais en faire disparaitre un
+# pour le remplacer par un autre. Le <p:set> passe a "hidden" APRES l'animation (delai =
+# sa duree), pas avant : la forme doit rester visible pendant tout le fondu de sortie.
+_EFFET_SORTIE = """<p:par><p:cTn id="{c}" presetID="{preset}" presetClass="exit" presetSubtype="{sub}"
+ fill="hold" grpId="0" nodeType="{node}"><p:stCondLst><p:cond delay="{delai}"/></p:stCondLst>
+<p:childTnLst>
+<p:animEffect transition="out" filter="{filtre}"><p:cBhvr>
+<p:cTn id="{d}" dur="{duree}"/><p:tgtEl><p:spTgt spid="{spid}"/></p:tgtEl></p:cBhvr></p:animEffect>
+<p:set><p:cBhvr><p:cTn id="{e}" dur="1" fill="hold"><p:stCondLst><p:cond delay="{duree}"/></p:stCondLst></p:cTn>
+<p:tgtEl><p:spTgt spid="{spid}"/></p:tgtEl>
+<p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst></p:cBhvr>
+<p:to><p:strVal val="hidden"/></p:to></p:set>
+</p:childTnLst></p:cTn></p:par>"""
+
 
 def animer(slide, sequences):
     """Anime la diapositive.
@@ -380,30 +447,49 @@ def animer(slide, sequences):
             (cartes,             "balayage", 140),    # 2e clic, cartes en cascade
         ])
 
+    Un groupe peut aussi etre une LISTE d instructions qui partagent le meme clic --
+    utile pour une bascule de vue, ou une premiere vue doit SORTIR pendant qu une seconde
+    ENTRE au meme clic. Chaque instruction accepte un 5e element, `sens` ("entree" par
+    defaut, ou "sortie") :
+
+        animer(slide, [
+            ([titre], "fondu", 0),                              # 1er clic : normal
+            [(vue1, "fondu", 0, 400, "sortie"),                 # 2e clic : vue1 sort...
+             (vue2, "balayage", 100, 450, "entree")],           #           ...vue2 entre
+        ])
+
     Les identifiants de noeud doivent etre uniques et croissants dans la diapositive : une
     collision fait ignorer TOUT le bloc, sans le moindre message.
     """
     groupes, i = [], 3
     for entree in sequences:
-        formes = entree[0]
-        nom = entree[1] if len(entree) > 1 else "fondu"
-        decalage = entree[2] if len(entree) > 2 else 150
-        duree = entree[3] if len(entree) > 3 else 500
-        formes = [f for f in formes if f is not None]
-        if not formes:
+        instructions = entree if isinstance(entree, list) else [entree]
+        effets, formes_vues = [], []
+        for instr in instructions:
+            formes = instr[0]
+            nom = instr[1] if len(instr) > 1 else "fondu"
+            decalage = instr[2] if len(instr) > 2 else 150
+            duree = instr[3] if len(instr) > 3 else 500
+            sens = instr[4] if len(instr) > 4 else "entree"
+            formes = [f for f in formes if f is not None]
+            if not formes:
+                continue
+            preset, sub, filtre = _EFFETS.get(nom, _EFFETS["fondu"])
+            gabarit = _EFFET if sens == "entree" else _EFFET_SORTIE
+            for rang, f in enumerate(formes):
+                premier = rang == 0 and not formes_vues
+                effets.append(gabarit.format(
+                    c=i, d=i + 1, e=i + 2,
+                    node="clickEffect" if premier else "afterEffect",
+                    delai=0 if premier else decalage,
+                    preset=preset, sub=sub, filtre=filtre, duree=duree,
+                    spid=f.shape_id))
+                i += 3
+            formes_vues.extend(formes)
+        if not formes_vues:
             continue
-        preset, sub, filtre = _EFFETS.get(nom, _EFFETS["fondu"])
         a, b = i, i + 1
         i += 2
-        effets = []
-        for rang, f in enumerate(formes):
-            effets.append(_EFFET.format(
-                c=i, d=i + 1, e=i + 2,
-                node="clickEffect" if rang == 0 else "afterEffect",
-                delai=0 if rang == 0 else decalage,
-                preset=preset, sub=sub, filtre=filtre, duree=duree,
-                spid=f.shape_id))
-            i += 3
         groupes.append(_GROUPE.format(a=a, b=b, effets="".join(effets)))
     if not groupes:
         return

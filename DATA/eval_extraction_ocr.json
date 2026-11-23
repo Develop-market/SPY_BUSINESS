@@ -1,0 +1,83 @@
+[
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK\\DATA/SOURCE/CONDITIONS_BANQUES\\BACI/2024/S2_E.pdf",
+   "banque": "BACI",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Entreprises",
+   "label": "CB BACI 2024 S2 Entreprises"
+  },
+  "n_gt_words": 437,
+  "outils": {
+   "Docling+EasyOCR": {
+    "temps": 48.93,
+    "erreur": null,
+    "precision": 0.3457,
+    "rappel": 0.0641,
+    "f1": 0.1081
+   },
+   "Tesseract": {
+    "temps": 32.97,
+    "erreur": null,
+    "precision": 0.3472,
+    "rappel": 0.746,
+    "f1": 0.4738
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK\\DATA/SOURCE/CONDITIONS_BANQUES\\BICICI/2024/S1_E.pdf",
+   "banque": "BICICI",
+   "annee": "2024",
+   "semestre": "S1",
+   "segment": "Entreprises",
+   "label": "CB BICICI 2024 S1 Entreprises"
+  },
+  "n_gt_words": 717,
+  "outils": {
+   "Docling+EasyOCR": {
+    "temps": 519.55,
+    "erreur": null,
+    "precision": 0.8843,
+    "rappel": 0.8424,
+    "f1": 0.8629
+   },
+   "Tesseract": {
+    "temps": 109.15,
+    "erreur": null,
+    "precision": 0.4806,
+    "rappel": 0.742,
+    "f1": 0.5833
+   }
+  }
+ },
+ {
+  "meta": {
+   "path": "C:/Users/ALPHEE COLOMBE/Desktop/BACK\\DATA/SOURCE/CONDITIONS_BANQUES\\BICICI/2024/S2_E.pdf",
+   "banque": "BICICI",
+   "annee": "2024",
+   "semestre": "S2",
+   "segment": "Entreprises",
+   "label": "CB BICICI 2024 S2 Entreprises"
+  },
+  "n_gt_words": 717,
+  "outils": {
+   "Docling+EasyOCR": {
+    "temps": 609.7,
+    "erreur": null,
+    "precision": 0.8843,
+    "rappel": 0.8424,
+    "f1": 0.8629
+   },
+   "Tesseract": {
+    "temps": 155.5,
+    "erreur": null,
+    "precision": 0.4806,
+    "rappel": 0.742,
+    "f1": 0.5833
+   }
+  }
+ }
+]

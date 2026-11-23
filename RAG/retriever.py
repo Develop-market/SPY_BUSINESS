@@ -1055,6 +1055,16 @@ def _contient_mot(q: str, mots) -> bool:
     return compiled.search(_sans_accents(q)) is not None
 
 
+# Signaux risque/CNR : le mot « coût » de MOTS_CONDITIONS ne doit PAS tirer ces
+# questions vers les grilles tarifaires (bug 2026-10-19 : reco CNR = monter les frais
+# de dossier). On retire conditions_banque si le seul déclencheur tarifaire est ce « coût ».
+_MOTS_RISQUE_EF = (
+    "cnr", "cout du risque", "coût du risque", "cout net du risque", "coût net du risque",
+    "cout risque", "coût risque", "provisionnement", "creances douteuses",
+    "créances douteuses", "npl", "impaye", "impayé",
+)
+
+
 def detect_types_doc(question: str) -> list:
     q = question.lower()
     types = []
@@ -1064,6 +1074,20 @@ def detect_types_doc(question: str) -> list:
         types.append("etats_financiers")
     if _contient_mot(q, config.MOTS_CONDITIONS):
         types.append("conditions_banque")
+    if _contient_mot(q, config.MOTS_VEILLE):
+        types.append("veille")
+
+    # Garde-fou CNR/risque : ne garder les tarifs que si la question parle AUSSI
+    # explicitement de frais/tarifs/commissions (hors le seul mot « coût » du CNR).
+    if "conditions_banque" in types and any(m in q for m in _MOTS_RISQUE_EF):
+        q_sans_risque = q
+        for m in _MOTS_RISQUE_EF:
+            q_sans_risque = q_sans_risque.replace(m, " ")
+        # « coût » / « cout » restants après retrait du CNR ne suffisent pas seuls.
+        mots_tarif_nets = [m for m in config.MOTS_CONDITIONS
+                           if m not in ("coût", "cout", "coût", "conditions")]
+        if not _contient_mot(q_sans_risque, mots_tarif_nets):
+            types.remove("conditions_banque")
     return types
 
 
@@ -1126,6 +1150,11 @@ def is_recommandation_ou_analyse(question: str) -> bool:
         "avantageuse", "avantag", "la plus adapt", "pour une pme",
         "pour mon entreprise", "pour une startup", "quelle banque choisir",
         "meilleure banque", "la mieux adapt",
+        # Trajectoire / cible opérationnelle (2026-10-19)
+        "passer a", "passer à", "reduire", "réduire", "baisser", "abaisser",
+        "atteindre", "cible", "horizon", "prochains mois", "plan d action",
+        "plan d'action", "operationnel", "opérationnel", "operationnelle",
+        "comment faire pour", "que faire pour", "leviers",
     ]
     return any(m in q for m in mots)
 

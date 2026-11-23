@@ -40,6 +40,14 @@ structured_tools = importlib.import_module("structured_tools")   # comparaison s
 agent_tools      = importlib.import_module("agent_tools")        # outils LangChain (agent de secours)
 fiche_marche     = importlib.import_module("fiche_marche")       # socle de faits permanent (2026-07-27)
 
+# Agent Web (veille externe) — jusqu'ici branché au seul dashboard Stratégie, jamais à
+# l'assistant conversationnel (2026-11-15). Le module vit dans dash_app/, pas dans RAG/.
+_DASH_APP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir,
+                              "SGCI Strategic Intelligence — Design System", "spybusiness", "dash_app")
+if _DASH_APP_DIR not in sys.path:
+    sys.path.insert(0, _DASH_APP_DIR)
+web_facts = importlib.import_module("web_facts")
+
 
 # ═══════════════════════════════════════════════════════════
 #  NORMALISATION DES QUESTIONS — TOLÉRANCE AUX FAUTES DE FRAPPE
@@ -79,6 +87,7 @@ _AGENT_LABELS = {
     "conditions_banque": "AGENT CONDITIONS TARIFAIRES",
     "etats_financiers" : "AGENT ÉTATS FINANCIERS",
     "reglementation"   : "AGENT RÉGLEMENTATION",
+    "veille"           : "AGENT VEILLE EXTERNE",
 }
 
 # ═══════════════════════════════════════════════════════════
@@ -179,7 +188,7 @@ def _appeler_codecraft(messages, temperature: float, max_tokens: int = 2000) -> 
                 "max_tokens": max_tokens, "temperature": temperature,
                 "messages": _messages_vers_openai(messages),
             },
-            timeout=25,
+            timeout=8,
         )
         d = resp.json()
         txt = (d.get("choices") or [{}])[0].get("message", {}).get("content") or ""
@@ -217,7 +226,7 @@ def _appeler_claude_openrouter(messages, temperature: float, max_tokens: int = 2
                 "reasoning": {"enabled": False},
                 "messages": _messages_vers_openai(messages),
             },
-            timeout=25,
+            timeout=8,
         )
         d = resp.json()
         txt = (d.get("choices") or [{}])[0].get("message", {}).get("content") or ""
@@ -229,18 +238,50 @@ def _appeler_claude_openrouter(messages, temperature: float, max_tokens: int = 2
     return ""
 
 
+# Plafonds GROQ figés (indépendants de LLM_PROVIDER). Quand LLM_PROVIDER=gemini,
+# MAX_CONTEXT_CHARS_COMPARAISON vaut 200 000 — les envoyer tels quels à Groq provoque
+# un 413 « Request too large » sur TOUTES les clés (mesuré 2026-10-19 : 22 587 chars
+# contexte → rotation K1…K12 en boucle, chat mort). Ces constantes ne bougent jamais.
+_GROQ_CTX_MAX = 6000
+_GROQ_MAX_TOKENS = 1500
+
+
+def _appeler_gemini_chat(messages, temperature: float) -> str:
+    """Palier Gemini du chat — utilisé après CodeCraft/Claude à sec, AVANT Groq.
+    Gemini accepte le gros contexte (LLM_PROVIDER=gemini → jusqu'à 200k chars) ;
+    c'est précisément ce que Groq refuse. Retourne "" si indisponible (pas d'exception)."""
+    if not config.GEMINI_API_KEY:
+        return ""
+    try:
+        llm = _creer_llm_gemini(temperature)
+        return _texte_reponse(llm.invoke(messages)) or ""
+    except Exception as e:
+        print(f"  [GEMINI/chat] indisponible ({str(e)[:100]}) → bascule Groq")
+        return ""
+
+
 class _ChatClaudePuisGroq:
-    """LLM composite~: CodeCraftAPI d'abord, puis Claude (OpenRouter), puis Groq (rotation
-    12 clés via `_invoke_with_retry`), message clair si les trois sont à sec. Chaque palier
-    échoue VITE (une tentative, délai court~: cf. les fonctions ci-dessus) — c'est l'enchaînement
-    qui protège, pas l'attente sur une source donnée. `.invoke()` ne lève jamais — transparent
-    pour TOUS les appelants de ce fichier, y compris ceux qui appellent `llm.invoke()`
-    directement sans passer par `_invoke_with_retry`."""
+    """LLM composite du chat.
+
+    Ordre 2026-10-19 (fix latence) :
+      Si LLM_PROVIDER=gemini → Gemini EN PREMIER (évite 25s+25s d'attente CodeCraft/Claude
+      à sec avant même de commencer — mesuré : spinner « analyse en cours » bloqué ~1 min).
+      Sinon → CodeCraft → Claude → Gemini → Groq.
+
+    Groq reçoit TOUJOURS `_GROQ_CTX_MAX` chars (jamais le contexte Gemini 200k → 413).
+    `.invoke()` ne lève jamais."""
     def __init__(self, temperature: float = 0.3):
         self.temperature = temperature  # lu par endroits qui font getattr(llm, "temperature", ...)
 
     def invoke(self, messages):
         max_tokens = max(config.LLM_MAX_TOKENS if config.LLM_PROVIDER == "gemini" else config.LLM_MAX_TOKENS_GROQ, 2000)
+
+        # Gemini d'abord si c'est le fournisseur configuré — réponse en ~5-15s au lieu
+        # d'attendre les timeouts CodeCraft/Claude (402/403) avant de commencer.
+        if config.LLM_PROVIDER == "gemini" and config.GEMINI_API_KEY:
+            texte = _appeler_gemini_chat(messages, self.temperature)
+            if texte:
+                return _Reponse(texte)
 
         texte = _appeler_codecraft(messages, self.temperature, max_tokens=max_tokens)
         if texte:
@@ -250,17 +291,21 @@ class _ChatClaudePuisGroq:
         if texte:
             return _Reponse(texte)
 
-        # Les deux sont à sec → Groq, rotation de clés déjà éprouvée. On force le nombre de
-        # clés à considérer explicitement (plutôt que via config.LLM_PROVIDER, qui peut
-        # rester "gemini" en configuration générale sans rapport avec ce chat).
+        # Si on n'a pas déjà tenté Gemini ci-dessus (provider ≠ gemini), on le tente ici.
+        if config.LLM_PROVIDER != "gemini":
+            texte = _appeler_gemini_chat(messages, self.temperature)
+            if texte:
+                return _Reponse(texte)
+
+        # Dernier recours → Groq, TOUJOURS avec plafonds Groq (jamais ceux de Gemini).
         if not (config.GROQ_API_KEYS or config.GROQ_API_KEY):
             return _Reponse(MESSAGE_PLUS_DE_TOKENS)
         from langchain_groq import ChatGroq
         cle = (config.GROQ_API_KEYS or [config.GROQ_API_KEY])[0]
         groq_llm = ChatGroq(model=config.GROQ_MODEL, groq_api_key=cle,
-                             temperature=self.temperature, max_tokens=config.LLM_MAX_TOKENS_GROQ,
+                             temperature=self.temperature, max_tokens=_GROQ_MAX_TOKENS,
                              reasoning_effort="low")
-        texte = _invoke_with_retry(groq_llm, _adapter_messages(messages, config.MAX_CONTEXT_CHARS_COMPARAISON),
+        texte = _invoke_with_retry(groq_llm, _adapter_messages(messages, _GROQ_CTX_MAX),
                                     _forcer_rotation_groq=True)
         return _Reponse(texte)
 
@@ -561,8 +606,10 @@ def _invoke_with_retry(llm, messages, max_retries: int = None, _forcer_rotation_
                 print(f"  [ROTATION] {motif} → clé K{_groq_key_index+1}")
                 from langchain_groq import ChatGroq
                 temp = getattr(current_llm, 'temperature', 0.1)
+                # TOUJOURS LLM_MAX_TOKENS_GROQ ici — pas config.LLM_MAX_TOKENS, qui vaut
+                # 2500 quand LLM_PROVIDER=gemini et gonfle le budget TPM Groq jusqu'au 413.
                 current_llm = ChatGroq(model=config.GROQ_MODEL, groq_api_key=new_key,
-                                       temperature=temp, max_tokens=config.LLM_MAX_TOKENS,
+                                       temperature=temp, max_tokens=config.LLM_MAX_TOKENS_GROQ,
                                        reasoning_effort="low")
                 # Même contexte/taille qui réussit pour une question et échoue pour une
                 # autre juste après (observé le 2026-07-11) : ce n'est pas la taille de LA
@@ -946,6 +993,44 @@ def _fiche_synthese_bancaire(banque: str) -> str:
     return "\n".join(lignes) if trouve else ""
 
 
+def _contexte_veille(banques: list) -> str:
+    """Faits de VEILLE EXTERNE (parts de marché, réseau, notations, innovations des
+    concurrents) — même principe que _fiche_synthese_bancaire et le socle de faits (6e) :
+    le déterministe fournit les faits SOURCÉS ET DATÉS, le LLM les formule, jamais
+    l'inverse. Lit le même cache web_facts.json (`run_veille.py`) que le dashboard
+    Stratégie (2026-11-15) — jusqu'ici l'assistant conversationnel n'y touchait jamais,
+    alors que l'agent existe depuis longtemps (« Agent Web », 4e agent du RAG) : il
+    manquait seulement ce branchement.
+    Jamais d'appel web en direct ici non plus — un fait sans source fiable n'entre pas
+    dans web_facts.json (voir web_facts.py), donc rien n'est inventé en aval."""
+    lignes = []
+    if banques:
+        par_banque = web_facts.facts_for(banques)
+        for b in banques:
+            faits = par_banque.get(b)
+            if not faits:
+                continue
+            lignes.append(f"VEILLE EXTERNE — {b} (source web, sourcée et datée, hors base interne) :")
+            for cle, val in faits.items():
+                if cle.startswith("_"):
+                    continue
+                lignes.append(f"  - {cle.replace('_', ' ')} : {val}")
+            note = faits.get("_note")
+            if note:
+                lignes.append(f"  - contexte : {note}")
+            date = faits.get("_date")
+            if date:
+                lignes.append(f"  (source datée de {date})")
+
+    # Contexte sectoriel (BCEAO/APBEF) — pertinent même sans banque précise nommée.
+    # Limité aux premiers faits : le budget Groq (6000 TPM) ne tolère pas de tout lister.
+    for f in web_facts.secteur()[:3]:
+        lignes.append(f"VEILLE EXTERNE — {f.get('titre', '')} : {f.get('valeur', '')} "
+                       f"({f.get('detail', '')}) [source : {f.get('source', '')}, {f.get('date', '')}]")
+
+    return "\n".join(lignes)
+
+
 # ═══════════════════════════════════════════════════════════
 #  MOTEUR D'EXÉCUTION PRINCIPAL
 # ═══════════════════════════════════════════════════════════
@@ -979,8 +1064,11 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
             mem.add_assistant(msg_indispo)
             return msg_indispo
 
-    # 3. Retrieval PARALLÈLE par agent
-    chunks_par_agent = _retrieval_parallele(vectorstore, question_retrieval, types_actifs)
+    # 3. Retrieval PARALLÈLE par agent — « veille » n'est PAS un agent vectoriel (le cache
+    # web_facts.json est lu directement, cf. étape 6f) : on l'exclut du retrieval ici pour
+    # ne pas gaspiller un appel de recherche qui ne trouverait jamais rien.
+    types_vectoriels  = [t for t in types_actifs if t != "veille"]
+    chunks_par_agent  = _retrieval_parallele(vectorstore, question_retrieval, types_vectoriels)
 
     # 4. Enrichissement réglementaire si niveau prospectif
     niveau      = _niveau_confiance(types_actifs, question)
@@ -990,9 +1078,19 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
         if regl_chunks:
             print(f"  + {len(regl_chunks)} chunk(s) réglementaire(s) — ancrage légal niveau 3")
 
+    # 4b. Faits de veille externe — calculés AVANT la vérification de contenu (étape 5) :
+    # une question purement veille (« quelle est la part de marché de la BICICI ? ») n'a
+    # aucun chunk vectoriel, mais a bien des faits à offrir.
+    veille_block = ""
+    if "veille" in types_actifs:
+        banques_veille = retriever.detect_banques(question_retrieval)
+        veille_block   = _contexte_veille(banques_veille)
+        if veille_block:
+            print(f"  [{_AGENT_LABELS['veille']}] {len(veille_block):,} chars (web_facts.json)")
+
     # 5. Vérification contenu total
     total_chunks = sum(len(c) for c in chunks_par_agent.values()) + len(regl_chunks)
-    if total_chunks == 0:
+    if total_chunks == 0 and not veille_block:
         reponse = (
             "Données insuffisantes dans la base documentaire pour répondre à cette question. "
             "Vérifiez que les PDFs correspondants ont bien été indexés."
@@ -1202,6 +1300,17 @@ def _executer(chain: dict, question: str, types_actifs: list) -> str:
             print(f"  [SOCLE FAITS] Fiche marché injectée ({len(socle):,} chars, "
                   f"contexte brut réduit d'autant)")
 
+    # 6f. VEILLE EXTERNE (2026-11-15) — même compensation qu'en 6d/6e : on retire du
+    # contexte brut l'équivalent de ce qu'on ajoute, pour que l'injection soit neutre en
+    # taille plutôt que de risquer un dépassement du budget Groq sur un cas qui passait
+    # avant. L'« Agent Web » (web_facts.py) existait déjà pour le dashboard Stratégie ;
+    # il manquait seulement ce branchement vers l'assistant conversationnel.
+    if veille_block:
+        context = context[:max(200, len(context) - len(veille_block) - 2)]
+        context = veille_block + "\n\n" + context
+        print(f"  [VEILLE WEB] Faits externes injectés ({len(veille_block):,} chars, "
+              f"contexte brut réduit d'autant)")
+
     # 7. Prompt adaptatif
     type_prompt = _choisir_prompt(types_actifs, niveau)
     prompt_template = prompts.get_prompt(type_prompt)
@@ -1330,7 +1439,7 @@ _EF_KEYS = ("produit net bancaire", "pnb", "résultat net", "resultat net",
             "roe", "rentabilité", "rentabilite", "return on equity",
             "coefficient d'exploitation", "coefficient d exploitation",
             "total bilan", "total actif", "total de l'actif",
-            "coût du risque", "cout du risque",
+            "coût du risque", "cout du risque", "cnr", "coût net du risque", "cout net du risque",
             "charges générales", "charges generales",
             "charges générales d'exploitation", "charges generales d'exploitation",
             "frais généraux", "frais generaux")
@@ -1372,6 +1481,103 @@ _MULTIHOP_CONCEPTS = (
                             "charges générales", "charges generales",
                             "frais généraux", "frais generaux"), "charges générales", "charges générales d'exploitation"),
 )
+
+
+# ═══════════════════════════════════════════════════════════
+#  ROUTAGE HYBRIDE EF — repli par similarité d'embeddings (2026-11-21, demo live)
+#  _EF_KEYS est un dictionnaire figé : il ne reconnaît que les formulations prévues
+#  ("PNB", "produit net bancaire"...). Une reformulation jamais écrite ("combien la
+#  banque a généré de revenus grâce à son activité bancaire ?") ne matche aucune entrée
+#  et tombe dans le RAG générique, plus lent et moins fiable. Ce repli n'intervient QUE
+#  si AUCUN mot-clé exact n'a matché — le chemin existant, déjà testé sur les 169
+#  questions d'évaluation, reste strictement inchangé et prioritaire. Réutilise le
+#  modèle d'embedding déjà chargé par le vectorstore (pas de nouvelle instance : éviter
+#  de dupliquer ~1,1 Go en mémoire, comme entre RAG/retriever.py et dash_app/db.py).
+# ═══════════════════════════════════════════════════════════
+
+_DESCRIPTIONS_INDICATEURS_EF = {
+    "pnb": "produit net bancaire, chiffre d'affaires de la banque, revenus générés par "
+           "l'activité bancaire, marge d'intérêt et commissions nettes",
+    "résultat net": "résultat net, bénéfice net de la banque après impôts",
+    "capitaux propres": "capitaux propres, fonds propres de la banque",
+    "résultat d'exploitation": "résultat d'exploitation de la banque",
+    "résultat brut": "résultat brut d'exploitation de la banque",
+    "roe": "rentabilité des capitaux propres, return on equity, performance pour les actionnaires",
+    "coefficient d'exploitation": "coefficient d'exploitation, rapport entre les charges "
+                                   "générales et le produit net bancaire, efficience opérationnelle",
+    "total bilan": "total du bilan, total actif de la banque, taille du bilan",
+    "coût du risque": "coût du risque, provisions pour créances douteuses et impayés",
+    "charges générales": "charges générales d'exploitation, frais généraux de fonctionnement",
+}
+
+_EMBEDDINGS_INDICATEURS_EF = None    # cache paresseux : {clé _EF_KEYS: vecteur}
+# Seuils RE-mesurés le 2026-11-21 après passage à BGE-M3 (demande explicite) : ses scores de
+# similarité bruts sont globalement PLUS BAS que paraphrase-multilingual-mpnet-base-v2 sur ces
+# descriptions courtes — conforme à l'avertissement reçu (« BGE-M3 n'est pas automatiquement
+# plus précis sur les questions financières courtes »). Le même risque de faux positif persiste
+# (« chiffre d'affaires » matche d'abord « résultat d'exploitation », pas « pnb ») : score
+# absolu ET net écart avec le 2e candidat, sinon on ne tranche pas. Un FAUX NÉGATIF (repli vers
+# le RAG générique) est sans danger ; un FAUX POSITIF donne un chiffre exact pour le MAUVAIS
+# indicateur — inacceptable pour ce projet.
+_SEUIL_SIMILARITE_EF = 0.50
+_MARGE_MIN_EF = 0.10
+
+
+def _cosinus(a, b):
+    import math
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(x * x for x in b))
+    return dot / (na * nb) if na and nb else 0.0
+
+
+# Modèle DÉDIÉ à ce repli, séparé du modèle du vectorstore principal (paraphrase-multilingual-
+# mpnet-base-v2, 768d, déjà utilisé pour les 34 000 embeddings de cb_tarifs/ef_indicateurs/
+# regl_documents). BGE-M3 (1024d) est choisi ici sur demande explicite (2026-11-21) — UNIQUEMENT
+# pour ces 10 descriptions d'indicateurs : changer le modèle du corpus principal demanderait de
+# tout ré-embedder, hors de question avant une démo live. Chargé une seule fois (comme
+# db.py:_REGL_MODEL), jamais rechargé.
+_MODELE_HYBRIDE_EF = None
+
+
+def _embed_bge_m3(text: str):
+    global _MODELE_HYBRIDE_EF
+    if _MODELE_HYBRIDE_EF is None:
+        from sentence_transformers import SentenceTransformer
+        print("  [ROUTAGE HYBRIDE] chargement BGE-M3...", end=" ", flush=True)
+        _MODELE_HYBRIDE_EF = SentenceTransformer("BAAI/bge-m3")
+        print("OK")
+    return _MODELE_HYBRIDE_EF.encode([text], normalize_embeddings=True)[0].tolist()
+
+
+def _detecter_indicateur_ef_embedding(question: str, vectorstore=None):
+    """Repli sémantique (BGE-M3) : si aucun _EF_KEYS n'a matché, compare la question aux
+    descriptions des indicateurs par similarité d'embeddings. Retourne une clé VALIDE de
+    _EF_KEYS (réutilisable telle quelle par le reste du pipeline), ou None en-dessous du
+    seuil — mieux vaut ne rien reconnaître qu'imposer un indicateur faux.
+    `vectorstore` n'est plus utilisé (gardé pour compatibilité des appels existants)."""
+    global _EMBEDDINGS_INDICATEURS_EF
+    try:
+        if _EMBEDDINGS_INDICATEURS_EF is None:
+            _EMBEDDINGS_INDICATEURS_EF = {
+                cle: _embed_bge_m3(desc)
+                for cle, desc in _DESCRIPTIONS_INDICATEURS_EF.items()
+            }
+        qv = _embed_bge_m3(question)
+        scores = sorted(
+            ((_cosinus(qv, vec), cle) for cle, vec in _EMBEDDINGS_INDICATEURS_EF.items()),
+            reverse=True)
+        meilleur_score, meilleur = scores[0]
+        deuxieme_score = scores[1][0] if len(scores) > 1 else 0.0
+        if (meilleur_score >= _SEUIL_SIMILARITE_EF
+                and (meilleur_score - deuxieme_score) >= _MARGE_MIN_EF):
+            print(f"  [ROUTAGE HYBRIDE] « {question[:60]} » -> {meilleur} "
+                  f"(similarite {meilleur_score:.2f}, ecart {meilleur_score - deuxieme_score:.2f}, "
+                  f"aucun mot-cle exact)")
+            return meilleur
+    except Exception as e:                                     # noqa: BLE001
+        print("  [ROUTAGE HYBRIDE] repli embedding indisponible :", str(e)[:120])
+    return None
 
 
 def _detect_multihop_ef(question: str):
@@ -1536,11 +1742,15 @@ def _executer_comparatif(chain: dict, question: str, spec: dict, question_memoir
 #   dépendre du budget de contexte fragile du RAG sur Groq)
 # ═══════════════════════════════════════════════════════════
 
-def _detect_factuel_ef_unique(question: str):
+def _detect_factuel_ef_unique(question: str, vectorstore=None):
     """Détecte 'Quel est le résultat net/PNB/... de BANQUE (en ANNEE) ?' — 1 seule
     banque nommée, aucun mot de comparaison, un indicateur EF reconnu. Question courte
     uniquement (≤ 14 mots) pour ne pas intercepter une question à la fois factuelle ET
-    analytique (qui doit garder tout le contexte RAG pour son analyse)."""
+    analytique (qui doit garder tout le contexte RAG pour son analyse).
+
+    `vectorstore` (optionnel, rétrocompatible) : active le ROUTAGE HYBRIDE (2026-11-21) —
+    si aucun _EF_KEYS n'est trouvé littéralement, un repli par similarité d'embeddings
+    tente de reconnaître l'indicateur malgré une reformulation imprévue."""
     q = question.lower()
     if any(k in q for k in _COMP_KW):
         return None
@@ -1574,6 +1784,16 @@ def _detect_factuel_ef_unique(question: str):
             if key in ("coefficient d'exploitation", "coefficient d exploitation"):
                 return {"kind": "coeff_expl_unique", "banque": banques[0], "annee": annee}
             return {"kind": "ef_unique", "banque": banques[0], "indicateur": key, "annee": annee}
+    # Aucun mot-clé exact : repli hybride par embeddings, seulement si une banque est déjà
+    # identifiée avec certitude (pas de risque d'inventer un indicateur sur une question qui
+    # n'en demandait pas, puisqu'on sait déjà qu'elle nomme une banque et rien d'autre).
+    cle = _detecter_indicateur_ef_embedding(question, vectorstore)
+    if cle:
+        if cle == "roe":
+            return {"kind": "roe_unique", "banque": banques[0], "annee": annee}
+        if cle == "coefficient d'exploitation":
+            return {"kind": "coeff_expl_unique", "banque": banques[0], "annee": annee}
+        return {"kind": "ef_unique", "banque": banques[0], "indicateur": cle, "annee": annee}
     return None
 
 
@@ -2121,6 +2341,36 @@ _NOYAUX_META = (
     "que peux tu", "que pouvez vous", "tu peux faire quoi", "tu fais quoi", "vous faites quoi",
     "tu sers a quoi", "a quoi tu sers", "comment tu marches", "comment ca marche",
     "aide", "help", "tes capacites", "tes fonctions",
+    # Variantes "seras"/"sert" : confusion frequente a la frappe rapide avec "sers"
+    # (ex. "tu seras a quoi??" signale par le directeur, 2026-11-22) — sans ces
+    # formes, la question meta n'etait pas reconnue et tombait dans le rejet
+    # "hors perimetre" alors qu'il s'agit bien d'une question sur l'assistant.
+    "tu seras a quoi", "a quoi tu seras", "tu sert a quoi", "a quoi tu sert",
+)
+
+# Amorces de conversation : l'utilisateur annonce qu'il va poser une question, sans
+# encore la poser. Rejeter « j'ai une question » en « hors périmètre » (mesuré 2026-10-19)
+# donne l'impression d'un outil cassé / hostile. On invite à formuler, on ne refuse pas.
+_NOYAUX_AMORCE = (
+    "jai une question", "j ai une question", "j'ai une question", "une question",
+    "je veux savoir", "je voudrais savoir", "je veux te demander", "je voudrais te demander",
+    "je peux te demander", "puis je te demander", "est ce que je peux",
+    "dis moi", "dis-moi", "ecoute", "écoute", "attends", "question pour toi",
+    "j ai un truc a te demander", "jai un truc", "petite question", "juste une question",
+    "je te pose une question", "voila ma question", "voici ma question",
+)
+
+# Amorces « je vais poser une question » — PAS hors sujet. Mesuré 2026-10-19 : « jai une
+# question » tombait dans le rejet « sort du périmètre » (brutal, inutilisable). Ce sont des
+# invitations à dialoguer, traitées comme une civilité : on invite à poser la vraie question.
+_AMORCES_QUESTION = (
+    "jai une question", "j ai une question", "j'ai une question",
+    "je ai une question", "une question", "petite question", "question rapide",
+    "je veux poser une question", "je voudrais poser une question",
+    "je peux poser une question", "puis je poser une question",
+    "je veux demander", "je voudrais demander", "je veux savoir",
+    "dis moi", "dites moi", "ecoute", "ecoutez", "attends", "attendez",
+    "j ai un truc a te demander", "jai un truc a te demander",
 )
 
 
@@ -2164,24 +2414,70 @@ def _est_salutation_seule(question: str) -> bool:
     return bool(difflib.get_close_matches(q, _SALUTATIONS, n=1, cutoff=0.85))
 
 
+def _contient_noyau(q: str, noyaux) -> bool:
+    """Teste un noyau en mot/phrase ENTIER (limite de mot), pas en sous-chaine brute.
+    BUG TROUVE (2026-11-22, capture directeur) : le noyau court 'slt' (abreviation de
+    'salut') matchait en sous-chaine dans 'reu-SLT-at', une faute de frappe sur
+    'resultat' — une vraie question bancaire ('OK RESULTAT NET' mal tape) se faisait
+    donc repondre par la salutation de bienvenue. Meme defaut de principe que la lecon
+    deja tiree pour les racines bancaires (cf. _contient_racine : 'ratio' matchait a
+    tort dans un mot plus long) — mais ici les noyaux sont des mots COMPLETS, donc une
+    limite de mot est la bonne protection (pas une histoire de racine a raccourcir)."""
+    return any(re.search(r"\b" + re.escape(n) + r"\b", q) for n in noyaux)
+
+
 def _est_civilite(question: str) -> bool:
     """Une formule de politesse, quelle qu elle soit, du moment qu elle ne demande rien de
     bancaire. Insensible a la longueur et au vocabulaire exact : « bonjour, j espere que vous
     allez bien » passe comme « bjr »."""
-    q = _normaliser(question)
+    # .replace("'", " ") : _NOYAUX_CIVILITE ecrit "s il vous plait" (espace), mais un
+    # utilisateur tape "s'il vous plaît" (apostrophe) — _normaliser ne retire PAS les
+    # apostrophes (seulement accents + casse), donc sans ce replace la sous-chaine ne
+    # matchait jamais. Meme bug que "c'est quoi spybusiness" trouve dans _est_question_meta
+    # ci-dessous (2026-11-21, repere en demo live) : corrige aux deux endroits, trait
+    # d'union inclus (ex. futures formules "excusez-moi").
+    q = _normaliser(question).replace("'", " ").replace("-", " ")
     if not q or len(q.split()) > 15:
         return False
-    if not any(n in q for n in _NOYAUX_CIVILITE):
+    if not _contient_noyau(q, _NOYAUX_CIVILITE):
         return False
     return _sans_trace_bancaire(question)
 
 
 def _est_question_meta(question: str) -> bool:
     """« qui es-tu ? », « tu sers a quoi ? » — sur l assistant, pas sur les banques."""
-    q = _normaliser(question)
+    # .replace : meme bug que _est_civilite ci-dessus, et un second trouve en demo (le
+    # premier correctif ne retirait que l'apostrophe) — "qui es-tu ?" ne matchait pas
+    # "qui es tu" (trait d'union non retire), alors que c'est la forme la plus courante
+    # a l'ecrit ("es-tu" avec inversion sujet-verbe).
+    q = _normaliser(question).replace("'", " ").replace("-", " ")
     if not q or len(q.split()) > 12:
         return False
-    return any(n in q for n in _NOYAUX_META) and _sans_trace_bancaire(question)
+    return _contient_noyau(q, _NOYAUX_META) and _sans_trace_bancaire(question)
+
+
+def _est_amorce_conversation(question: str) -> bool:
+    """« j'ai une question », « dis-moi », « je veux savoir » — sans contenu bancaire encore.
+    L'utilisateur n'a pas posé sa vraie question : on l'invite, on ne rejette pas."""
+    q = _normaliser(question).replace("'", " ").replace("-", " ")
+    q = re.sub(r"\s+", " ", q).strip()
+    if not q or len(q.split()) > 12:
+        return False
+    if not _sans_trace_bancaire(question):
+        return False
+    return _contient_noyau(q, _NOYAUX_AMORCE)
+
+
+def _est_amorce_question(question: str) -> bool:
+    """« j'ai une question », « dis-moi », « je veux savoir » — l'utilisateur annonce qu'il
+    va poser quelque chose, sans encore le formuler. Pas hors périmètre : on l'invite."""
+    q = _normaliser(question).replace("'", " ").replace("'", " ")
+    q = re.sub(r"\s+", " ", q).strip()
+    if not q or len(q.split()) > 12:
+        return False
+    if not _sans_trace_bancaire(question):
+        return False
+    return _contient_noyau(q, _AMORCES_QUESTION)
 
 
 _MARQUEURS_DEFINITION = (
@@ -2199,7 +2495,14 @@ def _est_question_definition(question: str) -> bool:
     """Question SUR une notion, pas sur un chiffre. Ne s active que sans banque nommee et sans
     annee : « c est quoi le PNB » est une definition, « c est quoi le PNB de SGCI en 2024 »
     est une demande de chiffre et garde le chemin normal."""
-    q = _normaliser(question)
+    # .replace("'", " ") : meme bug d'apostrophe que _est_civilite/_est_question_meta
+    # (2026-11-21) — sans lui, "C'est quoi le PNB ?" ne matchait jamais "c est quoi" dans
+    # _MARQUEURS_DEFINITION, alors que c'est exactement la formulation la plus probable
+    # en demo live (apostrophe tapee, jamais "c est quoi" avec un espace). Trait d'union
+    # aussi retire : "Explique-moi le CNR" ratait "explique moi" et tombait sur le chemin
+    # lent (agent de secours), au lieu du chemin rapide "definition" — repere en battery
+    # de test le 2026-11-21 (question tombee en timeout a cause de ce detour).
+    q = _normaliser(question).replace("'", " ").replace("-", " ")
     if not q or len(q.split()) > 16:
         return False
     if not any(m in q for m in _MARQUEURS_DEFINITION):
@@ -2234,9 +2537,19 @@ def _repondre_definition(question: str) -> str:
     legitime pour une DEFINITION — mais il lui est interdit d avancer le moindre chiffre sur
     les 7 banques, dont il n a ici aucune donnee."""
     from langchain_core.messages import HumanMessage, SystemMessage
+    # BUG TROUVÉ le 2026-11-21 (révélé par le correctif d'apostrophe sur _est_question_definition,
+    # qui a rendu cette branche atteignable pour « C'est quoi le PNB ? » pour la première fois) :
+    # sans ancrage explicite, le modèle répondait « Produit National Brut » (le sens dominant de
+    # ce sigle en français courant) au lieu de « Produit Net Bancaire » — un sigle ambigu HORS
+    # contexte bancaire, malgré la phrase d'intro « assistant de veille bancaire ». Le contexte
+    # seul ne suffisait pas à lever l'ambiguïté : il faut la lister explicitement.
     systeme = (
         "Tu es SpyBusiness, assistant de veille concurrentielle bancaire (Cote d'Ivoire, "
         "zone UEMOA/BCEAO).\n"
+        "Sigles bancaires a utiliser SANS AMBIGUITE, meme s'ils ont un autre sens courant par "
+        "ailleurs : PNB = Produit Net Bancaire (jamais Produit National Brut) ; ROE = "
+        "rentabilite des capitaux propres (Return on Equity) ; CNR = Coefficient Net de "
+        "Reemploi (liquidite bancaire) ; RN = resultat net.\n"
         "La question porte sur une NOTION, pas sur une valeur. Explique-la simplement, en "
         "francais, en 3 a 6 lignes : ce que la notion mesure, sa formule si elle en a une, "
         "et ce qu'elle permet de juger. Va droit au but, sans preambule.\n"
@@ -2277,6 +2590,12 @@ def ask(chain: dict, question: str) -> str:
                 "- la **réglementation** BCEAO et UEMOA.\n\n"
                 "Chaque chiffre que je cite vient de la base, jamais de moi. "
                 "Essayez : « compare les PNB » ou « frais de tenue de compte SGCI 2024 ».")
+
+    # « j'ai une question » / « dis-moi » : pas hors sujet — on invite à formuler.
+    if _est_amorce_conversation(question):
+        return ("Bien sûr — posez votre question. Je couvre les tarifs, la performance "
+                "financière (PNB, RN, ROE, CNR…) et la réglementation BCEAO/UEMOA des "
+                "7 banques ivoiriennes. Ex. : « CNR SGCI 2025 » ou « frais de tenue SGCI ».")
 
     # Question SUR une notion (« c'est quoi le PNB ? ») : on explique, on ne va pas
     # chercher un montant. Placee AVANT les detecteurs, qui la routeraient vers les
@@ -2341,7 +2660,7 @@ def ask(chain: dict, question: str) -> str:
             if rep:
                 return rep
 
-        spec_unique = _detect_factuel_ef_unique(q_detect)
+        spec_unique = _detect_factuel_ef_unique(q_detect, vectorstore=chain.get("vectorstore"))
         if spec_unique:
             return _executer_factuel_ef_unique(chain, q_detect, spec_unique, question_memoire=q_mem)
 
@@ -2439,7 +2758,14 @@ def ask(chain: dict, question: str) -> str:
         # "hors périmètre" — un caractère manquant suffisait à rendre le chat inutilisable.
         mots_bancaires = ["banqu", "bancaire", "compte", "credit", "pret",
                           "investissement", "financement", "tarif", "frais", "taux",
-                          "epargne", "depot", "guichet", "agence", "carte"]
+                          "epargne", "depot", "guichet", "agence", "carte",
+                          "cnr", "risque", "pnb", "roe", "provision", "impaye",
+                          "recommand", "operationnel", "levier",
+                          # "resultat" manquait : une relance style "OK resultat net"
+                          # (sans renommer la banque) ne portait alors AUCUNE racine
+                          # bancaire reconnue (trouve en testant "OK RESULTAT NET",
+                          # 2026-11-22).
+                          "resultat", "benefice", "bilan"]
         if banques_mentionnees or _contient_racine(q_norm, mots_bancaires):
             types_actifs = ["conditions_banque", "etats_financiers"]
         elif retriever.is_recommandation_ou_analyse(question) or retriever.is_comparaison(question):
@@ -2459,28 +2785,30 @@ def ask(chain: dict, question: str) -> str:
             # bancaire pro doit dire clairement qu'il sort de son périmètre plutôt que
             # de deviner une réponse non vérifiée.
 
-            # DERNIER RECOURS (2026-07-25, audit chat #5) : avant de rejeter, tente l'agent
-            # LangChain avec de vrais outils SQL déterministes — il rattrape les formulations
-            # que les 4 détecteurs regex + detect_types_doc n'ont pas reconnues (ex. synonyme
-            # non prévu, tournure inhabituelle). Ne peut jamais dégrader un cas qui marchait
-            # déjà : on n'arrive ICI que quand tout le reste a déjà échoué.
-            rep_agent = _agent_secours(question, chain["memory"])
-            if rep_agent:
-                return rep_agent
-
+            # RETRAIT du second appel agent ici (2026-11-22, retour direction — demo jury) :
+            # on arrive dans CETTE branche uniquement quand aucune banque, aucune racine
+            # bancaire, aucune comparaison/analyse et aucun suivi n'ont ete detectes — donc
+            # un vrai appel LLM (rotation de cles incluse) n'avait de toute facon presque
+            # jamais d'outil pertinent a choisir, et faisait seulement attendre l'utilisateur
+            # plusieurs secondes avant un rejet poli identique. Le rattrapage agentique utile
+            # (formulation bancaire non reconnue par les regex) reste couvert PLUS HAUT, ligne
+            # ~2738, pour le cas comparaison/analyse sans banque nommee — celui-ci restait un
+            # filet redondant sur des questions deja confirmees hors sujet. Rejet immediat.
             mem_ = chain["memory"]
             # 2026-07-25 (audit chat, problème #12) : message différencié selon qu'une
             # conversation bancaire était déjà engagée ou non — dans le 1er cas, la question a
             # pu être mal formulée/mal reconnue plutôt que vraiment hors sujet ; le message le
             # signale et invite à reformuler au lieu d'un refus sec identique dans tous les cas.
             if mem_.get_last_question():
-                rep = ("Je n'ai pas réussi à rattacher cette question au sujet bancaire en cours "
-                       "(tarifs, finances ou réglementation des 7 banques). Peux-tu reformuler en "
-                       "précisant la banque, l'indicateur ou le service concerné ?")
+                rep = ("Je n'ai pas bien cerné le lien avec le sujet en cours. Reformulez avec "
+                       "la banque (ex. SGCI), l'indicateur (PNB, RN, ROE, CNR…) ou le service "
+                       "tarifaire — je réponds aussitôt.")
             else:
-                rep = ("Cette question sort du périmètre de SpyBusiness (intelligence "
-                       "concurrentielle bancaire ivoirienne — tarifs, performance financière, "
-                       "réglementation des 7 banques). Je ne peux pas y répondre de façon fiable.")
+                # Ton accueillant : un refus sec sur une formulation ambiguë donne l'impression
+                # d'un chat « pauvre » (retour directeur 2026-10-19). On oriente, on ne humilie pas.
+                rep = ("Je n'ai pas identifié d'angle bancaire clair dans cette formulation. "
+                       "Précisez la banque et le sujet — tarifs, performance (PNB, RN, ROE, CNR) "
+                       "ou réglementation BCEAO — et je traite la demande.")
             mem_.add_user(question); mem_.add_assistant(rep)
             return rep
 
