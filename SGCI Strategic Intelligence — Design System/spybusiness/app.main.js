@@ -8974,6 +8974,12 @@ const AFTER = {
 
 function go(key){
   const p = PAGES[key]; if(!p) return;
+  const u = SB_UTILISATEUR;
+  const section = SECTION_DE_PAGE[key];
+  if(u && u.role !== "admin" && section && !(u.droits || []).includes(section)){
+    console.warn("Accès refusé pour la section :", key);
+    return;
+  }
   // L'écran de chargement N'EST PLUS réarmé ici : il couvre le seul premier chargement de
   // l'application. Une fois les caches chauds, un changement d'onglet répond en une à trois
   // secondes, et un voile qui clignote à chaque filtre inquiète plus qu'il ne rassure.
@@ -8988,12 +8994,13 @@ function go(key){
   el.innerHTML = p.render();
   if(AFTER[key]) AFTER[key]();
   if(key !== "chat") localStorage.setItem("sb-page", key);
-  // BUG TROUVÉ (2026-07-27, signalé par le directeur, capture à l'appui) : le bouton flottant
-  // (orbe hologramme) reste affiché même sur la page Chat elle-même, où il se superpose au
-  // bouton d'envoi du composer (les deux sont en bas à droite) — inutile en plus d'être gênant
-  // puisqu'il sert justement à OUVRIR le chat. On le masque quand on y est déjà.
+  // Le bouton flottant (orbe hologramme) sert à ouvrir le chat.
+  // On le masque si on est déjà sur le chat, OU si le compte n'a pas le droit chat.
   const fab = document.querySelector(".fab");
-  if(fab) fab.style.display = (key === "chat") ? "none" : "";
+  if(fab){
+    const chatAutorise = !u || u.role === "admin" || (u.droits || []).includes("chat");
+    fab.style.display = (chatAutorise && key !== "chat") ? "" : "none";
+  }
 }
 
 /* ─── ticker + horloge ───────────────────────────────────────────── */
