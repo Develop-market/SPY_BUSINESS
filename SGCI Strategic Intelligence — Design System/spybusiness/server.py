@@ -141,8 +141,17 @@ def _controle_acces():
     if not securite.a_le_droit(utilisateur, section):
         securite.journaliser(utilisateur.get("identifiant"), "acces_refuse", chemin,
                              request.remote_addr, False, f"section « {section} » non autorisée")
-        return jsonify({"error": f"accès non autorisé à la section « {section} »",
-                        "code": "droit_manquant", "section": section}), 403
+        msg_chat = (
+            "**Vous n'avez pas accès à ce service.**\n\n"
+            "L'assistant conversationnel n'est pas activé sur votre compte. "
+            "Adressez-vous à l'administrateur si vous en avez besoin."
+        )
+        return jsonify({
+            "error": msg_chat if section == "chat" else f"accès non autorisé à la section « {section} »",
+            "reponse": msg_chat if section == "chat" else None,
+            "code": "droit_manquant",
+            "section": section
+        }), 403
 
     # Les endpoints qui MODIFIENT la base d'analyse exigent en plus le rôle d'édition : ce
     # sont eux qui décident de ce que l'application affirme. Et chaque écriture est tracée.

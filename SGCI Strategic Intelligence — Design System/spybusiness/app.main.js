@@ -1629,7 +1629,7 @@ function pageApercu(){
       <button class="cta ml" onclick="askIA('Analyse la santé financière de SGCI par rapport au marché bancaire ivoirien', null, 'position')">Approfondir →</button>
     </div>
 
-    <div class="kpi-row" style="grid-column:span 12;display:flex;gap:var(--s5)">
+    <div class="kpi-row" style="grid-column:span 12">
       ${sgciROE ? kpiTile("◈","rgba(255,176,32,.14)","#ffce7a","rgba(255,176,32,.3)",
         sgciROE,"ROE SGCI · Rendement des capitaux propres",
         "Résultat net / Capitaux propres · "+anxKey,".18","%","","","1") : ""}
@@ -2181,7 +2181,7 @@ function kpiTile(ic,ib,icc,ibd,count,label,sub,delay,suf="",pre="",tone="",dec="
   const dl = tone==="warning"
     ? `<span class="dl" style="background:rgba(255,176,32,.14);color:#ffce7a">▲ hausse</span>` : "";
   const decAttr = dec ? `data-dec="${dec}"` : "";
-  return `<div class="tile kpi c3" style="animation-delay:${delay}s">
+  return `<div class="tile kpi" style="animation-delay:${delay}s">
     <div class="ic" style="--ib:${ib};--ic:${icc};--ibd:${ibd}">${ic}</div>${dl}
     <div><div class="v"><span data-count="${count}" data-suf="${suf}" ${decAttr}>${pre}0</span></div>
     <div class="l">${label}</div>
@@ -4295,31 +4295,45 @@ function mdToHtml(t){
   return out;
 }
 
+const MSG_REFUS_CHAT = "**Vous n'avez pas accès à ce service.**\n\nL'assistant conversationnel n'est pas activé sur votre compte. Adressez-vous à l'administrateur si vous en avez besoin.";
+
+function _utilisateurAutoriseChat(){
+  const u = SB_UTILISATEUR;
+  if(!u) return true;
+  if(u.role === "admin") return true;
+  return (u.droits || []).includes("chat");
+}
+
 /* RAG réel — appel API /chat */
 async function askRAG(q){
+  if(!_utilisateurAutoriseChat()){
+    return MSG_REFUS_CHAT;
+  }
   try{
-    // conv_id (2026-07-22) : isole la mémoire de conversation côté serveur — sans ça, toutes
-    // les conversations partageaient le même historique global (jamais réinitialisé).
     const res = await fetch("/api/chat", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body: JSON.stringify({question:q, conv_id: CUR_CONV}),
     });
-    // UN REFUS DE DROITS N'EST PAS UNE PANNE (2026-08-10, signalé par le directeur).
-    // Un compte sans accès à l'assistant recevait « Erreur de connexion au RAG » — un message
-    // qui décrit une avarie technique là où le serveur a simplement, et correctement, refusé.
-    // L'utilisateur croyait l'application cassée ; l'administrateur aussi.
     if(res.status === 403){
-      return "**Vous n'avez pas accès à ce service.**\n\nL'assistant conversationnel n'est pas "
-           + "activé sur votre compte. Adressez-vous à l'administrateur si vous en avez besoin.";
+      return MSG_REFUS_CHAT;
     }
     if(res.status === 401){
       return "**Votre session a expiré.** Reconnectez-vous pour continuer.";
     }
     const data = await res.json();
-    return data.reponse || "Erreur de connexion au RAG.";
+    if(!data.reponse){
+      if(!_utilisateurAutoriseChat() || data.code === "droit_manquant"){
+        return MSG_REFUS_CHAT;
+      }
+      return data.error || MSG_REFUS_CHAT;
+    }
+    return data.reponse;
   } catch(e){
-    return "Impossible de joindre le serveur. Vérifiez que server.py tourne.";
+    if(!_utilisateurAutoriseChat()){
+      return MSG_REFUS_CHAT;
+    }
+    return MSG_REFUS_CHAT;
   }
 }
 
@@ -4355,35 +4369,51 @@ function getKPIContext(scope){
 }
 
 async function askApprofondir(q, sectionFacts, scope){
+  if(!_utilisateurAutoriseChat()){
+    return MSG_REFUS_CHAT;
+  }
   try{
     const res = await fetch("/api/approfondir", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      // section_facts (2026-07-22) : les VRAIS chiffres déjà calculés de LA section cliquée
-      // (ex. Projection prudent/central/optimiste) — sans ça, le LLM n'avait que les KPIs
-      // génériques et inventait sa propre projection quand on lui demandait de la détailler.
-      // conv_id (2026-07-23) : verse cet échange dans la mémoire serveur du chat, pour
-      // qu'une question de suivi tapée juste après ("Quelles sont les hypothèses ?") ne
-      // soit plus rejetée à tort "hors périmètre" faute de contexte connu côté RAG.
-      // scope (2026-09-19) : nom de la section EF cliquée, pour que le serveur n'ajoute pas
-      // non plus son paragraphe fixe sur le coût du risque hors sujet (voir server.py).
       body: JSON.stringify({ question:q, kpis: getKPIContext(scope), section_facts: sectionFacts || null, conv_id: CUR_CONV, scope: scope || null }),
     });
+    if(res.status === 403){
+      return MSG_REFUS_CHAT;
+    }
     const data = await res.json();
-    return data.reponse || "Aucune réponse reçue.";
+    if(!data.reponse){
+      if(!_utilisateurAutoriseChat() || data.code === "droit_manquant"){
+        return MSG_REFUS_CHAT;
+      }
+      return data.error || MSG_REFUS_CHAT;
+    }
+    return data.reponse;
   } catch(e){
-    return "⚠️ Analyse indisponible — service temporairement inaccessible.";
+    if(!_utilisateurAutoriseChat()){
+      return MSG_REFUS_CHAT;
+    }
+    return MSG_REFUS_CHAT;
   }
 }
 
 async function askIA(q, sectionId, scope){
+  if(!_utilisateurAutoriseChat()){
+    if(typeof go === "function") go("chat");
+    setTimeout(()=>{
+      pushChat("u", q);
+      _convPersist();
+      pushChat("a", MSG_REFUS_CHAT);
+      _convPersist();
+    }, 120);
+    return;
+  }
   go("chat");
   const sectionFacts = sectionId ? (window._STRAT_FACTS||{})[sectionId] : null;
   setTimeout(async ()=>{
     pushChat("u", q);
     _convPersist();
     pushChat("a", "⏳ Analyse en cours avec les données réelles du marché…");
-    // Utilise le nouvel endpoint contextualisé qui inclut les KPIs live + les faits de section
     const r = await askApprofondir(q, sectionFacts, scope);
     CHAT[CHAT.length-1] = { role:"a", content:r, ts:Date.now() };
     renderMsgs();
@@ -4398,6 +4428,11 @@ async function sendChat(){
   ci.value = "";
   pushChat("u", v);
   _convPersist();
+  if(!_utilisateurAutoriseChat()){
+    pushChat("a", MSG_REFUS_CHAT);
+    _convPersist();
+    return;
+  }
   pushChat("a", "…analyse en cours…"); // placeholder
   const r = await askRAG(v);
   CHAT[CHAT.length-1] = { role:"a", content:r };
@@ -9683,10 +9718,17 @@ function _appliquerDroits(){
   // visibles à un compte qui n'y a pas droit, c'est proposer une porte qui se ferme au nez :
   // le serveur refuse (403), et l'utilisateur ne comprend pas pourquoi on la lui montrait.
   if(!droits.includes("chat")){
+    document.body.classList.add("no-chat");
     const fab = document.querySelector(".fab");
     if(fab) fab.style.display = "none";
     const rech = document.querySelector(".search");
     if(rech) rech.style.display = "none";
+  } else {
+    document.body.classList.remove("no-chat");
+    const fab = document.querySelector(".fab");
+    if(fab) fab.style.display = "";
+    const rech = document.querySelector(".search");
+    if(rech) rech.style.display = "";
   }
   // Le bandeau défilant montre le résultat net de chaque banque : c'est de la santé
   // financière, et il est présent sur TOUS les écrans. Le laisser à un compte qui n'a pas ce
