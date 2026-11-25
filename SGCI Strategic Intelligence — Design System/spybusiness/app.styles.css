@@ -1077,3 +1077,49 @@ body.gated .bg{ z-index:0 }
   .gate-btn{ margin:0; width:100%; justify-content:center }
   .gate-login{ padding:var(--s6) var(--s5) }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DURCISSEMENT MOBILE (2026-11-25) — cartes qui se chevauchent sur téléphone.
+   Constat (captures du directeur) : des cartes KPI côte à côte débordaient les unes
+   sur les autres, et des graphiques Plotly (barre de zoom/reset native) flottaient
+   par-dessus le contenu en dessous. Cause commune probable : des grilles à colonnes
+   fixes (80px/56px/...) ou des conteneurs Plotly sans largeur bornée, qui ne
+   rétrécissent pas sous ~420px alors que les media queries existantes ciblaient
+   surtout le texte et les onglets. Ce bloc est volontairement large (toute grille,
+   tout graphique) plutôt que carte par carte : plus sûr qu'une correction au cas par
+   cas qui en oublierait une — mais une vérification visuelle sur téléphone réel reste
+   nécessaire, personne n'a pu l'ouvrir dans un navigateur ici pour le confirmer à l'œil.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media(max-width:640px){
+  /* Toute tuile redevient une colonne pleine largeur : plus de chevauchement possible
+     entre deux cartes voisines, quelle que soit la grille qui les contient. */
+  .tile{ width:100% !important; max-width:100% !important; box-sizing:border-box !important;
+         margin-left:0 !important; margin-right:0 !important }
+  .bento,.kpi-row,.row{
+    grid-template-columns:1fr !important;
+  }
+  .bento,.kpi-row,.row{ row-gap:12px !important; grid-auto-rows:auto !important }
+
+  /* Graphiques Plotly : conteneur borné, le rangeslider/la barre de zoom natifs de
+     Plotly ne doivent jamais dépasser la largeur de leur carte. */
+  .js-plotly-plot,.plot-container,.js-plotly-plot .svg-container{
+    max-width:100% !important; width:100% !important; overflow:hidden !important;
+  }
+  .js-plotly-plot{ touch-action:pan-y }
+
+  /* Toute barre/élément en position collante ou fixe À L'INTÉRIEUR du contenu (pas les
+     popups plein écran type #aj-ov, qui veulent rester fixes) repasse en flux normal :
+     c'est ce qui empêchait un curseur ou une barre de rester "au-dessus" du texte suivant
+     au lieu de s'écouler avec lui. */
+  .panel,.tile,.row,.bento{ position:relative !important }
+  .panel [style*="position:sticky"],.panel [style*="position: sticky"]{
+    position:static !important; top:auto !important;
+  }
+
+  /* Grilles à colonnes fixes en pixels (ex. 80px 1fr 56px 80px pour les tableaux de rang) :
+     sur un écran de ~360-400px de large, ces colonnes fixes ne laissaient presque plus de
+     place à la colonne flexible et resserraient tout le reste. On les force à s'empiler. */
+  [style*="grid-template-columns:80px"],[style*="grid-template-columns: 80px"]{
+    grid-template-columns:1fr !important; gap:6px !important;
+  }
+}

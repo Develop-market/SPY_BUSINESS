@@ -4118,6 +4118,29 @@ const SUGG = [
 ];
 
 function pageChat(){
+  // MODE DÉMO (2026-11-25) : "chat_demo" sans "chat" — pas de nouvelle conversation, pas de
+  // recherche dans un historique qui n'existe que pour un seul fil, saisie verrouillée. Le
+  // blocage réel est côté serveur (securite.chemin_bloque_pour_demo) ; ceci n'est que l'habillage
+  // qui évite de montrer des commandes qui, de toute façon, seraient refusées.
+  if(window.SB_CHAT_DEMO){
+    return `
+    <div class="chat">
+      <div class="convs">
+        <div class="top">
+          <div style="font:600 11.5px var(--sans);color:var(--muted);padding:10px 4px;line-height:1.5">
+            Compte de démonstration — historique en lecture seule.
+          </div>
+        </div>
+        <div id="conv-list" style="flex:1;overflow-y:auto;padding-bottom:10px"></div>
+      </div>
+      <div class="chatmain">
+        <div class="msgs" id="msgs"></div>
+        <div class="composer">
+          <div class="row"><textarea id="ci" rows="1" disabled placeholder="Saisie désactivée — compte de démonstration"></textarea><button class="send" onclick="sendChat()">➤</button></div>
+        </div>
+      </div>
+    </div>`;
+  }
   return `
   <div class="chat">
     <div class="convs">
@@ -4150,6 +4173,17 @@ window.addEventListener("resize", _mesurerChrome);
 
 function afterChat(){
   _mesurerChrome();
+  if(window.SB_CHAT_DEMO){
+    // Compte démo : UN SEUL fil, déjà rempli, jamais celui du localStorage/serveur de ce
+    // navigateur (qui pourrait être vide ou appartenir à un autre usage du même poste).
+    const demo = _demoConversation();
+    CONVOS = [demo];
+    CUR_CONV = demo.id;
+    CHAT = demo.msgs.slice();
+    renderMsgs();
+    _renderConvList("");
+    return;   // pas de focus clavier : la saisie est désactivée
+  }
   _convLoad();
   renderMsgs();
   _renderConvList("");
@@ -4295,7 +4329,46 @@ function mdToHtml(t){
   return out;
 }
 
-const MSG_REFUS_CHAT = "**Vous n'avez pas accès à ce service.**\n\nL'assistant conversationnel n'est pas activé sur votre compte. Adressez-vous à l'administrateur si vous en avez besoin.";
+/* ════════════════════════════════════════════════════════════════════════
+   CONVERSATION DÉMO (2026-11-25) — compte "chat_demo" sans "chat".
+   Dix échanges RÉELS, capturés en posant ces questions à l'assistant lui-même
+   (RAG/chain.py, fournisseur Groq) le 2026-11-25 — aucune réponse inventée ici,
+   conformément à la règle du projet. Fixe et identique à chaque ouverture : ce
+   compte ne peut ni en créer une autre, ni modifier celle-ci.
+   ════════════════════════════════════════════════════════════════════════ */
+const _DEMO_CONV = {
+  "id": "demo-fixe",
+  "title": "Exemples de questions — démonstration",
+  "ts": 1764000000000,
+  "msgs": [
+    { "role": "u", "content": "Quel est le PNB de SGCI en 2025 ?", "ts": 1764000000000 },
+    { "role": "a", "content": "Le PNB de SGCI en 2025 est de 276 048 millions FCFA.", "ts": 1764000015000 },
+    { "role": "u", "content": "Comment a évolué le PNB de SGCI ces dernières années ?", "ts": 1764000060000 },
+    { "role": "a", "content": "Voici la restitution exacte des données fournies et l'analyse correspondante :\n\n| Année | Valeur | Var. absolue | Var. % |\n|---|---|---|---|\n| 2023 | 253 286 | — | — |\n| 2024 | 263 207 | +9 921 | +3.9 % |\n| 2025 | 276 048 | +12 841 | +4.9 % |\nVariation totale 2023→2025 : +22 762 millions FCFA (+9.0 %)\n\n**Analyse de l'évolution :**\n\n* **Tendance générale :** Le PNB de SGCI affiche une dynamique positive continue sur l'ensemble de la période observée, passant de 253 286 millions FCFA en 2023 à 276 048 millions FCFA en 2025.\n* **Année la plus marquante :** L'année 2025 s'impose comme la plus performante de la période, enregistrant à la fois la plus forte progression absolue (+12 841 millions FCFA) et le niveau de PNB le plus élevé.\n* **Rythme de croissance :** On observe une accélération du rythme de croissance annuelle, qui passe de +3.9 % en 2024 à +4.9 % en 2025, soutenant une hausse globale de +9.0 % sur la période 2023-2025.", "ts": 1764000075000 },
+    { "role": "u", "content": "Quel est le résultat net de SGCI comparé aux autres banques ivoiriennes ?", "ts": 1764000120000 },
+    { "role": "a", "content": "Le résultat net de SGCI en 2025 est de 101 352 millions FCFA.", "ts": 1764000135000 },
+    { "role": "u", "content": "Quel est le ROE de SGCI en 2025 ?", "ts": 1764000180000 },
+    { "role": "a", "content": "Le ROE de SGCI est de 20.5 % en 2025.", "ts": 1764000195000 },
+    { "role": "u", "content": "Quel est le coefficient d'exploitation de SGCI en 2025 ?", "ts": 1764000240000 },
+    { "role": "a", "content": "Le coefficient d'exploitation de SGCI est de 38.8 % en 2025.", "ts": 1764000255000 },
+    { "role": "u", "content": "Compare les frais de tenue de compte entre SGCI, BICICI et NSIA", "ts": 1764000300000 },
+    { "role": "a", "content": "**Comparaison — frais de tenue de compte (SGCI, BICICI, NSIA)**\n\n#### SGCI — Particuliers\n| Service | S1 2026 |\n|---|---|\n| Tenue de compte sur livret d'épargne | Gratuit |\n| Succession > Frais de tenue de compte | 2 350 FCFA |\n| Commission de conservation de titres | 0,26 % – 0,5 % |\n\n#### BICICI — Particuliers\n| Service | S1 2026 |\n|---|---|\n| Frais de tenue de compte (tarif mensuel) | 5 200 FCFA |\n| Tenue de compte sur livret d'épargne | Gratuit |\n| Relevé pour ambassade | 15 000 FCFA |\n\n#### NSIA — Particuliers\n| Service | S2 2025 |\n|---|---|\n| Frais de tenue de compte chèque (mensuel) | 5 400 FCFA TTC |\n| Pack Eco (Saphir) | 2 200 FCFA TTC/mois |\n| Pack Élite (Gold) | 12 450 FCFA TTC/mois |\n\n**Analyse.** Sur le segment Particuliers, la tenue de compte sur livret d'épargne est gratuite dans les trois banques. Sur le compte chèque standard, BICICI propose le tarif mensuel le moins cher (5 200 FCFA) face à NSIA (5 400 FCFA), tandis que SGCI facture surtout des commissions en pourcentage plutôt qu'un forfait mensuel fixe.", "ts": 1764000315000 },
+    { "role": "u", "content": "Quelles sont les conditions tarifaires de retrait au guichet chez SGCI ?", "ts": 1764000360000 },
+    { "role": "a", "content": "Voici les conditions tarifaires de retrait au guichet chez SGCI issues de la grille publiée :\n\n| Clientèle | Service | Tarif (FCFA HT) | Période |\n|---|---|---|---|\n| Particuliers | Forçage pour retrait d'espèce dans l'agence qui tient le compte | 2 750 | S1 2024 |\n| Entreprises | Forçage pour retrait d'espèce dans l'agence qui tient le compte | 6 500 | S1 2025 |\n\n*Note : le retrait standard au guichet (hors forçage) n'apparaît pas distinctement dans le document source — seul le forçage (retrait hors agence habituelle) y est tarifé.*", "ts": 1764000375000 },
+    { "role": "u", "content": "Que dit la réglementation sur le taux d'usure en Côte d'Ivoire ?", "ts": 1764000420000 },
+    { "role": "a", "content": "Le taux de l'usure applicable aux banques en Côte d'Ivoire est fixé à **14 % l'an**.\n\n**Ancrage réglementaire :** Décision UMOA n° 19-2025 (taux usure) — Article 2.", "ts": 1764000435000 },
+    { "role": "u", "content": "Quelles opérations bancaires sont gratuites selon la BCEAO ?", "ts": 1764000480000 },
+    { "role": "a", "content": "Selon la réglementation BCEAO (Instruction relative au service bancaire minimum garanti dans les États membres de l'UMOA), plusieurs opérations sont gratuites pour la clientèle des particuliers :\n\n**Délivrance et gestion de compte** : ouverture de compte, délivrance de carnet de chèques, délivrance d'un livret d'épargne, relevé de compte mensuel, relevé d'identité bancaire (RIB), clôture de compte.\n\n**Opérations de caisse et retraits** : versement d'espèces sur son propre compte, retrait d'espèces au guichet ou au GAB de sa propre banque.\n\n**Virements et paiements** : virement de compte à compte au sein de la même banque, encaissement de chèques et virements UMOA, paiement par carte dans la zone UMOA.\n\n**Services complémentaires** : consultation de solde (guichet, GAB, internet), tenue de compte sur livret d'épargne.", "ts": 1764000495000 },
+    { "role": "u", "content": "Quel est le classement des banques ivoiriennes sur le PNB en 2025 ?", "ts": 1764000540000 },
+    { "role": "a", "content": "En 2025, le classement des banques ivoiriennes disposant de données pour cet exercice s'établit comme suit sur le Produit Net Bancaire (PNB) :\n\n| Rang | Banque | PNB 2025 (Mds FCFA) |\n|---|---|---|\n| 1 | SGCI | 276,0 |\n| 2 | ECOBANK | 132,7 |\n| 3 | NSIA | 112,9 |\n| 4 | SIB | 108,7 |\n| 5 | BICICI | 79,6 |\n\nDonnées non disponibles pour 2025 : BNI (dernière année disponible 2024, PNB 100,7 Mds FCFA) et BACI (dernière année disponible 2023, PNB 97,0 Mds FCFA).", "ts": 1764000555000 }
+  ]
+};
+function _demoConversation(){
+  // Copie profonde : CHAT est muté ailleurs (pushChat...), la constante ne doit jamais l'être.
+  return JSON.parse(JSON.stringify(_DEMO_CONV));
+}
+
+const MSG_REFUS_CHAT = "**Vous n'êtes pas autorisé à poser des questions.**\n\nContactez l'administrateur pour qu'il puisse vous accorder cette fonctionnalité.";
 
 function _utilisateurAutoriseChat(){
   const u = SB_UTILISATEUR;
@@ -7779,6 +7852,11 @@ async function _cbApprofondirIA(qId){
   try{
     const qs=`q=${qId}&annee=${CB_YEAR}&semestre=${CB_SEM}&segment=${encodeURIComponent(CB_SEG)}`;
     const r=await fetch(`/api/analyse_strategique?${qs}`);
+    if(r.status===403){
+      box.innerHTML=`<div style="padding:12px 0;border-top:1px solid var(--line);font:500 11.5px var(--sans);color:var(--muted)">${_mdToHtml(MSG_REFUS_CHAT)}</div>`;
+      btn.textContent="◆ Approfondir →";btn.disabled=false;
+      return;
+    }
     if(!r.ok)throw new Error(`HTTP ${r.status}`);
     const d=await r.json();
     const html=_mdToHtml(d.reponse||d.error||"Aucune réponse.");
@@ -9717,7 +9795,13 @@ function _appliquerDroits(){
   // Le bouton flottant et la barre de recherche mènent tous deux à l'assistant. Les laisser
   // visibles à un compte qui n'y a pas droit, c'est proposer une porte qui se ferme au nez :
   // le serveur refuse (403), et l'utilisateur ne comprend pas pourquoi on la lui montrait.
-  if(!droits.includes("chat")){
+  //
+  // EXCEPTION (2026-11-25) : "chat_demo" sans "chat" montre volontairement l'orbe — c'est un
+  // compte de démonstration, qui doit pouvoir ouvrir l'assistant pour LIRE un historique déjà
+  // préparé, même s'il ne peut rien poser comme question (bloqué côté serveur, voir
+  // securite.chemin_bloque_pour_demo). window.SB_CHAT_DEMO pilote ce mode dans pageChat/afterChat.
+  window.SB_CHAT_DEMO = droits.includes("chat_demo") && !droits.includes("chat");
+  if(!droits.includes("chat") && !window.SB_CHAT_DEMO){
     document.body.classList.add("no-chat");
     const fab = document.querySelector(".fab");
     if(fab) fab.style.display = "none";

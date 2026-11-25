@@ -103,6 +103,13 @@ SECTIONS = {
     "chat":      "Assistant conversationnel",
     "strategie": "Stratégie",
     "stratop":   "Stratégie opérationnelle",
+    # Démo lecture seule (2026-11-25, demande directe) : montre l'orbe et un historique déjà
+    # rempli, SANS donner "chat" — un compte avec cette seule case ne déclenche jamais d'appel
+    # LLM (section_demo_chat ci-dessous bloque /api/chat, /api/approfondir,
+    # /api/analyse_strategique quelle que soit la section par ailleurs autorisée). Ce n'est donc
+    # pas un droit d'accès au sens des autres cases, juste un indicateur d'affichage + un
+    # verrou cote serveur, mais il suit le meme mecanisme de case a cocher pour rester coherent.
+    "chat_demo": "Assistant — démo lecture seule",
 }
 
 # ── DIRECTIONS VISIBLES DANS LA STRATÉGIE OPÉRATIONNELLE ─────────────────────────────
@@ -208,6 +215,34 @@ def section_du_chemin(chemin):
         if chemin.startswith(prefixe):
             return section
     return None
+
+
+# ── COMPTE DÉMO (2026-11-25) ──────────────────────────────────────────────────────────
+# Un compte avec "chat_demo" (et sans "chat") voit l'assistant et son historique, mais ne doit
+# JAMAIS déclencher un vrai appel au modèle — ni par le chat, ni par un bouton « Approfondir »
+# ailleurs dans l'application (Stratégie, Conditions bancaires...). Ces boutons appellent des
+# routes normalement protégées par "strategie" ou "cb", que ce compte peut très bien avoir —
+# il faut donc un verrou SÉPARÉ, qui s'applique quelle que soit la section déjà autorisée.
+_PREFIXES_LLM = (
+    "/api/chat",
+    "/api/approfondir",
+    "/api/analyse_strategique",
+    "/api/cb_repricing",
+    "/api/radar_agent",
+)
+
+
+def est_demo_chat(utilisateur):
+    """Compte démo lecture seule : chat_demo coché, chat non coché, jamais admin."""
+    if not utilisateur or utilisateur.get("role") == ADMIN:
+        return False
+    droits = utilisateur.get("droits") or []
+    return "chat_demo" in droits and "chat" not in droits
+
+
+def chemin_bloque_pour_demo(utilisateur, chemin):
+    """True si ce chemin doit être refusé à un compte démo, même s'il a la section associée."""
+    return est_demo_chat(utilisateur) and any(chemin.startswith(p) for p in _PREFIXES_LLM)
 
 
 def _droits(valeur, role):

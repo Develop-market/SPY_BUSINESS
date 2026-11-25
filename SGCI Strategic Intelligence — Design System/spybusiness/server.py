@@ -134,6 +134,20 @@ def _controle_acces():
     if not utilisateur:
         return jsonify({"error": "authentification requise", "code": "non_authentifie"}), 401
 
+    # COMPTE DÉMO LECTURE SEULE (2026-11-25). Verrou séparé du droit "chat" : ce compte peut très
+    # bien avoir "strategie" ou "cb" (pour voir les écrans), mais ne doit jamais déclencher un
+    # vrai appel au modèle, par QUELQUE bouton que ce soit — y compris "Approfondir" dans des
+    # sections qu'il a par ailleurs le droit de voir. D'où un contrôle à part, avant le contrôle
+    # par section ci-dessous, qui ne regarde que la section de l'endpoint demandé.
+    if securite.chemin_bloque_pour_demo(utilisateur, chemin):
+        return jsonify({
+            "error": "Vous n'êtes pas autorisé à poser des questions. Contactez l'administrateur "
+                     "pour qu'il puisse vous accorder cette fonctionnalité.",
+            "reponse": "Vous n'êtes pas autorisé à poser des questions. Contactez l'administrateur "
+                       "pour qu'il puisse vous accorder cette fonctionnalité.",
+            "code": "demo_lecture_seule",
+        }), 403
+
     # DROITS PAR SECTION. Chaque endpoint appartient à une section de l'application ; on
     # vérifie que l'utilisateur y a accès. C'est plus fin qu'un rôle : deux personnes peuvent
     # être toutes deux en lecture seule et ne pas voir les mêmes chiffres.
