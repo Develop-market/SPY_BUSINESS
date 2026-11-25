@@ -23,10 +23,10 @@ WORKDIR /app
 ENV BACK_DIR=/app
 ENV PYTHONUNBUFFERED=1
 
-COPY "SGCI Strategic Intelligence — Design System/spybusiness/requirements-deploy.txt" ./requirements-deploy.txt
+COPY ["SGCI Strategic Intelligence — Design System/spybusiness/requirements-deploy.txt", "./requirements-deploy.txt"]
 RUN pip install --no-cache-dir -r requirements-deploy.txt
 
-COPY "SGCI Strategic Intelligence — Design System/spybusiness/" ./
+COPY ["SGCI Strategic Intelligence — Design System/spybusiness/", "./"]
 COPY RAG/ ./RAG/
 
 EXPOSE 8080
