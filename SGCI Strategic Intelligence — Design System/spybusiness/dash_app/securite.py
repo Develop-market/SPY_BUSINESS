@@ -223,21 +223,31 @@ def section_du_chemin(chemin):
 # ailleurs dans l'application (Stratégie, Conditions bancaires...). Ces boutons appellent des
 # routes normalement protégées par "strategie" ou "cb", que ce compte peut très bien avoir —
 # il faut donc un verrou SÉPARÉ, qui s'applique quelle que soit la section déjà autorisée.
+# CORRECTION (2026-11-25, demande explicite du directeur après démo) : /api/cb_repricing et
+# /api/radar_agent s'exécutent AUTOMATIQUEMENT à l'ouverture de la page (graphe radar "Portrait
+# compétitif", verdicts de repricing) — ce n'est PAS la personne qui "pose une question". Les
+# bloquer cassait des graphiques entiers (le radar affichait "Analyse IA indisponible" au lieu
+# du graphe). Seuls les DEUX points d'entrée où l'utilisateur demande explicitement quelque
+# chose restent verrouillés : la question libre du chat, et le clic sur un bouton "Approfondir"
+# (qui, selon l'écran, passe par /api/approfondir ou /api/analyse_strategique).
 _PREFIXES_LLM = (
     "/api/chat",
     "/api/approfondir",
     "/api/analyse_strategique",
-    "/api/cb_repricing",
-    "/api/radar_agent",
 )
 
 
 def est_demo_chat(utilisateur):
-    """Compte démo lecture seule : chat_demo coché, chat non coché, jamais admin."""
+    """Compte démo lecture seule : chat_demo coché, jamais admin.
+
+    Ne regarde plus l'absence de "chat" (2026-11-25) : le compte a maintenant aussi "chat",
+    pour que tous les écrans se comportent comme un compte normal — seuls /api/chat et
+    /api/approfondir|analyse_strategique restent verrouillés, via chemin_bloque_pour_demo.
+    """
     if not utilisateur or utilisateur.get("role") == ADMIN:
         return False
     droits = utilisateur.get("droits") or []
-    return "chat_demo" in droits and "chat" not in droits
+    return "chat_demo" in droits
 
 
 def chemin_bloque_pour_demo(utilisateur, chemin):

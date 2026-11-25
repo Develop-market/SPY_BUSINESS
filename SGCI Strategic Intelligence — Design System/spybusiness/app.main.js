@@ -4118,10 +4118,12 @@ const SUGG = [
 ];
 
 function pageChat(){
-  // MODE DÉMO (2026-11-25) : "chat_demo" sans "chat" — pas de nouvelle conversation, pas de
-  // recherche dans un historique qui n'existe que pour un seul fil, saisie verrouillée. Le
-  // blocage réel est côté serveur (securite.chemin_bloque_pour_demo) ; ceci n'est que l'habillage
-  // qui évite de montrer des commandes qui, de toute façon, seraient refusées.
+  // MODE DÉMO (2026-11-25, corrigé le même jour) : pas de "Nouvelle conversation" (un seul fil,
+  // déjà préparé), pas de recherche. MAIS la saisie reste ACTIVE — la personne doit pouvoir
+  // taper et envoyer une question comme sur un compte normal ; le serveur refuse ensuite avec
+  // le message "Contactez l'administrateur…" (securite.chemin_bloque_pour_demo), exactement
+  // comme pour un clic sur "Approfondir". Une saisie désactivée d'emblée donnait l'impression
+  // d'un compte cassé plutôt que d'un compte sans autorisation.
   if(window.SB_CHAT_DEMO){
     return `
     <div class="chat">
@@ -4136,7 +4138,7 @@ function pageChat(){
       <div class="chatmain">
         <div class="msgs" id="msgs"></div>
         <div class="composer">
-          <div class="row"><textarea id="ci" rows="1" disabled placeholder="Saisie désactivée — compte de démonstration"></textarea><button class="send" onclick="sendChat()">➤</button></div>
+          <div class="row"><textarea id="ci" rows="1" placeholder="Demandez-moi ce que vous voulez savoir…"></textarea><button class="send" onclick="sendChat()">➤</button></div>
         </div>
       </div>
     </div>`;
@@ -4182,7 +4184,13 @@ function afterChat(){
     CHAT = demo.msgs.slice();
     renderMsgs();
     _renderConvList("");
-    return;   // pas de focus clavier : la saisie est désactivée
+    const ciDemo = document.getElementById("ci");
+    if(ciDemo){
+      ciDemo.addEventListener("keydown", e=>{
+        if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendChat(); }
+      });
+    }
+    return;
   }
   _convLoad();
   renderMsgs();
@@ -9796,11 +9804,13 @@ function _appliquerDroits(){
   // visibles à un compte qui n'y a pas droit, c'est proposer une porte qui se ferme au nez :
   // le serveur refuse (403), et l'utilisateur ne comprend pas pourquoi on la lui montrait.
   //
-  // EXCEPTION (2026-11-25) : "chat_demo" sans "chat" montre volontairement l'orbe — c'est un
-  // compte de démonstration, qui doit pouvoir ouvrir l'assistant pour LIRE un historique déjà
-  // préparé, même s'il ne peut rien poser comme question (bloqué côté serveur, voir
-  // securite.chemin_bloque_pour_demo). window.SB_CHAT_DEMO pilote ce mode dans pageChat/afterChat.
-  window.SB_CHAT_DEMO = droits.includes("chat_demo") && !droits.includes("chat");
+  // "chat_demo" (2026-11-25) : compte de démonstration. Il a AUSSI "chat" désormais, pour que
+  // tous les graphiques et analyses automatiques (radar "Portrait compétitif", repricing CB…)
+  // se chargent normalement — seuls /api/chat et /api/approfondir|analyse_strategique (les DEUX
+  // points où la personne demande explicitement quelque chose) restent verrouillés côté serveur
+  // (voir securite.chemin_bloque_pour_demo). window.SB_CHAT_DEMO pilote juste l'habillage de la
+  // page Chat : historique figé, pas de bouton "Nouvelle conversation".
+  window.SB_CHAT_DEMO = droits.includes("chat_demo");
   if(!droits.includes("chat") && !window.SB_CHAT_DEMO){
     document.body.classList.add("no-chat");
     const fab = document.querySelector(".fab");

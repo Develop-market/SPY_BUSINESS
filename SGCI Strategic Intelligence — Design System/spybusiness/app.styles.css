@@ -1122,4 +1122,13 @@ body.gated .bg{ z-index:0 }
   [style*="grid-template-columns:80px"],[style*="grid-template-columns: 80px"]{
     grid-template-columns:1fr !important; gap:6px !important;
   }
+
+  /* Bandeaux "Signal Analytique" (.insight) : orbe (56px, fixe) + titre + bouton
+     "Approfondir" (flex-shrink:0, donc jamais rétréci) sur une seule ligne flex sans
+     retour à la ligne. Sur un écran de ~390px, il ne restait presque plus de place pour
+     le titre, qui se retrouvait écrasé sur une colonne de quelques caractères — UN MOT
+     PAR LIGNE (vu en vérifiant visuellement avec Playwright, 2026-11-25). On autorise le
+     retour à la ligne : le bouton passe sous le titre plutôt que de l'étrangler. */
+  .insight{ flex-wrap:wrap !important }
+  .insight .cta.ml{ margin-left:0 !important; width:100% !important; justify-content:center !important; margin-top:4px !important }
 }
