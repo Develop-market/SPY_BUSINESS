@@ -419,8 +419,15 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date, tab, secti
   // ligne de défense.
   const _fitSize = (text, boxW, boxH, opts) => {
     opts = opts || {};
-    const max = opts.max || 22, min = opts.min || 11, cw = opts.cw || 0.54, lh = opts.lh || 1.34;
-    const wPt = boxW * 72, hPt = boxH * 72 * 0.92;   // marge de sécurité de 8%
+    // Marges relevées le 2026-11-26 (retour : « sur mobile, les écritures se chevauchent souvent »).
+    // Georgia/Segoe UI/Consolas (desktop) n'existent pas sur Android/iOS — le lecteur mobile les
+    // remplace par des polices de substitution plus larges, que notre estimation de largeur de
+    // caractère (cw) ne voyait pas venir. On ne peut pas tester le rendu mobile directement d'ici ;
+    // on élargit donc la marge de sécurité (8%→18%) et l'estimation de largeur (0.54→0.60) pour
+    // rester SOUS la taille qui tient, même avec une police plus large que prévu — au prix d'un
+    // texte parfois un peu plus petit, jamais d'un débordement.
+    const max = opts.max || 22, min = opts.min || 11, cw = opts.cw || 0.60, lh = opts.lh || 1.34;
+    const wPt = boxW * 72, hPt = boxH * 72 * 0.82;   // marge de sécurité de 18%
     const text2 = text || "";
     const explicitBreaks = (text2.split("\n").length - 1);
     const len = text2.length;
@@ -492,7 +499,7 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date, tab, secti
       const rowFH = (H-top-BOT-0.2) / facts.length;
       facts.slice(0, 5).forEach((f, i) => {
         const fy = top + i*rowFH;
-        const ffs = _fitSize(f, fw, rowFH-0.15, {max:12.5, min:8.5, lh:1.28, cw:0.5});
+        const ffs = _fitSize(f, fw, rowFH-0.15, {max:12.5, min:8.5, lh:1.28, cw:0.56});
         slide.addText(f, {x:fx, y:fy, w:fw, h:rowFH-0.15, fontFace:_F_SANS, fontSize:ffs,
           color:_DK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.28});
       });
@@ -515,7 +522,7 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date, tab, secti
       const x = M + col*(colW+0.6), y = top + row*rowH;
       slide.addText(String(i+1).padStart(2,"0"), {x, y:y+0.05, w:0.5, h:0.4, fontFace:_F_MONO, fontSize:10,
         color:_DK_GOLD, valign:"top"});
-      const fs = _fitSize(it, colW-0.55, rowH-0.12, {max:12.5, min:8, lh:1.25, cw:0.5});
+      const fs = _fitSize(it, colW-0.55, rowH-0.12, {max:12.5, min:8, lh:1.25, cw:0.56});
       slide.addText(it, {x:x+0.55, y, w:colW-0.55, h:rowH-0.12, fontFace:_F_SANS, fontSize:fs, color:_DK_INK,
         valign:"top", fit:"shrink", lineSpacingMultiple:1.25});
       if(row < nRowsPerCol-1) slide.addShape(P.ShapeType.line, {x, y:y+rowH-0.06, w:colW, h:0, line:{color:_DK_BORDER_CREAM_12, width:0.5}});
@@ -547,7 +554,7 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date, tab, secti
       const itemH = (ch-0.65) / Math.max(items.length, 1);
       items.forEach((it, i) => {
         const iy = y+0.6+i*itemH;
-        const fs = _fitSize(it, cw-0.5, itemH-0.1, {max:11.5, min:8, lh:1.22, cw:0.52});
+        const fs = _fitSize(it, cw-0.5, itemH-0.1, {max:11.5, min:8, lh:1.22, cw:0.58});
         slide.addText(_deckClean(String(it)), {x:x+0.25, y:iy, w:cw-0.5, h:itemH-0.08, fontFace:_F_SANS,
           fontSize:fs, color:_DK_INK, valign:"top", fit:"shrink", lineSpacingMultiple:1.2});
       });
@@ -657,7 +664,7 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date, tab, secti
         showLegend:false, showTitle:false, showValue:false, showPercent:false, holeSize:68});
       slide.addText(`${pct}%`, {x, y:dY+dH/2-0.5, w:dW, h:1, align:"center", valign:"middle",
         fontFace:_F_SERIF, fontSize:40, bold:true, color:_DK_GOLD});
-      const dLabelFS = _fitSize(d.label, dW-0.2, 0.4, {max:12, min:8, lh:1.1, cw:0.62});
+      const dLabelFS = _fitSize(d.label, dW-0.2, 0.4, {max:12, min:8, lh:1.1, cw:0.68});
       slide.addText(d.label, {x, y:dY+dH+0.1, w:dW, h:0.4, align:"center", fontFace:_F_MONO,
         fontSize:dLabelFS, color:_DK_MUTED_CREAM_55, charSpacing:1});
     });
@@ -753,7 +760,7 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date, tab, secti
       const x = M + col*(colW+0.6), y = top + row*rowH;
       slide.addText(String(i+1).padStart(2,"0"), {x, y:y+0.06, w:0.5, h:0.4, fontFace:_F_MONO, fontSize:10,
         color:_DK_GOLD, valign:"top"});
-      const ptFS = _fitSize(p, colW-0.55, rowH-0.1, {max:ptMaxFS, min:8, lh:1.25, cw:0.5});
+      const ptFS = _fitSize(p, colW-0.55, rowH-0.1, {max:ptMaxFS, min:8, lh:1.25, cw:0.56});
       slide.addText(p, {x:x+0.55, y, w:colW-0.55, h:rowH-0.1, fontFace:_F_SANS, fontSize:ptFS, color:_DK_INK,
         valign:"top", fit:"shrink", lineSpacingMultiple:1.25});
       if(row < nRowsPerCol-1) slide.addShape(P.ShapeType.line, {x, y:y+rowH-0.06, w:colW, h:0, line:{color:_DK_BORDER_CREAM_12, width:0.5}});
@@ -4133,12 +4140,10 @@ const SUGG = [
 ];
 
 function pageChat(){
-  // MODE DÉMO (2026-11-25, corrigé le même jour) : pas de "Nouvelle conversation" (un seul fil,
-  // déjà préparé), pas de recherche. MAIS la saisie reste ACTIVE — la personne doit pouvoir
-  // taper et envoyer une question comme sur un compte normal ; le serveur refuse ensuite avec
-  // le message "Contactez l'administrateur…" (securite.chemin_bloque_pour_demo), exactement
-  // comme pour un clic sur "Approfondir". Une saisie désactivée d'emblée donnait l'impression
-  // d'un compte cassé plutôt que d'un compte sans autorisation.
+  // MODE DÉMO (2026-11-26, repassé en pure consultation sur demande du directeur) : pas de
+  // "Nouvelle conversation", pas de recherche, et PAS de barre de saisie — « ce n'est que le
+  // mode consultation ». Un essai précédent laissait la saisie active (taper → refus affiché
+  // comme réponse), jugé encore trop proche d'un vrai accès ; retiré entièrement.
   if(window.SB_CHAT_DEMO){
     return `
     <div class="chat">
@@ -4152,9 +4157,6 @@ function pageChat(){
       </div>
       <div class="chatmain">
         <div class="msgs" id="msgs"></div>
-        <div class="composer">
-          <div class="row"><textarea id="ci" rows="1" placeholder="Demandez-moi ce que vous voulez savoir…"></textarea><button class="send" onclick="sendChat()">➤</button></div>
-        </div>
       </div>
     </div>`;
   }
@@ -4199,13 +4201,7 @@ function afterChat(){
     CHAT = demo.msgs.slice();
     renderMsgs();
     _renderConvList("");
-    const ciDemo = document.getElementById("ci");
-    if(ciDemo){
-      ciDemo.addEventListener("keydown", e=>{
-        if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendChat(); }
-      });
-    }
-    return;
+    return;   // pas de barre de saisie en mode démo : rien à écouter
   }
   _convLoad();
   renderMsgs();

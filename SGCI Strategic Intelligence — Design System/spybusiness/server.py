@@ -4215,11 +4215,21 @@ def _stratop_section_data(section, segment):
 def api_deck_section_data():
     """Une SECTION précise d'un onglet (pas tout l'onglet résumé) — table/chart/liste
     déterministes, mêmes fonctions agent que le dashboard. Alimente le diaporama PPTX complet
-    (demande du directeur : chaque section doit ressortir, pas juste un résumé condensé)."""
+    (demande du directeur : chaque section doit ressortir, pas juste un résumé condensé).
+
+    MIS EN CACHE EN BASE (2026-11-26) : CB « manques » (~85 s) et StratOp (jusqu'à 495 s pour les
+    vingt directives, mesuré — cf. cache des directives plus haut) recalculaient tout À CHAQUE
+    téléchargement de PPTX, parce que le @lru_cache qui protège cb_analyse_q5/_directives_en_cache
+    vit dans le processus et l'hébergeur endort le service après 15 min : retour du directeur,
+    « la génération dure à chaque fois ». servir_avec_cache sert depuis cache_app (la base, qui
+    survit aux réveils) dès le 2ᵉ appel — mêmes clés que la table/année/semestre en cours."""
     tab = (request.args.get("tab") or "ef").lower()
     section = (request.args.get("section") or "").lower()
     segment = request.args.get("segment", "Particuliers")
-    try:
+    period = f"{strategie.CB_SEM} {strategie.CB_ANNEE}"
+    cle = f"deck_section:{tab}:{section}:{segment}:{strategie.CB_ANNEE}:{strategie.CB_SEM}"
+
+    def _calculer():
         chart = table = items = None
         if tab == "ef":
             chart, items = _ef_section_data(section, segment)
@@ -4229,10 +4239,13 @@ def api_deck_section_data():
             chart, table, items = _cb_section_data(section, segment)
         elif tab == "stratop":
             items = _stratop_section_data(section, segment)
+        return {"chart": chart, "table": table, "items": items, "period": period}
+
+    try:
+        resultat = servir_avec_cache(cle, _calculer)
     except Exception as e:
         return jsonify({"chart": None, "table": None, "items": None, "error": str(e)[:200]}), 200
-    return jsonify({"chart": chart, "table": table, "items": items,
-                     "period": f"{strategie.CB_SEM} {strategie.CB_ANNEE}"})
+    return jsonify(resultat)
 
 
 def _pdf_plaintext(s):
