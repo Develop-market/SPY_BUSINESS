@@ -4162,23 +4162,28 @@ const SUGG = [
 ];
 
 function pageChat(){
-  // MODE DÉMO (2026-11-26, repassé en pure consultation sur demande du directeur) : pas de
-  // "Nouvelle conversation", pas de recherche, et PAS de barre de saisie — « ce n'est que le
-  // mode consultation ». Un essai précédent laissait la saisie active (taper → refus affiché
-  // comme réponse), jugé encore trop proche d'un vrai accès ; retiré entièrement.
+  // MODE DÉMO (2026-11-25) : "chat_demo" sans "chat" — pas de bouton "Nouvelle conversation",
+  // historique riche de conversations et questions/réponses types réelles, saisie désactivée.
   if(window.SB_CHAT_DEMO){
     return `
     <div class="chat">
       <div class="convs">
         <div class="top">
-          <div style="font:600 11.5px var(--sans);color:var(--muted);padding:10px 4px;line-height:1.5">
-            Compte de démonstration — historique en lecture seule.
+          <div style="font:700 12px var(--sans);color:var(--accent-2);padding:6px 4px 2px;text-transform:uppercase;letter-spacing:.08em">
+            Historique de démonstration
           </div>
+          <div style="font:500 11px var(--sans);color:var(--muted);padding:0 4px 8px;line-height:1.4">
+            Consultation des analyses et réponses types.
+          </div>
+          <div class="search" style="width:auto;margin-top:4px"><span>⌕</span><input id="conv-search" placeholder="Filtrer les questions…" oninput="_renderConvList(this.value)"></div>
         </div>
         <div id="conv-list" style="flex:1;overflow-y:auto;padding-bottom:10px"></div>
       </div>
       <div class="chatmain">
         <div class="msgs" id="msgs"></div>
+        <div class="composer">
+          <div class="row"><textarea id="ci" rows="1" disabled placeholder="Saisie désactivée — contactez l'administrateur pour poser des questions"></textarea><button class="send" onclick="sendChat()" style="opacity:.6;cursor:not-allowed">➤</button></div>
+        </div>
       </div>
     </div>`;
   }
@@ -4215,15 +4220,13 @@ window.addEventListener("resize", _mesurerChrome);
 function afterChat(){
   _mesurerChrome();
   if(window.SB_CHAT_DEMO){
-    // Compte démo : UN SEUL fil, déjà rempli, jamais celui du localStorage/serveur de ce
-    // navigateur (qui pourrait être vide ou appartenir à un autre usage du même poste).
-    const demo = _demoConversation();
-    CONVOS = [demo];
-    CUR_CONV = demo.id;
-    CHAT = demo.msgs.slice();
+    // Compte démo : liste thématique complète des questions/réponses types
+    CONVOS = _demoConvosList();
+    CUR_CONV = CONVOS[0].id;
+    CHAT = CONVOS[0].msgs.slice();
     renderMsgs();
     _renderConvList("");
-    return;   // pas de barre de saisie en mode démo : rien à écouter
+    return;
   }
   _convLoad();
   renderMsgs();
@@ -4409,6 +4412,61 @@ function _demoConversation(){
   return JSON.parse(JSON.stringify(_DEMO_CONV));
 }
 
+function _demoConvosList(){
+  const m = _DEMO_CONV.msgs;
+  const now = Date.now();
+  return [
+    {
+      id: "demo-tous",
+      title: "📊 Synthèse générale — 10 analyses clés",
+      ts: now - 3600000,
+      msgs: m.slice()
+    },
+    {
+      id: "demo-pnb",
+      title: "📈 Évolution du PNB SGCI (2023-2025)",
+      ts: now - 3200000,
+      msgs: [m[0], m[1], m[2], m[3]]
+    },
+    {
+      id: "demo-perf",
+      title: "💰 Résultat net, ROE et Efficience",
+      ts: now - 2800000,
+      msgs: [m[4], m[5], m[6], m[7], m[8], m[9]]
+    },
+    {
+      id: "demo-tenue",
+      title: "🏦 Frais de tenue : SGCI vs BICICI vs NSIA",
+      ts: now - 2400000,
+      msgs: [m[10], m[11]]
+    },
+    {
+      id: "demo-retrait",
+      title: "💳 Conditions de retrait au guichet SGCI",
+      ts: now - 2000000,
+      msgs: [m[12], m[13]]
+    },
+    {
+      id: "demo-usure",
+      title: "⚖️ Réglementation taux d'usure en Côte d'Ivoire (14%)",
+      ts: now - 1600000,
+      msgs: [m[14], m[15]]
+    },
+    {
+      id: "demo-gratuite",
+      title: "🎁 Opérations bancaires gratuites (Instruction BCEAO)",
+      ts: now - 1200000,
+      msgs: [m[16], m[17]]
+    },
+    {
+      id: "demo-bicici",
+      title: "🏆 Résultat net et position de BICICI (2025)",
+      ts: now - 800000,
+      msgs: [m[18], m[19]]
+    }
+  ];
+}
+
 const MSG_REFUS_CHAT = "**Vous n'êtes pas autorisé à poser des questions.**\n\nContactez l'administrateur pour qu'il puisse vous accorder cette fonctionnalité.";
 
 function _utilisateurAutoriseChat(){
@@ -4521,16 +4579,16 @@ function _demoRefusBanniere(){
   if(!ov){
     ov = document.createElement("div");
     ov.id = "demo-refus-overlay";
-    ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);"
+    ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);"
       + "display:flex;align-items:center;justify-content:center;padding:20px";
-    ov.innerHTML = `<div style="background:#fff;border-radius:14px;max-width:380px;width:100%;
+    ov.innerHTML = `<div style="background:var(--bg-tile,#fff);border:1px solid var(--line);border-radius:14px;max-width:400px;width:100%;
         padding:26px 22px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative">
       <button id="demo-refus-close" style="position:absolute;top:10px;right:10px;width:30px;
-          height:30px;border-radius:8px;border:none;background:#F3F4F6;color:#6B7280;
+          height:30px;border-radius:8px;border:none;background:var(--bg-raise,#F3F4F6);color:var(--muted,#6B7280);
           font:700 15px var(--sans);cursor:pointer">✕</button>
       <div style="font-size:32px;margin-bottom:10px">🔒</div>
-      <div style="font:700 15px/1.5 var(--sans);color:#7F1D1D;margin-bottom:6px">Mode consultation</div>
-      <div style="font:500 13px/1.6 var(--sans);color:#4B5563">Vous êtes en mode consultation. Contactez l'administrateur pour accéder à l'assistant IA.</div>
+      <div style="font:700 15px/1.5 var(--sans);color:#B91C1C;margin-bottom:8px">Accès non autorisé</div>
+      <div style="font:500 13px/1.6 var(--sans);color:var(--ink,#374151)">Vous n'êtes pas autorisé à poser des questions. Contactez l'administrateur pour qu'il puisse vous accorder cette fonctionnalité.</div>
     </div>`;
     document.body.appendChild(ov);
     ov.addEventListener("click", e => { if(e.target === ov) ov.style.display = "none"; });
@@ -4712,7 +4770,7 @@ function _renderConvList(filter){
       const nmsg = (c.msgs||[]).filter(m=>m.role==="u").length;
       html += `<div class="conv ${c.id===CUR_CONV?'active':''}" onclick="loadConv('${c.id}')">
         <div class="ct"><span>${_convIcon(c.msgs)}</span><span class="conv-t">${_convEsc(c.title)}</span>
-          <button class="conv-del" title="Supprimer cette conversation" onclick="deleteConv('${c.id}',event)">✕</button></div>
+          ${window.SB_CHAT_DEMO ? '' : `<button class="conv-del" title="Supprimer cette conversation" onclick="deleteConv('${c.id}',event)">✕</button>`}</div>
         <div class="cm">${_relTime(c.ts)} · ${nmsg} question${nmsg>1?'s':''}</div>
       </div>`;
     });
@@ -4724,14 +4782,17 @@ function loadConv(id){
   const c = CONVOS.find(x=>x.id===id);
   if(!c) return;
   CUR_CONV = id;
-  CHAT = (c.msgs||[]).map(m=>({role:m.role, content:m.content}));
+  CHAT = (c.msgs||[]).map(m=>({role:m.role, content:m.content, ts:m.ts, chart:m.chart}));
   renderMsgs();
   _renderConvList((document.getElementById("conv-search")||{}).value || "");
-  const ci = document.getElementById("ci"); if(ci) ci.focus();
+  if(!window.SB_CHAT_DEMO){
+    const ci = document.getElementById("ci"); if(ci) ci.focus();
+  }
 }
 
 function deleteConv(id, ev){
   if(ev) ev.stopPropagation();
+  if(window.SB_CHAT_DEMO) return;
   CONVOS = CONVOS.filter(c=>c.id!==id);
   _convStore();
   if(CUR_CONV===id){ CUR_CONV=null; CHAT=[]; renderMsgs(); }
@@ -4739,6 +4800,7 @@ function deleteConv(id, ev){
 }
 
 function newChat(){
+  if(window.SB_CHAT_DEMO) return;
   CUR_CONV = null; CHAT = []; renderMsgs();
   _renderConvList((document.getElementById("conv-search")||{}).value || "");
   const ci = document.getElementById("ci"); if(ci) ci.focus();
@@ -7915,6 +7977,10 @@ async function _fireQ6SubSectionComparison(){
 
 // ── Bouton "Approfondir IA" (LLM optionnel, zéro token si non cliqué) ───────
 async function _cbApprofondirIA(qId){
+  if(window.SB_CHAT_DEMO || !_utilisateurAutoriseChat()){
+    _demoRefusBanniere();
+    return;
+  }
   const col=_AX_COLS[qId-1];
   const k=`${qId}_${CB_YEAR}_${CB_SEM}_${CB_SEG}`;
   const btn=document.getElementById(`cb-ia-btn-${qId}`);
@@ -9139,6 +9205,10 @@ function _soChatBtn(x){
 }
 
 function _soDemanderChat(question){
+  if(window.SB_CHAT_DEMO || !_utilisateurAutoriseChat()){
+    _demoRefusBanniere();
+    return;
+  }
   go("chat");
   // Le rendu de la page chat est synchrone, mais le champ n'existe qu'après : on laisse un
   // tour de boucle avant de le remplir, sinon getElementById renvoie null.
@@ -9169,7 +9239,9 @@ function go(key){
   const p = PAGES[key]; if(!p) return;
   const u = SB_UTILISATEUR;
   const section = SECTION_DE_PAGE[key];
-  if(u && u.role !== "admin" && section && !(u.droits || []).includes(section)){
+  const droits = (u && u.droits) || [];
+  const autorise = !u || u.role === "admin" || !section || droits.includes(section) || (section === "chat" && droits.includes("chat_demo"));
+  if(!autorise){
     console.warn("Accès refusé pour la section :", key);
     return;
   }
@@ -9191,7 +9263,7 @@ function go(key){
   // On le masque si on est déjà sur le chat, OU si le compte n'a pas le droit chat.
   const fab = document.querySelector(".fab");
   if(fab){
-    const chatAutorise = !u || u.role === "admin" || (u.droits || []).includes("chat");
+    const chatAutorise = !u || u.role === "admin" || droits.includes("chat") || droits.includes("chat_demo");
     fab.style.display = (chatAutorise && key !== "chat") ? "" : "none";
   }
 }
@@ -9424,6 +9496,7 @@ function _pageDArrivee(){
     if(!PAGES[p]) return false;
     if(!u || u.role === "admin") return true;
     const section = SECTION_DE_PAGE[p];
+    if(p === "chat" && (u.droits || []).includes("chat_demo")) return true;
     return !section || (u.droits || []).includes(section);
   };
   if(memorisee && permise(memorisee)) return memorisee;
@@ -9866,6 +9939,10 @@ function _appliquerDroits(){
   const droits = u.droits || [];
   document.querySelectorAll(".nav-item[data-go]").forEach(a=>{
     const section = SECTION_DE_PAGE[a.dataset.go];
+    if(section === "chat" && (droits.includes("chat") || droits.includes("chat_demo"))){
+      a.style.display = "";
+      return;
+    }
     if(section && !droits.includes(section)) a.style.display = "none";
   });
   ["nav-ajout","nav-refresh"].forEach(id=>{
