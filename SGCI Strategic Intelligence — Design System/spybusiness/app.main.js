@@ -4493,24 +4493,32 @@ async function askApprofondir(q, sectionFacts, scope){
   }
 }
 
-// Bandeau "démo" (2026-11-26) : un clic sur "Approfondir" en dehors du chat (EF, Stratégie…)
-// ne doit JAMAIS ouvrir l'assistant pour un compte chat_demo — constat du directeur : ça le
-// redirigeait vers la conversation figée, comme s'il avait vraiment accès. Le message reste sur
-// l'écran où la personne se trouve déjà, en bandeau fixe en haut, puis disparaît seul.
+// Popup "démo" (2026-11-26, revu en popup fermable le même jour) : un clic sur "Approfondir"
+// en dehors du chat (EF, Stratégie…) ne doit JAMAIS ouvrir l'assistant pour un compte
+// chat_demo — constat du directeur : ça le redirigeait vers la conversation figée, comme s'il
+// avait vraiment accès. D'abord fait en bandeau auto-disparaissant ; le directeur a préféré
+// une vraie popup que la personne ferme elle-même (bouton ✕ ou clic hors de la carte).
 function _demoRefusBanniere(){
-  let b = document.getElementById("demo-refus-banniere");
-  if(!b){
-    b = document.createElement("div");
-    b.id = "demo-refus-banniere";
-    b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;"
-      + "border-bottom:2px solid #E5142B;color:#7F1D1D;font:600 12.5px var(--sans);"
-      + "padding:12px 18px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.2)";
-    document.body.appendChild(b);
+  let ov = document.getElementById("demo-refus-overlay");
+  if(!ov){
+    ov = document.createElement("div");
+    ov.id = "demo-refus-overlay";
+    ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);"
+      + "display:flex;align-items:center;justify-content:center;padding:20px";
+    ov.innerHTML = `<div style="background:#fff;border-radius:14px;max-width:380px;width:100%;
+        padding:26px 22px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative">
+      <button id="demo-refus-close" style="position:absolute;top:10px;right:10px;width:30px;
+          height:30px;border-radius:8px;border:none;background:#F3F4F6;color:#6B7280;
+          font:700 15px var(--sans);cursor:pointer">✕</button>
+      <div style="font-size:32px;margin-bottom:10px">🔒</div>
+      <div style="font:700 15px/1.5 var(--sans);color:#7F1D1D;margin-bottom:6px">Mode consultation</div>
+      <div style="font:500 13px/1.6 var(--sans);color:#4B5563">Vous êtes en mode consultation. Contactez l'administrateur pour accéder à l'assistant IA.</div>
+    </div>`;
+    document.body.appendChild(ov);
+    ov.addEventListener("click", e => { if(e.target === ov) ov.style.display = "none"; });
+    document.getElementById("demo-refus-close").addEventListener("click", () => { ov.style.display = "none"; });
   }
-  b.textContent = "Vous êtes en mode consultation. Contactez l'administrateur pour accéder à l'assistant IA.";
-  b.style.display = "block";
-  clearTimeout(window._demoRefusTimer);
-  window._demoRefusTimer = setTimeout(()=>{ b.style.display = "none"; }, 6000);
+  ov.style.display = "flex";
 }
 
 async function askIA(q, sectionId, scope){
