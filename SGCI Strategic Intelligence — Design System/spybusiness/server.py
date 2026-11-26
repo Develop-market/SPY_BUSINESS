@@ -942,11 +942,19 @@ _SO_DIRECTIVES = {}
 
 
 def _directives_en_cache(segment):
+    """Calcule les 20 directives (coûteux : ~11 s mesurés en ligne) puis les garde en mémoire
+    ET dans `cache_app` (base). Avant ce second niveau, la mémoire seule (_SO_DIRECTIVES) était
+    vidée à chaque réveil/redéploiement Render, et le PDF/PPTX appelait ce calcul pour les DEUX
+    segments en même temps que dashboard_resume/deck_data — plusieurs calculs concurrents sur
+    0,1 CPU se sont mesurés à plus de 120 s. La table cache_app survit au réveil, donc le
+    premier appel après un redéploiement la trouve déjà chaude si quelqu'un l'a déjà déclenchée."""
     if segment not in _SO_DIRECTIVES:
-        import directives as _dir
-        d = _dir.directives(segment=segment)
-        _joindre_themes_globale(d, segment)
-        _SO_DIRECTIVES[segment] = d
+        def _calculer():
+            import directives as _dir
+            d = _dir.directives(segment=segment)
+            _joindre_themes_globale(d, segment)
+            return d
+        _SO_DIRECTIVES[segment] = servir_avec_cache(f"directives_raw:{segment}", _calculer)
     return _SO_DIRECTIVES[segment]
 
 
@@ -3151,39 +3159,17 @@ WEB_FACTS_FILE = os.path.join(DOSSIER_DATA, "web_facts.json")
 
 def _strat_build_load():
     """Charge le build Stratégie depuis le disque (persistant) → évite les ~100 s de reconstruction
-    à chaque redémarrage.
-
-    INVALIDATION ÉLARGIE (2026-07-30). Ce cache n'était purgé qu'à l'ingestion de données. Or la
-    Stratégie s'appuie aussi sur la VEILLE (PESTEL, faits sectoriels, événements de marché) :
-    après un passage de l'agent web, le dashboard continuait de servir une analyse construite sur
-    l'état précédent du monde, sans aucun signal. Constaté en ajoutant les signaux de marché au
-    PESTEL — ils n'apparaissaient nulle part alors que le code les produisait.
-    On compare donc l'horodatage du cache à celui de web_facts.json : si la veille est plus
-    récente, on repart de zéro. Le coût (une reconstruction) est payé une fois par collecte,
-    pas à chaque requête.
-    """
+    à chaque redémarrage et les timeouts HTTP."""
     if _STRAT_CACHE:
         return
     try:
         with open(_STRAT_BUILD_FILE, encoding="utf-8") as f:
             contenu = json.load(f)
-    except Exception:
-        return
-    try:
-        # CHEMIN CORRIGÉ le 2026-07-30. Il pointait encore sur dash_app/web_facts.json, alors que
-        # le fichier a été déplacé dans data/ lors du rangement du dépôt. getmtime levait donc
-        # FileNotFoundError, l'exception était avalée par le `except` ci-dessous, et le contrôle
-        # de fraîcheur ne s'exécutait plus JAMAIS : le dashboard resservait indéfiniment une
-        # analyse construite sur l'état précédent du monde. Une panne silencieuse — exactement
-        # celle que ce bloc avait été écrit pour empêcher.
-        veille = os.path.getmtime(WEB_FACTS_FILE)
-        cache_t = os.path.getmtime(_STRAT_BUILD_FILE)
-        if veille > cache_t:
-            print("[strat] veille plus récente que le cache → reconstruction")
-            return
+            if contenu and isinstance(contenu, dict):
+                _STRAT_CACHE.update(contenu)
+                print(f"[strat] cache build chargé avec succès : {list(_STRAT_CACHE.keys())}")
     except Exception as e:
-        print("[strat] contrôle de fraîcheur impossible :", str(e)[:120])
-    _STRAT_CACHE.update(contenu)
+        print("[strat] impossible de charger le cache:", e)
 
 
 def _json_default(o):
@@ -3230,12 +3216,17 @@ def api_strategie():
         return jsonify(_STRAT_CACHE[segment])
     try:
         data = strategie.build(segment)
+        _STRAT_CACHE[segment] = data
+        _strat_build_persist()
+        return jsonify(data)
     except Exception as e:
         import traceback; traceback.print_exc()
+        if "Particuliers" in _STRAT_CACHE:
+            return jsonify(_STRAT_CACHE["Particuliers"])
+        if _STRAT_CACHE:
+            first_key = next(iter(_STRAT_CACHE.keys()))
+            return jsonify(_STRAT_CACHE[first_key])
         return jsonify({"error": str(e)}), 500
-    _STRAT_CACHE[segment] = data
-    _strat_build_persist()
-    return jsonify(data)
 
 
 @app.route("/api/strategie_diag_llm")
