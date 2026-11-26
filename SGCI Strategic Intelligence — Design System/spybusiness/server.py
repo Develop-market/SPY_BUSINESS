@@ -2374,7 +2374,13 @@ def _rp_llm_json(prompt, max_tokens=1500, temperature=0.4, prefer_claude=False):
         last_err = None
         for key in keys:
             try:
-                c = _Groq(api_key=key, timeout=60.0, max_retries=0)
+                # 20s (pas 60s) : mesuré en ligne, une clé Groq épuisée/lente peut faire
+                # attendre jusqu'à ce délai avant de passer à la suivante — avec 11 clés en
+                # rotation, 60s chacune a fait grimper un telechargement PPTX a plus de 120s
+                # (dashboard_resume coince sur un vrai cache-miss juste apres un redeploiement).
+                # Une generation reussie (2600 tokens, low effort) prend normalement quelques
+                # secondes ; 20s laisse large marge sans bloquer sur une cle en panne.
+                c = _Groq(api_key=key, timeout=20.0, max_retries=0)
                 resp = c.chat.completions.create(
                     model="openai/gpt-oss-120b",
                     messages=[{"role": "user", "content": prompt}],
