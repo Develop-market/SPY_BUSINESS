@@ -307,6 +307,22 @@ function _deckCleanResume(r){
   return c;
 }
 
+// Exécute des fetch GET avec au plus `limite` requêtes en vol à la fois, résultats dans
+// l'ordre d'origine. Voir le commentaire dans exportDeck() pour le pourquoi.
+async function _fetchFileLimitee(urls, limite){
+  limite = limite || 3;
+  const resultats = new Array(urls.length);
+  let suivant = 0;
+  async function travailleur(){
+    while(suivant < urls.length){
+      const idx = suivant++;
+      resultats[idx] = await fetch(urls[idx], {cache:"no-store"});
+    }
+  }
+  await Promise.all(Array.from({length: Math.min(limite, urls.length)}, travailleur));
+  return resultats;
+}
+
 async function _pptxLoadLib(){
   if(window.PptxGenJS) return true;
   return new Promise(res=>{
@@ -341,11 +357,17 @@ async function exportDeck(title){
 
   let resume = null, deckData = null, sectionData = {};
   try{
-    const [r1, r2, ...rSubs] = await Promise.all([
-      fetch(`/api/dashboard_resume?section=${section}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`, {cache:"no-store"}),
-      fetch(`/api/deck_data?section=${section}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`, {cache:"no-store"}),
-      ...subSections.map(s => fetch(`/api/deck_section_data?tab=${section}&section=${s}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`, {cache:"no-store"})),
-    ]);
+    // Au-delà de 2-3 requêtes à la fois, l'instance (0,1 CPU) les étrangle toutes plutôt que de
+    // les traiter l'une après l'autre (constat déjà mesuré ailleurs dans ce projet : 13 requêtes
+    // simultanées n'étaient pas revenues au bout de 20s, prises une par une elles répondaient en
+    // moins d'une seconde). CB (6 appels) et StratOp (7 appels) partaient tous en même temps —
+    // retour du directeur : « la génération dure à chaque fois ». Fichier d'attente à 3 max.
+    const urls = [
+      `/api/dashboard_resume?section=${section}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`,
+      `/api/deck_data?section=${section}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`,
+      ...subSections.map(s => `/api/deck_section_data?tab=${section}&section=${s}&segment=${encodeURIComponent(segment)}&_t=${Date.now()}`),
+    ];
+    const [r1, r2, ...rSubs] = await _fetchFileLimitee(urls, 3);
     const j1 = await r1.json();
     resume = j1 && j1.resume;
     if(resume) resume._stale = j1.stale, resume._generatedAt = j1.generated_at;
