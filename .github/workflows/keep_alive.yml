@@ -1,0 +1,25 @@
+name: Keep Render awake
+
+# Pourquoi (2026-11-25) : le plan gratuit Render endort le service apres 15 minutes
+# d'inactivite ; le premier acces suivant met alors ~1 minute. Un ping regulier depuis
+# GitHub Actions evite ce reveil lent sans dependre d'un PC allume (keep_alive.py local
+# fait la meme chose mais s'arrete des que le poste s'eteint).
+on:
+  schedule:
+    # Toutes les 10 minutes, en continu. Le planificateur GitHub n'est pas garanti a la
+    # minute pres (delai possible en cas de charge), mais reste largement sous les 15
+    # minutes qui declenchent la mise en veille.
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /sante
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 https://spybusiness.onrender.com/sante)
+          echo "Reponse HTTP : $code"
+          if [ "$code" != "200" ]; then
+            echo "::warning::Le service n'a pas repondu 200 (code $code) — peut-etre en cours de reveil ou en panne."
+          fi
