@@ -328,11 +328,14 @@ async function exportDeck(title){
   ov.innerHTML = '<div style="text-align:center;color:#fff"><div style="font-size:40px">⏳</div><div style="font:700 17px/1.4 system-ui;margin-top:14px">Génération du diaporama…</div><div style="font:400 11px system-ui;color:rgba(255,255,255,.45);margin-top:6px">Rédaction par l\'IA — peut prendre jusqu\'à 20 s la 1ʳᵉ fois</div></div>';
   document.body.appendChild(ov);
 
-  // Sous-sections réelles du dashboard à retracer (demande du directeur : rien sauter) — vide
-  // pour cb/stratop tant que leurs endpoints section par section ne sont pas encore branchés.
+  // Sous-sections réelles du dashboard à retracer (demande du directeur : rien sauter). CB et
+  // StratOp branchés le 2026-11-26 (retour : « le PPTX CB n'apporte aucun élément pertinent »,
+  // « StratOp très mauvais » — ils ne recevaient avant que le résumé générique, jamais le détail).
   const _SECTION_LISTS = {
     ef: ["position", "revenus", "efficience", "risque"],
     strategie: ["essentiel", "revelations", "porter", "vrist", "swot", "pestel"],
+    cb: ["catalogue", "prix", "exclusivites", "manques"],
+    stratop: ["financiere", "commerciale", "marketing", "innovation", "risques"],
   };
   const subSections = _SECTION_LISTS[section] || [];
 
@@ -603,9 +606,9 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date, tab, secti
   }
 
   // ── Diapositives par section réelle du dashboard (①②③④ pour Santé financière ; L'essentiel/
-  // Révélations/Porter/VRIST/SWOT/PESTEL pour Stratégie) — chacune sa propre diapositive, dans
-  // l'ordre où l'utilisateur les voit à l'écran. Rien n'est encore branché pour CB/StratOp
-  // (backend pas encore construit pour ces deux onglets).
+  // Révélations/Porter/VRIST/SWOT/PESTEL pour Stratégie ; Catalogue/Prix/Exclusivités/Manques
+  // pour CB ; une diapositive par direction pour StratOp) — chacune sa propre diapositive, dans
+  // l'ordre où l'utilisateur les voit à l'écran.
   if(tab === "ef"){
     const titles = {position:"① Position", revenus:"② Revenus", efficience:"③ Efficience", risque:"④ Risque"};
     for(const key of ["position", "revenus", "efficience", "risque"]){
@@ -616,9 +619,21 @@ async function _pptxRender(resumeRaw, deckData, title, segment, date, tab, secti
     const dEss = sectionData.essentiel; if(dEss) _sectionListSlide("L'essentiel", dEss.items);
     const dRev = sectionData.revelations; if(dRev) _sectionListSlide("Révélations", dRev.items);
     const dPor = sectionData.porter; if(dPor && dPor.chart) _sectionBarSlide("Porter — 5 forces", dPor.chart, dPor.items);
-    const dVr = sectionData.vrist; if(dVr && dVr.chart) _sectionBarSlide("Profil VRIST de SGCI", dVr.chart, null);
+    const dVr = sectionData.vrist; if(dVr && dVr.chart) _sectionBarSlide("Profil VRIST de SGCI", dVr.chart, dVr.items);
     const dSw = sectionData.swot; if(dSw && dSw.table) _sectionSwotSlide(dSw.table);
     const dPe = sectionData.pestel; if(dPe) _sectionListSlide("PESTEL", dPe.items);
+  } else if(tab === "cb"){
+    const dCat = sectionData.catalogue; if(dCat && dCat.chart) _sectionBarSlide("Catalogue — largeur de l'offre", dCat.chart, dCat.items);
+    const dPrix = sectionData.prix; if(dPrix && dPrix.chart) _sectionBarSlide("Compétitivité prix", dPrix.chart, dPrix.items);
+    const dExcl = sectionData.exclusivites; if(dExcl) _sectionListSlide("Exclusivités SGCI", dExcl.items);
+    const dManq = sectionData.manques; if(dManq) _sectionListSlide("Manques face à la concurrence", dManq.items);
+  } else if(tab === "stratop"){
+    const titresDir = {financiere:"Direction Financière", commerciale:"Direction Commerciale",
+                        marketing:"Direction Marketing", innovation:"Direction Innovation", risques:"Direction des Risques"};
+    for(const key of ["financiere", "commerciale", "marketing", "innovation", "risques"]){
+      const d = sectionData[key];
+      if(d) _sectionListSlide(titresDir[key], d.items);
+    }
   }
 
   /* ── 3 · Graphique — barres dessinées (même esprit que la maquette) ou donut NATIF quand la
@@ -4478,7 +4493,31 @@ async function askApprofondir(q, sectionFacts, scope){
   }
 }
 
+// Bandeau "démo" (2026-11-26) : un clic sur "Approfondir" en dehors du chat (EF, Stratégie…)
+// ne doit JAMAIS ouvrir l'assistant pour un compte chat_demo — constat du directeur : ça le
+// redirigeait vers la conversation figée, comme s'il avait vraiment accès. Le message reste sur
+// l'écran où la personne se trouve déjà, en bandeau fixe en haut, puis disparaît seul.
+function _demoRefusBanniere(){
+  let b = document.getElementById("demo-refus-banniere");
+  if(!b){
+    b = document.createElement("div");
+    b.id = "demo-refus-banniere";
+    b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:#FEE2E2;"
+      + "border-bottom:2px solid #E5142B;color:#7F1D1D;font:600 12.5px var(--sans);"
+      + "padding:12px 18px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.2)";
+    document.body.appendChild(b);
+  }
+  b.textContent = "Vous êtes en mode consultation. Contactez l'administrateur pour accéder à l'assistant IA.";
+  b.style.display = "block";
+  clearTimeout(window._demoRefusTimer);
+  window._demoRefusTimer = setTimeout(()=>{ b.style.display = "none"; }, 6000);
+}
+
 async function askIA(q, sectionId, scope){
+  if(window.SB_CHAT_DEMO){
+    _demoRefusBanniere();
+    return;
+  }
   if(!_utilisateurAutoriseChat()){
     if(typeof go === "function") go("chat");
     setTimeout(()=>{

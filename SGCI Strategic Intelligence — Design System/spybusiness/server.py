@@ -4092,6 +4092,11 @@ def _strat_section_data(section, segment):
         dims = vr.get("dimensions") or []
         chart = {"title": "Profil VRIST de SGCI", "unit": "/10",
                  "labels": [x.get("nom") or x.get("cle") for x in dims], "values": [x.get("score") or 0 for x in dims]}
+        # Le graphe seul ne dit pas POURQUOI SGCI a ce score (retour du directeur : « aucun texte
+        # explicatif ») — chaque dimension a déjà sa justification (question + facteurs chiffrés
+        # sourcés EF/CB/REGL/WEB dans build_vrist) : on cite le premier facteur, pas une glose.
+        items = [f"{x.get('nom')} ({x.get('score')}/10) : {(x.get('drivers') or [{}])[0].get('txt') or x.get('question') or ''}"
+                 for x in dims]
     elif section == "swot":
         sw = d.get("swot") or {}
         # Un quadrant SWOT est une petite boîte (4 par diapositive) — les items du dashboard sont
@@ -4125,6 +4130,87 @@ def _strat_section_data(section, segment):
     return chart, table, [i for i in (items or []) if i]
 
 
+def _cb_section_data(section, segment):
+    """Une section du dashboard Conditions bancaires (Catalogue/Prix/Exclusivités/Manques) —
+    MÊMES fonctions agent que le dashboard (CB.cb_analyse_q6/q3/q5, cb_prix_competitivite),
+    jamais recalculées ni reformulées ici. Corrige le diaporama PPTX « qui n'apportait aucun
+    élément pertinent » (retour du directeur, 2026-11-26) : il ne montrait que le résumé LLM
+    générique, aucune des sections réelles de l'onglet — contrairement à Santé financière et
+    Stratégie, qui les ont déjà toutes."""
+    CB = AGENTS["CB"].structured
+    chart = table = items = None
+    if section == "prix":
+        cmp = CB.cb_prix_competitivite(strategie.CB_ANNEE, strategie.CB_SEM, segment) or {}
+        classes = cmp.get("classement") or []
+        chart = {"title": "Compétitivité prix — win-rate", "unit": "%",
+                 "labels": [c.get("banque") for c in classes], "values": [c.get("winrate") or 0 for c in classes]}
+        sgci = cmp.get("sgci") or {}
+        items = [f"SGCI : #{cmp.get('rang_sgci')}/{len(classes)} en win-rate prix "
+                 f"({sgci.get('winrate')}% sur {sgci.get('n')} services comparables)."] if cmp.get("rang_sgci") else []
+    elif section == "exclusivites":
+        try:
+            excl = CB.cb_analyse_q3(strategie.CB_ANNEE, strategie.CB_SEM, segment) or []
+        except Exception:
+            excl = []
+        def _fmt_excl(r):
+            if r.get("est_gratuit"):
+                val = "Gratuit"
+            elif r.get("montant"):
+                val = f"{_deck_fmt_m(r.get('montant'))} FCFA"
+            else:
+                val = r.get("valeur_propre") or "—"
+            return f"{r.get('libelle')} — {val}"
+        items = [_fmt_excl(r) for r in excl[:10]]
+    elif section == "manques":
+        try:
+            gaps = CB.cb_analyse_q5(strategie.CB_ANNEE, strategie.CB_SEM, segment) or []
+        except Exception:
+            gaps = []
+        gaps_reels = [g for g in gaps if (g.get("nb_banques") or 0) >= 3]
+        items = [f"{g.get('libelle')} — présent chez {g.get('nb_banques')} concurrents "
+                 f"({g.get('banques_concurrentes')})" for g in gaps_reels[:10]]
+    else:  # catalogue
+        q6 = CB.cb_analyse_q6(strategie.CB_ANNEE, strategie.CB_SEM, segment) or []
+        bycat = sorted([r for r in q6 if (r.get("n_services") or 0) > 0], key=lambda r: -(r.get("n_services") or 0))
+        chart = {"title": "Largeur du catalogue (nombre de services)", "unit": "services",
+                 "labels": [r.get("banque") for r in bycat], "values": [r.get("n_services") or 0 for r in bycat]}
+        rang = next((i + 1 for i, r in enumerate(bycat) if r["banque"] == "SGCI"), None)
+        sgci = next((r for r in q6 if r["banque"] == "SGCI"), {})
+        items = ([f"SGCI : #{rang}/{len(bycat)} en largeur de catalogue ({sgci.get('n_services')} services, "
+                  f"{sgci.get('pct_gratuit')}% gratuits)."] if rang else [])
+    return chart, table, [i for i in (items or []) if i]
+
+
+_DIRECTIONS_STRATOP = {
+    "financiere": "Direction Financière", "commerciale": "Direction Commerciale",
+    "marketing": "Direction Marketing", "innovation": "Direction Innovation",
+    "risques": "Direction des Risques",
+}
+
+
+def _stratop_section_data(section, segment):
+    """Une direction de la Stratégie opérationnelle — les directives DÉJÀ composées par
+    dash_app/directives.py (constat + apport chiffré), jamais recalculées ici ; les DEUX
+    segments comme pour le résumé LLM (_resume_facts_stratop), même logique de « top 2 par
+    segment » pour tenir sur une diapositive. Corrige le diaporama « très mauvais » (retour du
+    directeur, 2026-11-26) : il ne montrait aucune des 20 directives, seulement un résumé générique."""
+    nom_direction = _DIRECTIONS_STRATOP.get(section)
+    items = []
+    for seg in ("Particuliers", "Entreprises"):
+        try:
+            d_all = _directives_en_cache(seg)
+            d = d_all.get("directives") or []
+        except Exception:
+            d = []
+        lot = [x for x in d if x.get("direction") == nom_direction]
+        top2 = sorted(lot, key=lambda x: x.get("rang") or 99)[:2]
+        for x in top2:
+            constat = (x.get("constat") or "").strip()
+            apport = x.get("contribution") or "non chiffré"
+            items.append(f"[{seg}] {x.get('titre')} — {constat} (Apport : {apport})")
+    return [i for i in items if i]
+
+
 @app.route("/api/deck_section_data")
 def api_deck_section_data():
     """Une SECTION précise d'un onglet (pas tout l'onglet résumé) — table/chart/liste
@@ -4139,6 +4225,10 @@ def api_deck_section_data():
             chart, items = _ef_section_data(section, segment)
         elif tab == "strategie":
             chart, table, items = _strat_section_data(section, segment)
+        elif tab == "cb":
+            chart, table, items = _cb_section_data(section, segment)
+        elif tab == "stratop":
+            items = _stratop_section_data(section, segment)
     except Exception as e:
         return jsonify({"chart": None, "table": None, "items": None, "error": str(e)[:200]}), 200
     return jsonify({"chart": chart, "table": table, "items": items,
