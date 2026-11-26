@@ -4576,6 +4576,13 @@ function _convLoad(){
   _convSyncFromServer();   // fusionne avec l'historique côté serveur (voir plus bas)
 }
 function _convStore(){
+  // Le compte démo ne doit JAMAIS écrire ici — ce fichier est PARTAGÉ (un seul fichier côté
+  // serveur, pas par utilisateur) et sert à retrouver SES PROPRES conversations entre appareils
+  // (localhost/IP LAN/...). Constat du 2026-11-26 : un clic "Approfondir" accidentel pendant la
+  // démo a écrasé ce fichier partagé avec la conversation figée + la question posée par erreur,
+  // visible ensuite par n'importe quel compte. L'historique démo reste donc 100% en mémoire,
+  // jamais sur disque.
+  if(window.SB_CHAT_DEMO) return;
   try{ localStorage.setItem(_CONV_KEY, JSON.stringify(CONVOS.slice(0,100))); }catch(e){}
   // Copie aussi côté serveur : localStorage est isolé PAR ORIGINE (localhost / 127.0.0.1 /
   // IP LAN = 3 stockages différents pour le même serveur) → l'historique semble
