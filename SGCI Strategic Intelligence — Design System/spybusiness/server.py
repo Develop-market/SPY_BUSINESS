@@ -3691,8 +3691,15 @@ def _resume_facts_cb(segment=None):
     CB = AGENTS["CB"].structured
     blocs = []
     for seg in ("Particuliers", "Entreprises"):
-        q6 = CB.cb_analyse_q6(strategie.CB_ANNEE, strategie.CB_SEM, seg) or []
-        cmp = CB.cb_prix_competitivite(strategie.CB_ANNEE, strategie.CB_SEM, seg) or {}
+        # Mêmes clés que /api/deck_data (section=cb) — cf. le commentaire là-bas : le premier
+        # appel de ces deux calculs sur un processus neuf a mesuré plus de 150s avant de devenir
+        # instantané. Partager la clé évite que le PDF et le PPTX paient chacun ce coût une fois.
+        q6 = servir_avec_cache(
+            f"deck_cb_q6:{strategie.CB_ANNEE}:{strategie.CB_SEM}:{seg}",
+            lambda seg=seg: CB.cb_analyse_q6(strategie.CB_ANNEE, strategie.CB_SEM, seg)) or []
+        cmp = servir_avec_cache(
+            f"deck_cb_prixcomp:{strategie.CB_ANNEE}:{strategie.CB_SEM}:{seg}",
+            lambda seg=seg: CB.cb_prix_competitivite(strategie.CB_ANNEE, strategie.CB_SEM, seg)) or {}
         bycat = sorted([r for r in q6 if (r.get("n_services") or 0) > 0], key=lambda r: -(r.get("n_services") or 0))
         rang_cat = next((i + 1 for i, r in enumerate(bycat) if r["banque"] == "SGCI"), None)
         sgci_q6 = next((r for r in q6 if r["banque"] == "SGCI"), {})
@@ -3886,8 +3893,19 @@ def api_deck_data():
             rows, chart_labels, chart_series = [], [], {"Particuliers": {}, "Entreprises": {}}
             stats = []
             for seg in ("Particuliers", "Entreprises"):
-                q6 = CB.cb_analyse_q6(strategie.CB_ANNEE, strategie.CB_SEM, seg) or []
-                cmp = CB.cb_prix_competitivite(strategie.CB_ANNEE, strategie.CB_SEM, seg) or {}
+                # Mesuré en ligne (2026-11-27) : ces deux calculs sont protégés par un simple
+                # @lru_cache (db.py) — rapide une fois chaud, mais sur un processus tout juste
+                # redémarré (réveil ou redéploiement), le TOUT premier appel a pris plus de 150s
+                # (confirmé isolément, hors toute concurrence) avant de devenir instantané pour
+                # le reste du processus. servir_avec_cache ajoute le même filet déjà posé pour
+                # cb_repricing/les directives : la base (cache_app) garde le résultat au-delà du
+                # redémarrage, donc seul le TOUT premier visiteur après un déploiement le paie.
+                q6 = servir_avec_cache(
+                    f"deck_cb_q6:{strategie.CB_ANNEE}:{strategie.CB_SEM}:{seg}",
+                    lambda seg=seg: CB.cb_analyse_q6(strategie.CB_ANNEE, strategie.CB_SEM, seg)) or []
+                cmp = servir_avec_cache(
+                    f"deck_cb_prixcomp:{strategie.CB_ANNEE}:{strategie.CB_SEM}:{seg}",
+                    lambda seg=seg: CB.cb_prix_competitivite(strategie.CB_ANNEE, strategie.CB_SEM, seg)) or {}
                 winrate_par_banque = {c["banque"]: c.get("winrate") for c in (cmp.get("classement") or [])}
                 bycat = sorted([r for r in q6 if (r.get("n_services") or 0) > 0], key=lambda r: -(r.get("n_services") or 0))
                 for r in bycat:
