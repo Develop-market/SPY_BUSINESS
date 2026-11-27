@@ -4420,7 +4420,7 @@ function _demoConvosList(){
   return [
     {
       id: "demo-tous",
-      title: "📊 Synthèse générale — 10 analyses clés",
+      title: "test du chat",
       ts: now - 3600000,
       msgs: m.slice()
     }
