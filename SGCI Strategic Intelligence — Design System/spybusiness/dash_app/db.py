@@ -115,7 +115,13 @@ import cb_axes
 def get_conn():
     if not _HAS_PG:
         raise RuntimeError("psycopg2 non installé")
-    return psycopg2.connect(**DB)
+    # connect_timeout (2026-11-27) : sans lui, une connexion qui attend un slot libre sur le
+    # pooler Supabase (gratuit, nombre de connexions limité) peut rester bloquée plusieurs
+    # MINUTES sans jamais lever d'erreur — c'est ce qui faisait dépasser 120s un simple appel
+    # déterministe (/api/deck_data) pendant un téléchargement PPTX, pile en même temps qu'un
+    # autre appel du même téléchargement ouvrait sa propre connexion. Avec ce délai, l'appel
+    # échoue vite et retombe sur les filets déjà en place (query() -> [], cache -> None).
+    return psycopg2.connect(connect_timeout=10, **DB)
 
 
 def query(sql, params=None):
