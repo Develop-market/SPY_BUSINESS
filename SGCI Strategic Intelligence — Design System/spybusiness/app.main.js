@@ -4413,6 +4413,8 @@ function _demoConversation(){
 }
 
 function _demoConvosList(){
+  // Un SEUL item dans la liste — demande explicite : la liste de démonstration ne doit
+  // montrer QUE la synthèse générale, pas une conversation par thème (ça faisait 8 entrées).
   const m = _DEMO_CONV.msgs;
   const now = Date.now();
   return [
@@ -4421,48 +4423,6 @@ function _demoConvosList(){
       title: "📊 Synthèse générale — 10 analyses clés",
       ts: now - 3600000,
       msgs: m.slice()
-    },
-    {
-      id: "demo-pnb",
-      title: "📈 Évolution du PNB SGCI (2023-2025)",
-      ts: now - 3200000,
-      msgs: [m[0], m[1], m[2], m[3]]
-    },
-    {
-      id: "demo-perf",
-      title: "💰 Résultat net, ROE et Efficience",
-      ts: now - 2800000,
-      msgs: [m[4], m[5], m[6], m[7], m[8], m[9]]
-    },
-    {
-      id: "demo-tenue",
-      title: "🏦 Frais de tenue : SGCI vs BICICI vs NSIA",
-      ts: now - 2400000,
-      msgs: [m[10], m[11]]
-    },
-    {
-      id: "demo-retrait",
-      title: "💳 Conditions de retrait au guichet SGCI",
-      ts: now - 2000000,
-      msgs: [m[12], m[13]]
-    },
-    {
-      id: "demo-usure",
-      title: "⚖️ Réglementation taux d'usure en Côte d'Ivoire (14%)",
-      ts: now - 1600000,
-      msgs: [m[14], m[15]]
-    },
-    {
-      id: "demo-gratuite",
-      title: "🎁 Opérations bancaires gratuites (Instruction BCEAO)",
-      ts: now - 1200000,
-      msgs: [m[16], m[17]]
-    },
-    {
-      id: "demo-bicici",
-      title: "🏆 Résultat net et position de BICICI (2025)",
-      ts: now - 800000,
-      msgs: [m[18], m[19]]
     }
   ];
 }
