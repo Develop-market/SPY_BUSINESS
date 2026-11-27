@@ -4380,49 +4380,60 @@ function mdToHtml(t){
    conformément à la règle du projet. Fixe et identique à chaque ouverture : ce
    compte ne peut ni en créer une autre, ni modifier celle-ci.
    ════════════════════════════════════════════════════════════════════════ */
-const _DEMO_CONV = {
-  "id": "demo-fixe",
-  "title": "Exemples de questions — démonstration",
-  "ts": 1764000000000,
-  "msgs": [
-    { "role": "u", "content": "Quel est le PNB de SGCI en 2025 ?", "ts": 1764000000000 },
-    { "role": "a", "content": "Le PNB de SGCI en 2025 est de 276 048 millions FCFA.", "ts": 1764000015000 },
-    { "role": "u", "content": "Comment a évolué le PNB de SGCI ces dernières années ?", "ts": 1764000060000 },
-    { "role": "a", "content": "Voici la restitution exacte des données fournies et l'analyse correspondante :\n\n| Année | Valeur | Var. absolue | Var. % |\n|---|---|---|---|\n| 2023 | 253 286 | — | — |\n| 2024 | 263 207 | +9 921 | +3.9 % |\n| 2025 | 276 048 | +12 841 | +4.9 % |\nVariation totale 2023→2025 : +22 762 millions FCFA (+9.0 %)\n\n**Analyse de l'évolution :**\n\n* **Tendance générale :** Le PNB de SGCI affiche une dynamique positive continue sur l'ensemble de la période observée, passant de 253 286 millions FCFA en 2023 à 276 048 millions FCFA en 2025.\n* **Année la plus marquante :** L'année 2025 s'impose comme la plus performante de la période, enregistrant à la fois la plus forte progression absolue (+12 841 millions FCFA) et le niveau de PNB le plus élevé.\n* **Rythme de croissance :** On observe une accélération du rythme de croissance annuelle, qui passe de +3.9 % en 2024 à +4.9 % en 2025, soutenant une hausse globale de +9.0 % sur la période 2023-2025.", "ts": 1764000075000 },
-    { "role": "u", "content": "Quel est le résultat net de SGCI en 2025 ?", "ts": 1764000120000 },
-    { "role": "a", "content": "Le résultat net de SGCI en 2025 est de 101 352 millions FCFA.", "ts": 1764000135000 },
-    { "role": "u", "content": "Quel est le ROE de SGCI en 2025 ?", "ts": 1764000180000 },
-    { "role": "a", "content": "Le ROE de SGCI est de 20.5 % en 2025.", "ts": 1764000195000 },
-    { "role": "u", "content": "Quel est le coefficient d'exploitation de SGCI en 2025 ?", "ts": 1764000240000 },
-    { "role": "a", "content": "Le coefficient d'exploitation de SGCI est de 38.8 % en 2025.", "ts": 1764000255000 },
-    { "role": "u", "content": "Compare les frais de tenue de compte entre SGCI, BICICI et NSIA", "ts": 1764000300000 },
-    { "role": "a", "content": "**Comparaison — frais de tenue de compte (SGCI, BICICI, NSIA)**\n\n#### SGCI — Particuliers\n| Service | S1 2026 |\n|---|---|\n| Tenue de compte sur livret d'épargne | Gratuit |\n| Succession > Frais de tenue de compte | 2 350 FCFA |\n| Commission de conservation de titres | 0,26 % – 0,5 % |\n\n#### BICICI — Particuliers\n| Service | S1 2026 |\n|---|---|\n| Frais de tenue de compte (tarif mensuel) | 5 200 FCFA |\n| Tenue de compte sur livret d'épargne | Gratuit |\n| Relevé pour ambassade | 15 000 FCFA |\n\n#### NSIA — Particuliers\n| Service | S2 2025 |\n|---|---|\n| Frais de tenue de compte chèque (mensuel) | 5 400 FCFA TTC |\n| Pack Eco (Saphir) | 2 200 FCFA TTC/mois |\n| Pack Élite (Gold) | 12 450 FCFA TTC/mois |\n\n**Analyse.** Sur le segment Particuliers, la tenue de compte sur livret d'épargne est gratuite dans les trois banques. Sur le compte chèque standard, BICICI propose le tarif mensuel le moins cher (5 200 FCFA) face à NSIA (5 400 FCFA), tandis que SGCI facture surtout des commissions en pourcentage plutôt qu'un forfait mensuel fixe.", "ts": 1764000315000 },
-    { "role": "u", "content": "Quelles sont les conditions tarifaires de retrait au guichet chez SGCI ?", "ts": 1764000360000 },
-    { "role": "a", "content": "Voici les conditions tarifaires de retrait au guichet chez SGCI issues de la grille publiée :\n\n| Clientèle | Service | Tarif (FCFA HT) | Période |\n|---|---|---|---|\n| Particuliers | Forçage pour retrait d'espèce dans l'agence qui tient le compte | 2 750 | S1 2024 |\n| Entreprises | Forçage pour retrait d'espèce dans l'agence qui tient le compte | 6 500 | S1 2025 |\n\n*Note : le retrait standard au guichet (hors forçage) n'apparaît pas distinctement dans le document source — seul le forçage (retrait hors agence habituelle) y est tarifé.*", "ts": 1764000375000 },
-    { "role": "u", "content": "Que dit la réglementation sur le taux d'usure en Côte d'Ivoire ?", "ts": 1764000420000 },
-    { "role": "a", "content": "Le taux de l'usure applicable aux banques en Côte d'Ivoire est fixé à **14 % l'an**.\n\n**Ancrage réglementaire :** Décision UMOA n° 19-2025 (taux usure) — Article 2.", "ts": 1764000435000 },
-    { "role": "u", "content": "Quelles opérations bancaires sont gratuites selon la BCEAO ?", "ts": 1764000480000 },
-    { "role": "a", "content": "Selon la réglementation BCEAO (Instruction relative au service bancaire minimum garanti dans les États membres de l'UMOA), plusieurs opérations sont gratuites pour la clientèle des particuliers :\n\n**Délivrance et gestion de compte** : ouverture de compte, délivrance de carnet de chèques, délivrance d'un livret d'épargne, relevé de compte mensuel, relevé d'identité bancaire (RIB), clôture de compte.\n\n**Opérations de caisse et retraits** : versement d'espèces sur son propre compte, retrait d'espèces au guichet ou au GAB de sa propre banque.\n\n**Virements et paiements** : virement de compte à compte au sein de la même banque, encaissement de chèques et virements UMOA, paiement par carte dans la zone UMOA.\n\n**Services complémentaires** : consultation de solde (guichet, GAB, internet), tenue de compte sur livret d'épargne.", "ts": 1764000495000 },
-    { "role": "u", "content": "Quel est le résultat net de BICICI en 2025 ?", "ts": 1764000540000 },
-    { "role": "a", "content": "Le résultat net de BICICI en 2025 est de 36 520 millions FCFA.", "ts": 1764000555000 }
-  ]
-};
+// Les messages portent un DÉCALAGE EN SECONDES (depuis le premier message), pas une date
+// figée. CORRIGÉ LE 2026-11-27 : avec une date absolue codée en dur (ex. 1764000000000), le
+// contenu affichait une heure fixe ("16:00") totalement déconnectée du "il y a X min" montré
+// dans la liste des conversations (calculée, elle, à partir de l'heure réelle) — confusion
+// signalée par le directeur ("si la conversation date de 4:38 pourquoi les messages
+// commencent à 16h ??"). _DEMO_TS() calcule maintenant les deux à partir du même instant réel.
+const _DEMO_CONV_OFFSETS = [
+  { "role": "u", "content": "Quel est le PNB de SGCI en 2025 ?", "off": 0 },
+  { "role": "a", "content": "Le PNB de SGCI en 2025 est de 276 048 millions FCFA.", "off": 15 },
+  { "role": "u", "content": "Comment a évolué le PNB de SGCI ces dernières années ?", "off": 60 },
+  { "role": "a", "content": "Voici la restitution exacte des données fournies et l'analyse correspondante :\n\n| Année | Valeur | Var. absolue | Var. % |\n|---|---|---|---|\n| 2023 | 253 286 | — | — |\n| 2024 | 263 207 | +9 921 | +3.9 % |\n| 2025 | 276 048 | +12 841 | +4.9 % |\nVariation totale 2023→2025 : +22 762 millions FCFA (+9.0 %)\n\n**Analyse de l'évolution :**\n\n* **Tendance générale :** Le PNB de SGCI affiche une dynamique positive continue sur l'ensemble de la période observée, passant de 253 286 millions FCFA en 2023 à 276 048 millions FCFA en 2025.\n* **Année la plus marquante :** L'année 2025 s'impose comme la plus performante de la période, enregistrant à la fois la plus forte progression absolue (+12 841 millions FCFA) et le niveau de PNB le plus élevé.\n* **Rythme de croissance :** On observe une accélération du rythme de croissance annuelle, qui passe de +3.9 % en 2024 à +4.9 % en 2025, soutenant une hausse globale de +9.0 % sur la période 2023-2025.", "off": 75 },
+  { "role": "u", "content": "Quel est le résultat net de SGCI en 2025 ?", "off": 120 },
+  { "role": "a", "content": "Le résultat net de SGCI en 2025 est de 101 352 millions FCFA.", "off": 135 },
+  { "role": "u", "content": "Quel est le ROE de SGCI en 2025 ?", "off": 180 },
+  { "role": "a", "content": "Le ROE de SGCI est de 20.5 % en 2025.", "off": 195 },
+  { "role": "u", "content": "Quel est le coefficient d'exploitation de SGCI en 2025 ?", "off": 240 },
+  { "role": "a", "content": "Le coefficient d'exploitation de SGCI est de 38.8 % en 2025.", "off": 255 },
+  { "role": "u", "content": "Compare les frais de tenue de compte entre SGCI, BICICI et NSIA", "off": 300 },
+  { "role": "a", "content": "**Comparaison — frais de tenue de compte (SGCI, BICICI, NSIA)**\n\n#### SGCI — Particuliers\n| Service | S1 2026 |\n|---|---|\n| Tenue de compte sur livret d'épargne | Gratuit |\n| Succession > Frais de tenue de compte | 2 350 FCFA |\n| Commission de conservation de titres | 0,26 % – 0,5 % |\n\n#### BICICI — Particuliers\n| Service | S1 2026 |\n|---|---|\n| Frais de tenue de compte (tarif mensuel) | 5 200 FCFA |\n| Tenue de compte sur livret d'épargne | Gratuit |\n| Relevé pour ambassade | 15 000 FCFA |\n\n#### NSIA — Particuliers\n| Service | S2 2025 |\n|---|---|\n| Frais de tenue de compte chèque (mensuel) | 5 400 FCFA TTC |\n| Pack Eco (Saphir) | 2 200 FCFA TTC/mois |\n| Pack Élite (Gold) | 12 450 FCFA TTC/mois |\n\n**Analyse.** Sur le segment Particuliers, la tenue de compte sur livret d'épargne est gratuite dans les trois banques. Sur le compte chèque standard, BICICI propose le tarif mensuel le moins cher (5 200 FCFA) face à NSIA (5 400 FCFA), tandis que SGCI facture surtout des commissions en pourcentage plutôt qu'un forfait mensuel fixe.", "off": 315 },
+  { "role": "u", "content": "Quelles sont les conditions tarifaires de retrait au guichet chez SGCI ?", "off": 360 },
+  { "role": "a", "content": "Voici les conditions tarifaires de retrait au guichet chez SGCI issues de la grille publiée :\n\n| Clientèle | Service | Tarif (FCFA HT) | Période |\n|---|---|---|---|\n| Particuliers | Forçage pour retrait d'espèce dans l'agence qui tient le compte | 2 750 | S1 2024 |\n| Entreprises | Forçage pour retrait d'espèce dans l'agence qui tient le compte | 6 500 | S1 2025 |\n\n*Note : le retrait standard au guichet (hors forçage) n'apparaît pas distinctement dans le document source — seul le forçage (retrait hors agence habituelle) y est tarifé.*", "off": 375 },
+  { "role": "u", "content": "Que dit la réglementation sur le taux d'usure en Côte d'Ivoire ?", "off": 420 },
+  { "role": "a", "content": "Le taux de l'usure applicable aux banques en Côte d'Ivoire est fixé à **14 % l'an**.\n\n**Ancrage réglementaire :** Décision UMOA n° 19-2025 (taux usure) — Article 2.", "off": 435 },
+  { "role": "u", "content": "Quelles opérations bancaires sont gratuites selon la BCEAO ?", "off": 480 },
+  { "role": "a", "content": "Selon la réglementation BCEAO (Instruction relative au service bancaire minimum garanti dans les États membres de l'UMOA), plusieurs opérations sont gratuites pour la clientèle des particuliers :\n\n**Délivrance et gestion de compte** : ouverture de compte, délivrance de carnet de chèques, délivrance d'un livret d'épargne, relevé de compte mensuel, relevé d'identité bancaire (RIB), clôture de compte.\n\n**Opérations de caisse et retraits** : versement d'espèces sur son propre compte, retrait d'espèces au guichet ou au GAB de sa propre banque.\n\n**Virements et paiements** : virement de compte à compte au sein de la même banque, encaissement de chèques et virements UMOA, paiement par carte dans la zone UMOA.\n\n**Services complémentaires** : consultation de solde (guichet, GAB, internet), tenue de compte sur livret d'épargne.", "off": 495 },
+  { "role": "u", "content": "Quel est le résultat net de BICICI en 2025 ?", "off": 540 },
+  { "role": "a", "content": "Le résultat net de BICICI en 2025 est de 36 520 millions FCFA.", "off": 555 }
+];
+// Ancre le dernier message à « il y a 2 minutes » (pas « maintenant » — une conversation qui
+// vient de se terminer, pas une en cours), et étale les précédents vers l'arrière à partir de
+// là, dans le MÊME référentiel que _relTime() utilisé par la liste des conversations.
+function _demoMsgsNow(){
+  const dernierOffset = _DEMO_CONV_OFFSETS[_DEMO_CONV_OFFSETS.length - 1].off;
+  const ancre = Date.now() - 120000 - dernierOffset * 1000;
+  return _DEMO_CONV_OFFSETS.map(m => ({ role: m.role, content: m.content, ts: ancre + m.off * 1000 }));
+}
 function _demoConversation(){
-  // Copie profonde : CHAT est muté ailleurs (pushChat...), la constante ne doit jamais l'être.
-  return JSON.parse(JSON.stringify(_DEMO_CONV));
+  const msgs = _demoMsgsNow();
+  return { id: "demo-fixe", title: "Exemples de questions — démonstration",
+           ts: msgs[msgs.length - 1].ts, msgs };
 }
 
 function _demoConvosList(){
   // Un SEUL item dans la liste — demande explicite : la liste de démonstration ne doit
   // montrer QUE la synthèse générale, pas une conversation par thème (ça faisait 8 entrées).
-  const m = _DEMO_CONV.msgs;
-  const now = Date.now();
+  // ts = l'heure du DERNIER message (comme une vraie conversation) : sinon la liste affiche
+  // une heure sans rapport avec les messages qu'elle contient, ce qui ne veut rien dire.
+  const msgs = _demoMsgsNow();
   return [
     {
       id: "demo-tous",
       title: "test du chat",
-      ts: now - 3600000,
-      msgs: m.slice()
+      ts: msgs[msgs.length - 1].ts,
+      msgs
     }
   ];
 }
